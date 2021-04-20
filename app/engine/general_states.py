@@ -1602,6 +1602,10 @@ class ShopState(State):
             self.leave_message = 'armory_leave'
 
         items = game.memory['shop_items']
+        if game.rando_settings['item_rando']:
+            for x in range(len(items) - 1):
+                newItem = item_funcs.create_item(self.unit, items[x].nid)
+                items[x] = newItem
         my_items = item_funcs.get_all_tradeable_items(self.unit)
         topleft = (44, WINHEIGHT - 16 * 5 - 8 - 4)
         self.sell_menu = menus.Shop(self.unit, my_items, topleft, disp_value='sell')
