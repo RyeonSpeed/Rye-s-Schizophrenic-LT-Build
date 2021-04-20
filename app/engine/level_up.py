@@ -240,7 +240,7 @@ class ExpState(State):
             old_anim = self.unit.battle_anim
             
             if self.state.get_state() == 'promote':
-                promote_action = action.Promote(self.unit, game.memory['next_class'])
+                promote_action = action.Promote(self.unit, game.memory['next_class'], game.rando_settings['promo_rando'])
             else:
                 promote_action = action.ClassChange(self.unit, game.memory['next_class'])
             self.stat_changes, self.new_wexp = promote_action.get_data()
