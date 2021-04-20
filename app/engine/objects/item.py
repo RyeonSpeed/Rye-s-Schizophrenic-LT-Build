@@ -2,6 +2,7 @@ from app.utilities.data import Data
 
 from app.data.database import DB
 import app.engine.item_component_access as ICA
+from app.engine.game_state import game
 
 class ItemObject():
     next_uid = 100
@@ -67,7 +68,11 @@ class ItemObject():
 
     @classmethod
     def restore(cls, dat):
-        self = cls.from_prefab(DB.items.get(dat['nid']))
+        if game.rando_settings['itemDictionary']:
+            item_db = game.rando_settings['itemDictionary']
+        else:
+            item_db = DB.items
+        self = cls.from_prefab(item_db.get(dat['nid']))
         self.uid = dat['uid']
         self.owner_nid = dat['owner_nid']
         self.droppable = dat['droppable']
