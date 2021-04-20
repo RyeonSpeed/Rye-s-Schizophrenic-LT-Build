@@ -135,7 +135,7 @@ def apply_stat_changes(unit, stat_changes: dict, in_base: bool = False):
         unit.set_hp(1000)
         unit.set_mana(1000)
 
-def get_starting_skills(unit) -> list:
+def get_starting_skills(unit, settings = None) -> list:
     # Class skills
     klass_obj = DB.classes.get(unit.klass)
     current_klass = klass_obj
@@ -154,7 +154,11 @@ def get_starting_skills(unit) -> list:
     feats = DB.skills.get_feats()
     current_skills = [skill.nid for skill in unit.skills]
     for idx, klass in enumerate(all_klasses):
-        for learned_skill in klass.learned_skills:
+        if settings:
+            skill_set = settings.rando_settings['klassDictionary'][klass.nid].learned_skills
+        else:
+            skill_set = klass.learned_skills
+        for learned_skill in skill_set:
             if (learned_skill[0] <= unit.level or klass != klass_obj) and \
                     learned_skill[1] not in current_skills and \
                     learned_skill[1] not in skills_to_add:
