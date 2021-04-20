@@ -21,7 +21,11 @@ class PromotionChoiceState(State):
         self.bg = background.create_background('settings_background')
 
     def _get_choices(self):
-        self.class_options = self.unit_klass.turns_into
+        if game.rando_settings['promo_rando']:
+            promo_dict = game.rando_settings['klassDictionary']
+            self.class_options = promo_dict[self.unit_klass.nid].turns_into
+        else:
+            self.class_options = self.unit_klass.turns_into
         return [DB.classes.get(c).name for c in self.class_options]
 
     def _proceed(self, next_class):
