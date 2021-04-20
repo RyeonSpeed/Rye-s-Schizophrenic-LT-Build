@@ -967,7 +967,7 @@ class ApplyGrowthChanges(Action):
         unit_funcs.apply_growth_changes(self.unit, negative_changes)
 
 class Promote(Action):
-    def __init__(self, unit, new_class_nid):
+    def __init__(self, unit, new_class_nid, rando_promo = False):
         self.unit = unit
         self.old_exp = self.unit.exp
         self.old_level = self.unit.level
