@@ -1,4 +1,3 @@
-
 import sys
 
 from app.utilities import utils
@@ -995,6 +994,22 @@ class Promote(Action):
         self.new_wexp = {nid: 0 for nid in DB.weapons.keys()}
         for weapon in DB.weapons:
             self.new_wexp[weapon.nid] = wexp_gain[weapon.nid].wexp_gain
+
+        if rando_promo:
+            self.wexp_base = DB.classes.get(self.old_klass).wexp_gain
+            self.wexp_total = 0
+            for weapon in DB.weapons:
+                if wexp_gain[weapon.nid].wexp_gain <= 0 and self.wexp_base[weapon.nid].wexp_gain > 0: #Our old class has a weapon that our new class doesn't
+                    #logger.warning("The weapon type is %s, old class has %s WEXP, new class has %s WEXP", weapon.nid, self.wexp_base[weapon.nid].wexp_gain, wexp_gain[weapon.nid].wexp_gain)
+                    self.wexp_total += unit.wexp[weapon.nid]
+                    self.new_wexp[weapon.nid] -= unit.wexp[weapon.nid]
+                    #logger.warning("%s", self.new_wexp[weapon.nid])
+            while self.wexp_total > 0:
+                for weapon in DB.weapons:
+                    if wexp_gain[weapon.nid].wexp_gain > 0:
+                        if self.wexp_total > 0:
+                            self.new_wexp[weapon.nid] += 1
+                            self.wexp_total -= 1
 
         self.subactions = []
 
