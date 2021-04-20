@@ -61,6 +61,9 @@ class GameState():
         static_random.set_seed(random_seed)
         self.game_vars['_random_seed'] = random_seed
 
+        #Default Randomizer Settings
+        self.rando_settings = self.set_rando()
+
         # Set up overworld  TODO
         if DB.constants.value('overworld'):
             self.overworld = None
@@ -191,7 +194,8 @@ class GameState():
                   'already_triggered_events': self.already_triggered_events,
                   'talk_options': self.talk_options,
                   'base_convos': self.base_convos,
-                  'current_random_state': static_random.get_combat_random_state()
+                  'current_random_state': static_random.get_combat_random_state(),
+                  'randomizer_settings': self.rando_settings,
                   }
         meta_dict = {'playtime': self.playtime,
                      'realtime': time.time(),
@@ -231,6 +235,10 @@ class GameState():
         self.current_party = s_dict['current_party']
         self.turncount = int(s_dict['turncount'])
 
+        self.rando_settings = s_dict.get('randomizer_settings')
+        for key, value in self.rando_settings.items():
+            logging.debug("Loaded value for %s: %s", key, value)
+        
         self.state.load_states(s_dict['state'][0], s_dict['state'][1])
 
         self.item_registry = {item['uid']: ItemObject.restore(item) for item in s_dict['items']}
@@ -632,6 +640,88 @@ class GameState():
 
     def set_money(self, val):
         self.parties[self.current_party].money = val
+
+    def set_rando(self, val=None):
+        if val:
+            return val.rando_settings
+        else:
+            return {'class_pools': [],
+                    'player_class_rando': False,
+                    'player_class_stop_redundancy': False,
+                    'lord_rando': False,
+                    'thief_rando': False,
+                    'special_rando': False,
+                    'boss_rando': False,
+                    'generic_rando': False,
+                    'bases_mode': 'Redistribute',
+                    'bases_variance': 0,
+                    'boss_bases': False,
+                    'player_bases': False,
+                    'growths_mode': 'Redistribute',
+                    'growths_variance': 0,
+                    'growths_min': 0,
+                    'growths_max': 100,
+                    'named_growths': False,
+                    'wepMt': False,
+                    'wepMtVar': 0,
+                    'wepMtMin': 1,
+                    'wepMtMax': 25,
+                    'wepHit': False,
+                    'wepHitVar': 0,
+                    'wepHitMin': 50,
+                    'wepHitMax': 100,
+                    'wepCrit': False,
+                    'wepCritVar': 0,
+                    'wepCritMin': 0,
+                    'wepCritMax': 50,
+                    'wepWeight': False,
+                    'wepWeightVar': 0,
+                    'wepWeightMin': 2,
+                    'wepWeightMax': 20,
+                    'wepUses': False,
+                    'wepUsesVar': 0,
+                    'wepUsesMin': 10,
+                    'wepUsesMax': 60,
+                    'wepCUses': False,
+                    'wepCUsesVar': 0,
+                    'wepCUsesMin': 1,
+                    'wepCUsesMax': 10,
+                    'itemDictionary': {},
+                    'wexp_mode': 'Similar',
+                    'keepWeps': False,
+                    'weps_mode': 'Match',
+                    'item_rando': False,
+                    'promo_rando': False,
+                    'promo_rando_stop_redundancy': False,
+                    'promotion_amount': 2,
+                    'promoDictionary': {},
+                    'promotion_mode': 'Match',
+                    'name_rando': False,
+                    'portrait_rando': False,
+                    'desc_rando': False,
+                    'unitDictionary': {},
+                    'unitDataDictionary': {},
+                    'genericDictionary': {level.nid: {} for level in DB.levels.values()},
+                    'Randomized': False,
+                    'personal_skill_rando': False,
+                    'personal_skill_mode': 'Match',
+                    'personal_skill_limit': 1,
+                    'personal_skill_stop_redundancy': False,
+                    'klassDictionary': {},
+                    'class_skill_rando': False,
+                    'class_skill_mode': 'Match',
+                    'class_skill_limit': 1,
+                    'class_skill_stop_redundancy': False,
+                    'class_skill_match_levels': False,
+                    'random_effects': False,
+                    'safe_basic_weapons': False,
+                    'random_effects_mode': 'Add',
+                    'random_effects_limit': 0,
+                    'weapon_properties': [],
+                    'weapon_effective': [],
+                    'weapon_imbue': [],
+                    'weapon_inflict': [],
+                    }
 
 game = GameState()
 
