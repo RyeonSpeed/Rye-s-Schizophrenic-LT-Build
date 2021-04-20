@@ -8,11 +8,12 @@ from app.engine.sprites import SPRITES
 from app.engine.sound import SOUNDTHREAD
 from app.engine.state import State
 from app.engine.background import PanoramaBackground
-from app.engine import engine, save, image_mods, banner, menus, particles
+from app.engine import engine, save, image_mods, banner, menus, particles, randomizer
 from app.engine import config as cf
 from app import autoupdate
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.game_state import game
+from app.engine.randomizer import Rando
 
 from app.events.event import Event
 
@@ -172,7 +173,8 @@ class TitleMainState(State):
                     game.state.change('title_extras')
                 elif self.selection == 'New Game':
                     # game.state.change('title_mode')
-                    game.state.change('title_new')
+                    #game.state.change('title_new')
+                    game.state.change('title_rando')
                 self.state = 'transition_in'
                 return 'repeat'
 
@@ -342,6 +344,8 @@ def build_new_game(slot):
     game.build_new()
 
     game.state.clear()
+    if 'Rando' in globals():
+        game.rando_settings = game.set_rando(Rando)
     game.state.change('turn_change')
     game.state.process_temp_state()
 
@@ -673,3 +677,43 @@ class TitleSaveState(State):
             else:
                 self.menu.draw(surf)
         return surf
+
+class TitleRandomizerState(TitleLoadState):
+    name = 'title_rando'
+    in_level = False
+    show_map = False
+
+    def start(self):
+        self.position_x = int(WINWIDTH * 1.5)
+        self.state = 'transition_in'
+
+        self.bg = game.memory['title_bg']
+
+        # options = ['Options', 'Credits']
+        options = ['Standard','Randomized']
+        self.menu = menus.Main(options, 'title_menu_dark')
+
+    def take_input(self, event):
+        # Only take input in normal state
+        if self.state != 'normal':
+            return
+
+        self.menu.handle_mouse()
+        if event == 'DOWN':
+            self.menu.move_down()
+        elif event == 'UP':
+            self.menu.move_up()
+
+        elif event == 'BACK':
+            self.state = 'transition_out'
+
+        elif event == 'SELECT':
+            selection = self.menu.get_current()
+            if selection == 'Standard':
+                Rando.rando_settings = randomizer.resetRando()
+                game.memory['next_state'] = 'title_new' #Just do whatever new game does
+                game.state.change('transition_to')
+            elif selection == 'Randomized':
+                Rando.rando_settings = randomizer.resetRando()
+                game.memory['next_state'] = 'randomizer_menu' #Utilize a version of this for rando?
+                game.state.change('transition_to')
