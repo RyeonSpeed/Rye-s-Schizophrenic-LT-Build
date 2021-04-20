@@ -4,6 +4,7 @@ from app.utilities import utils
 from app.engine import item_system, skill_system
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
+from app.engine.game_state import game
 
 import logging
 
@@ -51,7 +52,10 @@ def sell_price(unit, item):
 #     return True
 
 def create_item(unit, item_nid, droppable=False):
-    item_prefab = DB.items.get(item_nid)
+    if game is not None and game.rando_settings['item_rando']:
+        item_prefab = game.rando_settings['itemDictionary'].get(item_nid)
+    else:
+        item_prefab = DB.items.get(item_nid)
     if not item_prefab:
         logging.error("Couldn't find %s" % item_nid)
         return
