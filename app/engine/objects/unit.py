@@ -2,7 +2,7 @@ from app.utilities import utils
 from app.utilities.data import Prefab
 from app.data.database import DB
 
-from app.engine import equations, item_system, item_funcs, skill_system, unit_funcs, action
+from app.engine import equations, item_system, item_funcs, skill_system, unit_funcs, action, randomizer
 from app.engine.game_state import game
 
 # Main unit object used by engine
@@ -18,6 +18,7 @@ class UnitObject(Prefab):
         self.team = prefab.team
         self.party = None
         self.klass = prefab.klass
+        klass_obj = DB.classes.get(self.klass)
         self.variant = prefab.variant
         self.level = prefab.level
         self.exp = 0
@@ -29,6 +30,20 @@ class UnitObject(Prefab):
         self.items = item_funcs.create_items(self, prefab.starting_items)
 
         if self.generic:
+            if game.rando_settings['generic_rando']:
+                #Make_Unit commands dodge randomization. I don't think a static randomizer could easily deal with this issue, so just leaving it for now.
+                #Generics are organized by level. If we don't have a next level variable, we'll have to assume we're at game start.
+                if '_next_level_nid' in game.game_vars:
+                    if self.nid in game.rando_settings['genericDictionary'][game.game_vars.get('_next_level_nid')]:
+                        self.klass = game.rando_settings['genericDictionary'][game.game_vars.get('_next_level_nid')][self.nid].klass
+                        self.items = item_funcs.create_items(self, game.rando_settings['genericDictionary'][game.game_vars.get('_next_level_nid')][self.nid].items)
+                else:
+                    if self.nid in game.rando_settings['genericDictionary']['0']:
+                        self.klass = game.rando_settings['genericDictionary']['0'][self.nid].klass
+                        self.items = item_funcs.create_items(self, game.rando_settings['genericDictionary']['0'][self.nid].items)
+                klass_obj = game.rando_settings['klassDictionary'].get(self.klass)
+            else:
+                self.items = item_funcs.create_items(self, prefab.starting_items)
             self.faction = prefab.faction
             self.name = DB.factions.get(self.faction).name
             self.desc = DB.factions.get(self.faction).desc
@@ -43,17 +58,72 @@ class UnitObject(Prefab):
             self.calculate_needed_wexp_from_items()
             self.portrait_nid = None
         else:
+            if game.rando_settings['Randomized'] and self.nid in game.rando_settings['unitDictionary']:
+                self.items = item_funcs.create_items(self, game.rando_settings['unitDictionary'][self.nid].items)
+            else:
+                self.items = item_funcs.create_items(self, prefab.starting_items)
+            
             self.faction = None
-            self.name = prefab.name
-            self.desc = prefab.desc
+
+            if game.rando_settings['name_rando'] and self.nid in game.rando_settings['unitDictionary']:
+                unitDic = game.rando_settings['unitDictionary']
+                self.name = unitDic[self.nid].name
+            else:
+                self.name = prefab.name
+
+            if game.rando_settings['desc_rando'] and self.nid in game.rando_settings['unitDictionary']:
+                unitDic = game.rando_settings['unitDictionary']
+                self.desc = unitDic[self.nid].desc
+            else:
+                self.desc = prefab.desc
+
             self._tags = [tag for tag in prefab.tags]
+
+            #Class Randomization
+            if (game.rando_settings['player_class_rando'] or game.rando_settings['boss_rando']) and self.nid in game.rando_settings['unitDictionary']:
+                #Didn't account for Bosses in Randomizer like a dingus, covering it here
+                if not game.rando_settings['boss_rando'] and 'Boss' in self._tags:
+                    self.items = item_funcs.create_items(self, prefab.starting_items)
+                elif not game.rando_settings['player_class_rando'] and 'Boss' not in self._tags:
+                    self.items = item_funcs.create_items(self, prefab.starting_items)
+                else:
+                    #Randomizer itself will account for non-boss tags, so for cases like Lords the rando dictionary will just be their defaults anyway.
+                    self.klass = game.rando_settings['unitDictionary'][self.nid].klass
+                    klass_obj = game.rando_settings['klassDictionary'].get(self.klass)
+                    self.items = item_funcs.create_items(self, game.rando_settings['unitDictionary'][self.nid].items)
+            else:
+                self.items = item_funcs.create_items(self, prefab.starting_items)
+
             bases = prefab.bases
             growths = prefab.growths
             self.stats = {stat_nid: bases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
+
+            #Bases Randomization
+            if game.rando_settings['player_bases'] or game.rando_settings['boss_bases']:
+                if (game.rando_settings['boss_bases'] and 'Boss' in self._tags) or (game.rando_settings['player_bases'] and 'Boss' not in self._tags):
+                    self.stats = game.rando_settings['unitDataDictionary'][self.nid].bases
+
             self.growths = {stat_nid: growths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
+
+            #Growths Randomization
+            if game.rando_settings['named_growths'] and 'no_random' not in self._tags:
+                if (game.rando_settings['boss_bases'] and 'Boss' in self._tags) or (game.rando_settings['player_bases'] and 'Boss' not in self._tags):
+                    self.growths = game.rando_settings['unitDataDictionary'][self.nid].growths
+
             weapon_gain = prefab.wexp_gain
             self.wexp = {weapon_nid: weapon_gain.get(weapon_nid, DB.weapons.default()).wexp_gain for weapon_nid in DB.weapons.keys()}
-            self.portrait_nid = prefab.portrait_nid
+            
+            #WEXP Randomization
+            if (game.rando_settings['player_class_rando'] and 'Boss' not in self._tags) or (game.rando_settings['boss_rando'] and 'Boss' in self._tags):
+                self.wexp = game.rando_settings['unitDataDictionary'][self.nid].wexp
+                #logging.debug("%s's new WEXP: %s", self.name, self.wexp)
+            
+            if game.rando_settings['portrait_rando'] and self.nid in game.rando_settings['unitDictionary']:
+                unitDic = game.rando_settings['unitDictionary']
+                self.portrait_nid = unitDic[self.nid].portrait_nid
+            else:
+                self.portrait_nid = prefab.portrait_nid
+
         self.starting_position = self.position
 
         # Get how to level
@@ -76,7 +146,12 @@ class UnitObject(Prefab):
         # Handle skills
         self.skills = []
         personal_skills = unit_funcs.get_personal_skills(self, prefab)
-        class_skills = unit_funcs.get_starting_skills(self)
+
+        if game.rando_settings['class_skill_rando']:
+            class_skills = unit_funcs.get_starting_skills(self, game)
+        else:
+            class_skills = unit_funcs.get_starting_skills(self)
+
         self.skills = personal_skills + class_skills
 
         self.current_hp = equations.parser.hitpoints(self)
