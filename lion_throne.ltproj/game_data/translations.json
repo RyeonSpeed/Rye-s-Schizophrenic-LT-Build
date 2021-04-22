@@ -310,5 +310,741 @@
     {
         "nid": "mvp_record_header",
         "text": "Chapter Name        Kills    Damage    Healing"
+    },
+    {
+        "nid": "player_class_rando",
+        "text": "Player Characters"
+    },
+    {
+        "nid": "player_class_rando_desc",
+        "text": "Playable Character classes will be randomized"
+    },
+    {
+        "nid": "player_class_stop_redundancy",
+        "text": "Player Class Redundancy"
+    },
+    {
+        "nid": "player_class_stop_redundancy_desc",
+        "text": "Minimize class repetition when randomizing"
+    },
+    {
+        "nid": "lord_rando",
+        "text": "Include Lords"
+    },
+    {
+        "nid": "lord_rando_desc",
+        "text": "Lords will be randomized as well"
+    },
+    {
+        "nid": "thief_rando",
+        "text": "Include Thieves"
+    },
+    {
+        "nid": "thief_rando_desc",
+        "text": "Thieves will be randomized as well"
+    },
+    {
+        "nid": "special_rando",
+        "text": "Include Special Classes"
+    },
+    {
+        "nid": "special_rando_desc",
+        "text": "Special Units will be randomized as well"
+    },
+    {
+        "nid": "boss_rando",
+        "text": "Include Bosses"
+    },
+    {
+        "nid": "boss_rando_desc",
+        "text": "Boss Classes will be randomized"
+    },
+    {
+        "nid": "generic_rando",
+        "text": "Include Generic Units"
+    },
+    {
+        "nid": "generic_rando_desc",
+        "text": "Generic Unit Classes will be randomized"
+    },
+    {
+        "nid": "wexp_mode",
+        "text": "Weapon EXP"
+    },
+    {
+        "nid": "wexp_mode_desc",
+        "text": "How to handle WEXP after class randomization"
+    },
+    {
+        "nid": "keepWeps",
+        "text": "Keep Old Weapons"
+    },
+    {
+        "nid": "keepWeps_desc",
+        "text": "Keep usable default weapons after randomization"
+    },
+    {
+        "nid": "weps_mode",
+        "text": "Weapon Replacement"
+    },
+    {
+        "nid": "weps_mode_desc",
+        "text": "Logic for updating inventory to match new class"
+    },
+    {
+        "nid": "promo_rando",
+        "text": "Promotion Randomization"
+    },
+    {
+        "nid": "promo_rando_desc",
+        "text": "Class promotions will be randomized"
+    },
+    {
+        "nid": "promo_rando_stop_redundancy",
+        "text": "Promotion Redundancy"
+    },
+    {
+        "nid": "promo_rando_stop_redundancy_desc",
+        "text": "Minimize promotion repetition when randomizing"
+    },
+    {
+        "nid": "promotion_mode",
+        "text": "Promotion Mode"
+    },
+    {
+        "nid": "promotion_mode_desc",
+        "text": "How to determine valid promoted classes"
+    },
+    {
+        "nid": "promotion_amount",
+        "text": "Promotion Amount"
+    },
+    {
+        "nid": "promotion_amount_desc",
+        "text": "How many promotion options classes will have"
+    },
+    {
+        "nid": "class_skill_rando",
+        "text": "Class Skills"
+    },
+    {
+        "nid": "class_skill_rando_desc",
+        "text": "Randomize Class Skills"
+    },
+    {
+        "nid": "class_skill_mode",
+        "text": "Class Skill Mode"
+    },
+    {
+        "nid": "class_skill_mode_desc",
+        "text": "How to replace Class Skills"
+    },
+    {
+        "nid": "class_skill_limit",
+        "text": "Class Skill Limit"
+    },
+    {
+        "nid": "class_skill_limit_desc",
+        "text": "Maximum amount of skills a class can have"
+    },
+    {
+        "nid": "class_skill_stop_redundancy",
+        "text": "Class Skill Redundancy"
+    },
+    {
+        "nid": "class_skill_stop_redundancy_desc",
+        "text": "Minimize repetition of class skills"
+    },
+    {
+        "nid": "class_skill_match_levels",
+        "text": "Class Skill Levels"
+    },
+    {
+        "nid": "class_skill_match_levels_desc",
+        "text": "Skills will be learned at the same levels as vanilla"
+    },
+    {
+        "nid": "player_bases",
+        "text": "Player BST"
+    },
+    {
+        "nid": "player_bases_desc",
+        "text": "Randomize Player Base Stats"
+    },
+    {
+        "nid": "boss_bases",
+        "text": "Boss BST"
+    },
+    {
+        "nid": "boss_bases_desc",
+        "text": "Randomize Boss Base Stats"
+    },
+    {
+        "nid": "bases_mode",
+        "text": "Base Stat Mode"
+    },
+    {
+        "nid": "bases_mode_desc",
+        "text": "The method to be used when randomizing Base Stats"
+    },
+    {
+        "nid": "bases_variance",
+        "text": "BST Variance"
+    },
+    {
+        "nid": "bases_variance_desc",
+        "text": "The amount to adjust total BST by"
+    },
+    {
+        "nid": "named_growths",
+        "text": "Player Growths"
+    },
+    {
+        "nid": "named_growths_desc",
+        "text": "Randomize Player Growth Rates"
+    },
+    {
+        "nid": "growths_mode",
+        "text": "Growths Mode"
+    },
+    {
+        "nid": "growths_mode_desc",
+        "text": "The method to be used when randomizing Growth Rates"
+    },
+    {
+        "nid": "growths_variance",
+        "text": "Growths Variance"
+    },
+    {
+        "nid": "growths_variance_desc",
+        "text": "The amount to adjust TGR by"
+    },
+    {
+        "nid": "growths_min",
+        "text": "Growth Min"
+    },
+    {
+        "nid": "growths_min_desc",
+        "text": "Minimum Growth Rate"
+    },
+    {
+        "nid": "growths_max",
+        "text": "Growth Max"
+    },
+    {
+        "nid": "growths_max_desc",
+        "text": "Maximum Growth Rate"
+    },
+    {
+        "nid": "name_rando",
+        "text": "Names"
+    },
+    {
+        "nid": "name_rando_desc",
+        "text": "Randomize character names"
+    },
+    {
+        "nid": "portrait_rando",
+        "text": "Portraits"
+    },
+    {
+        "nid": "portrait_rando_desc",
+        "text": "Randomize character portraits"
+    },
+    {
+        "nid": "desc_rando",
+        "text": "Descriptions"
+    },
+    {
+        "nid": "desc_rando_desc",
+        "text": "Randomize character descriptions"
+    },
+    {
+        "nid": "personal_skill_rando",
+        "text": "Personal Skills"
+    },
+    {
+        "nid": "personal_skill_rando_desc",
+        "text": "Randomize personal skills"
+    },
+    {
+        "nid": "personal_skill_mode",
+        "text": "Personal Skills Mode"
+    },
+    {
+        "nid": "personal_skill_mode_desc",
+        "text": "How to replace Personal Skills"
+    },
+    {
+        "nid": "personal_skill_limit",
+        "text": "Personal Skills Limit"
+    },
+    {
+        "nid": "personal_skill_limit_desc",
+        "text": "Maximum amount of skills a unit can have"
+    },
+    {
+        "nid": "personal_skill_stop_redundancy",
+        "text": "Personal Skills Redundancy"
+    },
+    {
+        "nid": "personal_skill_stop_redundancy_desc",
+        "text": "Minimize repetition when randomizing unit skills"
+    },
+    {
+        "nid": "item_rando",
+        "text": "Weapon/Spell Randomization"
+    },
+    {
+        "nid": "item_rando_desc",
+        "text": "Enable randomization of weapon/spell properties"
+    },
+    {
+        "nid": "wepMt",
+        "text": "Might"
+    },
+    {
+        "nid": "wepMt_desc",
+        "text": "Enable randomization of weapon/spell Might"
+    },
+    {
+        "nid": "wepMtVar",
+        "text": "MT Variance"
+    },
+    {
+        "nid": "wepMtVar_desc",
+        "text": "Amount weapon/spell MT can change by"
+    },
+    {
+        "nid": "wepMtMin",
+        "text": "MT Min"
+    },
+    {
+        "nid": "wepMtMin_desc",
+        "text": "Lowest possible value for weapon/spell Might"
+    },
+    {
+        "nid": "wepMtMax",
+        "text": "MT Max"
+    },
+    {
+        "nid": "wepMtMax_desc",
+        "text": "Highest possible value for weapon/spell Might"
+    },
+    {
+        "nid": "wepHit",
+        "text": "Hit"
+    },
+    {
+        "nid": "wepHit_desc",
+        "text": "Enable randomization of weapon/spell Hit"
+    },
+    {
+        "nid": "wepHitVar",
+        "text": "Hit Variance"
+    },
+    {
+        "nid": "wepHitVar_desc",
+        "text": "Amount weapon/spell Hit can change by"
+    },
+    {
+        "nid": "wepHitMin",
+        "text": "Hit Min"
+    },
+    {
+        "nid": "wepHitMin_desc",
+        "text": "Lowest possible value for weapon/spell Hit"
+    },
+    {
+        "nid": "wepHitMax",
+        "text": "Hit Max"
+    },
+    {
+        "nid": "wepHitMax_desc",
+        "text": "Highest possible value for weapon/spell Hit"
+    },
+    {
+        "nid": "wepCrit",
+        "text": "Critical"
+    },
+    {
+        "nid": "wepCrit_desc",
+        "text": "Enable randomization of weapon/spell Critical"
+    },
+    {
+        "nid": "wepCritVar",
+        "text": "Critical Variance"
+    },
+    {
+        "nid": "wepCritVar_desc",
+        "text": "Amount weapon/spell Critical can change by"
+    },
+    {
+        "nid": "wepCritMin",
+        "text": "Critical Min"
+    },
+    {
+        "nid": "wepCritMin_desc",
+        "text": "Lowest possible value for weapon/spell Critical"
+    },
+    {
+        "nid": "wepCritMax",
+        "text": "Critical Max"
+    },
+    {
+        "nid": "wepCritMax_desc",
+        "text": "Highest possible value for weapon/spell Critical"
+    },
+    {
+        "nid": "wepWeight",
+        "text": "Weight"
+    },
+    {
+        "nid": "wepWeight_desc",
+        "text": "Enable randomization of weapon/spell Weight"
+    },
+    {
+        "nid": "wepWeightVar",
+        "text": "Weight Variance"
+    },
+    {
+        "nid": "wepWeightVar_desc",
+        "text": "Amount weapon/spell Weight can change by"
+    },
+    {
+        "nid": "wepWeightMin",
+        "text": "Weight Min"
+    },
+    {
+        "nid": "wepWeightMin_desc",
+        "text": "Lowest possible value for weapon/spell Weight"
+    },
+    {
+        "nid": "wepWeightMax",
+        "text": "Weight Max"
+    },
+    {
+        "nid": "wepWeightMax_desc",
+        "text": "Highest possible value for weapon/spell Weight"
+    },
+    {
+        "nid": "wepUses",
+        "text": "Uses"
+    },
+    {
+        "nid": "wepUses_desc",
+        "text": "Enable randomization of weapon/spell Uses"
+    },
+    {
+        "nid": "wepUsesVar",
+        "text": "Uses Variance"
+    },
+    {
+        "nid": "wepUsesVar_desc",
+        "text": "Amount weapon/spell Uses can change by"
+    },
+    {
+        "nid": "wepUsesMin",
+        "text": "Uses Min"
+    },
+    {
+        "nid": "wepUsesMin_desc",
+        "text": "Lowest possible value for weapon/spell Uses"
+    },
+    {
+        "nid": "wepUsesMax",
+        "text": "Uses Max"
+    },
+    {
+        "nid": "wepUsesMax_desc",
+        "text": "Highest possible value for weapon/spell Uses"
+    },
+    {
+        "nid": "wepCUses",
+        "text": "Chapter Uses"
+    },
+    {
+        "nid": "wepCUses_desc",
+        "text": "Enable randomization of weapon/spell C-Uses"
+    },
+    {
+        "nid": "wepCUsesVar",
+        "text": "Chapter Uses Var"
+    },
+    {
+        "nid": "wepCUsesVar_desc",
+        "text": "Amount weapon/spell C-Uses can change by"
+    },
+    {
+        "nid": "wepCUsesMin",
+        "text": "Chapter Uses Min"
+    },
+    {
+        "nid": "wepCUsesMin_desc",
+        "text": "Lowest possible value for weapon/spell C-Uses"
+    },
+    {
+        "nid": "wepCUsesMax",
+        "text": "Chapter Uses Max"
+    },
+    {
+        "nid": "wepCUsesMax_desc",
+        "text": "Highest possible value for weapon/spell C-Uses"
+    },
+    {
+        "nid": "random_effects",
+        "text": "Weapon Effects"
+    },
+    {
+        "nid": "random_effects_desc",
+        "text": "Whether to randomize Weapon Special Effects"
+    },
+    {
+        "nid": "safe_basic_weapons",
+        "text": "Safe Weapons"
+    },
+    {
+        "nid": "safe_basic_weapons_desc",
+        "text": "Basic weapons will not receive special effects"
+    },
+    {
+        "nid": "random_effects_mode",
+        "text": "Effects Mode"
+    },
+    {
+        "nid": "random_effects_mode_desc",
+        "text": "Whether to Add on to or Replace existing effects"
+    },
+    {
+        "nid": "random_effects_limit",
+        "text": "Effects Limit"
+    },
+    {
+        "nid": "random_effects_limit_desc",
+        "text": "Maximum amount of effects a weapon can have"
+    },
+    {
+        "nid": "random_effects_settings",
+        "text": "Effect Settings"
+    },
+    {
+        "nid": "random_effects_settings_desc",
+        "text": "Select which effects are valid"
+    },
+    {
+        "nid": "finished",
+        "text": "Finish"
+    },
+    {
+        "nid": "finished_desc",
+        "text": "Start game with current settings"
+    },
+    {
+        "nid": "brave",
+        "text": "Brave"
+    },
+    {
+        "nid": "brave_desc",
+        "text": "Weapon will strike twice"
+    },
+    {
+        "nid": "lifelink",
+        "text": "Lifelink"
+    },
+    {
+        "nid": "lifelink_desc",
+        "text": "Weapon will absorb HP"
+    },
+    {
+        "nid": "reaver",
+        "text": "Reaver"
+    },
+    {
+        "nid": "reaver_desc",
+        "text": "Weapon will reverse the weapon triangle"
+    },
+    {
+        "nid": "cannot_counter",
+        "text": "No Counter"
+    },
+    {
+        "nid": "cannot_counter_desc",
+        "text": "Weapon will not perform counter attacks when defending"
+    },
+    {
+        "nid": "cannot_be_countered",
+        "text": "Sweep"
+    },
+    {
+        "nid": "cannot_be_countered_desc",
+        "text": "When attacking, for cannot counter"
+    },
+    {
+        "nid": "magic",
+        "text": "Magic"
+    },
+    {
+        "nid": "magic_desc",
+        "text": "Weapon uses the magic attack formula"
+    },
+    {
+        "nid": "effective",
+        "text": "Effective"
+    },
+    {
+        "nid": "effective_desc",
+        "text": "Weapon deals additional damage to certain units"
+    },
+    {
+        "nid": "status_on_equip",
+        "text": "Status on Equip"
+    },
+    {
+        "nid": "status_on_equip_desc",
+        "text": "Weapon gives a status when equipped"
+    },
+    {
+        "nid": "status_on_hold",
+        "text": "Status on Hold"
+    },
+    {
+        "nid": "status_on_hold_desc",
+        "text": "Weapon gives a status while in a unit's inventory"
+    },
+    {
+        "nid": "status_on_hit",
+        "text": "Status on Hit"
+    },
+    {
+        "nid": "status_on_hit_desc",
+        "text": "Weapon inflicts a status on foes"
+    },
+    {
+        "nid": "Horse",
+        "text": "Horse"
+    },
+    {
+        "nid": "Horse_desc",
+        "text": "Effectiveness against Cavalry"
+    },
+    {
+        "nid": "Armor",
+        "text": "Armor"
+    },
+    {
+        "nid": "Armor_desc",
+        "text": "Effectiveness against Armored units"
+    },
+    {
+        "nid": "Flying",
+        "text": "Flying"
+    },
+    {
+        "nid": "Flying_desc",
+        "text": "Effectiveness against Flying units"
+    },
+    {
+        "nid": "Dragon",
+        "text": "Dragon"
+    },
+    {
+        "nid": "Dragon_desc",
+        "text": "Effectiveness against Dragons"
+    },
+    {
+        "nid": "Monster",
+        "text": "Monster"
+    },
+    {
+        "nid": "Monster_desc",
+        "text": "Effectiveness against Monsters"
+    },
+    {
+        "nid": "Strength +5",
+        "text": "Strength +5"
+    },
+    {
+        "nid": "Strength +5_desc",
+        "text": "Weapon can grant Strength +5 to user"
+    },
+    {
+        "nid": "Speed +5",
+        "text": "Speed +5"
+    },
+    {
+        "nid": "Speed +5_desc",
+        "text": "Weapon can grant Speed +5 to user"
+    },
+    {
+        "nid": "Skill +5",
+        "text": "Skill +5"
+    },
+    {
+        "nid": "Skill +5_desc",
+        "text": "Weapon can grant Skill +5 to user"
+    },
+    {
+        "nid": "Luck +5",
+        "text": "Luck +5"
+    },
+    {
+        "nid": "Luck +5_desc",
+        "text": "Weapon can grant Luck +5 to user"
+    },
+    {
+        "nid": "Defense +5",
+        "text": "Defense +5"
+    },
+    {
+        "nid": "Defense +5_desc",
+        "text": "Weapon can grant Defense +5 to user"
+    },
+    {
+        "nid": "Resistance +5",
+        "text": "Resistance +5"
+    },
+    {
+        "nid": "Resistance +5_desc",
+        "text": "Weapon can grant Resistance +5 to user"
+    },
+    {
+        "nid": "Poisoned",
+        "text": "Poisoned"
+    },
+    {
+        "nid": "Poisoned_desc",
+        "text": "Weapon can inflict Poison on foes"
+    },
+    {
+        "nid": "Silence",
+        "text": "Silence"
+    },
+    {
+        "nid": "Silence_desc",
+        "text": "Weapon can inflict Silence on foes"
+    },
+    {
+        "nid": "Dazzle",
+        "text": "Dazzle"
+    },
+    {
+        "nid": "Dazzle_desc",
+        "text": "Weapon can inflict Dazzle on foes"
+    },
+    {
+        "nid": "Chill",
+        "text": "Chill"
+    },
+    {
+        "nid": "Chill_desc",
+        "text": "Weapon can inflict Chill on foes"
+    },
+    {
+        "nid": "Frostbite",
+        "text": "Frostbite"
+    },
+    {
+        "nid": "Frostbite_desc",
+        "text": "Weapon can inflict Frostbite on foes"
     }
 ]

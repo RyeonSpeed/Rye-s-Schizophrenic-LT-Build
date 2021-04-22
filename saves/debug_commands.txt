@@ -1,5 +1,4 @@
 give_exp;104;100
-give_exp;104;100
 remove_unit;Coyote
 remove_unit;Coyote
 damage;Soldier;1
@@ -18,3 +17,4 @@ give_exp;Althea;20
 trigger_script;Level3Setup
 trigger_script;Level3Setup
 trigger_script;Level3Setup
+win_game

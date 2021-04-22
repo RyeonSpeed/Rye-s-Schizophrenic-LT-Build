@@ -688,6 +688,7 @@ class TitleRandomizerState(TitleLoadState):
         self.state = 'transition_in'
 
         self.bg = game.memory['title_bg']
+        self.particles = game.memory['title_particles']
 
         # options = ['Options', 'Credits']
         options = ['Standard','Randomized']
