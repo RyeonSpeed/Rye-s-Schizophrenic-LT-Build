@@ -1385,6 +1385,9 @@ class Event():
                 continue
             position = tuple(position)
             position = self.check_placement(position, placement)
+            if not position:
+                logging.warning("Couldn't determine valid position for %s?", unit.nid)
+                continue
             self._place_unit(unit, position, entry_type)
 
     def _move_unit(self, movement_type, placement, follow, unit, position):

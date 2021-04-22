@@ -1161,8 +1161,8 @@
                 "nid": "Armory",
                 "region_type": "event",
                 "position": [
-                    1,
-                    5
+                    2,
+                    11
                 ],
                 "size": [
                     1,
@@ -1176,8 +1176,8 @@
                 "nid": "Vendor",
                 "region_type": "event",
                 "position": [
-                    2,
-                    11
+                    1,
+                    5
                 ],
                 "size": [
                     1,
@@ -12600,108 +12600,47 @@
                 "ai": "None",
                 "ai_group": null,
                 "starting_position": [
-                    6,
-                    11
+                    5,
+                    7
                 ],
                 "generic": false
-            },
-            {
-                "nid": "102",
-                "variant": null,
-                "level": 2,
-                "klass": "Archer",
-                "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Willow Bow",
-                        false
-                    ]
-                ],
-                "team": "enemy",
-                "ai": "Attack",
-                "ai_group": "1",
-                "starting_position": [
-                    4,
-                    3
-                ],
-                "name": null,
-                "desc": null,
-                "generic": true
             },
             {
                 "nid": "103",
                 "variant": null,
-                "level": 2,
-                "klass": "Knight",
+                "level": 1,
+                "klass": "Mage",
                 "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Iron Lance",
-                        false
-                    ]
-                ],
+                "starting_items": [],
                 "team": "enemy",
                 "ai": "Attack",
                 "ai_group": "1",
                 "starting_position": [
-                    6,
-                    3
+                    4,
+                    5
                 ],
                 "name": null,
                 "desc": null,
                 "generic": true
             },
             {
-                "nid": "Prim",
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    5,
-                    12
-                ],
-                "generic": false
-            },
-            {
-                "nid": "Althea",
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    4,
-                    14
-                ],
-                "generic": false
-            },
-            {
-                "nid": "Nia",
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    4,
-                    13
-                ],
-                "generic": false
-            },
-            {
                 "nid": "101",
                 "variant": null,
-                "level": 2,
-                "klass": "Shaman",
+                "level": 10,
+                "klass": "Swordmaster",
                 "faction": "Soldier",
                 "starting_items": [
                     [
-                        "Flux",
+                        "Iron Sword",
                         false
                     ]
                 ],
-                "team": "enemy",
-                "ai": "Attack",
+                "team": "player",
+                "ai": "None",
                 "ai_group": null,
                 "starting_position": [
-                    1,
-                    3
+                    3,
+                    5
                 ],
                 "name": null,
                 "desc": null,
@@ -12738,8 +12677,36 @@
                 "sub_nid": "Door",
                 "condition": "unit.can_unlock(region)",
                 "only_once": true
+            },
+            {
+                "nid": "Switch",
+                "region_type": "event",
+                "position": [
+                    6,
+                    10
+                ],
+                "size": [
+                    1,
+                    1
+                ],
+                "sub_nid": "Switch",
+                "condition": "True",
+                "only_once": true
             }
         ],
-        "unit_groups": []
+        "unit_groups": [
+            {
+                "nid": "rein",
+                "units": [
+                    "103"
+                ],
+                "positions": {
+                    "103": [
+                        2,
+                        2
+                    ]
+                }
+            }
+        ]
     }
 ]

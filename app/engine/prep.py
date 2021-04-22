@@ -44,7 +44,9 @@ class PrepMainState(MapState):
             possible_position = game.get_next_formation_spot()
             if 'Required' in unit.tags and possible_position and not unit.position:
                 action.ArriveOnMap(unit, possible_position).do()
-                unit.reset()
+        
+        # Force reset all units
+        action.do(action.ResetAll([unit for unit in game.units if not unit.dead]))
 
         self.fade_out = False
         self.last_update = 0
@@ -764,7 +766,7 @@ class PrepItemsState(State):
                 action.do(action.HasTraded(self.unit))
                 unit_item = self.menu.get_inventory_current()
                 convoy_item = self.menu.get_convoy_current()
-                print(unit_item, convoy_item, self.unit.nid)
+                # print(unit_item, convoy_item, self.unit.nid)
                 convoy_funcs.trade_items(convoy_item, unit_item, self.unit)
                 self.menu.unlock()
                 self.menu.update_options()

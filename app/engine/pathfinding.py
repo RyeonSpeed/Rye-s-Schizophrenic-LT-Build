@@ -124,7 +124,7 @@ class AStar():
         self.end_cell = self.get_cell(goal_pos[0], goal_pos[1])
         self.adj_end = self.get_adjacent_cells(self.end_cell) 
 
-    def get_heuristic(self, cell):
+    def get_heuristic(self, cell) -> float:
         """
         Compute the heuristic for this cell
         h is the approximate distance between this cell and the goal cell
@@ -143,7 +143,7 @@ class AStar():
     def get_cell(self, x, y):
         return self.cells[x * self.height + y]
 
-    def get_adjacent_cells(self, cell):
+    def get_adjacent_cells(self, cell) -> list:
         cells = []
         if cell.y < self.height - 1:
             cells.append(self.get_cell(cell.x, cell.y + 1))
@@ -164,14 +164,14 @@ class AStar():
         adj.parent = cell
         adj.f = adj.h + adj.g
 
-    def return_path(self, cell):
+    def return_path(self, cell) -> list:
         path = []
         while cell:
             path.append((cell.x, cell.y))
             cell = cell.parent
         return path
 
-    def _can_move_through(self, game_board, adj, ally_block):
+    def _can_move_through(self, game_board, adj, ally_block) -> bool:
         if self.pass_through:
             return True
         unit_team = next(iter(game_board.team_grid[adj.x * self.height + adj.y]), None)
@@ -185,7 +185,7 @@ class AStar():
         return False
 
     def process(self, game_board, adj_good_enough: bool = False, 
-                ally_block: bool = False, limit: int = None):
+                ally_block: bool = False, limit: int = None) -> list:
         # Add starting cell to open queue
         heapq.heappush(self.open, (self.start_cell.f, self.start_cell))
         while self.open:
@@ -195,7 +195,8 @@ class AStar():
             # If this cell is past the limit, just return None
             # Uses f, not g, because g will cut off if first greedy path fails
             # f only cuts off if all cells are bad
-            if limit and cell.f > limit:
+            if limit is not None and cell.f > limit + 1:
+                # limit + 1 to account for diagonal heuristic
                 return []
             # if ending cell, display found path
             if cell is self.end_cell or (adj_good_enough and cell in self.adj_end):

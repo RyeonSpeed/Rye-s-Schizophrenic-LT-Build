@@ -122,20 +122,28 @@ def auto_level(unit, num_levels, starting_level=1):
     unit.stats = {k: utils.clamp(v, 0, klass.max_stats.get(k, 30)) for (k, v) in unit.stats.items()}
     unit.set_hp(1000)  # Go back to full hp
 
-def apply_stat_changes(unit, stat_changes: dict, in_base: bool = False):
+def apply_stat_changes(unit, stat_changes: dict):
     """
     Assumes stat changes are valid!
     """
     logger.info("Applying stat changes %s to %s", stat_changes, unit.nid)
+
+    old_max_hp = unit.get_max_hp()
+    old_max_mana = unit.get_max_mana()
     
+    # Actually apply changes
     for nid, value in stat_changes.items():
         unit.stats[nid] += value
 
-    if in_base:
-        unit.set_hp(1000)
-        unit.set_mana(1000)
+    current_max_hp = unit.get_max_hp()
+    current_max_mana = unit.get_max_mana()
 
-def get_starting_skills(unit, settings = None) -> list:
+    if current_max_hp > old_max_hp:
+        unit.set_hp(current_max_hp - old_max_hp + unit.get_hp())
+    if current_max_mana > old_max_mana:
+        unit.set_mana(current_max_mana - old_max_mana + unit.get_mana())
+
+def get_starting_skills(unit, settings=None) -> list:
     # Class skills
     klass_obj = DB.classes.get(unit.klass)
     current_klass = klass_obj
@@ -149,7 +157,7 @@ def get_starting_skills(unit, settings = None) -> list:
         else:
             break
     all_klasses.reverse()
-    
+
     skills_to_add = []
     feats = DB.skills.get_feats()
     current_skills = [skill.nid for skill in unit.skills]
@@ -174,6 +182,7 @@ def get_starting_skills(unit, settings = None) -> list:
     klass_skills = item_funcs.create_skills(unit, skills_to_add)
     return klass_skills
 
+
 def get_personal_skills(unit, prefab):
     skills_to_add = []
     current_skills = [skill.nid for skill in unit.skills]
@@ -184,6 +193,7 @@ def get_personal_skills(unit, prefab):
     personal_skills = item_funcs.create_skills(unit, skills_to_add)
     return personal_skills
 
+
 def can_unlock(unit, region) -> bool:
     from app.engine import skill_system, item_system
     if skill_system.can_unlock(unit, region):
@@ -193,6 +203,7 @@ def can_unlock(unit, region) -> bool:
                 item_system.can_unlock(unit, item, region):
             return True
     return False
+
 
 def check_focus(unit, limit=3) -> int:
     from app.engine import skill_system

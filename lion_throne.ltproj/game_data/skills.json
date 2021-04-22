@@ -2059,7 +2059,7 @@
             ],
             [
                 "combat_art_allowed_weapons",
-                "not item_funcs.is_magic(unit, item)"
+                "item_system.is_weapon(unit, item) and not item_funcs.is_magic(unit, item)"
             ],
             [
                 "build_charge",
@@ -2328,6 +2328,10 @@
             [
                 "build_charge",
                 40
+            ],
+            [
+                "combat_art_allowed_weapons",
+                "item_system.is_weapon(unit, item)"
             ]
         ]
     },
@@ -2384,6 +2388,10 @@
             [
                 "build_charge",
                 40
+            ],
+            [
+                "combat_art_allowed_weapons",
+                "item_system.is_weapon(unit, item)"
             ]
         ]
     },
@@ -2761,11 +2769,11 @@
         "components": [
             [
                 "dynamic_damage",
-                "-2 if (target.id != status.giver_id and mode == 'attack') else 0"
+                "-2 if (target.nid != skill.initiator_nid and mode == 'attack') else 0"
             ],
             [
                 "dynamic_accuracy",
-                "-30 if (target.id != status.giver_id and mode == 'attack') else 0"
+                "-30 if (target.nid != skill.initiator_nid and mode == 'attack') else 0"
             ],
             [
                 "negative",
@@ -2774,6 +2782,10 @@
             [
                 "unit_anim",
                 "MapProvoke"
+            ],
+            [
+                "lost_on_end_chapter",
+                null
             ]
         ]
     },

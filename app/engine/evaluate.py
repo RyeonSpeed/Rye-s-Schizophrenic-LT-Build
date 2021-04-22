@@ -12,7 +12,7 @@ Essentially just a repository that imports a lot of different things so that man
 will be accepted
 """
 
-def evaluate(string: str, unit1=None, unit2=None, item=None, position=None, region=None, mode=None) -> bool:
+def evaluate(string: str, unit1=None, unit2=None, item=None, position=None, region=None, mode=None, skill=None) -> bool:
     unit = unit1
     target = unit2
     

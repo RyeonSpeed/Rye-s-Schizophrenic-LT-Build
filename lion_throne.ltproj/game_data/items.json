@@ -5858,7 +5858,7 @@
     },
     {
         "nid": "so_Steal",
-        "name": "so_Steal",
+        "name": "Steal",
         "desc": "Steal items from enemies.",
         "icon_nid": "Skills",
         "icon_index": [

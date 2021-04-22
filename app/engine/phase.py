@@ -46,6 +46,10 @@ class PhaseController():
     def get_previous(self):
         return DB.teams[self.previous]
 
+    def set_player(self):
+        self.current = 0
+        self.previous = (self.current - 1) % len(DB.teams)
+
     def _next(self):
         self.current = (self.current + 1) % len(DB.teams)
 

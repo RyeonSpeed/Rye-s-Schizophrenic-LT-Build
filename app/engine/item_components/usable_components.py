@@ -30,7 +30,11 @@ class Uses(ItemComponent):
         actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
     def on_broken(self, unit, item):
-        action.do(action.RemoveItem(unit, item))
+        from app.engine.game_state import game
+        if item in unit.items:
+            action.do(action.RemoveItem(unit, item))
+        elif item in game.party.convoy:
+            action.do(action.RemoveItemFromConvoy(item))
         return True
 
     def reverse_use(self, unit, item):

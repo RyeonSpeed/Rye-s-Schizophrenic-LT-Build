@@ -12,6 +12,20 @@
                 ]
             ],
             [
+                "game_var",
+                [
+                    "_max_turnwheel_uses",
+                    "10"
+                ]
+            ],
+            [
+                "game_var",
+                [
+                    "_current_turnwheel_uses",
+                    "10"
+                ]
+            ],
+            [
                 "level_var",
                 [
                     "mycounter",
@@ -131,22 +145,25 @@
                 ]
             ],
             [
-                "move_unit",
+                "add_region",
                 [
-                    "101",
-                    "2,0"
-                ]
-            ],
-            [
-                "remove_unit",
-                [
-                    "101"
+                    "escape",
+                    "0,0",
+                    "2,1",
+                    "event",
+                    "Escape"
                 ]
             ],
             [
                 "wait",
                 [
                     "500"
+                ]
+            ],
+            [
+                "add_group",
+                [
+                    "rein"
                 ]
             ]
         ],
@@ -5323,7 +5340,7 @@
                 ]
             ],
             [
-                "has_traded",
+                "has_attacked",
                 [
                     "{unit}"
                 ]
@@ -5409,7 +5426,7 @@
                 ]
             ],
             [
-                "has_traded",
+                "has_attacked",
                 [
                     "{unit}"
                 ]
@@ -5495,7 +5512,7 @@
                 ]
             ],
             [
-                "has_traded",
+                "has_attacked",
                 [
                     "{unit}"
                 ]
@@ -5581,7 +5598,7 @@
                 ]
             ],
             [
-                "has_traded",
+                "has_attacked",
                 [
                     "{unit}"
                 ]
@@ -9472,7 +9489,7 @@
             [
                 "if",
                 [
-                    "not game.level_var.get('escape_tiles')"
+                    "not game.level_vars.get('escape_tiles')"
                 ]
             ],
             [
@@ -9628,6 +9645,12 @@
                 [
                     "Switch Pulled!"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -9667,6 +9690,12 @@
                 "alert",
                 [
                     "Switch Pulled!"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -9708,6 +9737,12 @@
                 [
                     "Switch Pulled!"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -9717,7 +9752,7 @@
         "name": "SwitchCenter",
         "trigger": "Switch",
         "level_nid": "3",
-        "condition": "game.level_vars.get('switch', 0) >= 3",
+        "condition": "game.level_vars.get('switch', 0) >= 2",
         "commands": [
             [
                 "center_cursor",
@@ -9793,6 +9828,12 @@
                 [
                     "{unit}"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -9809,6 +9850,18 @@
                 [
                     "DoorWest"
                 ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -9824,6 +9877,18 @@
                 "show_layer",
                 [
                     "DoorEast"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -9843,9 +9908,21 @@
                 ]
             ],
             [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
                 "give_money",
                 [
                     "2000"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -9865,9 +9942,21 @@
                 ]
             ],
             [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
                 "give_money",
                 [
                     "2000"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -9887,9 +9976,21 @@
                 ]
             ],
             [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
                 "give_money",
                 [
                     "2000"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -9906,6 +10007,12 @@
                 "show_layer",
                 [
                     "ChestCenter"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -9982,6 +10089,12 @@
             [
                 "end",
                 []
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -12693,6 +12806,12 @@
                     "{unit}",
                     "Wyrmsfire"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -12709,6 +12828,12 @@
                 [
                     "{unit}",
                     "Mithril Mail"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -13784,7 +13909,7 @@
         "name": "Theo Sphinx, Pt. I",
         "trigger": "on_base_convo",
         "level_nid": "4",
-        "condition": "unit == \"Theo Sphinx, Pt. 1\"",
+        "condition": "unit == \"Theo Sphinx, Pt. I\"",
         "commands": [
             [
                 "comment",
@@ -16131,6 +16256,12 @@
                     "{unit}",
                     "Gustblade"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18467,6 +18598,12 @@
                 [
                     "Switch Pulled!"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18506,6 +18643,12 @@
                 "alert",
                 [
                     "Switch Pulled!"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -18658,6 +18801,12 @@
                 [
                     "{unit}"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18674,6 +18823,18 @@
                 [
                     "DoorNW"
                 ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18689,6 +18850,12 @@
                 "show_layer",
                 [
                     "DoorSW"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -18868,6 +19035,12 @@
                     "C12",
                     "2,30"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18884,6 +19057,18 @@
                 [
                     "DoorNE"
                 ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18899,6 +19084,12 @@
                 "show_layer",
                 [
                     "DoorSE"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -18921,6 +19112,12 @@
                     "C23",
                     "Escape"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -18936,6 +19133,12 @@
                 "show_layer",
                 [
                     "DoorSouth"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -19054,6 +19257,12 @@
                 [
                     "Open"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -19070,6 +19279,18 @@
                 [
                     "DoorCenter"
                 ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -19085,6 +19306,12 @@
                 "show_layer",
                 [
                     "ChestWest"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -19122,6 +19349,12 @@
             [
                 "end",
                 []
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -19137,6 +19370,12 @@
                 "show_layer",
                 [
                     "ChestEast"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -19174,6 +19413,12 @@
             [
                 "end",
                 []
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -19189,6 +19434,12 @@
                 "show_layer",
                 [
                     "ChestSouth"
+                ]
+            ],
+            [
+                "unlock",
+                [
+                    "{unit}"
                 ]
             ],
             [
@@ -19226,6 +19477,12 @@
             [
                 "end",
                 []
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -22181,6 +22438,12 @@
                     "{unit}",
                     "Warp"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -22198,6 +22461,12 @@
                     "{unit}",
                     "Rescue"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": true,
@@ -22214,6 +22483,12 @@
                 [
                     "{unit}",
                     "Hex"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -23541,6 +23816,12 @@
                 [
                     "Open"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -23620,6 +23901,12 @@
                 [
                     "{unit}",
                     "Superior Axe"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -23701,6 +23988,12 @@
                     "{unit}",
                     "Long Spear"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -23781,6 +24074,12 @@
                     "{unit}",
                     "Adamant Sword"
                 ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
+                ]
             ]
         ],
         "only_once": false,
@@ -23860,6 +24159,12 @@
                 [
                     "{unit}",
                     "Magebane Bow"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -23962,6 +24267,12 @@
                 [
                     "{unit}",
                     "Angelic Robe"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -28315,6 +28626,12 @@
                 "alert",
                 [
                     "Switch pulled!"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],
@@ -33481,6 +33798,46 @@
                 [
                     "Drake",
                     "Spiritbane"
+                ]
+            ]
+        ],
+        "only_once": false,
+        "priority": 20
+    },
+    {
+        "name": "Switch",
+        "trigger": "Switch",
+        "level_nid": "DEBUG",
+        "condition": "True",
+        "commands": [
+            [
+                "inc_level_var",
+                [
+                    "switch"
+                ]
+            ],
+            [
+                "flicker_cursor",
+                [
+                    "6,10"
+                ]
+            ],
+            [
+                "wait",
+                [
+                    "500"
+                ]
+            ],
+            [
+                "alert",
+                [
+                    "Switch Pulled!"
+                ]
+            ],
+            [
+                "has_attacked",
+                [
+                    "{unit}"
                 ]
             ]
         ],

@@ -531,8 +531,13 @@ class TurnwheelState(MapState):
         if self.transition_out > 0:
             self.transition_out -= 1
             if self.transition_out <= 0:
-                game.state.back()
-                game.state.back()
+                if game.phase.get_current() == 'player':
+                    game.state.back()
+                    game.state.back()
+                else:
+                    game.state.clear()
+                    game.state.change('free')
+                    game.phase.set_player()
                 # Call turnwheel script whenever the turnwheel is used
 
         # Update animations

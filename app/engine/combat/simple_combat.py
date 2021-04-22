@@ -248,15 +248,17 @@ class SimpleCombat():
         enemies.remove(self.attacker)
         for unit in enemies:
             if unit.is_dying:
-                for item in unit.items:
+                for item in unit.items[:]:
                     if item.droppable:
+                        action.do(action.RemoveItem(unit, item))
                         action.do(action.DropItem(self.attacker, item))
                         if self.alerts:
                             game.alerts.append(banner.AcquiredItem(self.attacker, item))
                             game.state.change('alert')
         if self.attacker.is_dying and self.defender:
-            for item in self.attacker.items:
+            for item in self.attacker.items[:]:
                 if item.droppable:
+                    action.do(action.RemoveItem(self.attacker, item))
                     action.do(action.DropItem(self.defender, item))
                     if self.alerts:
                         game.alerts.append(banner.AcquiredItem(self.defender, item))

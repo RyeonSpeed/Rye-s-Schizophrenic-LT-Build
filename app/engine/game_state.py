@@ -118,6 +118,7 @@ class GameState():
         """
         Done at the beginning of a new level to start the level up
         """
+        self.boundary = None
         self.generic()
         logging.debug("Starting Level %s", level_nid)
         
@@ -319,7 +320,7 @@ class GameState():
             unit = None
             if skill.owner_nid:
                 unit = self.get_unit(skill.owner_nid)
-            skill_system.on_end_chapter(unit, skill)
+                skill_system.on_end_chapter(unit, skill)
 
         self.terrain_status_registry.clear()
         self.region_registry.clear()
@@ -355,7 +356,7 @@ class GameState():
 
         # Handle player death
         for unit in self.unit_registry.values():
-            if unit.dead:
+            if unit.dead and unit.team == 'player':
                 if not DB.constants.value('permadeath'):
                     unit.dead = False  # Resurrect unit
                 elif DB.constants.value('convoy_on_death'):

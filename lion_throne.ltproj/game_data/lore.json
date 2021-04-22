@@ -186,7 +186,7 @@
         "name": "Bows",
         "title": "Bows",
         "category": "Guide",
-        "text": "All bows have 2-3 range at base. This allows bow users to outrange all other 1-2 range weapons. "
+        "text": "All bows have 2-3 range at base. This allows bow users to outrange all other 1-2 range weapons.{br}However, bows are not effective against fliers, so watch out!"
     },
     {
         "nid": "Skills",

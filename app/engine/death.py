@@ -1,5 +1,5 @@
 from app.engine.sound import SOUNDTHREAD
-from app.engine import action
+from app.engine import action, engine
 from app.engine.game_state import game
 
 class DeathManager():
@@ -22,18 +22,17 @@ class DeathManager():
             del self.dying_units[unit.nid]
 
     def update(self) -> bool:
+        current_time = engine.get_time()
         for unit_nid in list(self.dying_units.keys()):
             death_counter = self.dying_units[unit_nid]
             unit = game.get_unit(unit_nid)
             if death_counter == 0:
                 SOUNDTHREAD.play_sfx('Death')
-            elif death_counter == 1:
-                unit.sprite.start_flicker(0, unit.sprite.transition_time, (255, 255, 255), fade_out=False)
+                unit.sprite.start_flicker(0, unit.sprite.default_transition_time, (255, 255, 255), fade_out=False)
                 unit.sprite.set_transition('fade_out')
+                self.dying_units[unit_nid] = engine.get_time()
 
-            self.dying_units[unit_nid] += 1
-
-            if death_counter >= 27:
+            elif current_time - death_counter >= unit.sprite.default_transition_time - 50:
                 self.force_death(unit)
 
         return not self.dying_units  # Done when no dying units left

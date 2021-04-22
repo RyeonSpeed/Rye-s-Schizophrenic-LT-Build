@@ -448,7 +448,7 @@ class UnitSprite():
             cur_unit = game.cursor.get_hover()
         elif game.state.current() in ('move', 'menu', 'item', 'item_child', 'item_discard',
                                       'weapon_choice', 'spell_choice', 'targeting',
-                                      'combat_targeting'):
+                                      'combat_targeting', 'item_targeting'):
             cur_unit = game.cursor.cur_unit
         else:
             cur_unit = None
@@ -506,7 +506,7 @@ class UnitSprite():
                     surf.blit(steal_marker, (topleft[0] + 2, topleft[1] + offset))
 
     def check_draw_hp(self) -> bool:
-        if self.unit.is_dying:
+        if self.unit.is_dying or self.unit.dead:
             return False
         if (cf.SETTINGS['hp_map_team'] == 'All') or \
            (cf.SETTINGS['hp_map_team'] == 'Ally' and self.unit.team in ('player', 'other')) or \
