@@ -90,7 +90,7 @@ class TargetsAnything(ItemComponent):
     tag = 'target'
 
     def ai_targets(self, unit, item) -> set:
-        return {(x, y) for x in game.map.width for y in game.map.height}
+        return {(x, y) for x in range(game.tilemap.width) for y in range(game.tilemap.height)}
 
     def valid_targets(self, unit, item) -> set:
         rng = item_funcs.get_range(unit, item)

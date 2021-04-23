@@ -321,7 +321,8 @@ class PrimaryAI():
     def get_valid_targets(self, unit, item, valid_moves) -> list:
         item_range = item_funcs.get_range(unit, item)
         ai_targets = item_system.ai_targets(unit, item)
-        logging.info("AI Targets: %s", ai_targets)
+        if len(ai_targets) < 20:
+            logging.info("AI Targets: %s", ai_targets)
         filtered_targets = set()
 
         for pos in ai_targets:
@@ -380,7 +381,14 @@ class PrimaryAI():
         else:
             target = self.valid_targets[self.target_index]
             item = self.items[self.item_index]
-            move = self.possible_moves[self.move_index]
+            # If too many legal targets, just try for the best move first
+            # Otherwise it spends way too long trying every possible position to strike from
+            if len(self.valid_targets) > 10:
+                enemy_positions = {u.position for u in game.units if u.position and skill_system.check_enemy(self.unit, u)}
+                move = utils.farthest_away_pos(self.orig_pos, self.possible_moves, enemy_positions)
+            else:
+                move = self.possible_moves[self.move_index]
+
             if self.unit.position != move:
                 self.quick_move(move)
 
@@ -395,6 +403,9 @@ class PrimaryAI():
             if line_of_sight_flag:
                 self.determine_utility(move, target, item)
             self.move_index += 1
+            # If too many legal targets, do not bother with every possible move
+            if len(self.valid_targets) > 10:
+                self.move_index = len(self.possible_moves)
 
         # Not done yet
         return (False, self.best_target, self.best_position, self.best_item)
@@ -411,7 +422,7 @@ class PrimaryAI():
         else:
             name = '--'
 
-        logging.info("Choice %.3f - Weapon: %s, Position: %s, Target: %s, Target Position: %s", tp, item, move, name, target)
+        logging.info("Choice %.5f - Weapon: %s, Position: %s, Target: %s, Target Position: %s", tp, item, move, name, target)
         if tp > self.max_tp:
             self.best_target = target
             self.best_position = move
@@ -577,7 +588,10 @@ def get_targets(unit, behaviour):
         all_targets = list(set(all_targets))  # Remove duplicates
     elif behaviour.target == 'Position':
         if behaviour.target_spec == "Starting":
-            all_targets = [unit.starting_position]
+            if unit.starting_position:
+                all_targets = [unit.starting_position]
+            else:
+                all_targets = []
         else:
             all_targets = [tuple(behaviour.target_spec)]
     if behaviour.target in ('Unit', 'Enemy', 'Ally'):

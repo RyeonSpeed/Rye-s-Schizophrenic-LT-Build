@@ -18030,6 +18030,12 @@
                 ]
             ],
             [
+                "transition",
+                [
+                    "Close"
+                ]
+            ],
+            [
                 "music",
                 [
                     "Jazz Noir"
@@ -18044,7 +18050,7 @@
             [
                 "transition",
                 [
-                    "Close"
+                    "Open"
                 ]
             ],
             [
@@ -18169,6 +18175,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": true,
@@ -18187,6 +18203,12 @@
                 ]
             ],
             [
+                "transition",
+                [
+                    "Close"
+                ]
+            ],
+            [
                 "change_background",
                 [
                     "TacticsRoomDay"
@@ -18195,7 +18217,7 @@
             [
                 "transition",
                 [
-                    "Close"
+                    "Open"
                 ]
             ],
             [
@@ -18371,6 +18393,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": true,
@@ -18389,6 +18421,12 @@
                 ]
             ],
             [
+                "transition",
+                [
+                    "Close"
+                ]
+            ],
+            [
                 "change_background",
                 [
                     "ClearingSunrise"
@@ -18397,7 +18435,7 @@
             [
                 "transition",
                 [
-                    "Close"
+                    "Open"
                 ]
             ],
             [
@@ -18557,6 +18595,16 @@
                 "transition",
                 [
                     "Close"
+                ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
                 ]
             ]
         ],
@@ -21371,6 +21419,12 @@
                 ]
             ],
             [
+                "transition",
+                [
+                    "Close"
+                ]
+            ],
+            [
                 "music",
                 [
                     "Jazz Noir"
@@ -21524,6 +21578,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": true,
@@ -21539,6 +21603,12 @@
                 "music",
                 [
                     "Brave Story - Hare"
+                ]
+            ],
+            [
+                "transition",
+                [
+                    "Close"
                 ]
             ],
             [
@@ -21835,6 +21905,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": false,
@@ -21850,6 +21930,12 @@
                 "music",
                 [
                     "Hum of the Streets"
+                ]
+            ],
+            [
+                "transition",
+                [
+                    "Close"
                 ]
             ],
             [
@@ -22132,6 +22218,16 @@
                 "transition",
                 [
                     "Close"
+                ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
                 ]
             ]
         ],
@@ -26374,6 +26470,12 @@
                 ]
             ],
             [
+                "transition",
+                [
+                    "Close"
+                ]
+            ],
+            [
                 "change_background",
                 [
                     "TacticsRoom"
@@ -26382,7 +26484,7 @@
             [
                 "transition",
                 [
-                    "Close"
+                    "Open"
                 ]
             ],
             [
@@ -26579,6 +26681,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": false,
@@ -26594,6 +26706,12 @@
                 "music",
                 [
                     "Lady Eboshi"
+                ]
+            ],
+            [
+                "transition",
+                [
+                    "Close"
                 ]
             ],
             [
@@ -26931,15 +27049,25 @@
                 ]
             ],
             [
+                "ignore_base_convo",
+                [
+                    "Coronation"
+                ]
+            ],
+            [
                 "transition",
                 [
                     "Close"
                 ]
             ],
             [
-                "ignore_base_convo",
+                "change_background",
+                []
+            ],
+            [
+                "transition",
                 [
-                    "Coronation"
+                    "Open"
                 ]
             ]
         ],
@@ -27409,6 +27537,12 @@
         "condition": "unit == 'Promises'",
         "commands": [
             [
+                "transition",
+                [
+                    "Close"
+                ]
+            ],
+            [
                 "music",
                 [
                     "Awakening - SSupport"
@@ -27629,6 +27763,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": false,
@@ -27644,6 +27788,12 @@
                 "music",
                 [
                     "Midna's Theme"
+                ]
+            ],
+            [
+                "transition",
+                [
+                    "Close"
                 ]
             ],
             [
@@ -27958,6 +28108,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": false,
@@ -27973,6 +28133,12 @@
                 "comment",
                 [
                     "# Episode 4"
+                ]
+            ],
+            [
+                "transition",
+                [
+                    "Close"
                 ]
             ],
             [
@@ -28240,6 +28406,16 @@
                 [
                     "Close"
                 ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
+                ]
             ]
         ],
         "only_once": false,
@@ -28255,6 +28431,12 @@
                 "music",
                 [
                     "Wild Arms Town"
+                ]
+            ],
+            [
+                "transition",
+                [
+                    "Close"
                 ]
             ],
             [
@@ -28585,6 +28767,16 @@
                 "transition",
                 [
                     "Close"
+                ]
+            ],
+            [
+                "change_background",
+                []
+            ],
+            [
+                "transition",
+                [
+                    "Open"
                 ]
             ]
         ],

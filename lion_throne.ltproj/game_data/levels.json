@@ -12600,8 +12600,8 @@
                 "ai": "None",
                 "ai_group": null,
                 "starting_position": [
-                    5,
-                    7
+                    1,
+                    14
                 ],
                 "generic": false
             },
@@ -12611,35 +12611,17 @@
                 "level": 1,
                 "klass": "Mage",
                 "faction": "Soldier",
-                "starting_items": [],
-                "team": "enemy",
-                "ai": "Attack",
-                "ai_group": "1",
-                "starting_position": [
-                    4,
-                    5
-                ],
-                "name": null,
-                "desc": null,
-                "generic": true
-            },
-            {
-                "nid": "101",
-                "variant": null,
-                "level": 10,
-                "klass": "Swordmaster",
-                "faction": "Soldier",
                 "starting_items": [
                     [
-                        "Iron Sword",
+                        "Wyrmsfire",
                         false
                     ]
                 ],
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
+                "team": "enemy",
+                "ai": "Defend",
+                "ai_group": "1",
                 "starting_position": [
-                    3,
+                    5,
                     5
                 ],
                 "name": null,

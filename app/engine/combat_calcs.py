@@ -172,7 +172,7 @@ def attack_speed(unit, item=None):
     if not item:
         item = unit.get_weapon()
     if not item:
-        return None
+        return defense_speed(unit, item)
 
     equation = item_system.attack_speed_formula(unit, item)
     if equation == 'ATTACK_SPEED':

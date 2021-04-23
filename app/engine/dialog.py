@@ -211,6 +211,8 @@ class Dialog():
             self.y_offset = 16
         else:
             self.state = 'process'
+            if self.portrait:
+                self.portrait.talk()
         self.text_lines.append([])
 
     def _add_letter(self, letter):
