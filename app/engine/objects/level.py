@@ -36,7 +36,7 @@ class LevelObject():
         for unit_prefab in prefab.units:
             if unit_prefab.nid in unit_registry:
                 unit = unit_registry[unit_prefab.nid]
-                unit.starting_position = tuple(unit_prefab.starting_position)
+                unit.starting_position = tuple(unit_prefab.starting_position) if unit_prefab.starting_position else None
                 if not unit.dead:
                     unit.position = unit.starting_position
                 else:

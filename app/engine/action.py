@@ -666,12 +666,12 @@ class PutItemInConvoy(Action):
         self.owner_nid = self.item.owner_nid
 
     def do(self):
-        self.item.owner_nid = None
+        self.item.change_owner(None)
         game.party.convoy.append(self.item)
 
     def reverse(self, gameStateObj):
         game.party.convoy.remove(self.item)
-        self.item.owner_nid = self.owner_nid
+        self.item.change_owner(self.owner_nid)
 
 class TakeItemFromConvoy(Action):
     def __init__(self, unit, item):
@@ -755,6 +755,24 @@ class DropItem(Action):
     def reverse(self):
         self.item.droppable = self.is_droppable
         self.unit.remove_item(self.item)
+
+class MakeItemDroppable(Action):
+    def __init__(self, unit, item):
+        self.unit = unit
+        self.item = item
+        self.items = self.unit.items[:]
+        self.is_droppable: list = [i.droppable for i in self.items]
+        self.was_droppable: bool = item.droppable
+
+    def do(self):
+        for item in self.unit.items:
+            item.droppable = False
+        self.item.droppable = True
+
+    def reverse(self):
+        for idx, item in enumerate(self.items):
+            item.droppable = self.is_droppable[idx]
+        self.item.droppable = self.was_droppable
 
 class StoreItem(Action):
     def __init__(self, unit, item):
@@ -955,6 +973,18 @@ class AutoLevel(Action):
         self.unit.stats = self.old_stats
         self.unit.growth_points = self.old_growth_points
         self.unit.set_hp(self.old_hp)
+
+class GrowthPointChange(Action):
+    def __init__(self, unit, old_growth_points, new_growth_points):
+        self.unit = unit
+        self.old_growth_points = old_growth_points
+        self.new_growth_points = new_growth_points
+
+    def do(self):
+        self.unit.growth_points = self.new_growth_points
+
+    def reverse(self):
+        self.unit.growth_points = self.old_growth_points
 
 class ApplyStatChanges(Action):
     def __init__(self, unit, stat_changes):

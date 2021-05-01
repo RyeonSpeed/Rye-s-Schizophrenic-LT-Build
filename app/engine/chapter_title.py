@@ -44,7 +44,6 @@ class ChapterTitleState(State):
         if not self.title:
             self.title = game.level.name
 
-        game.memory['transition_speed'] = 0.2
         game.state.change('transition_in')
         return 'repeat'
 
@@ -52,7 +51,6 @@ class ChapterTitleState(State):
         if event in ('START', 'SELECT', 'BACK'):
             if self.music_flag:
                 SOUNDTHREAD.stop()
-            game.memory['transition_speed'] = 0.2
             game.state.change('transition_pop')
             self.state = 'end'
             return 'repeat'
@@ -107,7 +105,6 @@ class ChapterTitleState(State):
             if self.banner_grow_y <= 0:
                 self.banner_grow_y = 0
                 self.state = 'end'
-                game.memory['transition_speed'] = 0.2
                 game.state.change('transition_pop')
 
         elif self.state == 'end':

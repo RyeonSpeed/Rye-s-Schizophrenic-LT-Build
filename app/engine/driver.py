@@ -64,7 +64,6 @@ def run(game):
             engine.save_surface(surf, 'screenshots/LT_%s.bmp' % current_time)
 
         engine.update_display()
-        # end = time.time_ns()
         # milliseconds_elapsed = (end - start)/1e6
         # if milliseconds_elapsed > 10:
         #     print("Engine took too long: %f" % milliseconds_elapsed)

@@ -79,4 +79,9 @@ class EvalWarning(ItemComponent):
 
     def warning(self, unit, item, target) -> bool:
         from app.engine import evaluate
-        return evaluate.evaluate(self.value, unit, item=item)
+        try:
+            val = evaluate.evaluate(self.value, unit, target, item)
+            return val
+        except Exception as e:
+            print("Could not evaluate %s (%s)" % (self.value, e))
+            return False

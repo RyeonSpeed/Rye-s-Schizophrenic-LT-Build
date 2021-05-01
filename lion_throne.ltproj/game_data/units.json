@@ -89,7 +89,7 @@
             "HP": 11,
             "STR": 0,
             "MAG": 2,
-            "SKL": 3,
+            "SKL": 4,
             "SPD": 5,
             "LCK": 4,
             "DEF": 1,
@@ -101,10 +101,10 @@
             "HP": 65,
             "STR": 15,
             "MAG": 65,
-            "SKL": 40,
+            "SKL": 60,
             "SPD": 55,
             "LCK": 80,
-            "DEF": 25,
+            "DEF": 30,
             "RES": 80,
             "CON": 0,
             "MOV": 0
@@ -847,12 +847,7 @@
                 false
             ]
         ],
-        "learned_skills": [
-            [
-                1,
-                "fSpeed +2"
-            ]
-        ],
+        "learned_skills": [],
         "wexp_gain": {
             "Sword": [
                 false,
@@ -932,12 +927,7 @@
                 false
             ]
         ],
-        "learned_skills": [
-            [
-                1,
-                "fMaximum HP +5"
-            ]
-        ],
+        "learned_skills": [],
         "wexp_gain": {
             "Sword": [
                 true,

@@ -160,7 +160,8 @@ class ActionLog():
                         game.cursor.set_pos(self.current_unit.position)
                     # Unless the current unit just DIED!
                     elif isinstance(prev_action, Action.Die):
-                        game.cursor.set_pos(prev_action.old_pos)
+                        if prev_action.old_pos:
+                            game.cursor.set_pos(prev_action.old_pos)
                     self.hover_on(self.current_unit)
                     text_list = self.get_unit_turn(self.current_unit, self.action_index)
                     self.current_move_index += 1

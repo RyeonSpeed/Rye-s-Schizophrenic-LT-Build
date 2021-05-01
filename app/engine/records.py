@@ -221,9 +221,9 @@ class Recordkeeper():
         If level_nid is None, for all chapters
         """
         if level_nid is not None:
-            return sum([record.damage for record in self.healing if record.dealer == unit_nid and record.level_nid == level_nid])
+            return sum([record.damage for record in self.healing if record.dealer == unit_nid and record.receiver != unit_nid and record.level_nid == level_nid])
         else:
-            return sum([record.damage for record in self.healing if record.dealer == unit_nid])
+            return sum([record.damage for record in self.healing if record.dealer == unit_nid and record.receiver != unit_nid])
 
     def determine_score(self, unit_nid: str, level_nid: str = None) -> int:
         """

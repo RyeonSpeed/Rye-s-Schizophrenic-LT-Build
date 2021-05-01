@@ -108,7 +108,7 @@ class RecordsDisplay(menus.Choice):
         self.right_arrow = gui.ScrollArrow('right', (self.get_menu_width() - 8, 7), 0.5)
 
     def get_options(self):
-        levels = game.records.get_levels()
+        levels = game.records.get_levels()[:-1]
         turncounts = game.records.get_turncounts(levels)
         mvps = [game.records.get_mvp(level_nid) for level_nid in levels]
 
@@ -127,7 +127,7 @@ class RecordsDisplay(menus.Choice):
                 self.options.append(option)
 
     def create_top_banner(self):
-        levels = game.records.get_levels()
+        levels = game.records.get_levels()[:-1]
         total_turns = sum(game.records.get_turncounts(levels))
         total_turns = str(total_turns)
         overall_mvp = game.records.get_mvp()
@@ -166,7 +166,8 @@ class UnitStats(RecordsDisplay):
         super().__init__()
 
     def get_options(self):
-        levels = game.records.get_levels()
+        # Ignore the last level
+        levels = game.records.get_levels()[:-1]
         kills = [game.records.get_kills(self.unit_nid, level) for level in levels]
         damage = [game.records.get_damage(self.unit_nid, level) for level in levels]
         healing = [game.records.get_heal(self.unit_nid, level) for level in levels]
@@ -200,13 +201,13 @@ class MVPDisplay(RecordsDisplay):
     option_type = LevelRecordOption
 
     def get_options(self):
-        units = game.get_all_units_in_party()
-        units = list(sorted(units, key=lambda x: game.records.determine_score(x)))
+        units = [unit.nid for unit in game.get_all_units_in_party()]
+        units = list(sorted(units, key=lambda x: game.records.determine_score(x), reverse=True))
         kills = [game.records.get_kills(unit_nid) for unit_nid in units]
         damage = [game.records.get_damage(unit_nid) for unit_nid in units]
         healing = [game.records.get_heal(unit_nid) for unit_nid in units]
 
-        return [(u.nid, k, d, h) for (u, k, d, h) in zip(units, kills, damage, healing)]
+        return [(u, k, d, h) for (u, k, d, h) in zip(units, kills, damage, healing)]
 
     def draw(self, surf, offset=None):
         if not offset:
@@ -229,13 +230,13 @@ class ChapterStats(RecordsDisplay):
         super().__init__()
 
     def get_options(self):
-        units = game.get_all_units_in_party()
-        units = list(sorted(units, key=lambda x: game.records.determine_score(x, self.level_nid)))
+        units = [unit.nid for unit in game.get_all_units_in_party()]
+        units = list(sorted(units, key=lambda x: game.records.determine_score(x, self.level_nid), reverse=True))
         kills = [game.records.get_kills(unit_nid, self.level_nid) for unit_nid in units]
         damage = [game.records.get_damage(unit_nid, self.level_nid) for unit_nid in units]
         healing = [game.records.get_heal(unit_nid, self.level_nid) for unit_nid in units]
 
-        return [(u.nid, k, d, h) for (u, k, d, h) in zip(units, kills, damage, healing)]
+        return [(u, k, d, h) for (u, k, d, h) in zip(units, kills, damage, healing)]
 
     def create_top_banner(self):
         bg = SPRITES.get('purple_background').convert_alpha().copy()

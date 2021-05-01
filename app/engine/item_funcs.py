@@ -120,6 +120,10 @@ def get_all_tradeable_items(unit) -> list:
             items.append(item)
     return items
 
+def too_much_in_inventory(unit) -> bool:
+    return len(unit.accessories) > DB.constants.value('num_accessories') or \
+        len(unit.nonaccessories) > DB.constants.value('num_items')
+
 def inventory_full(unit, item) -> bool:
     if item_system.is_accessory(unit, item):
         return len(unit.accessories) >= DB.constants.value('num_accessories')

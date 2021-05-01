@@ -3454,14 +3454,6 @@
         },
         "units": [
             {
-                "nid": "Joshua",
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": null,
-                "generic": false
-            },
-            {
                 "nid": "Bone",
                 "team": "enemy",
                 "ai": "None",
@@ -3470,14 +3462,6 @@
                     2,
                     5
                 ],
-                "generic": false
-            },
-            {
-                "nid": "Ross",
-                "team": "other",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": null,
                 "generic": false
             },
             {
@@ -3534,77 +3518,6 @@
                 "generic": false
             },
             {
-                "nid": "106",
-                "variant": null,
-                "level": 1,
-                "klass": "Cavalier",
-                "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Iron Sword",
-                        false
-                    ]
-                ],
-                "team": "enemy",
-                "ai": "Attack",
-                "ai_group": null,
-                "starting_position": [
-                    5,
-                    8
-                ],
-                "name": null,
-                "desc": null,
-                "generic": true
-            },
-            {
-                "nid": "101",
-                "variant": null,
-                "level": 1,
-                "klass": "Fighter",
-                "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Iron Axe",
-                        false
-                    ]
-                ],
-                "team": "enemy",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": null,
-                "name": null,
-                "desc": null,
-                "generic": true
-            },
-            {
-                "nid": "102",
-                "variant": null,
-                "level": 1,
-                "klass": "Bishop",
-                "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Sleep",
-                        false
-                    ],
-                    [
-                        "Silence",
-                        false
-                    ],
-                    [
-                        "Berserk",
-                        false
-                    ]
-                ],
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": null,
-                "name": null,
-                "desc": null,
-                "generic": true
-            },
-            {
                 "nid": "Seth",
                 "team": "player",
                 "ai": "None",
@@ -3616,75 +3529,6 @@
                 "generic": false
             },
             {
-                "nid": "104",
-                "variant": null,
-                "level": 1,
-                "klass": "Bishop",
-                "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Summon_Soldier",
-                        false
-                    ]
-                ],
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    4,
-                    6
-                ],
-                "name": null,
-                "desc": null,
-                "generic": true
-            },
-            {
-                "nid": "105",
-                "variant": null,
-                "level": 1,
-                "klass": "Myrmidon",
-                "faction": "Cutthroat",
-                "starting_items": [
-                    [
-                        "Iron Sword",
-                        false
-                    ]
-                ],
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    6,
-                    10
-                ],
-                "name": "Cutthroat",
-                "desc": "A member of Bazba's Bandits, who roam this region.",
-                "generic": true
-            },
-            {
-                "nid": "107",
-                "variant": null,
-                "level": 20,
-                "klass": "Mage",
-                "faction": "Soldier",
-                "starting_items": [
-                    [
-                        "Fire",
-                        false
-                    ]
-                ],
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    3,
-                    7
-                ],
-                "name": null,
-                "desc": null,
-                "generic": true
-            },
-            {
                 "nid": "Gerik",
                 "team": "player",
                 "ai": "None",
@@ -3694,6 +3538,52 @@
                     3
                 ],
                 "generic": false
+            },
+            {
+                "nid": "101",
+                "variant": null,
+                "level": 1,
+                "klass": "Journeyman",
+                "faction": "Soldier",
+                "starting_items": [
+                    [
+                        "Hatchet",
+                        false
+                    ]
+                ],
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    1,
+                    13
+                ],
+                "name": null,
+                "desc": null,
+                "generic": true
+            },
+            {
+                "nid": "102",
+                "variant": null,
+                "level": 7,
+                "klass": "Journeyman",
+                "faction": "Soldier",
+                "starting_items": [
+                    [
+                        "Iron Axe",
+                        false
+                    ]
+                ],
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    3,
+                    14
+                ],
+                "name": null,
+                "desc": null,
+                "generic": true
             }
         ],
         "regions": [

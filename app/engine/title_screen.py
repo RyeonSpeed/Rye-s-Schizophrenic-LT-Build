@@ -173,7 +173,7 @@ class TitleMainState(State):
                     game.state.change('title_extras')
                 elif self.selection == 'New Game':
                     # game.state.change('title_mode')
-                    #game.state.change('title_new')
+                    # game.state.change('title_new')
                     game.state.change('title_rando')
                 self.state = 'transition_in'
                 return 'repeat'
@@ -531,6 +531,9 @@ class TitleWaitState(State):
     in_level = False
     show_map = False
     # NOT TRANSPARENT!!!
+    bg = None
+    particles = []
+    menu = None
 
     def start(self):
         self.bg = game.memory['title_bg']

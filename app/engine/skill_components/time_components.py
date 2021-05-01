@@ -6,7 +6,7 @@ from app.engine.game_state import game
 
 class Time(SkillComponent):
     nid = 'time'
-    desc = "Lasts for some number of turns"
+    desc = "Lasts for some number of turns (checked on upkeep)"
     tag = "time"
 
     expose = Type.Int
@@ -17,6 +17,30 @@ class Time(SkillComponent):
         self.skill.data['starting_turns'] = self.value
 
     def on_upkeep(self, actions, playback, unit):
+        val = self.skill.data['turns'] - 1
+        action.do(action.SetObjData(self.skill, 'turns', val))
+        if self.skill.data['turns'] <= 0:
+            actions.append(action.RemoveSkill(unit, self.skill))
+
+    def text(self) -> str:
+        return str(self.skill.data['turns'])
+
+    def on_end_chapter(self, unit, skill):
+        action.do(action.RemoveSkill(unit, self.skill))
+
+class EndTime(SkillComponent):
+    nid = 'end_time'
+    desc = "Lasts for some number of turns (checked on endstep)"
+    tag = "time"
+
+    expose = Type.Int
+    value = 2
+
+    def init(self, skill):
+        self.skill.data['turns'] = self.value
+        self.skill.data['starting_turns'] = self.value
+
+    def on_endstep(self, actions, playback, unit):
         val = self.skill.data['turns'] - 1
         action.do(action.SetObjData(self.skill, 'turns', val))
         if self.skill.data['turns'] <= 0:

@@ -152,7 +152,9 @@ class ExpState(State):
 
             # Extra time to account for pause at end
             if current_time - self.start_time >= self.total_time_for_exp + 333:
+                old_growth_points = self.unit.growth_points.copy()
                 self.stat_changes = unit_funcs.get_next_level_up(self.unit)
+                action.do(action.GrowthPointChange(self.unit, old_growth_points, self.unit.growth_points))
                 action.do(action.IncLevel(self.unit))
                 action.do(action.ApplyStatChanges(self.unit, self.stat_changes))
                 action.do(action.UpdateRecords('level_gain', (self.unit.nid, self.unit.level, self.unit.klass)))
@@ -238,7 +240,7 @@ class ExpState(State):
         elif self.state.get_state() in ('promote', 'class_change'):
             # TODO Combat Anims for Promotion
             old_anim = self.unit.battle_anim
-            
+
             if self.state.get_state() == 'promote':
                 promote_action = action.Promote(self.unit, game.memory['next_class'], game.rando_settings['promo_rando'])
             else:

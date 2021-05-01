@@ -60,7 +60,8 @@ class VictoryState(MapState):
             self.state = 'leave'
             SOUNDTHREAD.unmute()
             self.bg.fade_out()
-            game.state.change('transition_pop')
+            game.state.back()
+            # game.state.change('transition_pop')
             return 'repeat'
 
     def update(self):

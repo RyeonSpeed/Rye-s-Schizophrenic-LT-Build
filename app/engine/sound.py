@@ -1,3 +1,4 @@
+import os
 import pygame
 
 from app.utilities import utils
@@ -26,7 +27,7 @@ class MusicDict(dict):
     def full_preload(self):
         try:
             for prefab in RESOURCES.music:
-                if prefab.nid not in self:
+                if prefab.nid not in self and os.path.exists(prefab.full_path):
                     self[prefab.nid] = Song(prefab)
         except pygame.error as e:
             logging.warning(e)

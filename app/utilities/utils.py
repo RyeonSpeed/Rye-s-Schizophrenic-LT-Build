@@ -89,15 +89,18 @@ def hash_to_color(h: int) -> tuple:
     color = colorsys.hls_to_rgb(hue / 360., lightness, saturation)
     return tuple([int(_ * 255) for _ in color])
 
+def average_pos(pos_list: list) -> tuple:
+    avg_x, avg_y = 0, 0
+    for x, y in pos_list:
+        avg_x += x
+        avg_y += y
+    avg_x /= len(pos_list)
+    avg_y /= len(pos_list)
+    return (avg_x, avg_y)
+
 def farthest_away_pos(pos: tuple, valid_moves: set, enemy_pos: set):
     if valid_moves and enemy_pos:
-        avg_x, avg_y = 0, 0
-        for x, y in enemy_pos:
-            avg_x += x
-            avg_y += y
-        avg_x /= len(enemy_pos)
-        avg_y /= len(enemy_pos)
-        avg_pos = (avg_x, avg_y)
+        avg_pos = average_pos(enemy_pos)
         # First furthest away point from avg_pos
         # Then closest point to current position
         return sorted(valid_moves, key=lambda move: (calculate_distance(avg_pos, move), -calculate_distance(pos, move)))[-1]

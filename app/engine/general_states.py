@@ -163,6 +163,7 @@ class FreeState(MapState):
             # End the turn
             logging.info('Autoending turn.')
             game.state.change('turn_change')
+            game.state.change('status_endstep')
             return 'repeat'
 
     def end(self):
@@ -250,6 +251,7 @@ class OptionMenuState(MapState):
                 else:
                     game.state.back()
                     game.state.change('turn_change')
+                    game.state.change('status_endstep')
                     return 'repeat'
             elif selection == 'Suspend' or selection == 'Save':
                 if cf.SETTINGS['confirm_end']:
@@ -332,6 +334,7 @@ class OptionChildState(State):
                     game.state.back()
                     game.state.back()
                     game.state.change('turn_change')
+                    game.state.change('status_endstep')
                     return 'repeat'
                 elif self.menu.owner == 'Suspend':
                     suspend()
@@ -345,7 +348,9 @@ class OptionChildState(State):
                             action.do(action.RemoveItem(cur_unit, item))
                         elif self.menu.owner == 'Storage':
                             action.do(action.StoreItem(cur_unit, item))
-                    if cur_unit.items:
+                    if item_funcs.too_much_in_inventory(cur_unit):
+                        game.state.back()
+                    elif cur_unit.items:
                         game.state.back()
                         game.state.back()
                     else:  # If the unit has no more items, head all the way back to menu
@@ -691,6 +696,8 @@ class MenuState(MapState):
             else:  # Selection is one of the other abilities
                 game.memory['ability'] = self.target_dict[selection]
                 game.state.change('targeting')
+                if selection == 'Talk':
+                    self.menu = None  # So it's not shown during the event
 
     def update(self):
         super().update()
@@ -863,8 +870,7 @@ class ItemDiscardState(MapState):
     def begin(self):
         self.menu.update_options(self.cur_unit.items)
         # Don't need to do this if we are under items
-        if (len(self.cur_unit.accessories) <= DB.constants.value('num_accessories') and
-                len(self.cur_unit.nonaccessories) <= DB.constants.value('num_items')):
+        if not item_funcs.too_much_in_inventory(self.cur_unit):
             game.state.back()
             return 'repeat'
 
@@ -967,7 +973,7 @@ class WeaponChoiceState(MapState):
             # We don't equip spells
             if item_system.is_weapon(self.cur_unit, selection):
                 equip_action = action.EquipItem(self.cur_unit, selection)
-                game.memory['equip_action'] = equip_action
+                # game.memory['equip_action'] = equip_action
                 action.do(equip_action)
                 
             # If the item is in our inventory, bring it to the top
@@ -1280,10 +1286,11 @@ class CombatTargetingState(MapState):
 
         elif event == 'BACK':
             SOUNDTHREAD.play_sfx('Select 4')
-            equip_action = game.memory.get('equip_action')
-            if equip_action:
-                action.reverse(equip_action)
-            game.memory['equip_action'] = None
+            # Equip Action doesn't need to be reversed
+            # equip_action = game.memory.get('equip_action')
+            # if equip_action:
+            #     action.reverse(equip_action)
+            # game.memory['equip_action'] = None
             game.state.back()
             return 'repeat'
 
@@ -1568,7 +1575,7 @@ class AIState(MapState):
                     # Only do this for non-move actions
                     game.state.change('move_camera')
 
-            if game.ai.is_done():
+            if not change and game.ai.is_done():
                 logging.info("Current AI %s is done with turn.", self.cur_unit.nid)
                 if did_something:  # Don't turn grey if didn't actually do anything
                     self.cur_unit.wait()
@@ -1581,6 +1588,7 @@ class AIState(MapState):
             self.cur_unit = None
             self.cur_group = None
             game.state.change('turn_change')
+            game.state.change('status_endstep')
             self.finish()
             return 'repeat'
 

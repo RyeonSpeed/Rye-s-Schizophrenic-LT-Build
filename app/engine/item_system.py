@@ -2,6 +2,10 @@ import random
 
 class Defaults():
     @staticmethod
+    def full_price(unit, item) -> int:
+        return None
+
+    @staticmethod
     def buy_price(unit, item) -> int:
         return None
 
@@ -99,7 +103,7 @@ false_hooks = ('is_weapon', 'is_spell', 'is_accessory', 'equippable',
 # All default hooks are exclusive
 formula = ('damage_formula', 'resist_formula', 'accuracy_formula', 'avoid_formula', 
            'crit_accuracy_formula', 'crit_avoid_formula', 'attack_speed_formula', 'defense_speed_formula')
-default_hooks = ('buy_price', 'sell_price', 'special_sort', 'num_targets', 'minimum_range', 'maximum_range',
+default_hooks = ('full_price', 'buy_price', 'sell_price', 'special_sort', 'num_targets', 'minimum_range', 'maximum_range',
                  'weapon_type', 'weapon_rank', 'modify_weapon_triangle', 'damage', 'hit', 'crit')
 default_hooks += formula
 

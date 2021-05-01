@@ -525,13 +525,10 @@ class BaseRecordsState(State):
         self.mouse_indicator = gui.MouseIndicator()
         self.bg = game.memory['base_bg']
 
-        levels = game.records.get_levels()
-
         self.record_menu = record_book.RecordsDisplay()
-        self.chapter_menus = [record_book.ChapterStats(level_nid) for level_nid in levels]
+        self.chapter_menus = [record_book.ChapterStats(option.get()[0]) for option in self.record_menu.options if not option.ignore]
         self.mvp = record_book.MVPDisplay()
-        units = game.get_all_units_in_party()
-        self.unit_menus = [record_book.UnitStats(unit.nid) for unit in units]
+        self.unit_menus = [record_book.UnitStats(option.get()[0]) for option in self.mvp.options if not option.ignore]
 
         self.state = 'records'
         self.current_menu = self.record_menu

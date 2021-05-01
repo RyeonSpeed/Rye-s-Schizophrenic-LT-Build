@@ -366,7 +366,7 @@ class UnitObject(Prefab):
             self.items.insert(index, item)
         else:
             self.items.insert(index, item)
-            item.owner_nid = self.nid
+            item.change_owner(self.nid)
             # Statuses here
             item_system.on_add_item(self, item)
             skill_system.on_add_item(self, item)
@@ -375,7 +375,7 @@ class UnitObject(Prefab):
         if item is self.equipped_weapon or item is self.equipped_accessory:
             self.unequip(item)
         self.items.remove(item)
-        item.owner_nid = None
+        item.change_owner(None)
         # Status effects
         skill_system.on_remove_item(self, item)
         item_system.on_remove_item(self, item)
@@ -535,7 +535,10 @@ class UnitObject(Prefab):
         self.growth_points = s_dict['growth_points']
         self.wexp = s_dict['wexp']
         self.portrait_nid = s_dict['portrait_nid']
-        self.starting_position = s_dict['starting_position']
+        if s_dict['starting_position']:
+            self.starting_position = tuple(s_dict['starting_position'])
+        else:
+            self.starting_position = None
 
         self.skills = [game.get_skill(skill_uid) for skill_uid in s_dict['skills']]
         self.skills = [s for s in self.skills if s]

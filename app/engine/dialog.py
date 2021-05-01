@@ -32,7 +32,9 @@ class Dialog():
             self.font_color = 'white'
         else:
             self.font_color = 'black'
-        if self.variant == 'cinematic':
+        if self.variant == 'hint':
+            self.num_lines = 4
+        elif self.variant == 'cinematic':
             self.font_type = 'chapter'
             self.font_color = 'grey'
             self.num_lines = 5

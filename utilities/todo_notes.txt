@@ -1,12 +1,7 @@
 TODO List:
+Turnwheel bug. Sometimes when turnwheeling back a unit who moved but didn't end up doing anything after moving, when turnwheeled back they end up with movement_left move instead of full movement
 
 Get rid of on_add and on_remove
-Save needs to pull up Progress Bar -- Dialog box should pop up when saving and autosaving
-Speed up serialization
-Figure out whether we should be saving music and sound effects the way we ARE saving them...
-
-make_generic level change
-make_generic auto-nid
 
 Combat Animations
     Combat Anims / Palettes as a separate tab?
@@ -15,19 +10,13 @@ Combat Animations
 Overworld
 Supports
 Base
-    Manage, Market?, Arena, *Repair (in market)*, Forge (optional), Bonus Exp / Skills, Convos, Support, Codex (World Map, Lore, Records, Achievements, Tactics), Options, Save, Continue/Finish
-Minimap
-Turnwheel mouse support
-Autotiles (not just 29 frames)
+    Arena, *Repair (in market)*, Forge (optional), Bonus Exp / Skills, Support, Codex (World Map, Achievements, Tactics), 
 Unit Menu
 Joystick Remapping
-Guide (on Options Menu and in Base -> Codex -> Guide)
 
-Combat Anims > Overworld > Autotiles > Supports
+Combat Anims > Overworld > Supports
 
 Translations need a better GUI interface
-
-Test Prep Menu (Market, Restock, Using an item in base -- Angelic Robe?)
 
 Dialogue Log on R press
 
@@ -50,15 +39,9 @@ Supports:
 
     Bonuses to Hit, Crit, Damage, Avoid, Resist, Crit Avoid
 
-Summoning
-
-Clean and Rename files/resources button in Help
 Auto-check cross-references on editor load
 
 Consider giving each object a UID which is used for crossreferences... (This is probably the better way...)
-
-Customizable stat screen within Info Menu
-Customizable item screen (to handle accessories...) within Info Menu
 
 == Maybe, maybe not: ==
 Klok's Combining items idea

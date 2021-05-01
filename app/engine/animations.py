@@ -68,7 +68,7 @@ class Animation():
             if self.counter >= self.num_frames:
                 if self.loop:
                     self.counter = 0
-                    self.first_update = int(current_time - self.first_update) % self.speed
+                    self.first_update = current_time
                     self.delay = 0
                 elif self.hold:
                     self.counter = self.num_frames - 1

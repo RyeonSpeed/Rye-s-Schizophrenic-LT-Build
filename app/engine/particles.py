@@ -44,7 +44,7 @@ class ParticleSystem():
 
     def draw(self, surf, offset_x=0, offset_y=0):
         if self.blend:
-            engine.blit(surf, self.blend, (offset_x, offset_y), None, engine.BLEND_RGB_ADD)
+            engine.blit(surf, self.blend, (0, 0), None, engine.BLEND_RGB_ADD)
         for particle in self.particles:
             particle.draw(surf, offset_x, offset_y)
 
@@ -59,8 +59,7 @@ class Particle():
         raise NotImplementedError
 
     def draw(self, surf, offset_x=0, offset_y=0):
-        # Most particles do not obey camera offset
-        surf.blit(self.sprite, (self.x, self.y))
+        surf.blit(self.sprite, (self.x - offset_x, self.y - offset_y))
 
 class Raindrop(Particle):
     sprite = SPRITES.get('particle_raindrop')
@@ -134,7 +133,7 @@ class Fire(Particle):
 
     def draw(self, surf, offset_x=0, offset_y=0):
         # Fire does obey camera offset
-        surf.blit(self.sprite, (self.x + offset_x, self.y + offset_y))
+        surf.blit(self.sprite, (self.x, self.y))
 
 class Snow(Particle):
     sprite = SPRITES.get('particle_snow')
@@ -218,7 +217,7 @@ class LightMote(Particle):
 
     def draw(self, surf, offset_x=0, offset_y=0):
         sprite = image_mods.make_translucent(self.sprite, self.transparency)
-        surf.blit(sprite, (self.x, self.y))
+        surf.blit(sprite, (self.x - offset_x, self.y - offset_y))
 
 class DarkMote(LightMote):
     sprite = SPRITES.get('particle_dark_mote')

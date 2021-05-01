@@ -94,6 +94,7 @@ class Event():
         ser_dict['unit1'] = self.unit.nid if self.unit else None
         ser_dict['unit2'] = self.unit2.nid if self.unit2 else None
         ser_dict['region'] = self.region.nid if self.region else None
+        ser_dict['item'] = self.item.uid if self.item else None
         ser_dict['position'] = self.position
         ser_dict['if_stack'] = self.if_stack
         ser_dict['parse_stack'] = self.parse_stack
@@ -103,16 +104,12 @@ class Event():
     def restore(cls, ser_dict):
         unit = game.get_unit(ser_dict['unit1'])
         unit2 = game.get_unit(ser_dict['unit2'])
-        region = None
-        if game.level:
-            for reg in game.level.regions:
-                if reg.nid == ser_dict['region']:
-                    region = reg
-                    break
+        region = game.get_region(ser_dict['region'])
+        item = game.get_item(ser_dict.get('item'))
         position = ser_dict['position']
         commands = ser_dict['commands']
         nid = ser_dict['nid']
-        self = cls(nid, commands, unit, unit2, position, region)
+        self = cls(nid, commands, unit, unit2, item, position, region)
         self.command_idx = ser_dict['command_idx']
         self.if_stack = ser_dict['if_stack']
         self.parse_stack = ser_dict['parse_stack']
@@ -1574,7 +1571,6 @@ class Event():
                     return None
                 return position
             elif placement == 'push':
-                current_occupant = game.get_unit(current_occupant)
                 new_pos = target_system.get_nearest_open_tile(current_occupant, position)
                 action.do(action.ForcedMovement(current_occupant, new_pos))
                 return position
@@ -1582,6 +1578,9 @@ class Event():
             return position
 
     def change_tilemap(self, command):
+        """
+        Cannot be turnwheeled
+        """
         values, flags = event_commands.parse(command)
         tilemap_nid = values[0]
         tilemap_prefab = RESOURCES.tilemaps.get(tilemap_nid)
@@ -1670,8 +1669,12 @@ class Event():
             variant = values[6]
         else:
             variant = None
+        if len(values) > 7 and values[7]:
+            starting_items = values[7].split(',')
+        else:
+            starting_items = []
 
-        level_unit_prefab = GenericUnit(unit_nid, variant, level, klass, faction, [], team, ai_nid)
+        level_unit_prefab = GenericUnit(unit_nid, variant, level, klass, faction, starting_items, team, ai_nid)
         new_unit = UnitObject.from_prefab(level_unit_prefab)
         new_unit.party = game.current_party
         game.full_register(new_unit)
@@ -1738,9 +1741,7 @@ class Event():
                 return
         item_nid = values[1]
         if item_nid in DB.items.keys():
-            item_prefab = DB.items.get(item_nid)
-            item = ItemObject.from_prefab(item_prefab)
-            item_system.init(item)
+            item = item_funcs.create_item(None, item_nid)
             game.register_item(item)
         else:
             logging.error("Couldn't find item with nid %s" % item_nid)
@@ -1753,8 +1754,7 @@ class Event():
             item.droppable = True
 
         if unit:
-            accessory = item_system.is_accessory(unit, item)
-            if accessory and len(unit.accessories) >= DB.constants.value('num_accessories'):
+            if item_funcs.inventory_full(unit, item):
                 if 'no_choice' in flags:
                     action.do(action.PutItemInConvoy(item))
                     if banner_flag:
@@ -1767,21 +1767,6 @@ class Event():
                     game.state.change('item_discard')
                     self.state = 'paused'
                     if banner_flag:
-                        game.alerts.append(banner.AcquiredItem(self.unit, self.item))
-                        game.state.change('alert')
-            elif not accessory and len(unit.nonaccessories) >= DB.constants.value('num_items'):
-                if 'no_choice' in flags:
-                    action.do(action.PutItemInConvoy(item))
-                    if banner_flag:
-                        game.alerts.append(banner.SentToConvoy(item))
-                        game.state.change('alert')
-                        self.state = 'paused'
-                else:
-                    action.do(action.GiveItem(unit, item))
-                    game.cursor.cur_unit = unit
-                    game.state.change('item_discard')
-                    self.state = 'paused'
-                    if banner_flag: 
                         game.alerts.append(banner.AcquiredItem(unit, item))
                         game.state.change('alert')
             else:
@@ -1958,9 +1943,6 @@ class Event():
         self._apply_stat_changes(unit, stat_changes, flags)
 
     def autolevel_to(self, command):
-        """
-        Cannot be turnwheeled
-        """
         values, flags = event_commands.parse(command)
         unit = self.get_unit(values[0])
         if not unit:
@@ -2191,7 +2173,7 @@ class Event():
             position = self.get_unit(text).position
         else:
             valid_regions = \
-                [region.position for region in game.level.regions 
+                [tuple(region.position) for region in game.level.regions 
                  if text == region.sub_nid and region.position and 
                  not game.board.get_unit(region.position)]
             if valid_regions:

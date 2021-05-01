@@ -179,7 +179,8 @@ class InfoGraph():
         #     engine.fill(s, (10 * bb.idx, 10 * bb.idx, 0, 128))
         #     surf.blit(s, (bb.aabb[0], bb.aabb[1]))
         if self.current_bb:
-            right = self.current_bb.aabb[0] >= int(0.75 * WINWIDTH)
+            # right = self.current_bb.aabb[0] >= int(0.75 * WINWIDTH)
+            right = False
             pos = (max(0, self.current_bb.aabb[0] - 32), self.current_bb.aabb[1] + 13)
             self.current_bb.help_box.draw(surf, pos, right)
 

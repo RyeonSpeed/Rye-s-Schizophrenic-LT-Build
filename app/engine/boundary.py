@@ -180,12 +180,12 @@ class BoundaryInterface():
         self.all_on_flag = False
         self.surf = None
 
-    def draw(self, surf, size):
+    def draw(self, surf, full_size, cull_rect):
         if not self.draw_flag:
             return surf
 
         if not self.surf:
-            self.surf = engine.create_surface(size, transparent=True)
+            self.surf = engine.create_surface(full_size, transparent=True)
 
             for grid_name in self.draw_order:
                 # Check whether we can skip this boundary interface
@@ -236,7 +236,8 @@ class BoundaryInterface():
                             image = self.create_image(new_grid, x, y, grid_name)
                             self.surf.blit(image, (x * TILEWIDTH, y * TILEHEIGHT))
 
-        surf.blit(self.surf, (0, 0))
+        im = engine.subsurface(self.surf, cull_rect)
+        surf.blit(im, (0, 0))
         return surf
 
     def create_image(self, grid, x, y, grid_name):
@@ -267,10 +268,10 @@ class BoundaryInterface():
         idx = top*8 + left*4 + right*2 + bottom  # Binary logis to get correct index
         return engine.subsurface(self.modes[grid_name], (idx * TILEWIDTH, 0, TILEWIDTH, TILEHEIGHT))
 
-    def draw_fog_of_war(self, surf, size):
-        if not self.fog_of_war_surf:
-            self.fog_of_war_surf = engine.create_surface(size, transparent=True)
-            if game.level_vars['_fog_of_war']:
+    def draw_fog_of_war(self, surf, full_size, cull_rect):
+        if game.level_vars['_fog_of_war']:
+            if not self.fog_of_war_surf:
+                self.fog_of_war_surf = engine.create_surface(full_size, transparent=True)
                 for y in range(self.height):
                     for x in range(self.width):
                         if not game.board.in_vision((x, y)):
@@ -280,7 +281,8 @@ class BoundaryInterface():
                                 image = self.fog_of_war_tile1
                             self.fog_of_war_surf.blit(image, (x * TILEWIDTH, y * TILEHEIGHT))
                         
-        surf.blit(self.fog_of_war_surf, (0, 0))
+            im = engine.subsurface(self.fog_of_war_surf, cull_rect)
+            surf.blit(im, (0, 0))
         return surf
 
     def print_grid(self, mode):

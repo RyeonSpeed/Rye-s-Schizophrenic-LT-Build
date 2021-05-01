@@ -211,6 +211,9 @@ class Value(ItemComponent):
     expose = Type.Int
     value = 0
 
+    def full_price(self, unit, item):
+        return self.value
+
     def buy_price(self, unit, item):
         if item.uses:
             frac = item.data['uses'] / item.data['starting_uses']

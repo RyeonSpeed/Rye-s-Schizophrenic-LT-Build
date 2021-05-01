@@ -3,7 +3,7 @@ from app.data.database import DB
 
 from app.engine.combat.solver import CombatPhaseSolver
 
-from app.engine import action, skill_system, banner, item_system
+from app.engine import action, skill_system, banner, item_system, item_funcs
 from app.engine.game_state import game
 
 from app.engine.objects.unit import UnitObject
@@ -119,6 +119,7 @@ class SimpleCombat():
         self.turnwheel_death_messages(all_units)
 
         self.handle_state_stack()
+        self.cleanup_combat()
         game.events.trigger('combat_end', self.attacker, self.defender, self.main_item, self.attacker.position)
         self.handle_item_gain(all_units)
 
@@ -167,6 +168,17 @@ class SimpleCombat():
         for unit in self.all_splash:
             skill_system.start_combat(self.full_playback, unit, None, None, 'defense')
 
+    def cleanup_combat(self):
+        skill_system.cleanup_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
+        already_pre = [self.attacker]
+        for idx, defender in enumerate(self.defenders):
+            if defender and defender not in already_pre:
+                already_pre.append(defender)
+                def_item = self.def_items[idx]
+                skill_system.cleanup_combat(self.full_playback, defender, def_item, self.attacker, 'defense')
+        for unit in self.all_splash:
+            skill_system.cleanup_combat(self.full_playback, unit, None, self.attacker, 'defense')
+
     def end_combat(self):
         skill_system.end_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
         item_system.end_combat(self.full_playback, self.attacker, self.main_item, self.defender)
@@ -179,7 +191,7 @@ class SimpleCombat():
                 if def_item:
                     item_system.end_combat(self.full_playback, defender, def_item, self.attacker)
         for unit in self.all_splash:
-            skill_system.end_combat(self.full_playback, unit, None, None, 'defense')
+            skill_system.end_combat(self.full_playback, unit, None, self.attacker, 'defense')
 
         skill_system.post_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
         already_pre = [self.attacker]
@@ -189,7 +201,7 @@ class SimpleCombat():
                 def_item = self.def_items[idx]
                 skill_system.post_combat(self.full_playback, defender, def_item, self.attacker, 'defense')
         for unit in self.all_splash:
-            skill_system.post_combat(self.full_playback, unit, None, None, 'defense')
+            skill_system.post_combat(self.full_playback, unit, None, self.attacker, 'defense')
 
     def _all_units(self) -> list:
         """
@@ -246,20 +258,34 @@ class SimpleCombat():
     def handle_item_gain(self, all_units):
         enemies = all_units.copy()
         enemies.remove(self.attacker)
+        has_discard = False
         for unit in enemies:
             if unit.is_dying:
                 for item in unit.items[:]:
                     if item.droppable:
                         action.do(action.RemoveItem(unit, item))
-                        action.do(action.DropItem(self.attacker, item))
+                        if not has_discard and item_funcs.inventory_full(self.attacker, item):
+                            action.do(action.DropItem(self.attacker, item))
+                            game.cursor.cur_unit = self.attacker
+                            game.state.change('item_discard')
+                            has_discard = True
+                        else:
+                            action.do(action.DropItem(self.attacker, item))
                         if self.alerts:
                             game.alerts.append(banner.AcquiredItem(self.attacker, item))
                             game.state.change('alert')
+        has_discard = False
         if self.attacker.is_dying and self.defender:
             for item in self.attacker.items[:]:
                 if item.droppable:
                     action.do(action.RemoveItem(self.attacker, item))
-                    action.do(action.DropItem(self.defender, item))
+                    if not has_discard and item_funcs.inventory_full(self.defender, item):
+                        action.do(action.DropItem(self.defender, item))
+                        game.cursor.cur_unit = self.defender
+                        game.state.change('item_discard')
+                        has_discard = True
+                    else:
+                        action.do(action.DropItem(self.defender, item))
                     if self.alerts:
                         game.alerts.append(banner.AcquiredItem(self.defender, item))
                         game.state.change('alert')

@@ -20,6 +20,7 @@ class BlastAOE(ItemComponent):
     def splash(self, unit, item, position) -> tuple:
         ranges = set(range(self._get_power(unit)))
         splash = target_system.find_manhattan_spheres(ranges, position[0], position[1])
+        splash = {pos for pos in splash if game.tilemap.check_bounds(pos)}
         from app.engine import item_system
         if item_system.is_spell(unit, item):
             # spell blast
@@ -35,6 +36,7 @@ class BlastAOE(ItemComponent):
     def splash_positions(self, unit, item, position) -> set:
         ranges = set(range(self._get_power(unit)))
         splash = target_system.find_manhattan_spheres(ranges, position[0], position[1])
+        splash = {pos for pos in splash if game.tilemap.check_bounds(pos)}
         return splash
 
 class EnemyBlastAOE(BlastAOE, ItemComponent):
@@ -45,6 +47,7 @@ class EnemyBlastAOE(BlastAOE, ItemComponent):
     def splash(self, unit, item, position) -> tuple:
         ranges = set(range(self._get_power(unit)))
         splash = target_system.find_manhattan_spheres(ranges, position[0], position[1])
+        splash = {pos for pos in splash if 0 <= pos[0] < game.tilemap.width and 0 <= pos[1] < game.tilemap.height}
         from app.engine import item_system, skill_system
         if item_system.is_spell(unit, item):
             # spell blast
@@ -61,6 +64,7 @@ class EnemyBlastAOE(BlastAOE, ItemComponent):
         from app.engine import skill_system
         ranges = set(range(self._get_power(unit)))
         splash = target_system.find_manhattan_spheres(ranges, position[0], position[1])
+        splash = {pos for pos in splash if game.tilemap.check_bounds(pos)}
         # Doesn't highlight allies positions
         splash = {pos for pos in splash if not game.board.get_unit(pos) or skill_system.check_enemy(unit, game.board.get_unit(pos))}
         return splash
@@ -73,6 +77,7 @@ class AllyBlastAOE(BlastAOE, ItemComponent):
     def splash(self, unit, item, position) -> tuple:
         ranges = set(range(self._get_power(unit)))
         splash = target_system.find_manhattan_spheres(ranges, position[0], position[1])
+        splash = {pos for pos in splash if game.tilemap.check_bounds(pos)}
         from app.engine import skill_system
         splash = [game.board.get_unit(s) for s in splash]
         splash = [s.position for s in splash if s and skill_system.check_ally(unit, s)]

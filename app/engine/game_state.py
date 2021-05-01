@@ -61,7 +61,7 @@ class GameState():
         static_random.set_seed(random_seed)
         self.game_vars['_random_seed'] = random_seed
 
-        #Default Randomizer Settings
+        # Default Randomizer Settings
         self.rando_settings = self.set_rando()
 
         # Set up overworld  TODO
@@ -196,7 +196,7 @@ class GameState():
                   'talk_options': self.talk_options,
                   'base_convos': self.base_convos,
                   'current_random_state': static_random.get_combat_random_state(),
-                  'randomizer_settings': self.rando_settings,
+                  'randomizer_settings': self.rando_settings
                   }
         meta_dict = {'playtime': self.playtime,
                      'realtime': time.time(),
@@ -239,7 +239,7 @@ class GameState():
         self.rando_settings = s_dict.get('randomizer_settings')
         for key, value in self.rando_settings.items():
             logging.debug("Loaded value for %s: %s", key, value)
-        
+
         self.state.load_states(s_dict['state'][0], s_dict['state'][1])
 
         self.item_registry = {item['uid']: ItemObject.restore(item) for item in s_dict['items']}
@@ -349,7 +349,7 @@ class GameState():
                     del self.item_registry[k]
             else:
                 for party in self.parties.values():
-                    if v in party.convoy:
+                    if v in party.convoy or (v.parent_item and v.parent_item in party.convoy):
                         break
                 else:  # No party ever found
                     del self.item_registry[k]

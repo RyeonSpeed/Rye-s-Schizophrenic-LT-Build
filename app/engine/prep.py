@@ -481,6 +481,11 @@ class PrepManageSelectState(State):
         self.current_index = self.menu.current_index
 
         options = ['Trade', 'Restock', 'Give all', 'Optimize', 'Items', 'Market']
+        ignore = self.get_ignore()
+        self.select_menu = menus.Table(self.unit, options, (3, 2), (120, 80))
+        self.select_menu.set_ignore(ignore)
+
+    def get_ignore(self) -> list:
         ignore = [False, True, True, True, True, True]
         if game.game_vars.get('_convoy'):
             ignore = [False, True, True, False, False, True]
@@ -495,10 +500,11 @@ class PrepManageSelectState(State):
         else:
             if game.game_vars.get('_prep_market') and game.market_items:
                 ignore[5] = False
-        self.select_menu = menus.Table(self.unit, options, (3, 2), (120, 80))
-        self.select_menu.set_ignore(ignore)
+        return ignore
 
     def begin(self):
+        ignore = self.get_ignore()
+        self.select_menu.set_ignore(ignore)
         self.menu.move_to(self.current_index)
 
     def take_input(self, event):
@@ -824,6 +830,8 @@ class PrepItemsState(State):
         self.menu.draw(surf)
         if self.sub_menu:
             self.sub_menu.draw(surf)
+        if self.menu.info_flag:
+            self.menu.draw_info(surf)
         return surf
 
 class PrepRestockState(State):
@@ -961,7 +969,7 @@ class PrepMarketState(State):
                         if not item_funcs.inventory_full(self.unit, new_item):
                             self.unit.add_item(new_item)
                         else:
-                            new_item.owner_nid = None
+                            new_item.change_owner(None)
                             game.party.convoy.append(new_item)
                         self.update_options()
                     else:

@@ -219,6 +219,20 @@ class StatusOnHit(ItemComponent):
         actions.append(act)
         playback.append(('status_hit', unit, item, target, self.value))
 
+    def ai_priority(self, unit, item, target, move):
+        # Do I add a new status to the target
+        if target and self.value not in [skill.nid for skill in target.skills]:
+            accuracy_term = utils.clamp(combat_calcs.compute_hit(unit, target, item, target.get_weapon(), "attack")/100., 0, 1)
+            num_attacks = combat_calcs.outspeed(unit, target, item, target.get_weapon(), "attack")
+            accuracy_term *= num_attacks
+            # Tries to maximize distance from target
+            distance_term = 0.01 * utils.calculate_distance(move, target.position)
+            if skill_system.check_enemy(unit, target):
+                return 0.5 * accuracy_term + distance_term
+            else:
+                return -0.5 * accuracy_term
+        return 0
+
 class Restore(ItemComponent):
     nid = 'restore'
     desc = "Item removes all time statuses from target on hit"
@@ -416,6 +430,8 @@ class Steal(ItemComponent):
         if target_item:
             actions.append(action.RemoveItem(target, target_item))
             actions.append(action.DropItem(unit, target_item))
+            if unit.team != 'player':
+                actions.append(action.MakeItemDroppable(unit, target_item))
             actions.append(action.UpdateRecords('steal', (unit.nid, target.nid, target_item.nid)))
             self._did_steal = True
 
@@ -426,6 +442,14 @@ class Steal(ItemComponent):
             game.state.change('alert')
         item.data['target_item'] = None
         self._did_steal = False
+
+    def ai_priority(self, unit, item, target, move):
+        if target:
+            steal_term = 0.75
+            enemy_positions = utils.average_pos({other.position for other in game.units if other.position and skill_system.check_enemy(unit, other)})
+            distance_term = utils.calculate_distance(move, enemy_positions)
+            return steal_term + 0.01 * distance_term
+        return 0
 
 class GBASteal(Steal, ItemComponent):
     nid = 'gba_steal'

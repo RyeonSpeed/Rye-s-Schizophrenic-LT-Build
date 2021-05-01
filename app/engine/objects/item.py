@@ -2,7 +2,6 @@ from app.utilities.data import Data
 
 from app.data.database import DB
 import app.engine.item_component_access as ICA
-from app.engine.game_state import game
 
 class ItemObject():
     next_uid = 100
@@ -34,6 +33,11 @@ class ItemObject():
         self.subitem_uids = []
         self.subitems = []
         self.parent_item = None
+
+    def change_owner(self, nid):
+        self.owner_nid = nid
+        for item in self.subitems:
+            item.owner_nid = nid
 
     @classmethod
     def from_prefab(cls, prefab):

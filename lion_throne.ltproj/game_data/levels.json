@@ -2377,7 +2377,7 @@
         },
         "objective": {
             "simple": "Destroy all Wagons,{eval:game.game_vars.get('dead_wagons', 0)}/10 destroyed",
-            "win": "Destroy at least 7 wagons. {eval:game.game_vars.get('dead_wagons', 0}/10 destroyed",
+            "win": "Destroy at least 7 wagons. {eval:game.game_vars.get('dead_wagons', 0)}/10 destroyed",
             "loss": "Ophie dies,Four or more wagons escape,Party size falls below 5. Currently {eval:len(game.get_units_in_party())}."
         },
         "units": [
@@ -4684,7 +4684,7 @@
                 "ai_group": null,
                 "starting_position": [
                     6,
-                    4
+                    5
                 ],
                 "name": "Guard",
                 "desc": "Guard at the Tyrana Prison",
@@ -4707,7 +4707,7 @@
                 "ai_group": null,
                 "starting_position": [
                     18,
-                    4
+                    5
                 ],
                 "name": "Guard",
                 "desc": "Guard at the Tyrana Prison",
@@ -5869,6 +5869,29 @@
                 "generic": true
             },
             {
+                "nid": "200",
+                "variant": null,
+                "level": 9,
+                "klass": "Soldier",
+                "faction": "Guard",
+                "starting_items": [
+                    [
+                        "Iron Lance",
+                        false
+                    ]
+                ],
+                "team": "enemy",
+                "ai": "Pursue",
+                "ai_group": null,
+                "starting_position": [
+                    7,
+                    1
+                ],
+                "name": "Guard",
+                "desc": "Guard at the Tyrana Prison",
+                "generic": true
+            },
+            {
                 "nid": "r81",
                 "variant": null,
                 "level": 9,
@@ -5884,6 +5907,29 @@
                 "ai": "Pursue",
                 "ai_group": null,
                 "starting_position": null,
+                "name": "Guard",
+                "desc": "Guard at the Tyrana Prison",
+                "generic": true
+            },
+            {
+                "nid": "201",
+                "variant": null,
+                "level": 9,
+                "klass": "Soldier",
+                "faction": "Guard",
+                "starting_items": [
+                    [
+                        "Iron Lance",
+                        false
+                    ]
+                ],
+                "team": "enemy",
+                "ai": "Pursue",
+                "ai_group": null,
+                "starting_position": [
+                    17,
+                    1
+                ],
                 "name": "Guard",
                 "desc": "Guard at the Tyrana Prison",
                 "generic": true
@@ -5909,6 +5955,29 @@
                 "generic": true
             },
             {
+                "nid": "202",
+                "variant": null,
+                "level": 8,
+                "klass": "Mage",
+                "faction": "Guard",
+                "starting_items": [
+                    [
+                        "Wind",
+                        false
+                    ]
+                ],
+                "team": "enemy",
+                "ai": "Pursue",
+                "ai_group": null,
+                "starting_position": [
+                    19,
+                    1
+                ],
+                "name": "Guard",
+                "desc": "Guard at the Tyrana Prison",
+                "generic": true
+            },
+            {
                 "nid": "r82",
                 "variant": null,
                 "level": 8,
@@ -5924,6 +5993,29 @@
                 "ai": "Pursue",
                 "ai_group": null,
                 "starting_position": null,
+                "name": "Guard",
+                "desc": "Guard at the Tyrana Prison",
+                "generic": true
+            },
+            {
+                "nid": "203",
+                "variant": null,
+                "level": 8,
+                "klass": "Mage",
+                "faction": "Guard",
+                "starting_items": [
+                    [
+                        "Wind",
+                        false
+                    ]
+                ],
+                "team": "enemy",
+                "ai": "Pursue",
+                "ai_group": null,
+                "starting_position": [
+                    5,
+                    1
+                ],
                 "name": "Guard",
                 "desc": "Guard at the Tyrana Prison",
                 "generic": true
@@ -6085,7 +6177,7 @@
                 "region_type": "event",
                 "position": [
                     2,
-                    6
+                    7
                 ],
                 "size": [
                     1,
@@ -6100,7 +6192,7 @@
                 "region_type": "event",
                 "position": [
                     22,
-                    6
+                    7
                 ],
                 "size": [
                     1,
@@ -6115,7 +6207,7 @@
                 "region_type": "event",
                 "position": [
                     1,
-                    29
+                    28
                 ],
                 "size": [
                     1,
@@ -6130,7 +6222,7 @@
                 "region_type": "event",
                 "position": [
                     23,
-                    29
+                    28
                 ],
                 "size": [
                     1,
@@ -6145,7 +6237,7 @@
                 "region_type": "event",
                 "position": [
                     12,
-                    25
+                    26
                 ],
                 "size": [
                     1,
@@ -6160,7 +6252,7 @@
                 "region_type": "event",
                 "position": [
                     12,
-                    34
+                    33
                 ],
                 "size": [
                     1,
@@ -6271,7 +6363,7 @@
                     2,
                     1
                 ],
-                "sub_nid": null,
+                "sub_nid": "",
                 "condition": "True",
                 "only_once": false
             },
@@ -6302,7 +6394,7 @@
                     2
                 ],
                 "sub_nid": "Thief Escape",
-                "condition": "unit.team == 'enemy'",
+                "condition": "unit.team != 'player'",
                 "only_once": false
             },
             {
@@ -6317,7 +6409,7 @@
                     2
                 ],
                 "sub_nid": "Thief Escape",
-                "condition": "unit.team == 'enemy'",
+                "condition": "unit.team != 'player'",
                 "only_once": false
             },
             {
@@ -6332,7 +6424,7 @@
                     1
                 ],
                 "sub_nid": "Thief Escape",
-                "condition": "unit.team == 'enemy'",
+                "condition": "unit.team != 'player'",
                 "only_once": false
             },
             {
@@ -6347,7 +6439,7 @@
                     1
                 ],
                 "sub_nid": "Thief Escape",
-                "condition": "unit.team == 'enemy'",
+                "condition": "unit.team != 'player'",
                 "only_once": false
             }
         ],
@@ -7990,7 +8082,7 @@
                 }
             },
             {
-                "nid": "WyvernNorth",
+                "nid": "WyvernSouth",
                 "units": [
                     "150",
                     "151",
@@ -7999,20 +8091,20 @@
                 ],
                 "positions": {
                     "150": [
-                        26,
-                        0
+                        1,
+                        23
                     ],
                     "151": [
-                        25,
-                        0
+                        2,
+                        23
                     ],
                     "152": [
-                        27,
-                        1
+                        0,
+                        22
                     ],
                     "153": [
-                        27,
-                        2
+                        0,
+                        21
                     ]
                 }
             },
@@ -8697,7 +8789,7 @@
                     ]
                 ],
                 "team": "enemy",
-                "ai": "Attack",
+                "ai": "Defend",
                 "ai_group": null,
                 "starting_position": [
                     24,
@@ -12595,38 +12687,133 @@
         },
         "units": [
             {
-                "nid": "Ophie",
-                "team": "player",
-                "ai": "None",
-                "ai_group": null,
-                "starting_position": [
-                    1,
-                    14
-                ],
-                "generic": false
-            },
-            {
-                "nid": "103",
+                "nid": "101",
                 "variant": null,
-                "level": 1,
-                "klass": "Mage",
+                "level": 10,
+                "klass": "Thief",
                 "faction": "Soldier",
                 "starting_items": [
                     [
-                        "Wyrmsfire",
-                        false
+                        "Mithril Sword",
+                        true
                     ]
                 ],
                 "team": "enemy",
-                "ai": "Defend",
-                "ai_group": "1",
+                "ai": "Thief",
+                "ai_group": null,
                 "starting_position": [
-                    5,
+                    2,
                     5
                 ],
                 "name": null,
                 "desc": null,
                 "generic": true
+            },
+            {
+                "nid": "Ophie",
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    3,
+                    4
+                ],
+                "generic": false
+            },
+            {
+                "nid": "Prim",
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    12,
+                    5
+                ],
+                "generic": false
+            },
+            {
+                "nid": "104",
+                "variant": null,
+                "level": 1,
+                "klass": "Halberdier",
+                "faction": "Soldier",
+                "starting_items": [
+                    [
+                        "Iron Lance",
+                        false
+                    ],
+                    [
+                        "Javelin",
+                        false
+                    ]
+                ],
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    3,
+                    7
+                ],
+                "name": null,
+                "desc": null,
+                "generic": true
+            },
+            {
+                "nid": "102",
+                "variant": null,
+                "level": 1,
+                "klass": "Swordmaster",
+                "faction": "Soldier",
+                "starting_items": [
+                    [
+                        "Iron Sword",
+                        false
+                    ]
+                ],
+                "team": "enemy",
+                "ai": "Pursue",
+                "ai_group": null,
+                "starting_position": [
+                    12,
+                    6
+                ],
+                "name": null,
+                "desc": null,
+                "generic": true
+            },
+            {
+                "nid": "103",
+                "variant": null,
+                "level": 1,
+                "klass": "Oracle",
+                "faction": "Soldier",
+                "starting_items": [
+                    [
+                        "Warp",
+                        false
+                    ]
+                ],
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    4,
+                    7
+                ],
+                "name": null,
+                "desc": null,
+                "generic": true
+            },
+            {
+                "nid": "Ulver",
+                "team": "player",
+                "ai": "None",
+                "ai_group": null,
+                "starting_position": [
+                    2,
+                    13
+                ],
+                "generic": false
             }
         ],
         "regions": [
@@ -12642,7 +12829,7 @@
                     1
                 ],
                 "sub_nid": "Armory",
-                "condition": "True",
+                "condition": "unit.team != 'player'",
                 "only_once": false
             },
             {
@@ -12674,20 +12861,28 @@
                 "sub_nid": "Switch",
                 "condition": "True",
                 "only_once": true
+            },
+            {
+                "nid": "escape",
+                "region_type": "event",
+                "position": [
+                    0,
+                    0
+                ],
+                "size": [
+                    2,
+                    1
+                ],
+                "sub_nid": "Thief Escape",
+                "condition": "True",
+                "only_once": false
             }
         ],
         "unit_groups": [
             {
                 "nid": "rein",
-                "units": [
-                    "103"
-                ],
-                "positions": {
-                    "103": [
-                        2,
-                        2
-                    ]
-                }
+                "units": [],
+                "positions": {}
             }
         ]
     }

@@ -43,8 +43,8 @@ class StateMachine():
              'title_wait': title_screen.TitleWaitState,
              'title_save': title_screen.TitleSaveState,
              'title_rando': title_screen.TitleRandomizerState,
-             'randomizer_menu':randomizer_menu.RandoMenuState,
-             'randomizer_status_menu':randomizer_status_menu.RandoStatusMenuState,
+             'randomizer_menu': randomizer_menu.RandoMenuState,
+             'randomizer_status_menu': randomizer_status_menu.RandoStatusMenuState,
              'in_chapter_save': title_screen.TitleSaveState,
              'transition_in': transitions.TransitionInState,
              'transition_out': transitions.TransitionOutState,
@@ -212,10 +212,9 @@ class StateMachine():
                     idx -= 1
                 else:
                     break
-            while idx < -1:
+            while idx <= -1:
                 surf = self.state[idx].draw(surf)
                 idx += 1
-            surf = state.draw(surf)
         # End
         if self.temp_state and state.processed:
             state.processed = False

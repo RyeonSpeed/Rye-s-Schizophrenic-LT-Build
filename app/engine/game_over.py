@@ -54,6 +54,3 @@ class GameOverState(State):
         engine.blit_center(surf, text_surf)
         surf.blit(self.game_over_fade, (0, 0))
         return surf
-
-    def finish(self):
-        game.memory['transition_speed'] = 1

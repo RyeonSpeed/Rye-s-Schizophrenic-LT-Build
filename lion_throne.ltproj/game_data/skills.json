@@ -36,6 +36,26 @@
         ]
     },
     {
+        "nid": "Canto+",
+        "name": "Canto+",
+        "desc": "Can move again after certain actions.",
+        "icon_nid": "Skills",
+        "icon_index": [
+            3,
+            1
+        ],
+        "components": [
+            [
+                "class_skill",
+                null
+            ],
+            [
+                "canto_plus",
+                null
+            ]
+        ]
+    },
+    {
         "nid": "Fort",
         "name": "Fort",
         "desc": "",
@@ -476,8 +496,8 @@
         ],
         "components": [
             [
-                "time",
-                2
+                "end_time",
+                1
             ],
             [
                 "unselectable",
@@ -499,6 +519,10 @@
             [
                 "negative",
                 null
+            ],
+            [
+                "unit_anim",
+                "MapStun"
             ]
         ]
     },
@@ -595,7 +619,7 @@
             ],
             [
                 "time",
-                5
+                3
             ]
         ]
     },
@@ -688,7 +712,7 @@
             ],
             [
                 "time",
-                6
+                4
             ],
             [
                 "negative",
@@ -711,7 +735,7 @@
                 [
                     [
                         "STR",
-                        -4
+                        -3
                     ],
                     [
                         "MAG",
@@ -1365,6 +1389,35 @@
         ]
     },
     {
+        "nid": "Aetherguard",
+        "name": "Aetherguard",
+        "desc": "Grants SPD +2, DEF +2, and RES +2.",
+        "icon_nid": "Skills",
+        "icon_index": [
+            6,
+            6
+        ],
+        "components": [
+            [
+                "stat_change",
+                [
+                    [
+                        "SPD",
+                        2
+                    ],
+                    [
+                        "DEF",
+                        2
+                    ],
+                    [
+                        "RES",
+                        2
+                    ]
+                ]
+            ]
+        ]
+    },
+    {
         "nid": "Underdog",
         "name": "Underdog",
         "desc": "Grants Damage +2 and Damage Taken -2 against enemies with greater max HP.",
@@ -1578,10 +1631,6 @@
         "components": [
             [
                 "class_skill",
-                null
-            ],
-            [
-                "ignore_terrain",
                 null
             ]
         ]
@@ -2011,7 +2060,7 @@
             ],
             [
                 "combat_condition",
-                "unit is not target and skill_system.check_ally(unit, target)"
+                "target and unit is not target and skill_system.check_ally(unit, target)"
             ]
         ]
     },

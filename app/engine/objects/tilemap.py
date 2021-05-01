@@ -1,4 +1,4 @@
-from app.constants import TILEWIDTH, TILEHEIGHT, AUTOTILE_FRAMES
+from app.constants import TILEWIDTH, TILEHEIGHT, AUTOTILE_FRAMES, COLORKEY
 from app.utilities.data import Data, Prefab
 
 from app.resources.resources import RESOURCES
@@ -15,6 +15,7 @@ class LayerObject():
         self.terrain = {}
         self.image = None
         self.autotile_images = []
+        self.pixel_bounds = None
 
         # For fade in
         self.state = None
@@ -25,14 +26,31 @@ class LayerObject():
     def set_image(self, image):
         self.image = image
 
-    def get_image(self):
-        if self.state in ('fade_in', 'fade_out'):
-            return image_mods.make_translucent(self.image, self.translucence)
-        return self.image
+    def should_draw(self, cull_rect) -> bool:
+        """
+        Check to see if my bounds intersect with the 
+        culling rect
+        """
+        ans = self.pixel_bounds and cull_rect[0] < self.pixel_bounds[2] and \
+            cull_rect[0] + cull_rect[2] > self.pixel_bounds[0] and \
+            cull_rect[1] < self.pixel_bounds[3] and \
+            cull_rect[1] + cull_rect[3] > self.pixel_bounds[1]
+        return ans
 
-    def get_autotile_image(self):
-        im = self.autotile_images[self.autotile_frame]
+    def get_image(self, cull_rect):
+        # Cull to only the part I need
+        im = engine.subsurface(self.image, cull_rect)
         if self.state in ('fade_in', 'fade_out'):
+            im = im.convert_alpha()
+            im = image_mods.make_translucent(im, self.translucence)
+        return im
+
+    def get_autotile_image(self, cull_rect):
+        if not self.autotile_images:
+            return None
+        im = engine.subsurface(self.autotile_images[self.autotile_frame], cull_rect)
+        if self.state in ('fade_in', 'fade_out'):
+            im = im.convert_alpha()
             return image_mods.make_translucent(im, self.translucence)
         return im
 
@@ -75,11 +93,12 @@ class LayerObject():
             if self.translucence >= 1:
                 self.state = None
 
-        autotile_wait = int(self.parent.autotile_fps * 16.66)
-        frame = (current_time // autotile_wait) % len(self.autotile_images)
-        if frame != self.autotile_frame:
-            self.autotile_frame = frame
-            in_state = True  # Requires update to image when autotiles turn over
+        if self.autotile_images:
+            autotile_wait = int(self.parent.autotile_fps * 16.66)
+            frame = (current_time // autotile_wait) % len(self.autotile_images)
+            if frame != self.autotile_frame:
+                self.autotile_frame = frame
+                in_state = True  # Requires update to image when autotiles turn over
 
         return in_state
 
@@ -100,7 +119,6 @@ class TileMapObject(Prefab):
         self.height = prefab.height
         self.autotile_fps = prefab.autotile_fps
         self.layers = Data()
-        self.full_image = None
 
         # Stitch together image layers
         for layer in prefab.layers:
@@ -108,12 +126,28 @@ class TileMapObject(Prefab):
             # Terrain
             for coord, terrain_nid in layer.terrain_grid.items():
                 new_layer.terrain[coord] = terrain_nid
+
             # Image
-            image = engine.create_surface((self.width * TILEWIDTH, self.height * TILEHEIGHT), transparent=True)
+            image = engine.create_surface((self.width * TILEWIDTH, self.height * TILEHEIGHT))
+            engine.fill(image, COLORKEY)
+            engine.set_colorkey(image, COLORKEY, rleaccel=True)
             # Autotile Images
-            autotile_images = [engine.create_surface((self.width * TILEWIDTH, self.height * TILEHEIGHT), transparent=True) for _ in range(AUTOTILE_FRAMES)]
+            autotile_images = [engine.create_surface((self.width * TILEWIDTH, self.height * TILEHEIGHT)) for _ in range(AUTOTILE_FRAMES)]
+            for im in autotile_images:
+                engine.fill(im, COLORKEY)
+                engine.set_colorkey(im, COLORKEY, rleaccel=True)
+
+            # Build pixel bounds
+            coords = layer.sprite_grid.keys()
+            if coords:
+                left_bound = min(coord[0] for coord in coords) * TILEWIDTH
+                right_bound = (max(coord[0] for coord in coords) + 1) * TILEWIDTH
+                top_bound = min(coord[1] for coord in coords) * TILEHEIGHT
+                bottom_bound = (max(coord[1] for coord in coords) + 1) * TILEHEIGHT
+                new_layer.pixel_bounds = [left_bound, top_bound, right_bound, bottom_bound]
 
             for coord, tile_sprite in layer.sprite_grid.items():
+                has_autotiles = False
                 tileset = RESOURCES.tilesets.get(tile_sprite.tileset_nid)
                 if not tileset.image:
                     tileset.image = engine.image_load(tileset.full_path)
@@ -127,6 +161,7 @@ class TileMapObject(Prefab):
 
                 # Handle Autotiles
                 if pos in tileset.autotiles and tileset.autotile_image:
+                    has_autotiles = True
                     column = tileset.autotiles[pos]
                     for idx, im in enumerate(autotile_images):
                         rect = (column * TILEWIDTH, idx * TILEHEIGHT, TILEWIDTH, TILEHEIGHT)
@@ -134,7 +169,8 @@ class TileMapObject(Prefab):
                         im.blit(sub_image, (coord[0] * TILEWIDTH, coord[1] * TILEHEIGHT))
 
             new_layer.image = image
-            new_layer.autotile_images = autotile_images
+            if has_autotiles:
+                new_layer.autotile_images = autotile_images
             self.layers.append(new_layer)
 
         # Base layer should be visible, rest invisible
@@ -164,15 +200,18 @@ class TileMapObject(Prefab):
                 return layer.nid
         return None
 
-    def get_full_image(self):
-        if not self.full_image:
-            image = engine.create_surface((self.width * TILEWIDTH, self.height * TILEHEIGHT), transparent=True)
-            for layer in self.layers:
-                if layer.visible or layer.state == 'fade_out':
-                    image.blit(layer.get_image(), (0, 0))
-                    image.blit(layer.get_autotile_image(), (0, 0))
-            self.full_image = image
-        return self.full_image
+    def get_full_image(self, cull_rect):
+        image = engine.create_surface((cull_rect[2], cull_rect[3]))
+        engine.set_colorkey(image, COLORKEY)
+        for layer in self.layers:
+            if (layer.visible or layer.state == 'fade_out') and \
+                    layer.should_draw(cull_rect):
+                main_image = layer.get_image(cull_rect)
+                image.blit(main_image, (0, 0))
+                autotile_image = layer.get_autotile_image(cull_rect)
+                if autotile_image:
+                    image.blit(autotile_image, (0, 0))
+        return image
 
     def update(self):
         for layer in self.layers:
@@ -181,7 +220,7 @@ class TileMapObject(Prefab):
                 self.reset()
 
     def reset(self):
-        self.full_image = None
+        pass
 
     def save(self):
         s_dict = {}

@@ -8,6 +8,8 @@ from app.editor.base_database_gui import DatabaseTab
 
 from app.editor.portrait_editor import portrait_model, portrait_properties
 
+from app.editor import timer
+
 class PortraitDatabase(DatabaseTab):
     @classmethod
     def create(cls, parent=None):
@@ -28,8 +30,10 @@ class PortraitDatabase(DatabaseTab):
         window.exec_()
 
 def get():
+    timer.get_timer().start_for_editor()
     window = SingleResourceEditor(PortraitDatabase, ['portraits'])
     result = window.exec_()
+    timer.get_timer().stop_for_editor()
     if result == QDialog.Accepted:
         selected_portrait = window.tab.right_frame.current
         return selected_portrait, True

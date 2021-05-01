@@ -287,12 +287,12 @@ class Cursor():
         self.formation_sprite = engine.subsurface(sprite, (64, 64, 64, 32))
         self.green_sprite = engine.subsurface(sprite, (0, 96, 128, 32))
 
-    def draw(self, surf):
+    def draw(self, surf, cull_rect):
         if self.draw_state:
             x, y = self.position
             left = x * TILEWIDTH - max(0, (self.image.get_width() - 16)//2) - self.offset_x
             top = y * TILEHEIGHT - max(0, (self.image.get_height() - 16)//2) - self.offset_y
-            surf.blit(self.image, (left, top))
+            surf.blit(self.image, (left - cull_rect[0], top - cull_rect[1]))
 
             # Now reset offset
             num = 8 if self.speed_state else 4
@@ -307,10 +307,10 @@ class Cursor():
 
         return surf
 
-    def draw_arrows(self, surf):
+    def draw_arrows(self, surf, cull_rect):
         if self._display_arrows:
             for arrow in self.arrows:
-                surf = arrow.draw(surf)
+                surf = arrow.draw(surf, cull_rect)
         return surf
 
 class Arrow(object):
@@ -320,8 +320,8 @@ class Arrow(object):
         self.image = engine.subsurface(self.sprite, (x * TILEWIDTH, y * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
         self.position = position
 
-    def draw(self, surf):
+    def draw(self, surf, cull_rect):
         x, y = self.position
-        topleft = x * TILEWIDTH, y * TILEHEIGHT
+        topleft = x * TILEWIDTH - cull_rect[0], y * TILEHEIGHT - cull_rect[1]
         surf.blit(self.image, topleft)
         return surf

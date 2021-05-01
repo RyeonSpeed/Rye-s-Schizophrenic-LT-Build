@@ -435,7 +435,7 @@
                 "action": "Interact",
                 "target": "Event",
                 "target_spec": "Thief Escape",
-                "view_range": -2,
+                "view_range": 6,
                 "invert_targeting": false
             },
             {

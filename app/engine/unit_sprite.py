@@ -355,15 +355,15 @@ class UnitSprite():
         image = self.select_frame(image, state)
         return image
 
-    def draw(self, surf):
+    def draw(self, surf, cull_rect):
         current_time = engine.get_time()
         image = self.create_image(self.image_state)
         if self.fake_position:
             x, y = self.fake_position
         elif self.unit.position:
             x, y = self.unit.position
-        left = x * TILEWIDTH + self.offset[0]
-        top = y * TILEHEIGHT + self.offset[1]
+        left = x * TILEWIDTH + self.offset[0] - cull_rect[0]
+        top = y * TILEHEIGHT + self.offset[1] - cull_rect[1]
         anim_top = top
 
         self.vibrate_counter += 1
@@ -516,14 +516,14 @@ class UnitSprite():
                 return True
         return False
 
-    def draw_hp(self, surf):
+    def draw_hp(self, surf, cull_rect):
         current_time = engine.get_time()
         if self.fake_position:
             x, y = self.fake_position
         elif self.unit.position:
             x, y = self.unit.position
-        left = x * TILEWIDTH + self.offset[0]
-        top = y * TILEHEIGHT + self.offset[1]
+        left = x * TILEWIDTH + self.offset[0] - cull_rect[0]
+        top = y * TILEHEIGHT + self.offset[1] - cull_rect[1]
 
         if self.check_draw_hp():
             self.health_bar.draw(surf, left, top)

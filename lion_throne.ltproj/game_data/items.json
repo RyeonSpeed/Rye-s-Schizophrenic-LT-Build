@@ -38,10 +38,6 @@
                 "D"
             ],
             [
-                "uses",
-                45
-            ],
-            [
                 "weight",
                 3
             ],
@@ -56,6 +52,10 @@
             [
                 "max_range",
                 1
+            ],
+            [
+                "uses",
+                45
             ]
         ]
     },
@@ -455,7 +455,7 @@
             ],
             [
                 "hit",
-                100
+                95
             ],
             [
                 "weapon_type",
@@ -599,7 +599,7 @@
             ],
             [
                 "hit",
-                60
+                65
             ],
             [
                 "weapon_type",
@@ -3186,10 +3186,6 @@
                 15
             ],
             [
-                "blast_aoe",
-                1
-            ],
-            [
                 "map_cast_anim",
                 "AOE_Mend"
             ],
@@ -3212,6 +3208,10 @@
                     144,
                     232
                 ]
+            ],
+            [
+                "ally_blast_aoe",
+                1
             ]
         ]
     },
@@ -3858,7 +3858,7 @@
             ],
             [
                 "status_on_equip",
-                "Speed +2,Defense +2,Resistance +2"
+                "Aetherguard"
             ],
             [
                 "value",
@@ -4733,7 +4733,7 @@
     {
         "nid": "Stun",
         "name": "Stun",
-        "desc": "Stuns target.",
+        "desc": "Stuns target for one turn.",
         "icon_nid": "Dark",
         "icon_index": [
             0,

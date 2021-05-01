@@ -4,14 +4,14 @@ from app.engine.game_state import game
 
 def can_restock(item) -> bool:
     convoy = game.party.convoy
-    return bool(item.uses and item.data['uses'] < item.data['starting_uses'] and item.nid in [i.nid for i in convoy])
+    return bool(item.uses and item.data['uses'] < item.data['starting_uses'] and item.nid in [i.nid for i in convoy if i is not item])
 
 def restock(item):
     convoy = game.party.convoy
     if not can_restock(item):
         return
 
-    other_items = sorted([i for i in convoy if i.nid == item.nid], key=lambda i: i.data['uses'])
+    other_items = sorted([i for i in convoy if i.nid == item.nid and i is not item], key=lambda i: i.data['uses'])
     for i in other_items:
         diff_needed = item.data['starting_uses'] - item.data['uses']
         if diff_needed > 0:
@@ -22,6 +22,7 @@ def restock(item):
                     convoy.remove(i)
             else:
                 item.data['uses'] += i.data['uses']
+                i.data['uses'] = 0
                 convoy.remove(i)
         else:
             break
@@ -30,7 +31,7 @@ def restock_convoy():
     convoy = game.party.convoy
     items = [i for i in convoy if can_restock(i)]
     items = sorted(items, key=lambda i: i.data['uses'], reverse=True)
-    for item in items:
+    for item in items[:]:
         if item.data['uses'] > 0:
             restock(item)
 

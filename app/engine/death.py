@@ -14,6 +14,9 @@ class DeathManager():
         unit.is_dying = False
         if unit.nid in self.dying_units:
             del self.dying_units[unit.nid]
+        unit.sprite.flicker.clear()
+        unit.sprite.change_state('normal')
+        unit.sprite.set_transition('normal')
 
     def force_death(self, unit):
         unit.is_dying = False
