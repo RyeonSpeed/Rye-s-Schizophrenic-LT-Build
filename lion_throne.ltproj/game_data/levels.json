@@ -12645,7 +12645,7 @@
     {
         "nid": "11",
         "name": "Epilogue",
-        "tilemap": null,
+        "tilemap": "Prologue",
         "party": "Resistance",
         "music": {
             "player_phase": null,
@@ -12726,7 +12726,7 @@
                 "ai": "None",
                 "ai_group": null,
                 "starting_position": [
-                    12,
+                    4,
                     5
                 ],
                 "generic": false
@@ -12752,7 +12752,7 @@
                 "ai_group": null,
                 "starting_position": [
                     3,
-                    7
+                    6
                 ],
                 "name": null,
                 "desc": null,
@@ -12768,14 +12768,18 @@
                     [
                         "Iron Sword",
                         false
+                    ],
+                    [
+                        "Superior Edge",
+                        false
                     ]
                 ],
                 "team": "enemy",
                 "ai": "Pursue",
                 "ai_group": null,
                 "starting_position": [
-                    12,
-                    6
+                    3,
+                    5
                 ],
                 "name": null,
                 "desc": null,
@@ -12798,7 +12802,7 @@
                 "ai_group": null,
                 "starting_position": [
                     4,
-                    7
+                    6
                 ],
                 "name": null,
                 "desc": null,
@@ -12810,8 +12814,8 @@
                 "ai": "None",
                 "ai_group": null,
                 "starting_position": [
-                    2,
-                    13
+                    4,
+                    4
                 ],
                 "generic": false
             }

@@ -46,6 +46,9 @@ class MapView():
             for unit in draw_units:
                 if unit.position or unit.sprite.fake_position:
                     surf = unit.sprite.draw_hp(surf, cull_rect)
+            for unit in draw_units:
+                if unit.position or unit.sprite.fake_position:
+                    surf = unit.sprite.draw_markers(surf, cull_rect)
         # Draw the movement arrows
         surf = game.cursor.draw_arrows(surf, cull_rect)
         # Draw the main unit
@@ -57,6 +60,7 @@ class MapView():
                 surf = cur_unit.sprite.draw(surf, cull_rect)
                 if 'event' not in game.state.state_names():
                     surf = cur_unit.sprite.draw_hp(surf, cull_rect)
+                    surf = cur_unit.sprite.draw_markers(surf, cull_rect)
 
     def draw(self):
         # start = time.time_ns()

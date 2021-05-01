@@ -1161,6 +1161,7 @@ class Convoy():
         for key, value in sorted_dict.items():
             value.sort(key=lambda item: item_system.special_sort(self.unit, item) or 0)
             value.sort(key=lambda item: item.name)
+            value.sort(key=lambda item: item_system.sell_price(self.unit, item) or 0)
             value.sort(key=lambda item: item_system.full_price(self.unit, item) or 0)
             value.sort(key=lambda item: bool(item.owner_nid))
 
@@ -1438,6 +1439,7 @@ class Market(Convoy):
         for key, value in sorted_dict.items():
             value.sort(key=lambda item: item_system.special_sort(self.unit, item) or 0)
             value.sort(key=lambda item: item.name)
+            value.sort(key=lambda item: item_system.sell_price(self.unit, item) or 0)
             value.sort(key=lambda item: item_system.full_price(self.unit, item) or 0)
             value.sort(key=lambda item: bool(item.owner_nid))
 
