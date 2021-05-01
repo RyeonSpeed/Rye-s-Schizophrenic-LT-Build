@@ -355,15 +355,20 @@ class UnitSprite():
         image = self.select_frame(image, state)
         return image
 
-    def draw(self, surf, cull_rect):
-        current_time = engine.get_time()
-        image = self.create_image(self.image_state)
+    def get_topleft(self, cull_rect):
         if self.fake_position:
             x, y = self.fake_position
         elif self.unit.position:
             x, y = self.unit.position
         left = x * TILEWIDTH + self.offset[0] - cull_rect[0]
         top = y * TILEHEIGHT + self.offset[1] - cull_rect[1]
+        return left, top
+
+    def draw(self, surf, cull_rect):
+        current_time = engine.get_time()
+        image = self.create_image(self.image_state)
+        left, top = self.get_topleft(cull_rect)
+        
         anim_top = top
 
         self.vibrate_counter += 1
@@ -443,18 +448,6 @@ class UnitSprite():
         for animation in self.animations.values():
             animation.draw(surf, (left, anim_top))
 
-        # Talk Options
-        if game.state.current() == 'free':
-            cur_unit = game.cursor.get_hover()
-        elif game.state.current() in ('move', 'menu', 'item', 'item_child', 'item_discard',
-                                      'weapon_choice', 'spell_choice', 'targeting',
-                                      'combat_targeting', 'item_targeting'):
-            cur_unit = game.cursor.cur_unit
-        else:
-            cur_unit = None
-        if cur_unit:
-            self.draw_markers(surf, cur_unit, left, anim_top)
-
         # Draw personal particles
         self.particles = [ps for ps in self.particles if not ps.remove_me_flag]
         for particle_system in self.particles:
@@ -463,9 +456,22 @@ class UnitSprite():
 
         return surf
 
-    def draw_markers(self, surf, cur_unit, left, top):
+    def draw_markers(self, surf, cull_rect):
+        # Talk Options
+        cur_unit = None
+        if game.state.current() == 'free':
+            cur_unit = game.cursor.get_hover()
+        elif game.state.current() in ('move', 'menu', 'item', 'item_child', 'item_discard',
+                                      'weapon_choice', 'spell_choice', 'targeting',
+                                      'combat_targeting', 'item_targeting'):
+            cur_unit = game.cursor.cur_unit
+        if not cur_unit:
+            return surf
         map_markers = SPRITES.get('map_markers')
+        
+        left, top = self.get_topleft(cull_rect)
         topleft = (left - 2, top - 14)
+
         frame = (engine.get_time() // 100) % 8
         offset = [0, 0, 0, 1, 2, 2, 2, 1][frame]
         if (cur_unit.nid, self.unit.nid) in game.talk_options:
@@ -504,6 +510,7 @@ class UnitSprite():
                         surf.blit(steal_marker, (topleft[0] + 2, topleft[1] + offset))
                 elif icon_frame == 2:
                     surf.blit(steal_marker, (topleft[0] + 2, topleft[1] + offset))
+        return surf
 
     def check_draw_hp(self) -> bool:
         if self.unit.is_dying or self.unit.dead:
@@ -518,12 +525,7 @@ class UnitSprite():
 
     def draw_hp(self, surf, cull_rect):
         current_time = engine.get_time()
-        if self.fake_position:
-            x, y = self.fake_position
-        elif self.unit.position:
-            x, y = self.unit.position
-        left = x * TILEWIDTH + self.offset[0] - cull_rect[0]
-        top = y * TILEHEIGHT + self.offset[1] - cull_rect[1]
+        left, top = self.get_topleft(cull_rect)
 
         if self.check_draw_hp():
             self.health_bar.draw(surf, left, top)

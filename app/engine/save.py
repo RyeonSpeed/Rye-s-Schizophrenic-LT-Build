@@ -160,8 +160,8 @@ def set_next_uids(game_state):
         SkillObject.next_uid = max(game_state.skill_registry.keys()) + 1
     else:
         SkillObject.next_uid = 100
-    logging.warning("Setting next item uid: %d" % ItemObject.next_uid)
-    logging.warning("Setting next skill uid: %d" % SkillObject.next_uid)
+    logging.info("Setting next item uid: %d" % ItemObject.next_uid)
+    logging.info("Setting next skill uid: %d" % SkillObject.next_uid)
 
 def load_saves():
     save_slots = []
