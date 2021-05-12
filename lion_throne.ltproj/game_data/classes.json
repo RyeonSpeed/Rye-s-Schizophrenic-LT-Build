@@ -7,7 +7,9 @@
         "movement_group": "Light Foot",
         "promotes_from": null,
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "no_random"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 7,
@@ -126,7 +128,9 @@
         "turns_into": [
             "Swordmaster"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 11,
@@ -252,7 +256,9 @@
         "movement_group": "Light Foot",
         "promotes_from": "Myrmidon",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 16,
@@ -380,7 +386,9 @@
         "turns_into": [
             "Vanguard"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 14,
@@ -506,7 +514,9 @@
         "movement_group": "Regular",
         "promotes_from": "Mercenary",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 18,
@@ -634,7 +644,10 @@
         "turns_into": [
             "Assassin"
         ],
-        "tags": [],
+        "tags": [
+            "Thief",
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 11,
@@ -760,7 +773,10 @@
         "movement_group": "Light Foot",
         "promotes_from": "Thief",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Thief",
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 14,
@@ -888,7 +904,9 @@
         "turns_into": [
             "Halberdier"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 13,
@@ -1014,7 +1032,9 @@
         "movement_group": "Armors",
         "promotes_from": "Soldier",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 17,
@@ -1143,7 +1163,9 @@
             "Paladin"
         ],
         "tags": [
-            "Mounted"
+            "Horse",
+            "Mounted",
+            "Physical"
         ],
         "max_level": 10,
         "bases": {
@@ -1271,7 +1293,9 @@
         "promotes_from": "Cavalier",
         "turns_into": [],
         "tags": [
-            "Mounted"
+            "Horse",
+            "Mounted",
+            "Physical"
         ],
         "max_level": 10,
         "bases": {
@@ -1400,7 +1424,10 @@
         "turns_into": [
             "General"
         ],
-        "tags": [],
+        "tags": [
+            "Armor",
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 11,
@@ -1526,7 +1553,10 @@
         "movement_group": "Armors",
         "promotes_from": "Knight",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Armor",
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 17,
@@ -1654,7 +1684,9 @@
         "turns_into": [
             "Dragoon"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 9,
@@ -1780,7 +1812,9 @@
         "movement_group": "Fleet",
         "promotes_from": "Skirmisher",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 14,
@@ -1908,7 +1942,9 @@
         "turns_into": [
             "Warrior"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 13,
@@ -2034,7 +2070,9 @@
         "movement_group": "Regular",
         "promotes_from": "Fighter",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 18,
@@ -2162,7 +2200,9 @@
         "turns_into": [
             "Sniper"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 12,
@@ -2288,7 +2328,9 @@
         "movement_group": "Light Foot",
         "promotes_from": "Archer",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 16,
@@ -2416,7 +2458,9 @@
         "turns_into": [
             "Strategist"
         ],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 10,
@@ -2543,7 +2587,9 @@
         "promotes_from": "Tactician",
         "turns_into": [],
         "tags": [
-            "Mounted"
+            "Horse",
+            "Mounted",
+            "Magical"
         ],
         "max_level": 10,
         "bases": {
@@ -2672,7 +2718,9 @@
         "turns_into": [
             "Oracle"
         ],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 11,
@@ -2798,7 +2846,9 @@
         "movement_group": "Mages",
         "promotes_from": "Cleric",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 14,
@@ -2926,7 +2976,9 @@
         "turns_into": [
             "Sage"
         ],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 11,
@@ -3052,7 +3104,9 @@
         "movement_group": "Mages",
         "promotes_from": "Mage",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 15,
@@ -3180,7 +3234,9 @@
         "turns_into": [
             "Warlock"
         ],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 11,
@@ -3306,7 +3362,9 @@
         "movement_group": "Mages",
         "promotes_from": "Shaman",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Magical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 15,
@@ -3434,7 +3492,9 @@
         "turns_into": [
             "Berserker"
         ],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 15,
@@ -3560,7 +3620,9 @@
         "movement_group": "Pirates",
         "promotes_from": "Raider",
         "turns_into": [],
-        "tags": [],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 19,
@@ -3690,7 +3752,9 @@
         ],
         "tags": [
             "Mounted",
-            "Flying"
+            "Dragon",
+            "Flying",
+            "Physical"
         ],
         "max_level": 10,
         "bases": {
@@ -3819,7 +3883,9 @@
         "turns_into": [],
         "tags": [
             "Mounted",
-            "Flying"
+            "Dragon",
+            "Flying",
+            "Physical"
         ],
         "max_level": 10,
         "bases": {
@@ -3945,8 +4011,12 @@
         "tier": 1,
         "movement_group": "Fleet",
         "promotes_from": null,
-        "turns_into": [],
-        "tags": [],
+        "turns_into": [
+            "Berserker"
+        ],
+        "tags": [
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 13,
@@ -4071,8 +4141,13 @@
         "tier": 1,
         "movement_group": "Armors",
         "promotes_from": null,
-        "turns_into": [],
-        "tags": [],
+        "turns_into": [
+            "General"
+        ],
+        "tags": [
+            "Armor",
+            "Physical"
+        ],
         "max_level": 10,
         "bases": {
             "HP": 13,
@@ -4199,7 +4274,7 @@
         "promotes_from": null,
         "turns_into": [],
         "tags": [
-            "ArenaIgnore"
+            "no_random"
         ],
         "max_level": 10,
         "bases": {
@@ -4314,7 +4389,9 @@
         "promotes_from": "General",
         "turns_into": [],
         "tags": [
-            "ArenaIgnore"
+            "Armor",
+            "no_random",
+            "Physical"
         ],
         "max_level": 10,
         "bases": {
@@ -4438,7 +4515,9 @@
         "promotes_from": null,
         "turns_into": [],
         "tags": [
-            "ArenaIgnore"
+            "Horse",
+            "no_random",
+            "r_no_random_from"
         ],
         "max_level": 10,
         "bases": {

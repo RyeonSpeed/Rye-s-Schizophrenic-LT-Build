@@ -1,0 +1,29 @@
+-The 'tiers' game constant was added. It was set to 4 since Ulver's class is tier 3.
+-Sidney and Vagnius have been given Boss tags from the start, so they can be randomized appropriately.
+-The 'Master Key' has been added to the data files. It's just a 20 use skeleton key.
+-The 'no_random' tag has been added.
+-The following classes cannot be randomized into: Citizen, Ballista, Duke, Wagon
+-Classes have been altered with Tags for the purposes of effective weaponry. (ex. Cavaliers now have Horse, Generals have Armor, etc.)
+-Rescue2, Rescue3, Warp2, Warp3, and Skill Objects have been given the 'no_random' component.
+-When starting chapter 3, Renae is given a Master Key.
+-Renae, Jakin, Thieves and Assassins have been given a 'Thief' tag.
+-Prologue event combats have been altered for safety.
+-Chapter 2 event combats have been altered for safety.
+-A 'Player' tag has been added to all playable characters.
+-A tag was added to prevent Wagons from randomizing into other classes.
+-In a randomized file, Ophie and Prim will each start with a Vulnerary.
+-Ballistas no longer have a 'Weapon' component, to exclude them from randomization.
+-Brigands and Sentinels can now promote.
+-Classes have been given 'Physical' or 'Magical' tags, to specify how their stats should lean for Offense Swapping.
+-Ulver and Midas have been given a 'no_random' tag.
+-Imperial Wards, Void Curse, Metamagic_Status, and Refresh cannot be given by skill randomization.
+-In a randomized file, Flux Ward will be added to the market in chapter 3.
+-Added a 'Negative' component to the 'Speed -2' skill.
+-Translations have been updated as needed.
+
+Code Changes:
+-Safe basic weapons have been altered to match TLT's items list. For Anima, Fire was selected to be the safe weapon.
+-Base item_components have an addition to allow the 'no_random' component for items.
+-Base skill_components have an addition to allow the 'no_random' component for skills.
+-Monster and Dragon have been removed from Effective weapon options, as the former does not apply to TLT, and the latter would be redundant with Flying.
+-Constants has been updated with the 'tiers' constant.

@@ -1965,7 +1965,10 @@ class Event():
             personal_skills = unit_funcs.get_personal_skills(unit, unit_prefab)
             for personal_skill in personal_skills:
                 action.do(action.AddSkill(unit, personal_skill))
-        class_skills = unit_funcs.get_starting_skills(unit)
+        if game.rando_settings['class_skill_rando']:
+            class_skills = unit_funcs.get_starting_skills(unit, game)
+        else:
+            class_skills = unit_funcs.get_starting_skills(unit)
         for class_skill in class_skills:
             action.do(action.AddSkill(unit, class_skill))
 

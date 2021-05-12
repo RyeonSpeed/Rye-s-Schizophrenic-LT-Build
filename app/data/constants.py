@@ -72,6 +72,7 @@ constants = ConstantCatalog([
     Constant('kill_wexp', "Kills give double weapon exp", bool, True, 'wexp'),
     Constant('double_wexp', "Each hit when doubling grants weapon exp", bool, True, 'wexp'),
     Constant('miss_wexp', "Gain weapon exp even on miss", bool, True, 'wexp'),
+	Constant('tiers', "Amount of tiers classes have", int, 4, 'features'),
     # Experience constants below
     Constant('exp_curve', "How linear the exp curve is; Higher = less linear", float, 0.035, 'exp'),
     Constant('exp_magnitude', "How much base exp is received for each interaction", float, 10, 'exp'),

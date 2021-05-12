@@ -1343,6 +1343,10 @@
                         -2
                     ]
                 ]
+            ],
+            [
+                "negative",
+                null
             ]
         ]
     },
@@ -1556,6 +1560,10 @@
                         5
                     ]
                 ]
+            ],
+            [
+                "no_random",
+                null
             ]
         ]
     },
@@ -2281,6 +2289,10 @@
             [
                 "oversplash",
                 1
+            ],
+            [
+                "no_random",
+                null
             ]
         ]
     },
@@ -2320,6 +2332,10 @@
             ],
             [
                 "class_skill",
+                null
+            ],
+            [
+                "no_random",
                 null
             ]
         ]
@@ -3015,6 +3031,10 @@
             [
                 "enemy_exp_multiplier",
                 0.0
+            ],
+            [
+                "no_random",
+                null
             ]
         ]
     },

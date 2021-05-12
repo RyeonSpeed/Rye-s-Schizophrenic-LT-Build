@@ -687,6 +687,7 @@ class GameState():
                     'wepCUsesVar': 0,
                     'wepCUsesMin': 1,
                     'wepCUsesMax': 10,
+                    'item_stats': False,
                     'itemDictionary': {},
                     'wexp_mode': 'Similar',
                     'keepWeps': False,
@@ -722,6 +723,10 @@ class GameState():
                     'weapon_effective': [],
                     'weapon_imbue': [],
                     'weapon_inflict': [],
+                    'use_klass_move': False,
+                    'swap_offense': False,
+                    'special_klass_list': [],
+                    'special_unit_list': [],
                     }
 
 game = GameState()

@@ -14,8 +14,6 @@ import logging
 properties = [('brave', 'weapon_properties', 0, ([], 'Null'), True),
           ('lifelink', 'weapon_properties', 0, ([], 'Null'), True),
           ('reaver', 'weapon_properties', 0, ([], 'Null'), True),
-          ('cannot_counter', 'weapon_properties', 0, ([], 'Null'), True),
-          ('cannot_be_countered', 'weapon_properties', 0, ([], 'Null'), True),
           ('magic', 'weapon_properties', 0, ([], 'Null'), True),
           ('effective', 'weapon_properties', 0, ([], 'Null'), True),
           ('status_on_equip', 'weapon_properties', 0, ([], 'Null'), True),
@@ -26,8 +24,6 @@ properties = [('brave', 'weapon_properties', 0, ([], 'Null'), True),
 effective = [('Horse', 'weapon_effective', 0, ([], 'Null'), True),
           ('Armor', 'weapon_effective', 0, ([], 'Null'), True),
           ('Flying', 'weapon_effective', 0, ([], 'Null'), True),
-          ('Dragon', 'weapon_effective', 0, ([], 'Null'), True),
-          ('Monster', 'weapon_effective', 0, ([], 'Null'), True),
          ]
 
 imbue = [('Strength +5', 'weapon_imbue', 0, ([], 'Null'), True),

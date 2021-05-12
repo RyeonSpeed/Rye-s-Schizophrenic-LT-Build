@@ -527,12 +527,22 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "not game.rando_settings.get('Randomized', True)"
+                ]
+            ],
+            [
                 "interact_unit",
                 [
                     "F1",
                     "106",
                     "hit1,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "add_portrait",
@@ -561,12 +571,32 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "remove_unit",
+                [
+                    "106"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
-                    "F2",
+                    "F1",
                     "106",
                     "hit1,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "add_portrait",
@@ -1046,6 +1076,42 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "give_item",
+                [
+                    "Ophie",
+                    "Vulnerary",
+                    "no_choice"
+                ]
+            ],
+            [
+                "end",
+                []
+            ],
+            [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "give_item",
+                [
+                    "Prim",
+                    "Vulnerary",
+                    "no_choice"
+                ]
+            ],
+            [
+                "end",
+                []
+            ],
+            [
                 "comment",
                 [
                     "# Start!"
@@ -1199,12 +1265,32 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "remove_unit",
+                [
+                    "S1"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
                     "Yohn",
                     "S1",
                     "hit1,hit2,hit1,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "add_portrait",
@@ -1370,12 +1456,32 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "remove_unit",
+                [
+                    "S2"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
                     "S2",
                     "Yohn",
                     "hit1,hit2,hit2,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "add_portrait",
@@ -1432,12 +1538,32 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "remove_unit",
+                [
+                    "S3"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
                     "S3",
                     "Yohn",
                     "hit1,hit2,hit2,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "wait",
@@ -1595,12 +1721,32 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "remove_unit",
+                [
+                    "Yohn"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
                     "Yohn",
                     "Vagnius",
                     "hit1,hit2,hit2,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "comment",
@@ -6226,12 +6372,33 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "set_current_hp",
+                [
+                    "S1",
+                    "7"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
                     "S1",
                     "Drake",
                     "hit1,hit2,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "multi_add_portrait",
@@ -6306,12 +6473,33 @@
                 ]
             ],
             [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "set_current_hp",
+                [
+                    "S2",
+                    "7"
+                ]
+            ],
+            [
+                "else",
+                []
+            ],
+            [
                 "interact_unit",
                 [
                     "S2",
                     "Drake",
                     "hit1,hit2,end"
                 ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "add_portrait",
@@ -8078,6 +8266,36 @@
                 [
                     "Vulnerary"
                 ]
+            ],
+            [
+                "comment",
+                [
+                    "# If we're in a randomized file, give Renae a Master Key as a safety precaution"
+                ]
+            ],
+            [
+                "if",
+                [
+                    "game.rando_settings.get('Randomized', False)"
+                ]
+            ],
+            [
+                "add_market_item",
+                [
+                    "Flux"
+                ]
+            ],
+            [
+                "give_item",
+                [
+                    "Renae",
+                    "Master Key",
+                    "no_choice"
+                ]
+            ],
+            [
+                "end",
+                []
             ],
             [
                 "comment",

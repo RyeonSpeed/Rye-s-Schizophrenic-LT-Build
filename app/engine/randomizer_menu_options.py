@@ -1,11 +1,11 @@
 from app.utilities import utils
 from app.constants import WINWIDTH, WINHEIGHT
-
+import random
 from app.engine import config as cf
 from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
 from app.engine import text_funcs, menu_options, image_mods, \
-    gui, base_surf, help_menu, engine, menus, randomizer
+    gui, base_surf, help_menu, engine, menus, randomizer, static_random
 from app.engine.game_state import game
 from app.engine.randomizer import Rando
 
@@ -300,12 +300,17 @@ class FinishOption(ConfigOption):
         randomizer.createUnitDatabase(Rando)
         randomizer.createClassDatabase(Rando)
 
+        random_seed = random.randint(0, 1023)
+        static_random.set_seed(random_seed)
+
         if Rando.rando_settings['player_class_rando'] or Rando.rando_settings['boss_rando'] or Rando.rando_settings['generic_rando']:
             randomizer.randomizeClassStatic(Rando)
             randomizer.randomizeWexpStatic(Rando)
             randomizer.randomizeWeaponsStatic(Rando)
             if Rando.rando_settings['generic_rando']:
                 randomizer.randomizeGenericWeaponsStatic(Rando)
+        if Rando.rando_settings['item_stats'] or Rando.rando_settings['random_effects']:
+            Rando.rando_settings['item_rando'] = True
         if Rando.rando_settings['item_rando']:
             Rando.rando_settings['itemDictionary'] = randomizer.createRandomItemDictionary(Rando)
         if Rando.rando_settings['promo_rando']:
@@ -314,6 +319,8 @@ class FinishOption(ConfigOption):
             randomizer.randomizeBasesStatic(Rando)
         if Rando.rando_settings['named_growths']:
             randomizer.randomizeGrowthsStatic(Rando)
+        if Rando.rando_settings['swap_offense']:
+            randomizer.SwapOffense(Rando)
         if Rando.rando_settings['name_rando']:
             randomizer.randomizeNames(Rando)
         if Rando.rando_settings['portrait_rando']:

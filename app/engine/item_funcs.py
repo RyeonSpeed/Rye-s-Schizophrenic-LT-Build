@@ -52,7 +52,7 @@ def sell_price(unit, item):
 #     return True
 
 def create_item(unit, item_nid, droppable=False):
-    if game is not None and game.rando_settings['item_rando']:
+    if game is not None and hasattr(game, 'rando_settings') and game.rando_settings['item_rando']:
         item_prefab = game.rando_settings['itemDictionary'].get(item_nid)
     else:
         item_prefab = DB.items.get(item_nid)

@@ -2,6 +2,7 @@ from app.utilities.data import Data
 
 from app.data.database import DB
 import app.engine.item_component_access as ICA
+from app.engine.game_state import game
 
 class ItemObject():
     next_uid = 100

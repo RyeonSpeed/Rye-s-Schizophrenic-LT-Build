@@ -28,7 +28,10 @@ class ExpState(State):
 
         self.old_exp = self.unit.exp
         self.old_level = self.unit.level
-        self.unit_klass = DB.classes.get(self.unit.klass)
+        if game.rando_settings['promo_rando'] and not 'no_random' in DB.classes.get(self.unit.klass).tags and DB.classes.get(self.unit.klass).nid not in game.rando_settings['special_klass_list']:
+            self.unit_klass = game.rando_settings['klassDictionary'].get(self.unit.klass)
+        else:
+            self.unit_klass = DB.classes.get(self.unit.klass)
         self.auto_promote = (DB.constants.get('auto_promote') or 'AutoPromote' in self.unit.tags) and \
             self.unit_klass.turns_into and 'NoAutoPromote' not in self.unit.tags
 
@@ -194,7 +197,10 @@ class ExpState(State):
                 # check for skill gain unless the unit is using a booster to
                 # get to this screen
                 if self.starting_state != "stat_booster":
-                    unit_klass = DB.classes.get(self.unit.klass)
+                    if game.rando_settings['class_skill_rando']:
+                        unit_klass = game.rando_settings['klassDictionary'].get(self.unit.klass)
+                    else:
+                        unit_klass = DB.classes.get(self.unit.klass)
                     for level_needed, class_skill in unit_klass.learned_skills:
                         if self.unit.level == level_needed:
                             if class_skill == 'Feat':

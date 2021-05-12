@@ -14,5 +14,11 @@
     "Tile",
     "Flying",
     "Monster",
-    "Sword"
+    "Sword",
+    "no_random",
+    "Thief",
+    "Player",
+    "r_no_random_from",
+    "Physical",
+    "Magical"
 ]

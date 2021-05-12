@@ -225,3 +225,13 @@ class Value(ItemComponent):
             frac = item.data['uses'] / item.data['starting_uses']
             return int(self.value * frac // 2)
         return self.value // 2
+
+class NoRandomGive(ItemComponent):
+    nid = 'no_random_give'
+    desc = "Item cannot be given to a unit when randomizing."
+    tag = 'base'
+
+class NoRandomStats(ItemComponent):
+    nid = 'no_random_stats'
+    desc = "Item properties will not be affected by randomization."
+    tag = 'base'

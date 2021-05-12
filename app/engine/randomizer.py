@@ -13,13 +13,18 @@ def createUnitDatabase(game):
     for unit in DB.units:
         unitDB[unit.nid] = copy.deepcopy(unit)
         #Units keep track of wexp differently, make this for simplicity...
-        unitDataDB[unit.nid] = UnitData()
+        unitDataDB[unit.nid] = UnitData(unit)
+        if (not game.rando_settings['lord_rando'] and 'Lord' in unit.tags) or (not game.rando_settings['thief_rando'] and 'Thief' in unit.tags) or (not game.rando_settings['special_rando'] and 'Special' in unit.tags):
+            game.rando_settings['special_unit_list'].append(unit.nid)
 
 #Create a database for classes, to track the information that changes about them (promotions, etc.)
 def createClassDatabase(game):
     klassDB = game.rando_settings['klassDictionary']
     for klass in DB.classes.values():
         klassDB[klass.nid] = copy.deepcopy(klass)
+        # Easier to just keep a list of the special cases to reference.
+        if (not game.rando_settings['lord_rando'] and 'Lord' in klass.tags) or (not game.rando_settings['thief_rando'] and 'Thief' in klass.tags) or (not game.rando_settings['special_rando'] and 'Special' in klass.tags):
+            game.rando_settings['special_klass_list'].append(klass.nid)
 
 #This creates the pool of classes for Players. It is saved by the Game State, as it is modified to prevent repetition of classes.
 def createClassPools(game):
@@ -67,6 +72,8 @@ def randomizeClassStatic(game):
     units_to_rando = []
     num_tiers = DB.constants.value('tiers')
     generic_pool = [[] for _ in range(num_tiers)]
+    blacklist =  [c.nid for c in DB.classes.values() if 'r_no_random_from' in c.tags]
+    blacklist += game.rando_settings['special_klass_list']
 
     #Create generic class pools. They need their own pool since there's no repetition check.
     for x in range(num_tiers):
@@ -75,7 +82,7 @@ def randomizeClassStatic(game):
             if (not game.rando_settings['lord_rando'] and 'Lord' in klass.tags) or (not game.rando_settings['thief_rando'] and 'Thief' in klass.tags) or (not game.rando_settings['special_rando'] and 'Special' in klass.tags):
                 generic_pool[x].remove(klass)
         generic_pool[x] = [c.nid for c in generic_pool[x]]
-        logging.debug("Created generic pool for Tier %s: %s", x, generic_pool[x])
+        #logging.debug("Created generic pool for Tier %s: %s", x, generic_pool[x])
 
     #Get units into a dictionary. This will be called by unit.py to alter a unit during runtime.
     for unit in DB.units:
@@ -91,35 +98,39 @@ def randomizeClassStatic(game):
         unit_to_pick = units_to_rando[int1]
         klass = unit_to_pick.klass
         tier = DB.classes.get(klass).tier
-        if 'Player' in unit_to_pick.tags:
-            #Refresh the class pool if needed
-            if len(pools[tier]) == 0:
-                refreshClassPool(tier, game)
-            int2 = static_random.get_randint(0, len(pools[tier]) - 1)
-            class_to_pick = pools[tier][int2]
-            unitDB[unit_to_pick.nid].klass = class_to_pick
-            #Remove the class from the pool, but only if we're preventing redundancy
-            if game.rando_settings['player_class_stop_redundancy']:
-                pools[tier].remove(class_to_pick)
-        #Bosses/Others also use generic pool
-        else:
-            int2 = static_random.get_randint(0, len(generic_pool[tier]) - 1)
-            class_to_pick = generic_pool[tier][int2]
-            unitDB[unit_to_pick.nid].klass = class_to_pick
+        if unit_to_pick.klass not in blacklist:
+            if 'Player' in unit_to_pick.tags:
+                #Refresh the class pool if needed
+                if len(pools[tier]) == 0:
+                    refreshClassPool(tier, game)
+                int2 = static_random.get_randint(0, max(len(pools[tier]) - 1, 0))
+                class_to_pick = pools[tier][int2]
+                unitDB[unit_to_pick.nid].klass = class_to_pick
+                #Remove the class from the pool, but only if we're preventing redundancy
+                if game.rando_settings['player_class_stop_redundancy']:
+                    pools[tier].remove(class_to_pick)
+            #Bosses/Others also use generic pool
+            else:
+                int2 = static_random.get_randint(0, max(len(generic_pool[tier]) - 1, 0))
+                if int2 > 0:
+                    class_to_pick = generic_pool[tier][int2]
+                    unitDB[unit_to_pick.nid].klass = class_to_pick
         #We're done with this unit, so remove them from the pool
-        #logging.debug("%s's new class is: %s", unit_to_pick.name, unit_to_pick.klass)
+        logging.debug("%s's new class is: %s", unit_to_pick.nid, unitDB[unit_to_pick.nid].klass)
         units_to_rando.remove(unit_to_pick)
 
     #Randomize Generic Unit Classes. Generics can have the same nid, so we need to go by level, and then by unit. Dynamically created units will bypass randomization.
     for level in DB.levels.values():
         for unit in level.units:
             if unit.generic:
-                if not unit.nid in genericDB[level.nid]:
-                    genericDB[level.nid][unit.nid] = copy.deepcopy(unit)
-                tier = DB.classes.get(unit.klass).tier
-                int3 = static_random.get_randint(0, len(generic_pool[tier]) - 1)
-                class_to_pick = generic_pool[tier][int3]
-                genericDB[level.nid][unit.nid].klass = class_to_pick
+                if unit.klass not in blacklist:
+                    if not unit.nid in genericDB[level.nid]:
+                        genericDB[level.nid][unit.nid] = copy.deepcopy(unit)
+                    tier = DB.classes.get(unit.klass).tier
+                    int3 = static_random.get_randint(0, max(len(generic_pool[tier]) - 1, 0))
+                    if int3 > 0:
+                        class_to_pick = generic_pool[tier][int3]
+                        genericDB[level.nid][unit.nid].klass = class_to_pick
 
 
 #This alters weapon exp to match the new class. Only applies to named units, generic units are handled differently.
@@ -151,7 +162,7 @@ def randomizeWexpStatic(game):
         for weapon in DB.weapons.keys():
             if klass_weapon_gain.get(weapon).wexp_gain > 0:
                 validWeps.append(weapon)
-        logging.debug("%s's new class weapons: %s", unit.nid, validWeps)
+        #logging.debug("%s's new class weapons: %s", unit.nid, validWeps)
 
         #Determine what the maximum value a weapon rank can be for this game
         wepRanks = sorted(DB.weapon_ranks, key=lambda x: x.requirement)
@@ -282,7 +293,7 @@ def randomizeWeaponsStatic(game):
                                     toPick = static_random.get_randint(0, len(newWepOptions) - 1)
                                     selectedWep = item_funcs.create_item(unit, newWepOptions[toPick].nid, item.droppable)
                                     if item_funcs.available(unit, selectedWep):   #We can use it, so prepare to add it to the unit.
-                                        logging.debug("The new weapon is: %s, giving to %s the %s", selectedWep.name, unit.name, unit.klass)
+                                        #logging.debug("The new weapon is: %s, giving to %s the %s", selectedWep.name, unit.name, unit.klass)
                                         itemsToAdd.append([newWepOptions[toPick].nid, originalItem[1]])
                                         break
                                     else:   #For whatever reason, we can't use it (Tag/Class lock, etc.). Remove it from the options and try again.
@@ -296,29 +307,30 @@ def randomizeWeaponsStatic(game):
                         validWeps = []
                         newWepOptions = []
                         for weapon, value in unitWexp.items():     #Get which weapons we can use, so we can filter the database.
-                            if value >= 0:
+                            if value > 0:
                                 validWeps.append(weapon)
                         #Determine which weapons we can choose from
                         for wep in item_pool:
                             if any(component.nid == 'weapon' or component.nid == 'spell' for component in wep.components):
-                                #if not any(component.nid == 'weapon_rank' or component.nid == 'no_random_give' for component in wep.components): #Add custom setting to ignore special items later
-                                    #continue
-                                #The blast stuff was to block certain crashes, not sure if those were rando related or engine bugs. May need to be experimented with more.
-                                if not any (component.nid in ['weapon_type','weapon_rank','prf_class','prf_tag','prf_unit'] for component in wep.components) or any(component.nid in ['enemy_blast_aoe', 'equation_blast_aoe'] for component in wep.components):
+                                if not any (component.nid in ['weapon_type','weapon_rank','prf_class','prf_tag','prf_unit'] for component in wep.components):
                                     continue
-                                option = item_funcs.create_item(None, wep.nid, item.droppable)
-                                if item_funcs.available(unit, option):
-                                    newWepOptions.append(option)
+                                newWepOptions.append(wep)
                         #Add our new weapon, so we can give to the unit later
-                        if newWepOptions:
-                            selectedWep = newWepOptions[static_random.get_randint(0, len(newWepOptions) - 1)]
-                            itemsToAdd.append([selectedWep.nid, originalItem[1]])
+                        if len(newWepOptions) > 0:
+                            while len(newWepOptions) > 0:
+                                selectedWep = newWepOptions[static_random.get_randint(0, len(newWepOptions) - 1)]
+                                option = item_funcs.create_item(None, selectedWep.nid, False)
+                                if item_funcs.available(unit, option):
+                                    itemsToAdd.append([selectedWep.nid, itemTuple[1]])
+                                    break
+                                else:
+                                    newWepOptions.remove(selectedWep)
             else:
                 #We couldn't get a new item, so just use the vanilla one. This will always occur for items like Vulneraries, Promo items, etc.
                 itemsToAdd.append([item.nid, originalItem[1]])
 
         #Actually add the new item list to the unit data. Will be assigned at unit initialization in unit.py
-        unitDB[unit.nid].items = itemsToAdd
+        unitDB[unit.nid].starting_items = itemsToAdd
         logging.debug("New items for %s: %s", unit.name, itemsToAdd)
 
 #Similar to above, but with some changes. Explicitly for generic units, as they play by different rules.
@@ -330,9 +342,6 @@ def randomizeGenericWeaponsStatic(game):
         item_pool = DB.items
     genericDB = game.rando_settings['genericDictionary']
     klassDB = game.rando_settings['klassDictionary']
-
-    #items = unit.items
-    #oldWexp = copy.copy(unit.wexp)
 
     for levelId in genericDB.keys():
         for unitPrefab in genericDB[levelId].values():
@@ -348,6 +357,7 @@ def randomizeGenericWeaponsStatic(game):
             unit.wexp = {weapon_nid: weapon_gain.get(weapon_nid, DB.weapons.default()).wexp_gain for weapon_nid in DB.weapons.keys()}
             oldWexp = copy.copy(unit.wexp)
 
+            #This finds the highest ranked weapon in the unit's inventory. This is used to set a 'cap' of sorts, so that we limit how strong an inventory can be (i.e. no chapter 1 Silvers)
             for itemTuple in items:
                 item = item_funcs.create_item(unit, itemTuple[0], itemTuple[1])
                 if item_system.is_weapon(unit, item) or item_system.is_spell(unit, item):
@@ -356,6 +366,10 @@ def randomizeGenericWeaponsStatic(game):
                         requirement = DB.weapon_ranks.get(weapon_rank_required).requirement
                         if requirement > maxRank:
                             maxRank = requirement
+
+            #Random was running slow, so to optimize, the pool of items is generated per unit rather than per item. Random mode only, Match is more annoying and this wouldn't work for that.
+            if game.rando_settings['weps_mode'] == 'Random':
+                randoPool = RandomItemPool(unit, item_pool, maxRank)
 
             for itemTuple in items:
                 item = item_funcs.create_item(unit, itemTuple[0], itemTuple[1])
@@ -390,7 +404,7 @@ def randomizeGenericWeaponsStatic(game):
                                         selectedWep = item_funcs.create_item(unit, newWepOptions[toPick].nid, item.droppable)
                                         unit.wexp = {weapon_nid: 99999 for weapon_nid in DB.weapons.keys()} #Sucky code, but we need to make wexp a non-factor before using Available
                                         if item_funcs.available(unit, selectedWep):   #We can use it, so prepare to add it to the unit.
-                                            logging.debug("The new weapon is: %s, giving to %s the %s", selectedWep.name, unit.name, unit.klass)
+                                            #logging.debug("The new weapon is: %s, giving to %s the %s", selectedWep.name, unit.name, unit.klass)
                                             itemsToAdd.append([newWepOptions[toPick].nid, itemTuple[1]])
                                             unit.wexp = oldWexp
                                             break
@@ -400,35 +414,51 @@ def randomizeGenericWeaponsStatic(game):
                                 else:   #We found nothing that matches the criteria, fall back to Random logic
                                     fallback = True
                         if game.rando_settings['weps_mode'] == 'Random' or fallback:
-                            validWeps = []
-                            newWepOptions = []
-                            for weapon, value in unit.wexp.items():     #Get which weapons we can use, so we can filter the database.
-                                if value > 0:
-                                    validWeps.append(weapon)
-                            for wep in item_pool:
-                                if any(component.nid == 'weapon' or component.nid == 'spell' for component in wep.components):
-                                    #if not any(component.nid == 'weapon_rank' or component.nid == 'no_random_give' for component in wep.components): #Add custom setting to ignore special items later
-                                        #continue
-                                    if not any (component.nid in ['weapon_type','weapon_rank','prf_class','prf_tag','prf_unit'] for component in wep.components) or any(component.nid in ['enemy_blast_aoe', 'equation_blast_aoe'] for component in wep.components):
-                                        continue
-                                    option = item_funcs.create_item(None, wep.nid, item.droppable)
-                                    weapon_rank_required = item_system.weapon_rank(unit, option)
-                                    if weapon_rank_required:
-                                        requirement = DB.weapon_ranks.get(weapon_rank_required).requirement
-                                    else:
-                                        requirement = 0
-                                    unit.wexp = {weapon_nid: 99999 for weapon_nid in DB.weapons.keys()}
-                                    if requirement <= maxRank and item_funcs.available(unit, option):
-                                        newWepOptions.append(option)
-                                    unit.wexp = oldWexp
-                            if newWepOptions:
+                            if game.rando_settings['weps_mode'] == 'Match':
+                                newWepOptions = RandomItemPool(unit, item_pool, maxRank, oldWexp)
+                            else:
+                                newWepOptions = randoPool
+                            while len(newWepOptions) > 0:
+                                logging.debug("Random item options: %s", [thing.nid for thing in newWepOptions])
                                 selectedWep = newWepOptions[static_random.get_randint(0, len(newWepOptions) - 1)]
-                                itemsToAdd.append([newWepOptions[selectedWep].nid, itemTuple[1]])
+                                option = item_funcs.create_item(None, selectedWep.nid, False)
+                                unit.wexp = {weapon_nid: 99999 for weapon_nid in DB.weapons.keys()}
+                                if item_funcs.available(unit, option):
+                                    itemsToAdd.append([selectedWep.nid, itemTuple[1]])
+                                    unit.wexp = oldWexp
+                                    break
+                                else:
+                                    newWepOptions.remove(selectedWep)
+                                unit.wexp = oldWexp
                 else:
                     itemsToAdd.append([item.nid, itemTuple[1]])
 
-            genericDB[levelId][unit.nid].items = itemsToAdd
-            #logging.debug("New items for %s: %s", unit.name, itemsToAdd)
+            genericDB[levelId][unit.nid].starting_items = itemsToAdd
+            logging.debug("New items for %s: %s. Current Level is %s", unit.nid, itemsToAdd, levelId)
+
+def RandomItemPool(unit, item_pool, maxRank):
+    validWeps, newWepOptions = ['Neutral'], []
+    validWeps = [weapon for weapon, value in unit.wexp.items() if value > 0]
+    for wep in item_pool:
+        if any(component.nid == 'weapon' or component.nid == 'spell' for component in wep.components):
+            if not any(component.nid in ['weapon_type', 'weapon_rank', 'prf_class', 'prf_tag', 'prf_unit'] for component in wep.components):
+                continue
+            if not any(component.nid == 'weapon_type' and component.weapon_type(unit, wep) in validWeps for component in wep.components):
+                continue
+            if any(component.nid == 'weapon_rank' for component in wep.components):
+                usable = False
+                for component in wep.components:
+                    if component.nid == 'weapon_rank':
+                        wRank = DB.weapon_ranks.get(component.weapon_rank(unit, wep)).requirement
+                        if wRank > maxRank:
+                            usable = False
+                        else:
+                            usable = True
+                        break
+                if not usable:
+                    continue
+            newWepOptions.append(wep)
+    return newWepOptions
 
 #Randomizes each classes's promotion options.
 def randomizePromotions(game):
@@ -575,12 +605,12 @@ def randomizePromotions(game):
 
                         #Refresh the pool
                         if game.rando_settings['promotion_mode'] == 'Random':
-                            logging.debug("Refreshing the promotion pool, mode is Random")
+                            #logging.debug("Refreshing the promotion pool, mode is Random")
                             promo_options_tracker[klass.tier + 1] = [c for c in promo_options[klass.tier + 1]]
                             #promo_options_tracker[klass.tier + 1] = [c for c in DB.classes.values() if c.tier == klass.tier + 1 and (c.promotes_from or 'r_promote_include' in c.tags) and not 'r_no_promote_to' in c.tags]
                         else:
                             for wep_type in available_weps:
-                                logging.debug("Refreshing tier %s %s pool", klass.tier + 1, wep_type)
+                                #logging.debug("Refreshing tier %s %s pool", klass.tier + 1, wep_type)
                                 for promoKlass in promo_options[klass.tier + 1]:
                                     klass_weapon_gain = promoKlass.wexp_gain
                                     klass_wexp_value = klass_weapon_gain.get(wep_type, DB.weapons.default()).wexp_gain
@@ -592,11 +622,11 @@ def randomizePromotions(game):
                 #We had no choices available, so refresh the pools in question and try this class again
                 else:
                     if game.rando_settings['promotion_mode'] == 'Random':
-                        logging.debug("Refreshing the promotion pool, mode is Random")
-                        promo_options_tracker[klass.tier + 1] = [c for c in DB.classes.values() if c.tier == klass.tier + 1 and (c.promotes_from or 'r_promote_include' in c.tags) and not 'r_no_promote_to' in c.tags]
+                        promo_options_tracker[klass.tier + 1] = [c for c in promo_options[klass.tier + 1]]
+                        logging.debug("Refreshing the promotion pool, mode is Random: %s" , [c.nid for c in promo_options_tracker[klass.tier + 1]])
                     else:
                         for wep_type in available_weps:
-                            logging.debug("Refreshing tier %s %s pool", klass.tier + 1, wep_type)
+                            #logging.debug("Refreshing tier %s %s pool", klass.tier + 1, wep_type)
                             for promoKlass in promo_options[klass.tier + 1]:
                                 klass_weapon_gain = promoKlass.wexp_gain
                                 klass_wexp_value = klass_weapon_gain.get(wep_type, DB.weapons.default()).wexp_gain
@@ -611,7 +641,7 @@ def randomizePromotions(game):
                     if not promo_dict[klass.nid] and klass.turns_into:
                         #promo_dict[klass.nid] = klass.turns_into
                         logging.debug("Could not randomize, falling back to default: %s", klass.turns_into)
-                    klassDB[klass.nid].turns_into = promo_dict[klass.nid]
+                    klassDB[klass.nid].turns_into = DB.classes.get(klass.nid).turns_into
                     eligible_classes[x].remove(klass)
 
 # === Stat Randomization ===
@@ -619,20 +649,25 @@ def randomizePromotions(game):
 #This handles the randomization of base stats. Both redistribution and Delta types are available.
 def randomizeBasesStatic(game):
     extra_stats = []
+    extra_stats_names = []
     count = 0
     for stat_nid in DB.stats.keys():  #Need to account for stats we don't want to randomize here, and learn their positions
         if stat_nid in ['CON','MOV']:
             extra_stats.append(count)
+            extra_stats_names.append(stat_nid)
         count += 1
 
     unitDB = game.rando_settings['unitDictionary']
     unitDataDB = game.rando_settings['unitDataDictionary']
+    klassDB = game.rando_settings['klassDictionary']
     units_to_rando = []
+
     #Don't need to check for Lords, etc. All units are eligible, unit.py will determine if they get new bases.
     for unit in unitDB.values():
         if not 'no_random' in unit.tags:
             units_to_rando.append(unit)
     for unit in units_to_rando:
+        klassObj = klassDB.get(unit.klass)
         preBases = unit.bases
         bases = {stat_nid: preBases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
         total_bst = 0
@@ -643,6 +678,9 @@ def randomizeBasesStatic(game):
             new_bases['CON'] = bases['CON']
         if 'MOV' in DB.stats.keys():
             new_bases['MOV'] = bases['MOV']
+        if game.rando_settings['use_klass_move']:
+            new_bases['MOV'] = klassObj.bases['MOV']
+
         randomMode = game.rando_settings['bases_mode']
         variance = game.rando_settings['bases_variance']
         stats = [stat_name for stat_name in DB.stats.keys()]
@@ -650,7 +688,7 @@ def randomizeBasesStatic(game):
         if randomMode == 'Redistribute':   #Take our total BST and redistribute it, with a 3:1 bias towards HP.
             total_variance = static_random.get_randint(-variance, variance)
             for stat, amount in bases.items():   #CON and MOV are handled separately
-                if stat in extra_stats:
+                if stat in extra_stats_names:
                     continue
                 total_bst += bases[stat]
             total_bst += total_variance
@@ -669,7 +707,7 @@ def randomizeBasesStatic(game):
                     total_bst -= 1
         elif randomMode == 'Delta':   #Base stat is modified within a specified variance
             for stat in bases:   #CON and MOV are handled separately
-                if stat in extra_stats:
+                if stat in extra_stats_names:
                     continue
                 amount_to_add = static_random.get_randint(-variance, variance)
                 new_bases[stat] = bases[stat] + amount_to_add
@@ -684,20 +722,24 @@ def randomizeBasesStatic(game):
 
 def randomizeGrowthsStatic(game):
     extra_stats = []
+    extra_stats_names = []
     count = 0
     for stat_nid in DB.stats.keys():  # Need to account for stats we don't want to randomize here, and learn their positions
         if stat_nid in ['CON', 'MOV']:
             extra_stats.append(count)
+            extra_stats_names.append(stat_nid)
         count += 1
 
     unitDB = game.rando_settings['unitDictionary']
     unitDataDB = game.rando_settings['unitDataDictionary']
+    klassDB = game.rando_settings['klassDictionary']
     units_to_rando = []
     # Don't need to check for Lords, etc. All units are eligible, unit.py will determine if they get new growths.
     for unit in unitDB.values():
         if not 'no_random' in unit.tags:
             units_to_rando.append(unit)
     for unit in units_to_rando:
+        klassObj = klassDB.get(unit.klass)
         preGrowths = unit.growths
         growths = {stat_nid: preGrowths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
         tgr = 0
@@ -710,17 +752,17 @@ def randomizeGrowthsStatic(game):
         variance = game.rando_settings['growths_variance']
         stats = [stat_name for stat_name in DB.stats.keys()]
 
-        if randomMode == 'Redistribute':   #Take our total growth rates and redistribute them, with a 3:1 bias towards HP.
+        if randomMode == 'Redistribute':   #Take our total growth rates and redistribute them, with a 2:1 bias towards HP.
             total_variance = static_random.get_randint(-variance, variance)
             for stat in growths:   #CON and MOV are handled separately
-                if stat in extra_stats:
+                if stat in extra_stats_names:
                     continue
                 tgr += growths[stat]
             tgr += total_variance
             #logging.debug("New TGR: %s", tgr)
             while tgr > 0:
-                which_stat = static_random.get_randint(0, len(DB.stats) + 1)
-                if which_stat in [0, len(DB.stats), len(DB.stats) + 1]:
+                which_stat = static_random.get_randint(0, len(DB.stats))
+                if which_stat in [0, len(DB.stats)]:
                     if tgr >= 5:
                         new_growths['HP'] += 5   #Keeping growths neatly in intervals of 5 like vanilla, while accounting for weird growth rates
                     else:
@@ -736,7 +778,7 @@ def randomizeGrowthsStatic(game):
                 tgr -= 5
         elif randomMode == 'Delta':   #Growth is modified within a specified variance
             for stat in growths:   #CON and MOV are handled separately
-                if stat in extra_stats:
+                if stat in extra_stats_names:
                     continue
                 amount_to_add = static_random.get_randint(-variance, variance)
                 new_growths[stat] = growths[stat] + amount_to_add
@@ -744,18 +786,38 @@ def randomizeGrowthsStatic(game):
                     new_growths[stat] = 0
         elif randomMode == 'Absolute':
             for stat in new_growths:
-                if stat in extra_stats:
+                if stat in extra_stats_names:
                     continue
                 new_growths[stat] = static_random.get_randint(game.rando_settings['growths_min'], game.rando_settings['growths_max'])
 
         unitDataDB[unit.nid].growths = new_growths
+
+def SwapOffense(game):
+    unitDB = game.rando_settings['unitDictionary']
+    unitDataDB = game.rando_settings['unitDataDictionary']
+    klassDB = game.rando_settings['klassDictionary']
+    stats = [stat_name for stat_name in DB.stats.keys()]
+    units_to_rando = []
+    if 'STR' in stats and 'MAG' in stats:
+        for unit in unitDB.values():
+            if not 'no_random' in unit.tags:
+                units_to_rando.append(unit)
+        for unit in units_to_rando:
+            klassObj = klassDB.get(unit.klass)
+            growths = unitDataDB[unit.nid].growths
+            bases = unitDataDB[unit.nid].bases
+            if 'Physical' in klassObj.tags or 'Magical' in klassObj.tags:
+                if (bases['MAG'] > bases['STR'] and 'Physical' in klassObj.tags) or (bases['MAG'] < bases['STR'] and 'Magical' in klassObj.tags):
+                    bases['STR'], bases['MAG'] = bases['MAG'], bases['STR']
+                if (growths['MAG'] > growths['STR'] and 'Physical' in klassObj.tags) or (growths['MAG'] < growths['STR'] and 'Magical' in klassObj.tags):
+                    growths['STR'], growths['MAG'] = growths['MAG'], growths['STR']
 
 # === Item Randomization ===
 
 def createRandomItemDictionary(game):
     newDic = copy.deepcopy(DB.items)
     #A dev will need to edit this to accommodate whatever weapons they wish to designate as "safe"
-    safe_weapons = ['Iron Sword', 'Iron Lance', 'Iron Axe', 'Iron Bow', 'Fire', 'Lightning', 'Flux']
+    safe_weapons = ['Iron Sword', 'Iron Lance', 'Iron Axe', 'Willow Bow', 'Fire', 'Glimmer', 'Flux']
     mode = game.rando_settings['random_effects_mode']
     effect_limit = game.rando_settings['random_effects_limit']
     validComponents = game.rando_settings['weapon_properties']
@@ -763,61 +825,62 @@ def createRandomItemDictionary(game):
     equipSkills = game.rando_settings['weapon_imbue']
     statusSkills = game.rando_settings['weapon_inflict']
     #A dev may also need to edit this to determine which components are allowed to be removed from weapons
-    all_properties = ['brave','lifelink','reaver','cannot_counter','cannot_be_countered','magic','effective','effective_tag','status_on_equip','status_on_hold','status_on_hit']
+    all_properties = ['brave','lifelink','reaver','magic','effective','effective_tag','status_on_equip','status_on_hold','status_on_hit']
 
     for item in newDic:
         specialComponents = [component.nid for component in item.components if component.nid in all_properties]
-        if not any(component.nid == 'no_random' for component in item.components):
+        if not any(component.nid == 'no_random' for component in item.components) and any(component.nid == 'weapon' or component.nid == 'spell' for component in item.components):
             #This first part is for weapon stats. Also works for spells.
-            for component in item.components:
-                if game.rando_settings['wepMt'] and component.nid == 'damage':
-                    variance = static_random.get_randint(-game.rando_settings['wepMtVar'],game.rando_settings['wepMtVar'])
-                    component.value += variance
-                    if component.value < game.rando_settings['wepMtMin']:
-                        component.value = game.rando_settings['wepMtMin']
-                    elif component.value > game.rando_settings['wepMtMax']:
-                        component.value = game.rando_settings['wepMtMax']
-                    #logging.debug("%s now has %s might", item.name, component.value)
-                if game.rando_settings['wepHit'] and component.nid == 'hit':
-                    variance = static_random.get_randint(-game.rando_settings['wepHitVar'],game.rando_settings['wepHitVar'])
-                    component.value += variance
-                    if component.value < game.rando_settings['wepHitMin']:
-                        component.value = game.rando_settings['wepHitMin']
-                    elif component.value > game.rando_settings['wepHitMax']:
-                        component.value = game.rando_settings['wepHitMax']
-                    #logging.debug("%s now has %s hit", item.name, component.value)
-                if game.rando_settings['wepCrit'] and component.nid == 'crit':
-                    variance = static_random.get_randint(-game.rando_settings['wepCritVar'],game.rando_settings['wepCritVar'])
-                    component.value += variance
-                    if component.value < game.rando_settings['wepCritMin']:
-                        component.value = game.rando_settings['wepCritMin']
-                    elif component.value > game.rando_settings['wepCritMax']:
-                        component.value = game.rando_settings['wepCritMax']
-                    #logging.debug("%s now has %s crit", item.name, component.value)
-                if game.rando_settings['wepWeight'] and component.nid == 'weight':
-                    variance = static_random.get_randint(-game.rando_settings['wepWeightVar'],game.rando_settings['wepWeightVar'])
-                    component.value += variance
-                    if component.value < game.rando_settings['wepWeightMin']:
-                        component.value = game.rando_settings['wepWeightMin']
-                    elif component.value > game.rando_settings['wepWeightMax']:
-                        component.value = game.rando_settings['wepWeightMax']
-                    #logging.debug("%s now has %s weight", item.name, component.value)
-                if game.rando_settings['wepUses'] and component.nid == 'uses':
-                    variance = static_random.get_randint(-game.rando_settings['wepUsesVar'],game.rando_settings['wepUsesVar'])
-                    component.value += variance
-                    if component.value < game.rando_settings['wepUsesMin']:
-                        component.value = game.rando_settings['wepUsesMin']
-                    elif component.value > game.rando_settings['wepUsesMax']:
-                        component.value = game.rando_settings['wepUsesMax']
-                    #logging.debug("%s now has %s uses", item.name, component.value)
-                if game.rando_settings['wepCUses'] and component.nid == 'c_uses':
-                    variance = static_random.get_randint(-game.rando_settings['wepCUsesVar'],game.rando_settings['wepCUsesVar'])
-                    component.value += variance
-                    if component.value < game.rando_settings['wepCUsesMin']:
-                        component.value = game.rando_settings['wepCUsesMin']
-                    elif component.value > game.rando_settings['wepCUsesMax']:
-                        component.value = game.rando_settings['wepCUsesMax']
-                    #logging.debug("%s now has %s c_uses", item.name, component.value)
+            if game.rando_settings['item_stats']:
+                for component in item.components:
+                    if game.rando_settings['wepMt'] and component.nid == 'damage':
+                        variance = static_random.get_randint(-game.rando_settings['wepMtVar'],game.rando_settings['wepMtVar'])
+                        component.value += variance
+                        if component.value < game.rando_settings['wepMtMin']:
+                            component.value = game.rando_settings['wepMtMin']
+                        elif component.value > game.rando_settings['wepMtMax']:
+                            component.value = game.rando_settings['wepMtMax']
+                        #logging.debug("%s now has %s might", item.name, component.value)
+                    if game.rando_settings['wepHit'] and component.nid == 'hit':
+                        variance = static_random.get_randint(-game.rando_settings['wepHitVar'],game.rando_settings['wepHitVar'])
+                        component.value += variance
+                        if component.value < game.rando_settings['wepHitMin']:
+                            component.value = game.rando_settings['wepHitMin']
+                        elif component.value > game.rando_settings['wepHitMax']:
+                            component.value = game.rando_settings['wepHitMax']
+                        #logging.debug("%s now has %s hit", item.name, component.value)
+                    if game.rando_settings['wepCrit'] and component.nid == 'crit':
+                        variance = static_random.get_randint(-game.rando_settings['wepCritVar'],game.rando_settings['wepCritVar'])
+                        component.value += variance
+                        if component.value < game.rando_settings['wepCritMin']:
+                            component.value = game.rando_settings['wepCritMin']
+                        elif component.value > game.rando_settings['wepCritMax']:
+                            component.value = game.rando_settings['wepCritMax']
+                        #logging.debug("%s now has %s crit", item.name, component.value)
+                    if game.rando_settings['wepWeight'] and component.nid == 'weight':
+                        variance = static_random.get_randint(-game.rando_settings['wepWeightVar'],game.rando_settings['wepWeightVar'])
+                        component.value += variance
+                        if component.value < game.rando_settings['wepWeightMin']:
+                            component.value = game.rando_settings['wepWeightMin']
+                        elif component.value > game.rando_settings['wepWeightMax']:
+                            component.value = game.rando_settings['wepWeightMax']
+                        #logging.debug("%s now has %s weight", item.name, component.value)
+                    if game.rando_settings['wepUses'] and component.nid == 'uses':
+                        variance = static_random.get_randint(-game.rando_settings['wepUsesVar'],game.rando_settings['wepUsesVar'])
+                        component.value += variance
+                        if component.value < game.rando_settings['wepUsesMin']:
+                            component.value = game.rando_settings['wepUsesMin']
+                        elif component.value > game.rando_settings['wepUsesMax']:
+                            component.value = game.rando_settings['wepUsesMax']
+                        #logging.debug("%s now has %s uses", item.name, component.value)
+                    if game.rando_settings['wepCUses'] and component.nid == 'c_uses':
+                        variance = static_random.get_randint(-game.rando_settings['wepCUsesVar'],game.rando_settings['wepCUsesVar'])
+                        component.value += variance
+                        if component.value < game.rando_settings['wepCUsesMin']:
+                            component.value = game.rando_settings['wepCUsesMin']
+                        elif component.value > game.rando_settings['wepCUsesMax']:
+                            component.value = game.rando_settings['wepCUsesMax']
+                        #logging.debug("%s now has %s c_uses", item.name, component.value)
             #Randomization of weapon effects. Currently for weapons only.
             if game.rando_settings['random_effects'] and any(component.nid == 'weapon' for component in item.components):
                 #If we have safe weapons, leave them alone
@@ -828,10 +891,13 @@ def createRandomItemDictionary(game):
                     amount = static_random.get_randint(0, effect_limit)
                     #If we rolled new effects, remove the old ones if the setting is enabled.
                     if amount > 0 and mode == 'Replace':
+                        replaceComs = []
                         for component in item.components:
                             if component.nid in specialComponents:
-                                item.components.remove_key(component.nid)
+                                replaceComs.append(component.nid)
                                 logging.debug("%s has lost: %s", item.name, component.nid)
+                        for oldCom in replaceComs:
+                            item.components.remove_key(oldCom)
                     #Place effects onto weapon
                     for _ in range(amount):
                         selectInt = static_random.get_randint(0, len(validComponents) - 1)
@@ -880,7 +946,7 @@ def createRandomItemDictionary(game):
                                 damageVal = next((component.value for component in item.components if component.nid == 'damage'), None)
                                 effectObj.value = damageVal * 2
                         #Some of these could be expanded on. For example, randomized lifelink strength.
-                        elif effect_to_add in ['brave','reaver','cannot_counter','cannot_be_countered','magic','lifelink']:
+                        elif effect_to_add in ['brave','reaver','magic','lifelink']:
                             klassName = getClassName('weapon', effect_to_add)
                             effectObj = klassName()
                             item.components.append(effectObj)
@@ -910,7 +976,7 @@ def randomizeNames(game):
         unitDB[unit_to_pick.nid].name = newName
 
         #We're done with this unit, so remove them from the pool
-        logging.debug("%s's new name is: %s", unit_to_pick.name, newName)
+        logging.debug("%s's new name is: %s", unit_to_pick.nid, newName)
         units_to_rando.remove(unit_to_pick)
         names_to_use.remove(newName)
 
@@ -934,7 +1000,7 @@ def randomizePortraits(game):
         unitDB[unit_to_pick.nid].portrait_nid = newFace
 
         #We're done with this unit, so remove them from the pool
-        logging.debug("%s's new face is: %s", unit_to_pick.name, newFace)
+        logging.debug("%s's new face is: %s", unit_to_pick.nid, newFace)
         units_to_rando.remove(unit_to_pick)
         faces_to_use.remove(newFace)
 
@@ -958,7 +1024,7 @@ def randomizeDescriptions(game):
         unitDB[unit_to_pick.nid].desc = newDesc
 
         #We're done with this unit, so remove them from the pool
-        logging.debug("%s's new desc is: %s", unit_to_pick.name, newDesc)
+        logging.debug("%s's new desc is: %s", unit_to_pick.nid, newDesc)
         units_to_rando.remove(unit_to_pick)
         bios_to_use.remove(newDesc)
 
@@ -979,7 +1045,7 @@ def randomizePersonalSkills(game):
         if can_use:
             allowed_skills.append(skill)
     #allowed_skills = [skill for skill in DB.skills if not (any(component.nid == 'Hidden',component.nid == 'time',component.nid == 'negative') for component in skill.components)]
-    logging.debug("Skill list: %s", [skill.nid for skill in allowed_skills])
+    #logging.debug("Skill list: %s", [skill.nid for skill in allowed_skills])
 
     #If we don't want to repeat personal skills, create a copy of the skills list to track what we've used
     if game.rando_settings['personal_skill_stop_redundancy']:
@@ -1039,7 +1105,7 @@ def randomizeClassSkills(game):
     for skill in DB.skills:
         can_use = True
         for component in skill.components:
-            if component.nid in ['hidden','time','negative']:
+            if component.nid in ['hidden','time','negative','no_random']:
                 can_use = False
                 break
         if can_use:
@@ -1052,7 +1118,7 @@ def randomizeClassSkills(game):
         skills_tracker = copy.deepcopy(allowed_skills)
 
     #Figure out which classes are allowed to have skills randomized
-    for klass in klassDB:
+    for klass in klassDB.values():
         if not 'no_random' in klass.tags:
             if (not game.rando_settings['lord_rando'] and 'Lord' in klass.tags) or (not game.rando_settings['thief_rando'] and 'Thief' in klass.tags) or (not game.rando_settings['special_rando'] and 'Special' in klass.tags):
                 continue
@@ -1158,6 +1224,7 @@ class RandoSettings():
                                'wepCUsesVar': 0,
                                'wepCUsesMin': 1,
                                'wepCUsesMax': 10,
+                               'item_stats': False,
                                'itemDictionary': {},
                                'wexp_mode': 'Similar',
                                'keepWeps': False,
@@ -1193,6 +1260,10 @@ class RandoSettings():
                                'weapon_effective': [],
                                'weapon_imbue': [],
                                'weapon_inflict': [],
+                               'use_klass_move': False,
+                               'swap_offense': False,
+                               'special_klass_list': [],
+                               'special_unit_list': [],
                                }
 def resetRando():
     return {'class_pools': [],
@@ -1236,6 +1307,7 @@ def resetRando():
                            'wepCUsesVar': 0,
                            'wepCUsesMin': 1,
                            'wepCUsesMax': 10,
+                           'item_stats': False,
                            'itemDictionary': {},
                            'wexp_mode': 'Similar',
                            'keepWeps': False,
@@ -1271,6 +1343,10 @@ def resetRando():
                            'weapon_effective': [],
                            'weapon_imbue': [],
                            'weapon_inflict': [],
+                           'use_klass_move': False,
+                           'swap_offense': False,
+                           'special_klass_list': [],
+                           'special_unit_list': [],
                            }
 
 Rando = RandoSettings()
@@ -1294,10 +1370,16 @@ class SpoofUnit():
 
 #Mostly to simplify how these are tracked per unit
 class UnitData():
-    def __init__(self):
-        self.wexp = {}
-        self.bases = {}
-        self.growths = {}
+    def __init__(self, unit):
+        weapon_gain = unit.wexp_gain
+        wexp = {weapon_nid: weapon_gain.get(weapon_nid, DB.weapons.default()).wexp_gain for weapon_nid in DB.weapons.keys()}
+        self.wexp = wexp
+        prebases = unit.bases
+        bases = {stat_nid: prebases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
+        self.bases = bases
+        pregrowths = unit.growths
+        growths = {stat_nid: pregrowths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
+        self.growths = growths
 
 #This is used to help create item components for weapon effects randomization. If custom components are to be added to weapons, a dev may need to edit this method.
 def getClassName(type, name):

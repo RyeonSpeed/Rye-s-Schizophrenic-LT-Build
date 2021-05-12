@@ -2762,10 +2762,6 @@
         ],
         "components": [
             [
-                "weapon",
-                null
-            ],
-            [
                 "target_enemy",
                 null
             ],
@@ -5889,6 +5885,38 @@
             [
                 "steal",
                 null
+            ]
+        ]
+    },
+    {
+        "nid": "Master Key",
+        "name": "Master Key",
+        "desc": "Opens locked doors and chests.",
+        "icon_nid": "Consumable",
+        "icon_index": [
+            0,
+            6
+        ],
+        "components": [
+            [
+                "uses",
+                20
+            ],
+            [
+                "value",
+                0
+            ],
+            [
+                "min_range",
+                0
+            ],
+            [
+                "max_range",
+                1
+            ],
+            [
+                "can_unlock",
+                "True"
             ]
         ]
     }

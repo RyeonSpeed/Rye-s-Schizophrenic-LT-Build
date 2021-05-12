@@ -233,3 +233,8 @@ class Negative(SkillComponent):
     nid = 'negative'
     desc = "Skill is considered detrimental"
     tag = "attribute"
+
+class NoRandom(SkillComponent):
+    nid = 'no_random'
+    desc = "Skill cannot be obtained from randomization."
+    tag = "attribute"

@@ -146,13 +146,22 @@ def apply_stat_changes(unit, stat_changes: dict):
 def get_starting_skills(unit, settings=None) -> list:
     # Class skills
     klass_obj = DB.classes.get(unit.klass)
+    all_normal = True
+    if settings and not 'no_random' in klass_obj.tags and klass_obj.nid not in settings.rando_settings['special_klass_list'] and settings.rando_settings['class_skill_rando']:
+        klass_obj = settings.rando_settings['klassDictionary'].get(unit.klass)
+        all_normal = False
     current_klass = klass_obj
     all_klasses = [klass_obj]
     counter = 5
     while current_klass and current_klass.tier > 1 and counter > 0:
         counter -= 1  # Prevent infinite loops
         if current_klass.promotes_from:
-            current_klass = DB.classes.get(current_klass.promotes_from)
+            if all_normal:
+                current_klass = DB.classes.get(current_klass.promotes_from)
+            elif settings and not 'no_random' in klass_obj.tags and klass_obj.nid not in settings.rando_settings['special_klass_list'] and settings.rando_settings['class_skill_rando']:
+                current_klass = settings.rando_settings['klassDictionary'].get(current_klass.promotes_from)
+            else:
+                current_klass = DB.classes.get(current_klass.promotes_from)
             all_klasses.append(current_klass)
         else:
             break
@@ -162,11 +171,11 @@ def get_starting_skills(unit, settings=None) -> list:
     feats = DB.skills.get_feats()
     current_skills = [skill.nid for skill in unit.skills]
     for idx, klass in enumerate(all_klasses):
-        if settings:
-            skill_set = settings.rando_settings['klassDictionary'][klass.nid].learned_skills
-        else:
-            skill_set = klass.learned_skills
-        for learned_skill in skill_set:
+        #if not 'no_random' in klass.tags and klass.nid not in settings.rando_settings['special_klass_list'] and settings.rando_settings['class_skill_rando']:
+            #skill_set = settings.rando_settings['klassDictionary'][klass.nid].learned_skills
+        #else:
+            #skill_set = klass.learned_skills
+        for learned_skill in klass.learned_skills:
             if (learned_skill[0] <= unit.level or klass != klass_obj) and \
                     learned_skill[1] not in current_skills and \
                     learned_skill[1] not in skills_to_add:

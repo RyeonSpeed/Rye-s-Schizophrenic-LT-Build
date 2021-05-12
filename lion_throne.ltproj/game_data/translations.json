@@ -592,12 +592,12 @@
         "text": "Minimize repetition when randomizing unit skills"
     },
     {
-        "nid": "item_rando",
-        "text": "Weapon/Spell Randomization"
+        "nid": "item_stats",
+        "text": "Weapon/Spell Stats"
     },
     {
-        "nid": "item_rando_desc",
-        "text": "Enable randomization of weapon/spell properties"
+        "nid": "item_stats_desc",
+        "text": "Enable randomization of weapon/spell stats"
     },
     {
         "nid": "wepMt",
@@ -1046,5 +1046,21 @@
     {
         "nid": "Frostbite_desc",
         "text": "Weapon can inflict Frostbite on foes"
+    },
+    {
+        "nid": "use_klass_move",
+        "text": "Use Class Move"
+    },
+    {
+        "nid": "use_klass_move_desc",
+        "text": "Use Class's MOV stat instead of Personal MOV"
+    },
+    {
+        "nid": "swap_offense",
+        "text": "Swap Offenses"
+    },
+    {
+        "nid": "swap_offense_desc",
+        "text": "Swap STR/MAG Bases and Growths to suit class"
     }
 ]
