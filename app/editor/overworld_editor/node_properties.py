@@ -37,6 +37,7 @@ class NodePropertiesMenu(QWidget):
         else:
             self.current_node = None
         if(self.current_node):
+            #The biggest problem with this GUI stuff currently is that the event-specific stuff doesn't go blank on node switch. This has no harmful effect in terms of engine or data, just looks bad visually
             self._data = self.current_node.menu_options
             self.model._data = self._data
             self.model.update()

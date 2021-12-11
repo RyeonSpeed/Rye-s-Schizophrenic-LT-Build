@@ -15,6 +15,7 @@ class OverworldNodePrefab(Prefab):
         self.menu_options = Data()      #Events that can be activated in the node's menu
 
     def save_attr(self, name, value):
+        # I cannot, for the life of me, get saving and loading stuff to play nice. Any help would be great.
         if name == 'menu_options':
             value = [menu_options.save() for menu_options in value]
         else:
@@ -23,7 +24,10 @@ class OverworldNodePrefab(Prefab):
 
     def restore_attr(self, name, value):
         if name == 'menu_options':
-            value = Data([NodeEvent.restore(val) for val in value])
+            if value:
+                value = Data([NodeEvent.restore(val) for val in value])
+            else:
+                value = Data()
         else:
             value = super().restore_attr(name, value)
         if(name == 'pos'):

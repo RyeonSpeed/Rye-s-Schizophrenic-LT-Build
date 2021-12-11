@@ -75,6 +75,7 @@ class OverworldState(MapState):
                 entity = game.overworld_controller.entity_at(selected_node.position)
                 if entity and entity.team == 'player' and entity.dtype == OverworldEntityTypes.PARTY: # there's a party underneath us, select it and launch the party menu
                     game.overworld_controller.select_entity(entity)
+                    game.memory['selected_node'] = selected_node
                     SOUNDTHREAD.play_sfx('Select 5')
                     game.state.change('overworld_party_option_menu')
                     return
@@ -315,6 +316,22 @@ class OverworldPartyOptionMenu(State):
         info_desc = ['Convoy_desc']
         ignore = [False]
 
+        #Expanded this to be similar to the new base/prep stuff, hopefully I did it right
+        self.events = [None for option in options]
+        current_node = game.memory['selected_node']
+        #See the line below this one? Yea I hate it too, feel like I violated some kind of principle here
+        all_events = current_node.prefab.menu_options
+        additional_option_names = [option.nid for option in all_events if option.visible]
+        additional_ignore = [not option.enabled for option in all_events if option.visible]
+        additional_events = [option.event for option in all_events if option.visible]
+        additional_info = [None for option in all_events if option.visible]
+        
+        options += additional_option_names
+        ignore += additional_ignore
+        self.events += additional_events
+        #Options seem to need info_descs, no idea what to do with those. They're just None for now to prevent crashes
+        info_desc += additional_info
+        
         self.menu = menus.Choice(None, options, info=info_desc)
         self.menu.set_ignore(ignore)
 
@@ -340,6 +357,13 @@ class OverworldPartyOptionMenu(State):
             if selection == 'Base Camp':
                 game.memory['next_state'] = 'base_main'
                 game.state.change('transition_to')
+            else:
+                #There is currently no way to toggle an options visibility or selectability outside of the editor. I mostly just didn't have time for it yet, but thoughts on how to do it would be great.
+                selected_index = self.menu.get_current_index()
+                event_to_trigger = self.events[selected_index]
+                valid_events = DB.events.get_by_nid_or_name(event_to_trigger)
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid)
 
         elif event == 'INFO':
             self.menu.toggle_info()
