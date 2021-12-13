@@ -68,6 +68,18 @@ class OverworldManager():
         self._overworld.enabled_roads.add(road)
         self.regenerate_explored_graph()
 
+    def toggle_event_enabled(self, event: NID, setting: bool):
+        self._overworld.enabled_events[event] = setting
+        
+    def menu_event_enabled(self, nid) -> bool:
+        return self._overworld.enabled_events[nid]
+    
+    def toggle_event_visible(self, event: NID, setting: bool):
+        self._overworld.visible_events[event] = setting
+        
+    def menu_event_visible(self, nid) -> bool:
+        return self._overworld.visible_events[nid]
+    
     @property
     def tilemap(self) -> TileMapObject:
         return self._overworld.tilemap

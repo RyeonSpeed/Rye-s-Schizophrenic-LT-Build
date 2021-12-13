@@ -2144,6 +2144,20 @@ class ToggleNarrationMode(EventCommand):
 
     keywords = ['Direction']
     optional_keywords = ['Speed']
+    
+class ToggleNodeMenuEventEnabled(EventCommand):
+    nid = 'overworld_menu_event_enabled'
+    tag = Tags.OVERWORLD
+    desc = ('Toggle whether the specified node menu event can be accessed by the player. Note that even if enabled, it must also be visible for the player to access it.')
+    
+    keywords = ['Event', 'Bool']
+    
+class ToggleNodeMenuEventVisible(EventCommand):
+    nid = 'overworld_menu_event_visible'
+    tag = Tags.OVERWORLD
+    desc = ('Toggle whether the specified node menu event can be seen by the player. Note that even if visible, it must also be enabled for the player to access it.')
+    
+    keywords = ['Event', 'Bool']
 
 def get_commands():
     return EventCommand.__subclasses__()

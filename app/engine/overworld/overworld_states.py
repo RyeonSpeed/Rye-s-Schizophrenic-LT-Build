@@ -75,7 +75,6 @@ class OverworldState(MapState):
                 entity = game.overworld_controller.entity_at(selected_node.position)
                 if entity and entity.team == 'player' and entity.dtype == OverworldEntityTypes.PARTY: # there's a party underneath us, select it and launch the party menu
                     game.overworld_controller.select_entity(entity)
-                    game.memory['selected_node'] = selected_node
                     SOUNDTHREAD.play_sfx('Select 5')
                     game.state.change('overworld_party_option_menu')
                     return
@@ -318,13 +317,15 @@ class OverworldPartyOptionMenu(State):
 
         #Expanded this to be similar to the new base/prep stuff, hopefully I did it right
         self.events = [None for option in options]
-        current_node = game.memory['selected_node']
-        #See the line below this one? Yea I hate it too, feel like I violated some kind of principle here
+        current_node = game.overworld_controller.selected_party_node()
+        #Is it fine to reference the prefab here? Easy way to know which events the node has.
+        #Could be problematic if in the future an enhancement is made to allow events to be dynamically added to a node, but that shouldn't really be needed, right?
         all_events = current_node.prefab.menu_options
-        additional_option_names = [option.nid for option in all_events if option.visible]
-        additional_ignore = [not option.enabled for option in all_events if option.visible]
-        additional_events = [option.event for option in all_events if option.visible]
-        additional_info = [None for option in all_events if option.visible]
+        
+        additional_option_names = [option.event_name for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
+        additional_ignore = [not game.overworld_controller.menu_event_enabled(option.nid) for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
+        additional_events = [option.nid for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
+        additional_info = [None for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
         
         options += additional_option_names
         ignore += additional_ignore
@@ -358,10 +359,13 @@ class OverworldPartyOptionMenu(State):
                 game.memory['next_state'] = 'base_main'
                 game.state.change('transition_to')
             else:
-                #There is currently no way to toggle an options visibility or selectability outside of the editor. I mostly just didn't have time for it yet, but thoughts on how to do it would be great.
+                #The biggest issue right now is that the menu will not refresh until closed and opened again.
+                #Basically, if an event called here is supposed to set itself to disabled, that won't visibly take effect until the menu is closed again and reopened.
+                #This is a problem since the menu will still be open after returning from an event
+                #Also Base Camp seems to crash now but idk if that's from my code or your new commit
                 selected_index = self.menu.get_current_index()
                 event_to_trigger = self.events[selected_index]
-                valid_events = DB.events.get_by_nid_or_name(event_to_trigger)
+                valid_events = DB.events.get_by_nid_or_name(event_to_trigger, None)
                 for event_prefab in valid_events:
                     game.events.trigger_specific_event(event_prefab.nid)
 
