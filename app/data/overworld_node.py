@@ -2,7 +2,7 @@ from typing import Tuple
 
 from app.resources.map_icons import MapIconCatalog
 from app.utilities.data import Data, Prefab
-from app.events.node_events import NodeEvent
+from app.events.node_events import NodeMenuEvent
 
 
 class OverworldNodePrefab(Prefab):
@@ -12,10 +12,9 @@ class OverworldNodePrefab(Prefab):
         self.pos: Tuple[int, int] = pos             # tuple of location pair
         self.icon: str = icon or MapIconCatalog.DEFAULT()           # icon nid (see map_icons.json for a manifest)
         self.level: str = None          # level associated
-        self.menu_options = Data()      #Events that can be activated in the node's menu
+        self.menu_options: Data[NodeMenuEvent] = Data()      #Events that can be activated in the node's menu
 
     def save_attr(self, name, value):
-        # I cannot, for the life of me, get saving and loading stuff to play nice. Any help would be great.
         if name == 'menu_options':
             value = [menu_options.save() for menu_options in value]
         else:
@@ -25,7 +24,7 @@ class OverworldNodePrefab(Prefab):
     def restore_attr(self, name, value):
         if name == 'menu_options':
             if value:
-                value = Data([NodeEvent.restore(val) for val in value])
+                value = Data([NodeMenuEvent.restore(val) for val in value])
             else:
                 value = Data()
         else:
