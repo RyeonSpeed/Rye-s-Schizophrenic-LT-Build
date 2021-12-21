@@ -315,17 +315,14 @@ class OverworldPartyOptionMenu(State):
         info_desc = ['Convoy_desc']
         ignore = [False]
 
-        #Expanded this to be similar to the new base/prep stuff, hopefully I did it right
         self.events = [None for option in options]
         current_node = game.overworld_controller.selected_party_node()
-        #Is it fine to reference the prefab here? Easy way to know which events the node has.
-        #Could be problematic if in the future an enhancement is made to allow events to be dynamically added to a node, but that shouldn't really be needed, right?
-        all_events = current_node.prefab.menu_options
+        all_options = current_node.menu_options
         
-        additional_option_names = [option.event_name for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
-        additional_ignore = [not game.overworld_controller.menu_event_enabled(option.nid) for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
-        additional_events = [option.nid for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
-        additional_info = [None for option in all_events if game.overworld_controller.menu_event_visible(option.nid)]
+        additional_option_names = [option.option_name for option in all_options if game.overworld_controller.menu_option_visible(current_node.nid, option.nid)]
+        additional_ignore = [not game.overworld_controller.menu_option_enabled(current_node.nid, option.nid) for option in all_options if game.overworld_controller.menu_option_visible(current_node.nid, option.nid)]
+        additional_events = [option.event for option in all_options if game.overworld_controller.menu_option_visible(current_node.nid, option.nid)]
+        additional_info = [None for option in all_options if game.overworld_controller.menu_option_visible(current_node.nid, option.nid)]
         
         options += additional_option_names
         ignore += additional_ignore
@@ -359,10 +356,7 @@ class OverworldPartyOptionMenu(State):
                 game.memory['next_state'] = 'base_main'
                 game.state.change('transition_to')
             else:
-                #The biggest issue right now is that the menu will not refresh until closed and opened again.
-                #Basically, if an event called here is supposed to set itself to disabled, that won't visibly take effect until the menu is closed again and reopened.
-                #This is a problem since the menu will still be open after returning from an event
-                #Also Base Camp seems to crash now but idk if that's from my code or your new commit
+                game.state.back()
                 selected_index = self.menu.get_current_index()
                 event_to_trigger = self.events[selected_index]
                 valid_events = DB.events.get_by_nid_or_name(event_to_trigger, None)
