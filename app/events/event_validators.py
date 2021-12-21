@@ -904,6 +904,24 @@ class OverworldNodeNID(Validator):
             valids = valids + [(node.name, node.nid) for node in overworld.overworld_nodes.values()]
         return valids
 
+class OverworldNodeMenuOption(Validator):
+    desc = "accepts the nid of an overworld node menu option only"
+
+    def validate(self, text, level):
+        for overworld in DB.overworlds.values():
+            for node in overworld.overworld_nodes:
+                if text in [option.nid for option in node.menu_options]:
+                    return text
+        return None
+
+    @lru_cache()
+    def valid_entries(self, level: NID = None) -> List[Tuple[str, NID]]:
+        valids = []
+        for overworld in DB.overworlds.values():
+            for node in overworld.overworld_nodes:
+                valids = valids + [(option.option_name, option.nid) for option in node.menu_options]
+        return valids
+
 class OverworldEntity(Validator):
     desc = "accepts the nid of an overworld entity. By default, all parties have associated overworld entities."
 

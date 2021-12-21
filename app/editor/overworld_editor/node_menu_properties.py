@@ -3,9 +3,11 @@ from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, \
 from PyQt5.QtCore import Qt, QEvent
 from app.events import node_events
 from app.editor.base_database_gui import DragDropCollectionModel
+from app.editor.custom_widgets import EventBox
 from app.utilities.data import Data
 from app.utilities import str_utils
 from app.extensions.custom_gui import ComboBox, SimpleDialog, PropertyBox, PropertyCheckBox, QHLine, RightClickListView
+from app.data.database import DB
 
 class NodeEventPropertiesMenu(QWidget):
     def __init__(self, state_manager, parent=None):
@@ -51,13 +53,13 @@ class NodeEventPropertiesMenu(QWidget):
 
     def on_item_changed(self, curr, prev):
         if self._data:
-            reg = self._data[curr.row()]
-            self.modify_option_widget.set_current(reg)
+            opt = self._data[curr.row()]
+            self.modify_option_widget.set_current(opt)
             
     def on_node_changed(self):
         if self._data:
-            reg = self._data[0]
-            self.modify_option_widget.set_current(reg)
+            opt = self._data[0]
+            self.modify_option_widget.set_current(opt)
 
     def get_current(self):
         for index in self.view.selectionModel().selectedIndexes():
@@ -100,7 +102,7 @@ class OptionModel(DragDropCollectionModel):
             return None
         if role == Qt.DisplayRole:
             opt = self._data[index.row()]
-            text = opt.nid + ': ' + opt.event_name
+            text = opt.nid + ': ' + opt.option_name
             return text
         return None
 
@@ -134,14 +136,18 @@ class ModifyOptionsWidget(QWidget):
 
         self.current = current
 
-        self.opt_nid_box = PropertyBox("Event ID", QLineEdit, self)
+        self.opt_nid_box = PropertyBox("Menu Option ID", QLineEdit, self)
         self.opt_nid_box.edit.textChanged.connect(self.option_nid_changed)
         self.opt_nid_box.edit.editingFinished.connect(self.option_nid_done_editing)
         layout.addWidget(self.opt_nid_box)
 
-        self.sub_nid_box = PropertyBox("Display Name", QLineEdit, self)
-        self.sub_nid_box.edit.textChanged.connect(self.sub_nid_changed)
-        layout.addWidget(self.sub_nid_box)
+        self.option_name_box = PropertyBox("Display Name", QLineEdit, self)
+        self.option_name_box.edit.textChanged.connect(self.sub_nid_changed)
+        layout.addWidget(self.option_name_box)
+        
+        self.event_box = EventBox(self)
+        self.event_box.edit.currentIndexChanged.connect(self.event_changed)
+        layout.addWidget(self.event_box)
 
         self.visible_box = PropertyCheckBox("Visible in menu?", QCheckBox, self)
         self.visible_box.edit.stateChanged.connect(self.visibility_changed)
@@ -171,9 +177,12 @@ class ModifyOptionsWidget(QWidget):
         self.window.update_list()
 
     def sub_nid_changed(self, text):
-        self.current.event_name = text
+        self.current.option_name = text
         self.window.update_list()
 
+    def event_changed(self, index):
+        self.current.event = self.event_box.edit.currentText()
+    
     def visibility_changed(self, state):
         self.current.visible = bool(state)
 
@@ -182,7 +191,17 @@ class ModifyOptionsWidget(QWidget):
 
     def set_current(self, current):
         self.current = current
+        if DB.events:
+            #This currently forces OW menu events to be limited to Global events
+            #My preference would be to have OW be its own category of event, but that is not my judgement call to make
+            self.event_box.model._data = [event for event in DB.events if not event.level_nid]
+            self.event_box.model.layoutChanged.emit()
         self.opt_nid_box.edit.setText(current.nid)
-        self.sub_nid_box.edit.setText(current.event_name)
+        self.option_name_box.edit.setText(current.option_name)
+        if current.event:
+            self.event_box.edit.setValue(current.event)
+        else:
+            self.event_box.edit.setValue(None)
         self.visible_box.edit.setChecked(bool(current.visible))
         self.enabled_box.edit.setChecked(bool(current.enabled))
+
