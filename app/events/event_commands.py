@@ -2145,14 +2145,14 @@ class ToggleNarrationMode(EventCommand):
     keywords = ['Direction']
     optional_keywords = ['Speed']
     
-class ToggleNodeMenuOptionEnabled(EventCommand):
+class SetOverworldMenuOptionEnabled(EventCommand):
     nid = 'set_overworld_menu_option_enabled'
     tag = Tags.OVERWORLD
     desc = ('Toggle whether the specified node menu option can be accessed by the player. Note that even if enabled, it must also be visible for the player to access it.')
     
     keywords = ['OverworldNodeNID', 'OverworldNodeMenuOption', 'Bool']
     
-class ToggleNodeMenuOptionVisible(EventCommand):
+class SetOverworldMenuOptionVisible(EventCommand):
     nid = 'set_overworld_menu_option_visible'
     tag = Tags.OVERWORLD
     desc = ('Toggle whether the specified node menu option can be seen by the player. Note that even if visible, it must also be enabled for the player to access it.')

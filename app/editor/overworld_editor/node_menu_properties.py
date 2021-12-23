@@ -194,7 +194,7 @@ class ModifyOptionsWidget(QWidget):
         if DB.events:
             #This currently forces OW menu events to be limited to Global events
             #My preference would be to have OW be its own category of event, but that is not my judgement call to make
-            self.event_box.model._data = [event for event in DB.events if not event.level_nid]
+            self.event_box.model._data = [event for event in DB.events.get_by_level(None)]
             self.event_box.model.layoutChanged.emit()
         self.opt_nid_box.edit.setText(current.nid)
         self.option_name_box.edit.setText(current.option_name)
