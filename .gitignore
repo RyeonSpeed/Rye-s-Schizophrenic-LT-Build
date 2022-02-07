@@ -17,7 +17,6 @@ autosave*
 screenshots/
 
 # Builds
-*.exe
 venv/
 venv_editor/
 
