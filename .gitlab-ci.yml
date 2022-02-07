@@ -1,0 +1,12 @@
+stages:
+    - deploy
+
+build_app:
+    stage: deploy
+    script:
+        - chmod 777 ./utilities/build_tools/*.spec 
+        - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
+        - apt-get update -qy
+        - apt-get install -y python-dev python-pip
+        - pip install -r requirements_editor.txt
+        - ./utilities/build_tools/editor_build.sh
