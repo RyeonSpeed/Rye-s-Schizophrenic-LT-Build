@@ -17,7 +17,7 @@ autosave*
 screenshots/
 
 # Builds
-# build/
+build/
 _build/
 dist/
 *.exe

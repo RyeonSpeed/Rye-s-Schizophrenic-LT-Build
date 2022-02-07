@@ -9,16 +9,16 @@ cp ./utilities/build_tools/editor.spec .
 pyinstaller -y editor.spec
 rm -f editor.spec
 
-rm -rf ./build/lt_editor
-mkdir ./build/lt_editor
-mv dist/lt_editor ./build/lt_editor/lt_editor
-cp utilities/install/double_click_to_run.bat ./build/lt_editor
-cp dist/autoupdater.exe ./build/lt_editor/lt_editor
-cp autoupdater.py ./build/lt_editor/lt_editor
+rm -rf ./downloadable/lt_editor
+mkdir ./downloadable/lt_editor
+mv dist/lt_editor ./downloadable/lt_editor/lt_editor
+cp utilities/install/double_click_to_run.bat ./downloadable/lt_editor
+cp dist/autoupdater.exe ./downloadable/lt_editor/lt_editor
+cp autoupdater.py ./downloadable/lt_editor/lt_editor
 echo "Copying default lt project..."
-cp -r default.ltproj ./build/lt_editor/lt_editor
+cp -r default.ltproj ./downloadable/lt_editor/lt_editor
 echo "Copying lion throne lt project"
-cp -r lion_throne.ltproj ./build/lt_editor/lt_editor
+cp -r lion_throne.ltproj ./downloadable/lt_editor/lt_editor
 
 # Get version
 version="0.1"
@@ -35,7 +35,7 @@ do
 done < "$constants"
 touch metadata.txt
 echo "$version" > metadata.txt
-cp metadata.txt ./build/lt_editor/lt_editor
+cp metadata.txt ./downloadable/lt_editor/lt_editor
 
 # Now zip up directory
 # rm -f "../$name.zip"
