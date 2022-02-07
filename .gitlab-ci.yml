@@ -4,5 +4,6 @@ stages:
 build_app:
     stage: deploy
     script:
-        - chmod 777 ./utilities/build_tools/ # Might be totally unneeded, not sure
+        - chmod 777 ./utilities/build_tools/*.spec # Might be totally unneeded, not sure
+        - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, not sure
         - ./utilities/build_tools/editor_build.sh
