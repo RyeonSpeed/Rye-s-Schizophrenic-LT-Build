@@ -13,3 +13,5 @@ build_app:
         - chmod 777 ./utilities/build_tools/*.spec 
         - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
         - ./utilities/build_tools/editor_build.sh
+    environment:
+        name: lt-maker build
