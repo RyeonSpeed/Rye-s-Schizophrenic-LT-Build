@@ -949,6 +949,23 @@ Sets the unit's state as having already traded this turn. The unit can still att
 
     keywords = ['Unit']
 
+class RecruitGeneric(EventCommand):
+    nid = 'recruit_generic'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+"""
+Convert a generic into a permanent party member.
+
+You will have to rename this generic with a unique NID and a name.
+
+Be extremely careful with this function. The new NID *must* be unique across every level.
+
+Otherwise extremely undefined behavior can occur.
+"""
+
+    keywords = ['NID', 'NID', 'String']
+
 class AddGroup(EventCommand):
     nid = 'add_group'
     tag = Tags.UNIT_GROUPS

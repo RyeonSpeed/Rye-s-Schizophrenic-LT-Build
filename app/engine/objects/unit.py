@@ -27,6 +27,7 @@ class UnitObject(Prefab):
         if not prefab:
             self.nid: NID = None
             self.generic: bool = False
+            self.persistent: bool = True
             self.ai: str = None
             self.ai_group: str = None
             self.faction: NID = None
@@ -46,12 +47,14 @@ class UnitObject(Prefab):
             self.nid: NID = prefab.nid
             if isinstance(prefab, UnitPrefab): # initing a non-level unit
                 self.generic: bool = False
+                self.persistent: bool = True
                 self.ai: str = None
                 self.ai_group: str = None
                 self.faction: NID = None
                 self.team: str = 'player'
             else:
                 self.generic: bool = prefab.generic
+                self.persistent: bool = not prefab.generic
                 self.ai: str = prefab.ai
                 self.ai_group: str = prefab.ai_group
                 self.faction: NID = prefab.faction
@@ -576,6 +579,7 @@ class UnitObject(Prefab):
                   'level': self.level,
                   'exp': self.exp,
                   'generic': self.generic,
+                  'persistent': self.persistent,
                   'ai': self.ai,
                   'ai_group': self.ai_group,
                   'items': [item.uid for item in self.items],
@@ -619,6 +623,7 @@ class UnitObject(Prefab):
         self.level = s_dict['level']
         self.exp = s_dict['exp']
         self.generic = s_dict['generic']
+        self.persistent = s_dict.get('persistent', not s_dict.get('generic'))
 
         self.ai = s_dict['ai']
         self.ai_group = s_dict.get('ai_group', None)

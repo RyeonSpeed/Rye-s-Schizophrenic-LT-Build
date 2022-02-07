@@ -794,6 +794,18 @@ class Event():
         elif command.nid == 'interact_unit':
             self.interact_unit(command)
 
+        elif command.nid == 'recruit_generic':
+            values, flags = event_commands.convert_parse(command, self._evaluate_evals)
+            unit = game.get_unit(values[0])
+            new_nid = values[1]
+            name = values[2]
+            if unit:
+                action.do(action.SetPersistent(unit))
+                action.do(action.SetNid(unit, new_nid))
+                action.do(action.SetName(unit, name))
+            else:
+                self.logger.error("Could not find unit with nid %s", unit)
+
         elif command.nid == 'add_group':
             self.add_group(command)
 

@@ -462,7 +462,7 @@ class GameState():
         self.region_registry.clear()
 
         # Remove all generics
-        self.unit_registry = {k: v for (k, v) in self.unit_registry.items() if not v.generic}
+        self.unit_registry = {k: v for (k, v) in self.unit_registry.items() if v.persistent}
 
         # Remove any skill that's not on a unit and does not have a parent_skill
         for k, v in list(self.skill_registry.items()):
@@ -663,7 +663,8 @@ class GameState():
     def get_all_units_in_party(self, party=None) -> List[UnitObject]:
         if party is None:
             party = self.current_party
-        return [unit for unit in self.units if unit.team == 'player' and not unit.generic and unit.party == party]
+        party_units =  [unit for unit in self.units if unit.team == 'player' and unit.persistent and unit.party == party]
+        return party_units
 
     def get_units_in_party(self, party=None) -> List[UnitObject]:
         if party is None:
