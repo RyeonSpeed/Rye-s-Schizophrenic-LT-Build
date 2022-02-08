@@ -14,10 +14,7 @@ build_app:
     script:
         - chmod 777 ./utilities/build_tools/*.spec 
         - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
-        - cp ./utilities/build_tools/autoupdater.spec .
-        - pyinstaller -y autoupdater.spec
-        - rm -f autoupdater.spec
-        - echo "Built Autoupdater! Now building main editor..."
+        - echo "Now building main editor..."
         - cp ./utilities/build_tools/editor.spec .
         - pyinstaller -y editor.spec
         - rm -f editor.spec
@@ -28,8 +25,6 @@ build_app:
         - cd ..
         - mv dist/lt_editor ./downloadable/lt_editor/lt_editor
         - cp utilities/install/double_click_to_run.bat ./downloadable/lt_editor
-        - cp dist/autoupdater.exe ./downloadable/lt_editor/lt_editor
-        - cp autoupdater.py ./downloadable/lt_editor/lt_editor
         - echo "Copying default lt project..."
         - cp -r default.ltproj ./downloadable/lt_editor/lt_editor
         - echo "Copying lion throne lt project"
