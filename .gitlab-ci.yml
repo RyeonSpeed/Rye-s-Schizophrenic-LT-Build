@@ -15,6 +15,7 @@ build_app:
         - chmod 777 ./utilities/build_tools/*.spec 
         - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
         - echo "Now building main editor..."
+        - git branch build_exe
         - cp ./utilities/build_tools/editor.spec .
         - pyinstaller -y editor.spec
         - rm -f editor.spec
@@ -34,8 +35,6 @@ build_app:
         - git config user.email "kdports@gmail.com"
         - git config user.name "kdports"
         - git commit -m "Build downloadable folder"
-        - git checkout logcrashfix
-        - git push
         - echo "Done!"
     artifacts:
         paths:
