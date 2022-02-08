@@ -15,7 +15,6 @@ build_app:
         - chmod 777 ./utilities/build_tools/*.spec 
         - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
         - echo "Now building main editor..."
-        - git branch build_exe
         - cp ./utilities/build_tools/editor.spec .
         - pyinstaller -y editor.spec
         - rm -f editor.spec
@@ -31,12 +30,9 @@ build_app:
         - echo "Copying lion throne lt project"
         - cp -r lion_throne.ltproj ./downloadable/lt_editor/lt_editor
         - cp metadata.txt ./downloadable/lt_editor/lt_editor
-        - git add ./downloadable
-        - git config user.email "kdports@gmail.com"
-        - git config user.name "kdports"
-        - git commit -m "Build downloadable folder"
         - echo "Done!"
     artifacts:
+        untracked: true
         paths:
             - downloadable/
             - downloadable/lt_editor
