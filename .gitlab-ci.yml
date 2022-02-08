@@ -43,7 +43,12 @@ release:
       artifacts: true
     script:
         - echo 'running release'
-    #release:
-    #    name: 'Release Executables $CI_COMMIT_SHORT_SHA'
-    #    description: 'Created using the release-cli'
-    #    tag_name: '$CI_COMMIT_SHORT_SHA'
+    release:
+        name: 'Release Executables $CI_COMMIT_SHORT_SHA'
+        description: 'Created using the release-cli'
+        tag_name: '$CI_COMMIT_SHORT_SHA'
+        assets:
+            links:
+                - name: 'Built_Editor'
+                  url: "https://gitlab.com/rainlash/lt-maker/-/jobs/2065260149/artifacts/download?file_type=archive"
+                  filepath: "./downloadable/"
