@@ -50,5 +50,5 @@ release:
         assets:
             links:
                 - name: 'Built_Editor'
-                  url: "https://gitlab.com/rainlash/lt-maker/-/jobs/2065260149/artifacts/download?file_type=archive"
-                  filepath: "./downloadable/"
+                  url: "https://gitlab.com/rainlash/lt-maker/-/jobs/artifacts/pipeline-test/download?job=build_app"
+                  #filepath: "./downloadable/"
