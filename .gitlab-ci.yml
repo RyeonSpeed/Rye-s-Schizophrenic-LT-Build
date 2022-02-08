@@ -31,6 +31,7 @@ build_app:
         - cp -r lion_throne.ltproj ./downloadable/lt_editor/lt_editor
         - cp metadata.txt ./downloadable/lt_editor/lt_editor
         - git add ./downloadable
+        - git config user.email "kdports@gmail.com"
         - git config user.name "kdports"
         - git commit -m "Build downloadable folder"
         - git push
