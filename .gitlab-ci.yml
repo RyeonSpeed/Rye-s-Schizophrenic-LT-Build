@@ -1,15 +1,57 @@
-image: "python:3.7.9" 
-
-before_script:
-    - python --version
-    - pip install -r requirements_editor.txt
-
 stages:
-    - deploy
+    - generate
+    - release
 
 build_app:
-    stage: deploy
+    stage: generate
+    image: "python:3.7.9" 
+    before_script:
+        - python --version
+        - pip install -r requirements_editor.txt
+        - echo $CI_JOB_ID
+        # Writing GE_JOB_ID variable to environment file, will need the value in the next stage.
+        - echo GE_JOB_ID=$CI_JOB_ID >> lt_editor.env
     script:
         - chmod 777 ./utilities/build_tools/*.spec 
         - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
-        - ./utilities/build_tools/editor_build.sh
+        - echo "Now building main editor..."
+        - git branch build_exe
+        - cp ./utilities/build_tools/editor.spec .
+        - pyinstaller -y editor.spec
+        - rm -f editor.spec
+        - rm -rf ./downloadable/lt_editor
+        - mkdir downloadable
+        - cd ./downloadable/
+        - mkdir lt_editor
+        - cd ..
+        - mv dist/lt_editor ./downloadable/lt_editor/lt_editor
+        - cp utilities/install/double_click_to_run.bat ./downloadable/lt_editor
+        - echo "Copying default lt project..."
+        - cp -r default.ltproj ./downloadable/lt_editor/lt_editor
+        - echo "Copying lion throne lt project"
+        - cp -r lion_throne.ltproj ./downloadable/lt_editor/lt_editor
+        - cp metadata.txt ./downloadable/lt_editor/lt_editor
+        - git add ./downloadable
+        - git config user.email "kdports@gmail.com"
+        - git config user.name "kdports"
+        - git commit -m "Build downloadable folder"
+        - echo "Done!"
+    artifacts:
+        paths:
+            - downloadable/
+            - downloadable/lt_editor
+        reports:
+            dotenv: lt_editor.env
+
+release:
+    stage: release
+    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    needs:
+    - job: build_app
+      artifacts: true
+    script:
+        - echo 'running release'
+    #release:
+    #    name: 'Release Executables $CI_COMMIT_SHORT_SHA'
+    #    description: 'Created using the release-cli'
+    #    tag_name: '$CI_COMMIT_SHORT_SHA'
