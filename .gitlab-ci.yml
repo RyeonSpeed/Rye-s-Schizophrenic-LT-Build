@@ -23,6 +23,7 @@ build_app:
         - cd ./downloadable/
         - mkdir lt_editor
         - cd ..
+        - ls
         - mv dist/lt_editor ./downloadable/lt_editor/lt_editor
         - cp utilities/install/double_click_to_run.bat ./downloadable/lt_editor
         - echo "Copying default lt project..."
@@ -30,6 +31,8 @@ build_app:
         - echo "Copying lion throne lt project"
         - cp -r lion_throne.ltproj ./downloadable/lt_editor/lt_editor
         - cp metadata.txt ./downloadable/lt_editor/lt_editor
+        - cd ./downloadable
+        - ls
         - echo "Done!"
     artifacts:
         paths:
