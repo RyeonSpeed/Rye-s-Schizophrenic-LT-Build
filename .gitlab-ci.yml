@@ -32,12 +32,10 @@ build_app:
         - cp metadata.txt ./downloadable/lt_editor/lt_editor
         - echo "Done!"
     artifacts:
-        untracked: true
+        name: "Built Editor"
         paths:
             - downloadable/
             - downloadable/lt_editor
-        reports:
-            dotenv: lt_editor.env
 
 release:
     stage: release
