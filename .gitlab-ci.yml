@@ -9,8 +9,6 @@ build_app:
         - python --version
         - pip install -r requirements_editor.txt
         - echo $CI_JOB_ID
-        # Writing GE_JOB_ID variable to environment file, will need the value in the next stage.
-        - echo GE_JOB_ID=$CI_JOB_ID >> lt_editor.env
     script:
         - chmod 777 ./utilities/build_tools/*.spec 
         - chmod 777 ./utilities/build_tools/*.sh # Might be totally unneeded, but seemed to solve errors
