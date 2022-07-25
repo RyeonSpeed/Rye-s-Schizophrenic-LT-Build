@@ -1603,6 +1603,7 @@ class Market(Convoy):
             value.sort(key=lambda item: item.name)
             value.sort(key=lambda item: item_system.sell_price(self.unit, item) or 0)
             value.sort(key=lambda item: item_system.full_price(self.unit, item) or 0)
+            value.sort(key=lambda item: [item.nid for item in DB.items].index(item.nid) or 0)
             value.sort(key=lambda item: bool(item.owner_nid))
 
         return sorted_dict
