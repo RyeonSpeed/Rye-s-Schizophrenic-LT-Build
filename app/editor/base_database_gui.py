@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QLineEdit, QTextEdit, QWidget, QHBoxLayout, QGridLay
     QSizePolicy, QSplitter, QMessageBox, QApplication, QAbstractItemView
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtCore import QAbstractListModel
+from app.data.components import Component
 from app.editor import timer
 
 from app.utilities.data import Prefab
@@ -106,6 +107,10 @@ class Collection(QWidget):
                                     if text.lower() in field_item.lower():
                                         match = True
                                         break
+                        elif isinstance(field, Component) and isinstance(field.value, str):
+                            if text.lower() in field.value.lower():
+                                match = True
+                                break
                 if not match:
                     self.view.setRowHidden(i, True)
 

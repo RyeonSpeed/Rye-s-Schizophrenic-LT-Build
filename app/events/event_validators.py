@@ -947,7 +947,7 @@ class ItemComponent(Validator):
 
     def valid_entries(self, level: NID = None, text: str = None) -> List[Tuple[str, NID]]:
         from app.engine import item_component_access as ICA
-        valids = [(None, component.nid) for component in ICA.get_components()]
+        valids = [(None, component.nid) for component in ICA.get_item_components()]
         return valids
 
 class StatList(Validator):
