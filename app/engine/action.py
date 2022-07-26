@@ -1824,6 +1824,7 @@ class ChangeHP(Action):
         self.old_hp = self.unit.get_hp()
 
     def do(self):
+        self.old_hp = self.unit.get_hp()
         self.unit.set_hp(self.old_hp + self.num)
 
     def reverse(self):

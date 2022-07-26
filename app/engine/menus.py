@@ -1665,8 +1665,12 @@ class Market(Convoy):
             self.menu_index = self.selection_index - 1
             self.right_arrow.pulse()
 
-    def toggle_info(self):
-        self.menus[self.order[self.selection_index - 1]].toggle_info()
+    # def toggle_info(self):
+    #     self.menus[self.order[self.selection_index - 1]].toggle_info()
+
+    def draw_info(self, surf):
+        self.menus[self.order[self.selection_index - 1]].vert_draw_info(surf)
+        return surf
 
     def set_takes_input(self, val):
         self.takes_input = val

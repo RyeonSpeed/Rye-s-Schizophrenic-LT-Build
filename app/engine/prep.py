@@ -1124,4 +1124,7 @@ class PrepMarketState(State):
         FONT['text-blue'].blit_right(money, surf, (61, WINHEIGHT - 20))
         self.money_counter_disp.draw(surf)
 
+        if self.display_menu.info_flag:
+            self.display_menu.draw_info(surf)
+
         return surf
