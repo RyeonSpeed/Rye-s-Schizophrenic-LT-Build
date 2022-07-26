@@ -69,4 +69,5 @@ def evaluate(string: str, unit1=None, unit2=None, position=None,
     temp_globals.update(QUERY_ENGINE_FUNC_DICT)
     if local_args:
         temp_globals.update(local_args)
+    string = string.strip()
     return eval(string, temp_globals)

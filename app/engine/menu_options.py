@@ -373,7 +373,7 @@ class ValueItemOption(ItemOption):
             uses_string = str(self.item.parent_item.data['c_uses'])
         elif self.item.cooldown is not None:
             uses_string = str(self.item.data['cooldown'])
-        FONT[main_font].blit_right(uses_string, surf, (x + 100, y), main_color)
+        FONT[uses_font].blit_right(uses_string, surf, (x + 100, y), uses_color)
 
         value_color = 'grey'
         value_string = '--'
@@ -411,7 +411,7 @@ class RepairValueItemOption(ValueItemOption):
         uses_string = '--'
         if self.item.data.get('uses') is not None:
             uses_string = str(self.item.data['uses'])
-        FONT[main_font].blit_right(uses_string, surf, (x + 100, y), main_color)
+        FONT[uses_font].blit_right(uses_string, surf, (x + 100, y), uses_color)
 
         value_color = 'grey'
         value_string = '--'

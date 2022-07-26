@@ -2762,6 +2762,13 @@ class AddSkill(Action):
             for skill in self.unit.skills:
                 if skill.nid == self.skill_obj.nid:
                     self.subactions.append(RemoveSkill(self.unit, skill))
+        # if it's a stackable skill but it's at max, refresh the oldest stack
+        elif self.skill_obj.stack and item_funcs.num_stacks(self.unit, self.skill_obj.nid) >= self.skill_obj.stack.value:
+            logging.info("Skill %s at max stacks" % self.skill_obj.nid)
+            for skill in self.unit.skills:
+                if skill.nid == self.skill_obj.nid:
+                    self.subactions.append(RemoveSkill(self.unit, skill))
+                    break
         for action in self.subactions:
             action.execute()
         self.skill_obj.owner_nid = self.unit.nid

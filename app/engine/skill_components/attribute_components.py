@@ -31,6 +31,10 @@ class Stack(SkillComponent):
     desc = "Skill can be applied to a unit multiple times"
     tag = SkillTags.ATTRIBUTE
 
+    expose = Type.Int
+
+    value = 999
+
 class Feat(SkillComponent):
     nid = 'feat'
     desc = "Skill can be selected as a feat"
