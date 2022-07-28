@@ -18,6 +18,16 @@
                 5
             ],
             [
+                "uses_options",
+                [
+                    [
+                        "LoseUsesOnMiss (T/F)",
+                        "F",
+                        "Lose uses even on miss"
+                    ]
+                ]
+            ],
+            [
                 "target_ally",
                 null
             ],

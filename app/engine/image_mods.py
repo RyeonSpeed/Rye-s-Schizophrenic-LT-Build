@@ -38,6 +38,16 @@ def make_gray(image):
                 image.set_at((row, col), (avg, avg, avg, color[3]))
     return image
 
+
+def make_gray_colorkey(image):
+    for row in range(image.get_width()):
+        for col in range(image.get_height()):
+            color = image.get_at((row, col))
+            if color[3] != 0 and color[:3] != COLORKEY:
+                avg = int(color[0] * 0.298 + color[1] * 0.587 + color[2] * 0.114)
+                image.set_at((row, col), (avg, avg, avg, color[3]))
+    return image
+
 def make_anim_gray(image):
     # Different because animations have a small box of green around them
     for row in range(image.get_width()):

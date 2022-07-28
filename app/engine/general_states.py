@@ -836,12 +836,22 @@ class MenuState(MapState):
                 game.memory['item'] = item
                 # Handle abilities that are multi-items, you sick fuck
                 if item.multi_item:
-                    if item.multi_item_hides_unavailable:
-                        game.memory['valid_weapons'] = [subitem for subitem in item.subitems if item_funcs.available(self.cur_unit, subitem) and
-                                                                                                item_funcs.is_weapon_recursive(self.cur_unit, subitem)]
-                    else:
-                        game.memory['valid_weapons'] = [subitem for subitem in item.subitems if item_funcs.is_weapon_recursive(self.cur_unit, subitem)]
-                    game.state.change('weapon_choice')
+                    all_weapons = [subitem for subitem in item.subitems if item_funcs.is_weapon_recursive(self.cur_unit, subitem) and
+                                        target_system.get_valid_targets_recursive_with_availability_check(self.cur_unit, subitem)]
+                    if all_weapons:
+                        if item.multi_item_hides_unavailable:
+                            game.memory['valid_weapons'] = [subitem for subitem in all_weapons if item_funcs.available(self.cur_unit, subitem)]
+                        else:
+                            game.memory['valid_weapons'] = all_weapons
+                        game.state.change('weapon_choice')
+                    else: # multi item of spells?
+                        all_spells = [subitem for subitem in item.subitems if item_funcs.is_spell_recursive(self.cur_unit, subitem) and
+                                        target_system.get_valid_targets_recursive_with_availability_check(self.cur_unit, subitem)]
+                        if item.multi_item_hides_unavailable:
+                            game.memory['valid_spells'] = [subitem for subitem in all_spells if item_funcs.available(self.cur_unit, subitem)]
+                        else:
+                            game.memory['valid_spells'] = all_spells
+                        game.state.change('spell_choice')
                 else:
                     game.state.change('combat_targeting')
             # A combat art

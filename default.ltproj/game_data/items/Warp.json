@@ -30,6 +30,16 @@
                 5
             ],
             [
+                "uses_options",
+                [
+                    [
+                        "LoseUsesOnMiss (T/F)",
+                        "F",
+                        "Lose uses even on miss"
+                    ]
+                ]
+            ],
+            [
                 "value",
                 7500
             ],

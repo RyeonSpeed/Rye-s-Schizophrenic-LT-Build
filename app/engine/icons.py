@@ -59,10 +59,13 @@ def draw_item(surf, item, topleft, cooldown=False):
 
     return surf
 
-def draw_skill(surf, skill, topleft, compact=True, simple=False):
+def draw_skill(surf, skill, topleft, compact=True, simple=False, grey=False):
     image = get_icon(skill)
     if not image:
         return None
+
+    if grey:
+        image = image_mods.make_gray_colorkey(image)
 
     surf.blit(image, topleft)
     if simple:

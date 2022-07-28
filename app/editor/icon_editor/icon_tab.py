@@ -27,7 +27,6 @@ class IconTab(QWidget):
         self.setStyleSheet("font: 10pt;")
 
         self.layout = QGridLayout(self)
-        self.setLayout(self.layout)
 
         self.view = IconListView()
         self.view.setMinimumSize(360, 360)
@@ -43,7 +42,7 @@ class IconTab(QWidget):
         self.view.setGridSize(QSize(80, 80))
 
         if self.side_menu_enabled:
-            left_layout = QVBoxLayout(self)
+            left_layout = QVBoxLayout()
 
             self.icon_sheet_search = QLineEdit()
             self.icon_sheet_search.setPlaceholderText('Filter by Icon Sheet...')
@@ -123,6 +122,7 @@ class IconTab(QWidget):
 
     def toggle_icon_sort(self):
         self.widget_state['sort_horizontally'] = self.icons_sort_order_checkbox.isChecked()
+        self.save_state()
         if self.icons_sort_order_checkbox.isChecked():
             self.full_model.rearrange_data(True)
         else:

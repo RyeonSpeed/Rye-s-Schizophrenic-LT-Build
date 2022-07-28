@@ -26,6 +26,16 @@
                 3
             ],
             [
+                "uses_options",
+                [
+                    [
+                        "LoseUsesOnMiss (T/F)",
+                        "F",
+                        "Lose uses even on miss"
+                    ]
+                ]
+            ],
+            [
                 "map_hit_add_blend",
                 [
                     0,

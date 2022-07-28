@@ -957,7 +957,7 @@ class InfoMenuState(State):
                 skill_counter[skill.nid] += 1
         for idx, skill in enumerate(unique_skills[:6]):
             left_pos = idx * 24
-            icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False)
+            icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False, grey=skill_system.is_grey(skill, self.unit))
             if skill_counter[skill.nid] > 1:
                 render_text(surf, ['small'], [str(skill_counter[skill.nid])], ['white'], (left_pos + 20 - 4 * len(str(skill_counter[skill.nid])), 6))
             if skill.data.get('total_charge'):
@@ -977,7 +977,7 @@ class InfoMenuState(State):
 
         for idx, skill in enumerate(class_skills):
             left_pos = idx * 24
-            icons.draw_skill(surf, skill, (left_pos + 8, 4))
+            icons.draw_skill(surf, skill, (left_pos + 8, 4), grey=skill_system.is_grey(skill, self.unit))
             if skill.data.get('total_charge'):
                 charge = ' (%d/%d)' % (skill.data['charge'], skill.data['total_charge'])
             else:

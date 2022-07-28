@@ -158,6 +158,9 @@ def condition(skill, unit) -> bool:
                 return False
     return True
 
+def is_grey(skill, unit) -> bool:
+    return (not condition(skill, unit) and skill.grey_if_inactive)
+
 def hidden(skill, unit) -> bool:
     return skill.hidden or skill.is_terrain or (skill.hidden_if_inactive and not condition(skill, unit))
 

@@ -15,18 +15,11 @@
                 "map_anim",
                 [
                     "AOE_Mend",
-                    "5"
-                ],
-                [
-                    "AOE_Mend",
                     "Ide (5)"
                 ]
             ],
             [
                 "reveal_overworld_node",
-                [
-                    "5"
-                ],
                 [
                     "Ide (5)"
                 ]
@@ -45,10 +38,6 @@
             ],
             [
                 "reveal_overworld_road",
-                [
-                    "2",
-                    "5"
-                ],
                 [
                     "Frelia Castle (2)",
                     "Ide (5)"

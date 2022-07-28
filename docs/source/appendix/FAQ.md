@@ -11,3 +11,7 @@ to the appropriate frequency.
 ### Does LT support `.tmx` map files?
 
 No. LT uses `.png` files for the graphical component of its maps, and uses internal data for terrain data.
+
+### How do I soft reset the game?
+
+Press whatever keys/buttons are mapped to your SELECT, BACK, and START actions at the same time. By default, this is "X" + "Z" + "S" on the keyboard.

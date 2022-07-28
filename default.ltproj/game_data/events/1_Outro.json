@@ -190,9 +190,6 @@
             [
                 "overworld_cinematic",
                 [
-                    "0"
-                ],
-                [
                     "Magvel (0)"
                 ]
             ],
@@ -211,10 +208,6 @@
             ],
             [
                 "set_overworld_position",
-                [
-                    "Eirika",
-                    "0"
-                ],
                 [
                     "Eirika's Group (Eirika)",
                     "Border Mulan (0)"
@@ -261,18 +254,11 @@
                 "map_anim",
                 [
                     "AOE_Mend",
-                    "2"
-                ],
-                [
-                    "AOE_Mend",
                     "Frelia Castle (2)"
                 ]
             ],
             [
                 "reveal_overworld_node",
-                [
-                    "2"
-                ],
                 [
                     "Frelia Castle (2)"
                 ]
@@ -291,10 +277,6 @@
             ],
             [
                 "reveal_overworld_road",
-                [
-                    "0",
-                    "2"
-                ],
                 [
                     "Border Mulan (0)",
                     "Frelia Castle (2)"
@@ -340,11 +322,6 @@
             ],
             [
                 "overworld_move_unit",
-                [
-                    "Eirika",
-                    "2",
-                    "no_block"
-                ],
                 [
                     "Eirika's Group (Eirika)",
                     "Frelia Castle (2)",

@@ -54,6 +54,16 @@
                 40
             ],
             [
+                "uses_options",
+                [
+                    [
+                        "LoseUsesOnMiss (T/F)",
+                        "F",
+                        "Lose uses even on miss"
+                    ]
+                ]
+            ],
+            [
                 "prf_unit",
                 [
                     "Eirika"
