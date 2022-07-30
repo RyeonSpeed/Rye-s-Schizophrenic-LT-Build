@@ -671,6 +671,7 @@ class MenuState(MapState):
         game.cursor.set_pos(self.cur_unit.position)
 
         options = []
+        info_descs = []
 
         # Handle primary ability options (attack, spell, talk)
         self.target_dict = OrderedDict()
@@ -679,6 +680,7 @@ class MenuState(MapState):
             self.target_dict[ability.name] = ability
             if t:
                 options.append(ability.name)
+                info_descs.append(ability.name + '_desc')
 
         # Handle region event options
         self.valid_regions = []
@@ -690,6 +692,7 @@ class MenuState(MapState):
                     # No duplicates
                     if truth and region.sub_nid not in options:
                         options.append(region.sub_nid)
+                        info_descs.append(None) # Could add actual descriptions later, somehow
                         self.valid_regions.append(region)
                 except:
                     logging.error("Region condition {%s} could not be evaluated" % region.condition)
@@ -700,8 +703,10 @@ class MenuState(MapState):
             self.target_dict[ability.name] = ability
             if t:
                 options.append(ability.name)
+                info_descs.append(ability.name + '_desc') # Could add actual descriptions later
 
         options.append("Wait")
+        info_descs.append("Wait_desc")
 
         # Handle extra ability options
         self.extra_abilities = skill_system.get_extra_abilities(self.cur_unit)
@@ -714,6 +719,7 @@ class MenuState(MapState):
         for ability_name, ability in self.extra_abilities.items():
             if target_system.get_valid_targets_recursive_with_availability_check(self.cur_unit, ability):
                 options.insert(start_index, ability_name)
+                info_descs.insert(start_index, ability)
 
         # Handle combat art options (only available if you haven't attacked)
         if not self.cur_unit.has_attacked:
@@ -726,10 +732,11 @@ class MenuState(MapState):
             start_index = len(self.valid_regions)
         for ability_name in self.combat_arts:
             options.insert(start_index, ability_name)
+            info_descs.insert(start_index, self.combat_arts[ability_name][0].desc)
 
         # Draw highlights
         for ability in ABILITIES:
-            if ability.name in options:
+            if ability in options or ability.name in options:
                 # Only draw one set of highlights
                 if ability.highlights(self.cur_unit):
                     break
@@ -738,8 +745,7 @@ class MenuState(MapState):
             moves = target_system.get_valid_moves(self.cur_unit)
             game.highlight.display_moves(moves)
         game.highlight.display_aura_highlights(self.cur_unit)
-
-        self.menu = menus.Choice(self.cur_unit, options)
+        self.menu = menus.Choice(self.cur_unit, options, info = info_descs)
         self.menu.set_limit(8)
         self.menu.set_color(['green' if option not in self.normal_options else None for option in options])
 
@@ -757,38 +763,47 @@ class MenuState(MapState):
 
         # Back, put unit back to where he/she started
         if event == 'BACK':
-            get_sound_thread().play_sfx('Select 4')
-            if self.cur_unit.has_traded:
-                if skill_system.has_canto(self.cur_unit, self.cur_unit):
-                    game.cursor.set_pos(self.cur_unit.position)
-                    game.state.change('move')
-                    game.cursor.place_arrows()
-                else:
-                    game.state.clear()
-                    game.state.change('free')
-                    self.cur_unit.wait()
+            if self.menu.info_flag:
+                get_sound_thread().play_sfx('Info Out')
+                self.menu.info_flag = False
             else:
-                # Reverse Swap here
-                if self.cur_unit.lead_unit:
-                    logging.info("Lead unit is " + str(self.cur_unit.lead_unit))
-                if self.cur_unit.traveler:
-                    logging.info("Traveler is " + self.cur_unit.traveler)
-                if not self.cur_unit.lead_unit and self.cur_unit.traveler:
-                    u = game.get_unit(self.cur_unit.traveler)
-                    act = action.SwapPaired(self.cur_unit, u)
-                    act.do()
-                    self.cur_unit = u
-                    game.cursor.cur_unit = u
-                if self.cur_unit.current_move:
-                    logging.info("Reversing " + self.cur_unit.nid + "'s move")
-                    game.leave(self.cur_unit)
-                    action.reverse(self.cur_unit.current_move)
-                    self.cur_unit.current_move = None
-                game.state.change('move')
-                game.cursor.construct_arrows(game.cursor.path[::-1])
+                get_sound_thread().play_sfx('Select 4')
+                if self.cur_unit.has_traded:
+                    if skill_system.has_canto(self.cur_unit, self.cur_unit):
+                        game.cursor.set_pos(self.cur_unit.position)
+                        game.state.change('move')
+                        game.cursor.place_arrows()
+                    else:
+                        game.state.clear()
+                        game.state.change('free')
+                        self.cur_unit.wait()
+                else:
+                    # Reverse Swap here
+                    if self.cur_unit.lead_unit:
+                        logging.info("Lead unit is " + str(self.cur_unit.lead_unit))
+                    if self.cur_unit.traveler:
+                        logging.info("Traveler is " + self.cur_unit.traveler)
+                    if not self.cur_unit.lead_unit and self.cur_unit.traveler:
+                        u = game.get_unit(self.cur_unit.traveler)
+                        act = action.SwapPaired(self.cur_unit, u)
+                        act.do()
+                        self.cur_unit = u
+                        game.cursor.cur_unit = u
+                    if self.cur_unit.current_move:
+                        logging.info("Reversing " + self.cur_unit.nid + "'s move")
+                        game.leave(self.cur_unit)
+                        action.reverse(self.cur_unit.current_move)
+                        self.cur_unit.current_move = None
+                    game.state.change('move')
+                    game.cursor.construct_arrows(game.cursor.path[::-1])
 
         elif event == 'INFO':
-            info_menu.handle_info()
+            if self.menu.info_flag:
+                get_sound_thread().play_sfx('Info Out')
+                self.menu.info_flag = False
+            else:
+                get_sound_thread().play_sfx('Info In')
+                self.menu.info_flag = True
 
         elif event == 'SELECT':
             get_sound_thread().play_sfx('Select 1')

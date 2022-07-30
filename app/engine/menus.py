@@ -14,6 +14,7 @@ from app.engine.gui import ScrollBar
 from app.engine.base_surf import create_base_surf
 from app.engine.objects.item import ItemObject
 from app.engine.objects.unit import UnitObject
+from app.engine.objects.skill import SkillObject
 from app.engine.game_state import game
 
 def draw_unit_top(surf, topleft, unit):
@@ -412,7 +413,11 @@ class Choice(Simple):
                         option = menu_options.BasicOption(idx, option)
                         option.display_text = ' ' * 20  # 80 pixels
                     if info_descs:
-                        option.help_box = help_menu.HelpDialog(info_descs[idx])
+                        desc = info_descs[idx]
+                        if isinstance(desc, ItemObject): # Uses special item description for items
+                            option.help_box = help_menu.ItemHelpDialog(desc)
+                        elif desc:
+                            option.help_box = help_menu.HelpDialog(desc)
                     self.options.append(option)
 
             if self.hard_limit:
