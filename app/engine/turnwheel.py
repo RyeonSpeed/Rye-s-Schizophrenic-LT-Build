@@ -431,7 +431,7 @@ class TurnwheelDisplay():
 class TurnwheelState(MapState):
     def begin(self):
         # Remember who gets resurrected
-        game.memory['_resurrect'] = set()
+        game.level_vars['_resurrect'] = set()
         # Whether the player MUST move the turnwheel back
         self.force = game.memory.get('force_turnwheel', False)
         game.memory['force_turnwheel'] = False

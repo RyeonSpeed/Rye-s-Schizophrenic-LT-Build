@@ -5,16 +5,18 @@ from app.engine.objects.unit import UnitObject
 from app.engine.objects.tilemap import TileMapObject
 from app.events.regions import Region
 from app.data.level_units import UnitGroup
+from app.utilities.typing import NID
 
 # Main Level Object used by engine
 class LevelObject():
     def __init__(self):
-        self.nid: str = None
+        self.nid: NID = None
         self.name: str = None
-        self.tilemap: TileMapObject = None  # Actually the tilemap, not a nid
-        self.party: str = None  # Party Nid
+        self.tilemap: TileMapObject = None
+        self.bg_tilemap: TileMapObject = None
+        self.party: NID = None
         self.roam: bool = False
-        self.roam_unit: str = None  # Unit Nid
+        self.roam_unit: NID = None
 
         self.music = {}
         self.objective = {}
@@ -24,11 +26,12 @@ class LevelObject():
         self.unit_groups = Data()
 
     @classmethod
-    def from_prefab(cls, prefab, tilemap, unit_registry, current_mode: DifficultyModeObject):
+    def from_prefab(cls, prefab, tilemap, bg_tilemap, unit_registry, current_mode: DifficultyModeObject):
         level = cls()
         level.nid = prefab.nid
         level.name = prefab.name
         level.tilemap = tilemap
+        level.bg_tilemap = bg_tilemap
         level.party = prefab.party
         level.roam = prefab.roam
         level.roam_unit = prefab.roam_unit
@@ -60,6 +63,7 @@ class LevelObject():
         s_dict = {'nid': self.nid,
                   'name': self.name,
                   'tilemap': self.tilemap.save(),
+                  'bg_tilemap': self.bg_tilemap.save() if self.bg_tilemap else None,
                   'party': self.party,
                   'roam': self.roam,
                   'roam_unit': self.roam_unit,
@@ -77,6 +81,7 @@ class LevelObject():
         level.nid = s_dict['nid']
         level.name = s_dict.get('name', "")
         level.tilemap = TileMapObject.restore(s_dict['tilemap'])
+        level.tilemap = TileMapObject.restore(s_dict['bg_tilemap']) if s_dict.get('bg_tilemap', None) else None
         level.party = s_dict.get('party', "")
         level.roam = s_dict.get('roam', False)
         level.roam_unit = s_dict.get('roam_unit')

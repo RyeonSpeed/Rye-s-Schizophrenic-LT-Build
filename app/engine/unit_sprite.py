@@ -136,11 +136,11 @@ class UnitSprite():
             return int(round(self.fake_position[0])), int(round(self.fake_position[1]))
         return None
 
-    def add_animation(self, anim, loop=True):
+    def add_animation(self, anim, loop=True, contingent=False):
         if isinstance(anim, str):
             anim = RESOURCES.animations.get(anim)
             if anim:
-                anim = Animation(anim, (-16, -16), loop=loop)
+                anim = Animation(anim, (-16, -16), loop=loop, contingent=contingent)
             else:
                 return
         if anim.nid in self.animations.keys():
@@ -426,7 +426,7 @@ class UnitSprite():
                 left += (1 if self.vibrate_counter % 2 else -1)
 
         # Handle transitions
-        if self.transition_state in ('fade_out', 'warp_out', 'swoosh_out', 'fade_move', 'warp_move', 'swoosh_move'):
+        if self.transition_state in ('fade_out', 'warp_out', 'swoosh_out', 'fade_move', 'warp_move', 'swoosh_move') or self.state in ('fake_transition_out'):
             progress = utils.clamp((self.transition_time - self.transition_counter) / self.transition_time, 0, 1)
             # Distort Vertically
             if self.transition_state in ('swoosh_out', 'swoosh_move'):
@@ -437,7 +437,7 @@ class UnitSprite():
                 top -= extra_height
             image = image_mods.make_translucent(image.convert_alpha(), progress)
 
-        elif self.transition_state in ('fade_in', 'warp_in', 'swoosh_in'):
+        elif self.transition_state in ('fade_in', 'warp_in', 'swoosh_in') or self.state in ('fake_transition_in'):
             progress = utils.clamp((self.transition_time - self.transition_counter) / self.transition_time, 0, 1)
             progress = 1 - progress
             if self.transition_state == 'swoosh_in':
@@ -503,9 +503,12 @@ class UnitSprite():
             surf.blit(image, topleft)
 
         # Draw animations
+
+        valid_anims: list = skill_system.should_draw_anim(self.unit)
         self.animations = {k: v for (k, v) in self.animations.items() if not v.update()}
         for animation in self.animations.values():
-            animation.draw(surf, (left, anim_top))
+            if not animation.contingent or animation.nid in valid_anims:
+                animation.draw(surf, (left, anim_top))
 
         # Draw personal particles
         self.particles = [ps for ps in self.particles if not ps.remove_me_flag]
@@ -534,53 +537,29 @@ class UnitSprite():
             cur_unit = game.get_unit(game.level.roam_unit)
         if not cur_unit:
             return surf
-        map_markers = SPRITES.get('map_markers')
 
         left, top = self.get_topleft(cull_rect)
         topleft = (left - 2, top - 14)
 
         frame = (engine.get_time() // 100) % 8
         offset = [0, 0, 0, 1, 2, 2, 2, 1][frame]
+        markers = []
         if game.level.roam and game.state.current() == 'free_roam' and game.state.state[-1].can_talk() and \
                 (self.unit.nid, cur_unit.nid) in game.talk_options:
-            talk_marker = engine.subsurface(map_markers, (0, 0, 24, 16))
-            surf.blit(talk_marker, (topleft[0], topleft[1] + offset))
-        if (cur_unit.nid, self.unit.nid) in game.talk_options:
-            talk_marker = engine.subsurface(map_markers, (0, 0, 24, 16))
-            surf.blit(talk_marker, (topleft[0], topleft[1] + offset))
-        elif cur_unit.team == 'player' and skill_system.check_enemy(self.unit, cur_unit):
-            warning = False
+            markers.append('talk')
+        elif (cur_unit.nid, self.unit.nid) in game.talk_options:
+            markers.append('talk')
+        if game.level.roam and game.state.current() == 'free_roam' and game.state.state[-1].can_visit():
+            markers.append('interact')
+        if cur_unit.team == 'player':
             for item in item_funcs.get_all_items(self.unit):
-                if item_system.warning(self.unit, item, cur_unit):
-                    warning = True
-                    break
-            danger = False
-            for item in item_funcs.get_all_items(self.unit):
-                if item_system.danger(self.unit, item, cur_unit):
-                    danger = True
-                    break
-            steal = False
-            if skill_system.steal_icon(cur_unit, self.unit):
-                steal = True
-            if warning or danger or steal:
-                icon_frame = (engine.get_time() // 500) % sum([warning, danger, steal])
-                danger_marker = engine.subsurface(map_markers, (0, 16, 16, 16))
-                warning_marker = engine.subsurface(map_markers, (16, 16, 16, 16))
-                steal_marker = engine.subsurface(map_markers, (32, 16, 16, 16))
-                if icon_frame == 0:
-                    if warning:
-                        surf.blit(warning_marker, (topleft[0] + 2, topleft[1] + offset))
-                    elif danger:
-                        surf.blit(danger_marker, (topleft[0] + 2, topleft[1] + offset))
-                    else:
-                        surf.blit(steal_marker, (topleft[0] + 2, topleft[1] + offset))
-                elif icon_frame == 1:
-                    if warning:
-                        surf.blit(danger_marker, (topleft[0] + 2, topleft[1] + offset))
-                    else:
-                        surf.blit(steal_marker, (topleft[0] + 2, topleft[1] + offset))
-                elif icon_frame == 2:
-                    surf.blit(steal_marker, (topleft[0] + 2, topleft[1] + offset))
+                markers += item_system.target_icon(cur_unit, item, self.unit)
+            markers += skill_system.target_icon(cur_unit, self.unit)
+        markers = [SPRITES.get('marker_%s' % marker) for marker in markers if marker]
+        markers = [_ for _ in markers if _]  # Only include non-None
+        if markers:
+            icon_frame = (engine.get_time() // 500) % len(markers)
+            surf.blit(markers[icon_frame], (topleft[0], topleft[1] + offset))
         return surf
 
     def check_draw_hp(self) -> bool:
@@ -612,7 +591,7 @@ class UnitSprite():
                 icon = SPRITES.get('elite_icon')
             if icon:
                 surf.blit(icon, (left - 8, top - 8))
-        
+
         if self.unit.traveler and self.transition_state == 'normal' and \
                 not self.unit.is_dying and not DB.constants.value('pairup'):
             if game.get_unit(self.unit.traveler).team == 'player':

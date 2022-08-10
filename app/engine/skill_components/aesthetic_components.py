@@ -1,7 +1,7 @@
 from app.data.skill_components import SkillComponent, SkillTags
 from app.data.components import Type
 
-from app.engine import equations, item_system, item_funcs
+from app.engine import equations, item_system, item_funcs, skill_system
 from app.engine.combat import playback as pb
 
 class UnitAnim(SkillComponent):
@@ -12,13 +12,16 @@ class UnitAnim(SkillComponent):
     expose = Type.MapAnimation
 
     def on_add(self, unit, skill):
-        unit.sprite.add_animation(self.value)
+        unit.sprite.add_animation(self.value, contingent=True)
 
     def re_add(self, unit, skill):
-        unit.sprite.add_animation(self.value)
+        unit.sprite.add_animation(self.value, contingent=True)
 
     def on_remove(self, unit, skill):
         unit.sprite.remove_animation(self.value)
+
+    def should_draw_anim(self, unit, skill):
+        return self.value
 
 class UnitFlickeringTint(SkillComponent):
     nid = 'unit_flickering_tint'
@@ -65,15 +68,16 @@ class StealIcon(SkillComponent):
     desc = "Displays icon above units with stealable items"
     tag = SkillTags.AESTHETIC
 
-    def steal_icon(self, unit, target) -> bool:
+    def target_icon(self, unit, target) -> str:
         # Unit has item that can be stolen
-        attack = equations.parser.steal_atk(unit)
-        defense = equations.parser.steal_def(target)
-        if attack >= defense:
-            for def_item in target.items:
-                if self._item_restrict(unit, target, def_item):
-                    return True
-        return False
+        if skill_system.check_enemy(unit, target):
+            attack = equations.parser.steal_atk(unit)
+            defense = equations.parser.steal_def(target)
+            if attack >= defense:
+                for def_item in target.items:
+                    if self._item_restrict(unit, target, def_item):
+                        return 'steal'
+        return None
 
     def _item_restrict(self, unit, defender, def_item) -> bool:
         if item_system.unstealable(defender, def_item):

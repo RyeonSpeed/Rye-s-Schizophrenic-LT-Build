@@ -7,6 +7,8 @@ from app.engine.fonts import FONT
 from app.engine import engine, image_mods, icons, help_menu, text_funcs, item_system, item_funcs
 from app.engine.game_state import game
 
+from app.engine.graphics.text.text_renderer import render_text
+
 class EmptyOption():
     def __init__(self, idx):
         self.idx = idx
@@ -69,8 +71,9 @@ class BasicOption():
         return self.color
 
     def draw(self, surf, x, y):
-        font = FONT[self.font]
-        font.blit(self.display_text, surf, (x + 5, y), self.get_color())
+        # font = FONT[self.font]
+        render_text(surf, [self.font], [self.display_text], [self.get_color()], (x + 5, y))
+        # font.blit(self.display_text, surf, (x + 5, y), self.get_color())
 
     def draw_highlight(self, surf, x, y, menu_width):
         highlight_surf = SPRITES.get('menu_highlight')
@@ -476,7 +479,7 @@ class UnitOption(BasicOption):
             color = 'grey'
         elif self.color:
             color = self.color
-        elif self.mode == 'position':
+        elif self.mode in ('position', 'prep_manage'):
             if 'Blacklist' in self.unit.tags:
                 color = 'red'
             elif DB.constants.value('fatigue') and game.game_vars.get('_fatigue') and \

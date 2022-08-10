@@ -32,6 +32,8 @@ all_triggers = Data([
     Trigger('on_talk', True, True, True),
     Trigger('on_support', True, True, True, {'support_rank_nid'}),  # Item is support rank nid
     Trigger('on_base_convo', True, True, False),
+    Trigger('on_prep_start'),
+    Trigger('on_base_start'),
     Trigger('on_turnwheel'),
     Trigger('on_title_screen'),
     Trigger('time_region_complete', False, False, False, {'region'}),

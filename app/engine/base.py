@@ -104,6 +104,8 @@ class BaseMainState(State):
         self.menu = menus.Choice(None, options, topleft=topleft)
         self.menu.set_ignore(ignore)
 
+        game.events.trigger('on_base_start')
+
         game.state.change('transition_in')
         return 'repeat'
 
@@ -1235,7 +1237,7 @@ class BaseBEXPAllocateState(State):
                 get_sound_thread().play_sfx('Select 1')
                 exp_to_gain = self.new_exp - self.current_exp
                 if DB.constants.value('rd_bexp_lvl'):
-                    game.memory['exp_method'] = 'BEXP'
+                    game.memory['exp_method'] = 'Bexp'
                 game.exp_instance.append((self.unit, exp_to_gain, None, 'init'))
                 game.state.change('exp')
                 if self.new_exp == 100:

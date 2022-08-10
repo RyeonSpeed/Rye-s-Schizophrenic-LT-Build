@@ -61,16 +61,16 @@ class FreeRoamState(MapState):
     def take_input(self, event):
         if not self.roam_unit:
             return
-        
+
         base_speed = 0.008
         base_accel = 0.008
         running_accel = 0.01
         rounded_position = (round(self.roam_unit.position[0]), round(self.roam_unit.position[1]))
 
         if get_input_manager().is_pressed('BACK'):
-            max_speed = 0.15
+            max_speed = 0.15 * game.game_vars.get("_roam_speed", 1.0)
         else:
-            max_speed = 0.1
+            max_speed = 0.1 * game.game_vars.get("_roam_speed", 1.0)
 
         # Horizontal direction
         if (get_input_manager().is_pressed('LEFT') or get_input_manager().just_pressed('LEFT')) and self.roam_unit.position[0] > game.board.bounds[0]:
@@ -135,7 +135,7 @@ class FreeRoamState(MapState):
                 self.speed -= running_accel
         elif self.speed >= base_speed or self.speed > max_speed:
             self.speed -= running_accel
-        
+
         for region in game.level.regions:
             if region.contains(rounded_position) and region.interrupt_move:
                 current_occupant = game.board.get_unit(rounded_position)
@@ -200,6 +200,13 @@ class FreeRoamState(MapState):
         self.roam_unit.sound.play()
         rounded_pos = round(self.roam_unit.position[0]), round(self.roam_unit.position[1])
         game.cursor.set_pos(rounded_pos)
+
+        # update fog of war, need to inject the rounded position for this action
+        if game.board.fow_vantage_point.get(self.roam_unit.nid) != rounded_pos:
+            true_pos = self.roam_unit.position
+            self.roam_unit.position = rounded_pos
+            action.UpdateFogOfWar(self.roam_unit).do()
+            self.roam_unit.position = true_pos  # Remember to reset the position to what we want
 
     def can_move(self, direc: str) -> bool:
         if direc == 'LEFT':
@@ -272,12 +279,14 @@ class FreeRoamState(MapState):
         """
         Returns first region that is close enough to visit
         """
-        for region in game.level.regions:
-            if region.region_type == RegionType.EVENT and region.fuzzy_contains(self.roam_unit.position):
-                try:
-                    truth = evaluate.evaluate(region.condition, self.roam_unit, position=self.roam_unit.position, local_args={'region': region})
-                    if truth:
-                        return region
-                except Exception as e:
-                    logging.error("%s: Could not evaluate {%s}" % (e, region.condition))
+        if not self.roam_unit:
+            return None
+        region = game.get_region_under_pos(utils.rationalize(self.roam_unit.position))
+        if region and region.region_type == RegionType.EVENT:
+            try:
+                truth = evaluate.evaluate(region.condition, self.roam_unit, position=self.roam_unit.position, local_args={'region': region})
+                if truth:
+                    return region
+            except Exception as e:
+                logging.error("%s: Could not evaluate {%s}" % (e, region.condition))
         return None

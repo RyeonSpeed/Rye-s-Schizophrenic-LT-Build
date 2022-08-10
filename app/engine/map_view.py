@@ -68,10 +68,32 @@ class MapView():
         cull_rect = camera_cull
         full_size = game.tilemap.width * TILEWIDTH, game.tilemap.height * TILEHEIGHT
 
-        map_image = game.tilemap.get_full_image(cull_rect)
+        if game.bg_tilemap:
+            # cull calculations
+            bg_size = game.bg_tilemap.width * TILEWIDTH, game.bg_tilemap.height * TILEHEIGHT
+            x, y = cull_rect[:2]
+            if x:
+                x_proportion = float(x) / (full_size[0] - WINWIDTH)
+                bg_x = x_proportion * (bg_size[0] - WINWIDTH)
+            else:
+                bg_x = 0
+            if y:
+                y_proportion = float(y) / (full_size[1] - WINHEIGHT)
+                bg_y = y_proportion * (bg_size[1] - WINHEIGHT)
+            else:
+                bg_y = 0
 
-        surf = engine.copy_surface(map_image)
-        surf = surf.convert_alpha()
+            parallax_cull = (bg_x, bg_y, cull_rect[2], cull_rect[3])
+            base_image = game.bg_tilemap.get_full_image(parallax_cull)
+            map_image = game.tilemap.get_full_image(cull_rect)
+            surf = engine.copy_surface(base_image)
+            surf = surf.convert_alpha()
+            surf.blit(map_image, (0, 0))
+        else:
+            surf = engine.create_surface(cull_rect[2:])
+            map_image = game.tilemap.get_full_image(cull_rect)
+            surf.blit(map_image, (0, 0))
+            surf = surf.convert_alpha()
 
         surf = game.boundary.draw(surf, full_size, cull_rect)
         surf = game.boundary.draw_fog_of_war(surf, full_size, cull_rect)
@@ -96,7 +118,7 @@ class MapView():
 
         # Handle time region text
         self.time_region_text(surf, cull_rect)
-        
+
         surf = game.cursor.draw(surf, cull_rect)
 
         for weather in game.tilemap.weather:
@@ -145,7 +167,7 @@ class MapView():
             # Draw vertical lines
             for x in range(left, right, TILEWIDTH):
                 engine.draw_line(line_surf, (0, 0, 0, opacity), (x - 1, top), (x - 1, bottom))
-            # Draw horizontal lines            
+            # Draw horizontal lines
             for y in range(top, bottom, TILEHEIGHT):
                 engine.draw_line(line_surf, (0, 0, 0, opacity), (left, y), (right, y))
         # Draw big lines

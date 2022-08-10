@@ -1,7 +1,8 @@
 # Takes in unit, returns False if not present
 # All default hooks are exclusive
 formula = ('damage_formula', 'resist_formula', 'accuracy_formula', 'avoid_formula',
-           'crit_accuracy_formula', 'crit_avoid_formula', 'attack_speed_formula', 'defense_speed_formula')
+           'crit_accuracy_formula', 'crit_avoid_formula', 'attack_speed_formula', 'defense_speed_formula',
+           'critical_multiplier_formula', 'critical_addition_formula', 'thracia_critical_multiplier_formula')
 default_behaviours = (
     'pass_through', 'vantage', 'ignore_terrain', 'crit_anyway',
     'ignore_region_status', 'no_double', 'def_double', 'alternate_splash',
@@ -14,7 +15,7 @@ exclusive_behaviours += formula
 # Takes in unit and item, returns default value
 item_behaviours = ('modify_buy_price', 'modify_sell_price', 'limit_maximum_range', 'modify_maximum_range', 'wexp_usable_skill', 'wexp_unusable_skill')
 # Takes in unit and target, returns default value
-targeted_behaviours = ('check_ally', 'check_enemy', 'can_trade', 'exp_multiplier', 'enemy_exp_multiplier', 'wexp_multiplier', 'enemy_wexp_multiplier', 'steal_icon', 'has_canto', 'empower_heal', 'empower_heal_received')
+targeted_behaviours = ('check_ally', 'check_enemy', 'can_trade', 'exp_multiplier', 'enemy_exp_multiplier', 'wexp_multiplier', 'enemy_wexp_multiplier', 'has_canto', 'empower_heal', 'empower_heal_received')
 # Takes in unit, item returns bonus
 modify_hooks = (
     'modify_damage', 'modify_resist', 'modify_accuracy', 'modify_avoid',

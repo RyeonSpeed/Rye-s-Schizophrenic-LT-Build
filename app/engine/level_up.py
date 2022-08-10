@@ -65,7 +65,7 @@ class ExpState(State):
             max_exp = 100 * (self.unit_klass.max_level - self.old_level) - self.old_exp
             self.exp_gain = min(self.exp_gain, max_exp)
 
-        self.total_time_for_exp = utils.frames2ms(self.exp_gain)  # 1 frame per exp
+        self.total_time_for_exp = utils.frames2ms(abs(self.exp_gain))  # 1 frame per exp
 
         self.stat_changes = None
         self.new_wexp = None
@@ -157,7 +157,13 @@ class ExpState(State):
                 else:
                     self.state.change('exp100')
 
-            elif current_time - self.start_time >= self.total_time_for_exp + 500:
+            if exp_set <= 0 and self.exp_gain < 0:
+                if self.unit.level > 1:
+                    self.state.change('exp-100')
+                else:
+                    get_sound_thread().stop_sfx('Experience Gain')
+
+            if current_time - self.start_time >= self.total_time_for_exp + 500:
                 get_sound_thread().stop_sfx('Experience Gain')  # Just in case
                 self.state.clear()
                 self.state.change('exp_leave')
@@ -191,11 +197,36 @@ class ExpState(State):
             # Extra time to account for pause at end
             if current_time - self.start_time >= self.total_time_for_exp + 333:
                 old_growth_points = self.unit.growth_points.copy()
-                self.stat_changes = unit_funcs.get_next_level_up(self.unit, self.method)
+                self.stat_changes = unit_funcs.get_next_level_up(self.unit, self.unit.get_internal_level(), self.method)
                 action.do(action.GrowthPointChange(self.unit, old_growth_points, self.unit.growth_points))
                 action.do(action.IncLevel(self.unit))
                 action.do(action.ApplyStatChanges(self.unit, self.stat_changes, False))
                 action.do(action.UpdateRecords('level_gain', (self.unit.nid, self.unit.level, self.unit.klass)))
+                self.create_level_up_logo()
+                self.state.clear()
+                self.state.change('level_up')
+                self.state.change('exp_leave')
+                self.exp_bar.fade_out()
+                self.start_time = current_time
+
+        elif self.state.get_state() == 'exp-100':
+            progress = (current_time - self.start_time)/float(self.total_time_for_exp)
+            exp_set = 100 + self.old_exp + (self.exp_gain * progress)
+            exp_set = max(100 + self.old_exp + self.exp_gain, exp_set)
+            self.exp_bar.update(exp_set)
+            exp_set = int(exp_set)
+
+            if exp_set <= 100 + self.old_exp + self.exp_gain:
+                get_sound_thread().stop_sfx('Experience Gain')
+
+            # Extra time to account for pause at end
+            if current_time - self.start_time >= self.total_time_for_exp + 333:
+                old_growth_points = self.unit.growth_points.copy()
+                stat_changes = unit_funcs.get_next_level_up(self.unit, self.unit.get_internal_level() - 1, self.method)
+                self.stat_changes = {nid: -value for nid, value in stat_changes.items()}  # Make negative
+                action.do(action.GrowthPointChange(self.unit, old_growth_points, self.unit.growth_points))
+                action.do(action.SetLevel(self.unit, self.unit.level - 1))
+                action.do(action.ApplyStatChanges(self.unit, self.stat_changes, False))
                 self.create_level_up_logo()
                 self.state.clear()
                 self.state.change('level_up')
@@ -296,7 +327,7 @@ class ExpState(State):
         if not self.state:
             return surf
 
-        if self.state.get_state() in ('init', 'exp_wait', 'exp_leave', 'exp0', 'exp100', 'prepare_promote'):
+        if self.state.get_state() in ('init', 'exp_wait', 'exp_leave', 'exp0', 'exp100', 'exp-100', 'prepare_promote'):
             if self.mana_bar:
                 self.mana_bar.draw(surf)
             if self.exp_bar:

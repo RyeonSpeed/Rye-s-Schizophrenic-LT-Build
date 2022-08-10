@@ -238,23 +238,23 @@ def damage(unit, item=None):
 
     return might
 
-def defense(unit, item, item_to_avoid=None):
+def defense(atk_unit, def_unit, item, item_to_avoid=None):
     if not item_to_avoid:
-        equation = skill_system.resist_formula(unit)
+        equation = skill_system.resist_formula(def_unit)
     else:
-        equation = item_system.resist_formula(unit, item_to_avoid)
+        equation = item_system.resist_formula(atk_unit, item_to_avoid)
         if equation == 'DEFENSE':
-            equation = skill_system.resist_formula(unit)
-    res = equations.parser.get(equation, unit)
+            equation = skill_system.resist_formula(def_unit)
+    res = equations.parser.get(equation, def_unit)
 
-    support_rank_bonuses, support_allies = get_support_rank_bonus(unit)
+    support_rank_bonuses, support_allies = get_support_rank_bonus(def_unit)
     for bonus in support_rank_bonuses:
         res += float(bonus.resist)
     res = int(res)
 
     if item:
-        res += item_system.modify_resist(unit, item)
-    res += skill_system.modify_resist(unit, item_to_avoid)
+        res += item_system.modify_resist(def_unit, item)
+    res += skill_system.modify_resist(def_unit, item_to_avoid)
     return res
 
 def attack_speed(unit, item=None):
@@ -445,7 +445,7 @@ def compute_damage(unit, target, item, def_item, mode, attack_info, crit=False, 
 
     total_might = might
 
-    might -= defense(target, def_item, item)
+    might -= defense(unit, target, def_item, item)
     might -= skill_system.dynamic_resist(target, item, unit, mode, attack_info, might)
 
     if assist:
@@ -455,11 +455,21 @@ def compute_damage(unit, target, item, def_item, mode, attack_info, crit=False, 
     might = int(max(DB.constants.value('min_damage'), might))
 
     if crit or skill_system.crit_anyway(unit):
-        might *= equations.parser.crit_mult(unit)
-        if equations.parser.crit_add(unit):
-            might += equations.parser.crit_add(unit)
-        if equations.parser.get('THRACIA_CRIT', unit):
-            might += total_might * equations.parser.thracia_crit(unit)
+        # Multiply Damage
+        equation = skill_system.critical_multiplier_formula(unit)
+        crit_mult = equations.parser.get(equation, unit)
+        might *= crit_mult
+
+        # Add damage
+        equation = skill_system.critical_addition_formula(unit)
+        crit_add = equations.parser.get(equation, unit)
+        might += crit_add
+
+        # Thracia Crit
+        equation = skill_system.thracia_critical_multiplier_formula(unit)
+        thracia_crit = equations.parser.get(equation, unit)
+        if thracia_crit:
+            might += total_might * thracia_crit
 
     might *= skill_system.damage_multiplier(unit, item, target, mode, attack_info, might)
     might *= skill_system.resist_multiplier(target, item, unit, mode, attack_info, might)

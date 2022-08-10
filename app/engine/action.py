@@ -285,16 +285,21 @@ class SwooshIn(ArriveOnMap):
 
 
 class FadeIn(ArriveOnMap):
+    def __init__(self, unit, pos, fade_direction=None):
+        self.unit = unit
+        self.fade_direction = fade_direction
+        self.place_on_map = PlaceOnMap(unit, pos)
+
     def do(self):
         self.place_on_map.do()
-        if game.tilemap.on_border(self.unit.position):
-            if self.unit.position[0] == 0:
+        if game.tilemap.on_border(self.unit.position) or self.fade_direction:
+            if self.unit.position[0] == 0 or self.fade_direction == 'west':
                 self.unit.sprite.offset = [-TILEWIDTH, 0]
-            elif self.unit.position[0] == game.tilemap.width - 1:
+            elif self.unit.position[0] == game.tilemap.width - 1 or self.fade_direction == 'east':
                 self.unit.sprite.offset = [TILEWIDTH, 0]
-            elif self.unit.position[1] == 0:
+            elif self.unit.position[1] == 0 or self.fade_direction == 'north':
                 self.unit.sprite.offset = [0, -TILEHEIGHT]
-            elif self.unit.position[1] == game.tilemap.height - 1:
+            elif self.unit.position[1] == game.tilemap.height - 1 or self.fade_direction == 'south':
                 self.unit.sprite.offset = [0, TILEHEIGHT]
             self.unit.sprite.set_transition('fake_in')
         else:
@@ -352,16 +357,21 @@ class SwooshOut(LeaveMap):
 
 
 class FadeOut(LeaveMap):
+    def __init__(self, unit, fade_direction=None):
+        self.unit = unit
+        self.fade_direction = fade_direction
+        self.remove_from_map = RemoveFromMap(self.unit)
+
     def do(self):
         game.leave(self.unit)
-        if game.tilemap.on_border(self.unit.position):
-            if self.unit.position[0] == 0:
+        if game.tilemap.on_border(self.unit.position) or self.fade_direction:
+            if self.unit.position[0] == 0 or self.fade_direction == 'west':
                 self.unit.sprite.offset = [-2, 0]
-            elif self.unit.position[0] == game.tilemap.width - 1:
+            elif self.unit.position[0] == game.tilemap.width - 1 or self.fade_direction == 'east':
                 self.unit.sprite.offset = [2, 0]
-            elif self.unit.position[1] == 0:
+            elif self.unit.position[1] == 0 or self.fade_direction == 'north':
                 self.unit.sprite.offset = [0, -2]
-            elif self.unit.position[1] == game.tilemap.height - 1:
+            elif self.unit.position[1] == game.tilemap.height - 1 or self.fade_direction == 'south':
                 self.unit.sprite.offset = [0, 2]
             self.unit.sprite.set_transition('fake_out')
         else:
@@ -1575,7 +1585,7 @@ class AutoLevel(Action):
         self.growth_method = growth_method
 
     def do(self):
-        unit_funcs.auto_level(self.unit, self.diff, self.unit.get_internal_level(), False, self.growth_method)
+        unit_funcs.auto_level(self.unit, self.diff, self.growth_method)
 
     def reverse(self):
         self.unit.stats = self.old_stats
@@ -1992,9 +2002,9 @@ class Die(Action):
 
     def reverse(self):
         # Remember who was resurrected briefly
-        if '_resurrect' not in game.memory:
-            game.memory['_resurrect'] = set()
-        game.memory['_resurrect'].add(self.unit.nid)
+        if '_resurrect' not in game.level_vars:
+            game.level_vars['_resurrect'] = set()
+        game.level_vars['_resurrect'].add(self.unit.nid)
 
         self.unit.dead = False
         self.unit.sprite.set_transition('normal')
@@ -2351,6 +2361,7 @@ class AddRegion(Action):
         if self.region.nid in game.level.regions:
             logging.warning("AddRegion Action: Region with nid %s already in level", self.region.nid)
         else:
+            game.get_region_under_pos.cache_clear()
             game.level.regions.append(self.region)
             self.did_add = True
             # Remember to add the status from the unit
@@ -2365,6 +2376,7 @@ class AddRegion(Action):
         if self.did_add:
             for act in self.subactions:
                 act.reverse()
+            game.get_region_under_pos.cache_clear()
             game.level.regions.delete(self.region)
 
 
@@ -2408,6 +2420,7 @@ class RemoveRegion(Action):
             for act in self.subactions:
                 act.do()
 
+            game.get_region_under_pos.cache_clear()
             game.level.regions.delete(self.region)
             self.did_remove = True
         else:
@@ -2415,6 +2428,7 @@ class RemoveRegion(Action):
 
     def reverse(self):
         if self.did_remove:
+            game.get_region_under_pos.cache_clear()
             game.level.regions.append(self.region)
 
             for act in self.subactions:
@@ -2506,6 +2520,16 @@ class HideLayer(Action):
         game.board.reset_grid(game.level.tilemap)
         game.boundary.reset()
 
+class ChangeBGTileMap(Action):
+    def __init__(self, new_tilemap):
+        self.new_tilemap = new_tilemap
+        self.old_tilemap = game.bg_tilemap
+
+    def do(self):
+        game.level.bg_tilemap = self.new_tilemap
+
+    def reverse(self):
+        game.level.bg_tilemap = self.old_tilemap
 
 class AddWeather(Action):
     def __init__(self, weather_nid, position):

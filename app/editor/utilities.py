@@ -6,6 +6,7 @@ from app.data.palettes import enemy_colors, other_colors, enemy2_colors, \
     player_dark_colors, enemy_dark_colors, other_dark_colors
 
 from app.resources.combat_palettes import Palette
+from app.resources.combat_anims import Frame
 
 qCOLORKEY = QtGui.qRgb(*COLORKEY)
 qAlpha = QtGui.qRgba(0, 0, 0, 0)
@@ -117,6 +118,12 @@ def get_color_conversion(palette: Palette) -> dict:
 
 def get_coord_conversion(palette: Palette) -> dict:
     return {QtGui.qRgb(0, *coord): QtGui.qRgb(*color[:3]) for coord, color in palette.colors.items()}
+
+def get_coords_used_in_frame(frame: Frame) -> list:
+    im = QtGui.QImage(frame.pixmap)
+    unique_colors = find_palette(im)
+    coords = [(uc[1], uc[2]) for uc in unique_colors]
+    return coords
 
 def convert_gba(image):
     for i in range(image.colorCount()):

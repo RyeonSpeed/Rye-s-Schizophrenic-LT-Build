@@ -326,7 +326,8 @@ class MapEditorView(DraggableTileImageView):
                 current_layer.terrain_grid[coord] = current_nid
 
     def flood_fill_tile(self, tile_pos):
-        if not self.tilemap.check_bounds(tile_pos):
+        tileset, coords = self.window.get_tileset_coords()
+        if not self.tilemap.check_bounds(tile_pos) or not coords or not tileset:
             return
 
         current_layer = self.get_current_layer()
@@ -377,7 +378,6 @@ class MapEditorView(DraggableTileImageView):
                 tileset_nid = tile_sprite.tileset_nid
                 tileset = RESOURCES.tilesets.get(tileset_nid)
             else:
-                tileset, coords = self.window.get_tileset_coords()
                 tileset_nid = tileset.nid
 
             if not coords:
@@ -583,6 +583,7 @@ class MapEditor(QDialog):
         self.terrain_action.setCheckable(True)
 
         self.export_as_png_action = QAction(QIcon(f"{icon_folder}/export_as_png.png"), "E&xport Current Image as PNG", self, shortcut="X", triggered=self.export_as_png)
+        self.save_action = QAction(QIcon(f"{icon_folder}/save.png"), "Save", self, shortcut="Ctrl+S", triggered=self.save_current)
 
         self.show_autotiles_action = QAction(QIcon(f"{icon_folder}/wave.png"), "Show Autotiles", self, triggered=self.autotile_toggle)
         self.show_autotiles_action.setCheckable(True)
@@ -623,6 +624,7 @@ class MapEditor(QDialog):
         self.toolbar.addAction(self.erase_action)
         self.toolbar.addAction(self.resize_action)
         self.toolbar.addAction(self.terrain_action)
+        self.toolbar.addAction(self.save_action)
         self.toolbar.addAction(self.export_as_png_action)
         self.toolbar.addAction(self.show_gridlines_action)
         self.toolbar.addAction(self.show_autotiles_action)
@@ -670,6 +672,11 @@ class MapEditor(QDialog):
                 image.save(fn)
                 parent_dir = os.path.split(fn)[0]
                 self.settings.set_last_open_path(parent_dir)
+
+    def save_current(self):
+        if self.current and DB.current_proj_dir:
+            RESOURCES.save(DB.current_proj_dir, specific=['tilemaps'])
+            QMessageBox.information(self, "Save Complete", "Successfully saved tilemaps!")
 
     def update_view(self):
         self.view.update_view()

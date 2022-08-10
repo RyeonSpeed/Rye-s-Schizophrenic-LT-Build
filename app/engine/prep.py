@@ -74,9 +74,7 @@ class PrepMainState(MapState):
         self.fade_out = False
         self.last_update = 0
 
-        # game.state.change('transition_in')
-        # return 'repeat'
-        # game.events.trigger('prep_start')
+        game.events.trigger('on_prep_start')
 
     def create_background(self):
         img = SPRITES.get('focus_fade').convert_alpha()
@@ -417,7 +415,10 @@ class PrepManageState(State):
         units = game.get_units_in_party()
         self.units = sorted(units, key=lambda unit: bool(unit.position), reverse=True)
         self.menu = menus.Table(None, self.units, (4, 3), (6, 0))
-        self.menu.set_mode('unit')
+        if self.name.startswith('base'):
+            self.menu.set_mode('unit')
+        else:
+            self.menu.set_mode('prep_manage')  # Gray out undeployed units in prep
 
         # Display
         self.quick_disp = self.create_quick_disp()
@@ -492,7 +493,8 @@ class PrepManageState(State):
             game.state.change('transition_to')
         elif event == 'START':
             get_sound_thread().play_sfx('Select 1')
-            convoy_funcs.optimize_all()
+            # convoy_funcs.optimize_all()
+            game.state.change('optimize_all_choice')
 
     def update(self):
         self.menu.update()
@@ -504,6 +506,52 @@ class PrepManageState(State):
         menus.draw_unit_items(surf, (6, 72), self.menu.get_current(), include_face=True, shimmer=2)
         surf.blit(self.quick_disp, (WINWIDTH//2 + 10, WINHEIGHT//2 + 9))
         draw_funds(surf)
+        return surf
+
+class OptimizeAllChoiceState(State):
+    name = 'optimize_all_choice'
+    transparent = True
+    bg_surf = None
+
+    def start(self):
+        options = ['Yes', 'No']
+        self.menu = menus.Choice(None, options, 'center', None)  # Clear background
+        self.menu.set_horizontal(True)
+
+        width = sum(option.width() + 8 for option in self.menu.options) + 16
+        owidth = FONT['text'].width('Optimize All?') + 8
+        self.bg_surf = base_surf.create_base_surf(max(width, owidth), 40)
+        FONT['text'].blit('Optimize All?', self.bg_surf, (self.bg_surf.get_width()//2 - owidth//2 + 4, 4))
+
+    def take_input(self, event):
+        self.menu.handle_mouse()
+        if event == 'RIGHT':
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_down()
+        elif event == 'LEFT':
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_up()
+
+        elif event == 'BACK':
+            get_sound_thread().play_sfx('Select 4')
+            game.state.back()
+
+        elif event == 'SELECT':
+            selection = self.menu.get_current()
+            if selection == 'Yes':
+                get_sound_thread().play_sfx('Select 1')
+                convoy_funcs.optimize_all()
+            else:
+                get_sound_thread().play_sfx('Select 4')
+            game.state.back()
+
+    def update(self):
+        self.menu.update()
+
+    def draw(self, surf):
+        if self.bg_surf:
+            surf.blit(self.bg_surf, (WINWIDTH//2 - self.bg_surf.get_width()//2, WINHEIGHT//2 - 28))
+        surf = self.menu.draw(surf)
         return surf
 
 class PrepManageSelectState(State):

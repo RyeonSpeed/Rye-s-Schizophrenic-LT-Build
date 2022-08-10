@@ -64,6 +64,7 @@ class BattleAnimation():
             self.load_full_image()
 
         self._transform = anim_prefab.nid in ('Transform', 'Revert')
+        self._refresh = anim_prefab.nid.endswith('Refresh')
 
         # Apply palette to frames
         if image_directory:
@@ -187,6 +188,9 @@ class BattleAnimation():
         if self.has_pose('Attack'):
             self.start_anim('Attack')
 
+    def is_refresh(self) -> bool:
+        return self._refresh
+
     def get_stand(self):
         if self.at_range:
             self.current_pose = 'RangedStand'
@@ -244,7 +248,8 @@ class BattleAnimation():
 
     def done(self) -> bool:
         return self.state == 'inert' or (self.state == 'run' and self.current_pose in self.idle_poses) or \
-            (self.is_transform() and self.state == 'run' and self.script_idx >= len(self.script) - 1)
+            (self.is_transform() and self.state == 'run' and self.script_idx >= len(self.script) - 1) or \
+            (self.is_refresh() and self.state == 'run' and self.script_idx >= len(self.script) - 1)
 
     def dodge(self):
         if self.at_range:
@@ -355,7 +360,7 @@ class BattleAnimation():
                     # Check whether we should loop or end
                     if self.current_pose in self.idle_poses:
                         self.script_idx = 0  # Loop
-                    elif self.is_transform():
+                    elif self.is_transform() or self.is_refresh():
                         self.script_idx = len(self.script) - 1  # Just stay on last frame
                     else:
                         self.end_current_pose()

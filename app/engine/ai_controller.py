@@ -105,7 +105,7 @@ class AIController():
             if not item_funcs.available(self.unit, self.goal_item):
                 return False
             if self.goal_item in item_funcs.get_all_items(self.unit):
-                self.unit.equip(self.goal_item)
+                action.do(action.EquipItem(self.unit, self.goal_item))
             # Highlights
             if item_system.is_weapon(self.unit, self.goal_item):
                 game.highlight.remove_highlights()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import lru_cache
 
 import random
 import time
@@ -215,6 +216,9 @@ class GameState():
         # Build registries
         self.map_sprite_registry = {}
 
+        # caches
+        self.get_region_under_pos.cache_clear()
+
     def start_level(self, level_nid, with_party=None):
         """
         Done at the beginning of a new level to start the level up
@@ -233,8 +237,9 @@ class GameState():
         tilemap_nid = level_prefab.tilemap
         tilemap_prefab = RESOURCES.tilemaps.get(tilemap_nid)
         tilemap = TileMapObject.from_prefab(tilemap_prefab)
+        bg_tilemap = TileMapObject.from_prefab(RESOURCES.tilemaps.get(level_prefab.bg_tilemap)) if level_prefab.bg_tilemap else None
         self.cursor = LevelCursor(self)
-        self.current_level = LevelObject.from_prefab(level_prefab, tilemap, self.unit_registry, self.current_mode)
+        self.current_level = LevelObject.from_prefab(level_prefab, tilemap, bg_tilemap, self.unit_registry, self.current_mode)
         if with_party:
             self.current_party = with_party
         else:
@@ -558,6 +563,12 @@ class GameState():
             return None
 
     @property
+    def bg_tilemap(self):
+        if self.current_level and self.current_level.bg_tilemap:
+            return self.current_level.bg_tilemap
+        return None
+
+    @property
     def mode(self):
         return DB.difficulty_modes.get(self.current_mode.nid)
 
@@ -687,6 +698,7 @@ class GameState():
         region = self.region_registry.get(region_nid)
         return region
 
+    @lru_cache(128)
     def get_region_under_pos(self, pos: Tuple[int, int]) -> Region:
         if pos:
             for region in self.level.regions.values():

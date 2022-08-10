@@ -64,9 +64,12 @@ class GameQueryEngine():
         Returns:
             ItemObject | None: Item if exists on unit, otherwise None
         """
-        unit = self._resolve_to_unit(unit)
         item = self._resolve_to_nid(item)
-        found_items = [it for it in unit.items if it.uid == item or it.nid == item]
+        if unit == 'convoy':
+            found_items = [it for it in self.game.get_convoy_inventory() if it.uid == item or it.nid == item]
+        else:
+            unit = self._resolve_to_unit(unit)
+            found_items = [it for it in unit.items if it.uid == item or it.nid == item]
         if found_items:
             return found_items[0]
         return None
@@ -91,6 +94,15 @@ Example usage:
             bool: True if unit has item, else False
         """
         all_units = self.game.get_all_units() if not party else self.game.get_all_units_in_party(party)
+        convoy = None
+        item = self._resolve_to_nid(item)
+        if not nid or nid == 'convoy':
+            if nid == 'convoy' or team == 'player':
+                convoy = self.game.get_convoy_inventory()
+            elif party:
+                convoy = self.game.get_convoy_inventory(self.game.get_party(party))
+        if convoy and any([citem.nid == item or citem.uid == item for citem in convoy]):
+            return True
         for unit in all_units:
             if nid and not nid == unit.nid:
                 continue

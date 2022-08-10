@@ -116,6 +116,10 @@ class PropertiesMenu(QWidget):
         self.map_box.clicked.connect(self.select_tilemap)
         form.addWidget(self.map_box)
 
+        self.bg_box = QPushButton("Select background tilemap...")
+        self.bg_box.clicked.connect(self.select_bg_tilemap)
+        form.addWidget(self.bg_box)
+
         # overworld stuff
         self.overworld_box = PropertyCheckBox("Go to overworld after?", QCheckBox, self)
         self.overworld_box.edit.stateChanged.connect(self.overworld_box_changed)
@@ -237,6 +241,13 @@ class PropertiesMenu(QWidget):
             # Reset any illegal positions for groups
             for group in self.current.unit_groups:
                 group.positions = {k: v for k, v in group.positions.items() if v[0] < res.width and v[1] < res.height}
+            self.state_manager.change_and_broadcast('ui_refresh_signal', None)
+
+    def select_bg_tilemap(self):
+        res, ok = tile_tab.get_tilemaps()
+        if ok and res:
+            nid = res.nid
+            self.current.bg_tilemap = nid
             self.state_manager.change_and_broadcast('ui_refresh_signal', None)
 
     def access_units(self):

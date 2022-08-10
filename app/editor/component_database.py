@@ -90,7 +90,7 @@ class IntItemComponent(BoolItemComponent):
 
     def set_format(self):
         self.editor.setMaximumWidth(60)
-        self.editor.setRange(-1000, 1000)
+        self.editor.setRange(-1000, 10000)
 
 class HitItemComponent(IntItemComponent):
     def set_format(self):

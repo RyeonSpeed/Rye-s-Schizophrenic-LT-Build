@@ -80,6 +80,7 @@ constants = ConstantCatalog([
     Constant('repair_shop', "Access the Repair Shop in prep and base", bool, False),
     Constant('sound_room_in_codex', "Can access sound room from Codex menu in base", bool, True),
     Constant('give_and_take', "Units can give a unit after taking a unit", bool),
+    Constant('combat_art_category', "Combat Arts get put in their own category in the menu", bool, False),
     Constant('reset_mana', "Mana resets to full for units upon completion of the chapter", bool),
     Constant('double_splash', "When doubling, splash/aoe damage is applied on the second strike as well", bool),
     Constant('num_save_slots', "Number of save slots", int, 3, 'title'),

@@ -65,6 +65,20 @@ class DrainCharge(SkillComponent):
     def cooldown(self):
         return self.skill.data['charge'] / self.skill.data['total_charge']
 
+class ChargesPerTurn(DrainCharge, SkillComponent):
+    nid = 'charges_per_turn'
+    desc = "Skill will have a number of charges that are refreshed each turn"
+    tag = SkillTags.CHARGE
+
+    expose = Type.Int
+    value = 1
+
+    ignore_conditional = True
+
+    def on_endstep(self, actions, playback, unit):
+        value = self.skill.data['total_charge']
+        action.do(action.SetObjData(self.skill, 'charge', value))
+
 def get_marks(playback, unit, item):
     from app.data.database import DB
     marks = [mark for mark in playback if mark.nid == 'mark_hit']

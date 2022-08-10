@@ -453,7 +453,9 @@ class ConstantDatabase(DatabaseTab):
         self.bool_model = BoolConstantsModel(bool_constants, self)
         bool_view = QTreeView()
         bool_view.setModel(self.bool_model)
+        bool_view.resizeColumnToContents(0)
         bool_view.header().hide()
+        bool_view.header().setStretchLastSection(False)
         bool_view.clicked.connect(self.on_bool_click)
 
         bool_layout = QHBoxLayout()

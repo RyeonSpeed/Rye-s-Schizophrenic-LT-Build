@@ -730,9 +730,14 @@ class MenuState(MapState):
             start_index = options.index('Attack') + 1
         else:
             start_index = len(self.valid_regions)
-        for ability_name in self.combat_arts:
-            options.insert(start_index, ability_name)
-            info_descs.insert(start_index, self.combat_arts[ability_name][0].desc)
+        if self.combat_arts:
+            if DB.constants.value('combat_art_category'): 
+                options.insert(start_index, 'Combat Arts')
+                info_descs.insert(start_index, 'Combat Arts_desc')
+            else:
+                for ability_name in self.combat_arts:
+                    options.insert(start_index, ability_name)
+                    info_descs.insert(start_index, self.combat_arts[ability_name][0].desc)
 
         # Draw highlights
         for ability in ABILITIES:
@@ -876,6 +881,9 @@ class MenuState(MapState):
                 game.memory['valid_weapons'] = self.combat_arts[selection][1]
                 skill_system.activate_combat_art(self.cur_unit, skill)
                 game.state.change('weapon_choice')
+            elif selection == 'Combat Arts':
+                game.memory['combat_arts'] = self.combat_arts
+                game.state.change('combat_art_choice')
             else:  # Selection is one of the other abilities
                 game.memory['ability'] = self.target_dict[selection]
                 game.state.change('targeting')
@@ -909,6 +917,7 @@ class ItemState(MapState):
         self.cur_unit = game.cursor.cur_unit
         options = self._get_options()
         self.menu = menus.Choice(self.cur_unit, options)
+        self.menu.set_limit(8)
 
     def begin(self):
         game.cursor.hide()
@@ -990,6 +999,7 @@ class SubItemChildState(MapState):
         if not options:
             options = ["Nothing"]
         self.menu = menus.Choice(self.parent_item, options, parent_menu)
+        self.menu.set_limit(8)
 
     def begin(self):
         game.cursor.hide()
@@ -1061,8 +1071,15 @@ class ItemChildState(MapState):
 
     def start(self):
         self.parent_menu = game.memory['parent_menu']
+        self._proceed_with_targets_item = False
 
     def begin(self):
+        if self._proceed_with_targets_item:
+            self._proceed_with_targets_item = False
+            if game.memory.get('item') and game.memory.get('item').data.get('target_item'):
+                interaction.start_combat(self.cur_unit, self.cur_unit.position, game.memory.get('item'))
+                return 'repeat'
+
         self.item = self.parent_menu.get_current()
         item = self.item
         self.cur_unit = game.cursor.cur_unit
@@ -1096,6 +1113,7 @@ class ItemChildState(MapState):
                 options.append('Nothing')
 
         self.menu = menus.Choice(item, options, self.parent_menu)
+        self.menu.set_limit(8)
         self.menu.gem = False
 
     def take_input(self, event):
@@ -1119,7 +1137,13 @@ class ItemChildState(MapState):
             selection = self.menu.get_current()
             item = self.menu.owner
             if selection == 'Use':
-                interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
+                if item_system.targets_items(self.cur_unit, item):
+                    game.memory['target'] = self.cur_unit
+                    game.memory['item'] = item
+                    self._proceed_with_targets_item = True
+                    game.state.change('item_targeting')
+                else:
+                    interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
             elif selection == 'Equip':
                 action.do(action.EquipItem(self.cur_unit, item))
                 if not game.memory['is_subitem_child_menu']:
@@ -1168,6 +1192,7 @@ class ItemDiscardState(MapState):
         self.menu = menus.Choice(self.cur_unit, options)
         ignore = [bool(item_system.locked(self.cur_unit, item)) for item in options]
         self.menu.set_ignore(ignore)
+        self.menu.set_limit(8)
 
         if game.game_vars.get('_convoy'):
             self.pennant = banner.Pennant('Choose item to send to storage')
@@ -1319,6 +1344,10 @@ class WeaponChoiceState(MapState):
             game.state.change('combat_targeting')
 
         elif event == 'INFO':
+            if self.menu.info_flag:
+                get_sound_thread().play_sfx('Info Out')
+            else:
+                get_sound_thread().play_sfx('Info In')
             self.menu.toggle_info()
 
     def update(self):
@@ -1401,7 +1430,81 @@ class SpellChoiceState(WeaponChoiceState):
             game.state.change('combat_targeting')
 
         elif event == 'INFO':
+            if self.menu.info_flag:
+                get_sound_thread().play_sfx('Info Out')
+            else:
+                get_sound_thread().play_sfx('Info In')
             self.menu.toggle_info()
+
+class CombatArtChoiceState(MapState):
+    name = 'combat_art_choice'
+
+    def start(self):
+        if game.memory.get('combat_arts'):
+            self.combat_arts = game.memory['combat_arts']
+        else:
+            logging.error('No available combat arts!')
+            game.state.back()
+            return
+
+    def begin(self):
+
+        game.cursor.hide()
+        self.cur_unit = game.cursor.cur_unit
+        self.cur_unit.sprite.change_state('chosen')
+        skill_system.deactivate_all_combat_arts(self.cur_unit)
+        
+        options = [ability_name for ability_name in self.combat_arts]
+        info_desc = [self.combat_arts[ability_name][0].desc for ability_name in self.combat_arts]
+        self.menu = menus.Choice(self.cur_unit, options, info=info_desc)
+        self.menu.set_limit(8)
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        did_move = self.menu.handle_mouse()
+        if did_move:
+            self._item_desc_update()
+
+        if 'DOWN' in directions:
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_down(first_push)
+
+        elif 'UP' in directions:
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_up(first_push)
+
+        if event == 'BACK':
+            get_sound_thread().play_sfx('Select 4')
+            game.memory['combat_arts'] = None
+            game.state.back()
+
+        elif event == 'SELECT':
+            selection = self.menu.get_current()
+            get_sound_thread().play_sfx('Select 1')
+
+            skill = self.combat_arts[selection][0]
+            game.memory['ability'] = 'Combat Art'
+            game.memory['valid_weapons'] = self.combat_arts[selection][1]
+            skill_system.activate_combat_art(self.cur_unit, skill)
+            game.state.change('weapon_choice')
+
+        elif event == 'INFO':
+            if self.menu.info_flag:
+                get_sound_thread().play_sfx('Info Out')
+            else:
+                get_sound_thread().play_sfx('Info In')
+            self.menu.toggle_info()
+
+    def update(self):
+        super().update()
+        self.menu.update()
+
+    def draw(self, surf):
+        surf = super().draw(surf)
+        surf = self.menu.draw(surf)
+        return surf
 
 class TargetingState(MapState):
     name = 'targeting'
@@ -1792,7 +1895,8 @@ class CombatTargetingState(MapState):
         target_unit = game.board.get_unit(game.cursor.position)
         if self.cur_unit and target_unit:
             if item_system.targets_items(self.cur_unit, self.item):
-                game.ui_view.draw_trade_preview(target_unit, surf)
+                ignore = [not item_system.item_restrict(self.cur_unit, self.item, target_unit, item) for item in target_unit.items]
+                game.ui_view.draw_trade_preview(target_unit, surf, ignore)
             elif item_system.is_weapon(self.cur_unit, self.item):
                 game.ui_view.draw_attack_info(surf, self.cur_unit, self.item, target_unit, self.attacker_assist, self.defender_assist)
             else:
@@ -1822,10 +1926,9 @@ class ItemTargetingState(MapState):
             self.parent_item = None
 
         # Build menu
-        options = self.target.items
-        ignore = [not item_system.item_restrict(self.cur_unit, self.item, self.target, item) for item in self.target.items]
+        options = [item for item in self.target.items if item_system.item_restrict(self.cur_unit, self.item, self.target, item)]
         self.menu = menus.Choice(self.target, options)
-        self.menu.set_ignore(ignore)
+        # self.menu.set_ignore(ignore)
 
     def begin(self):
         game.cursor.hide()

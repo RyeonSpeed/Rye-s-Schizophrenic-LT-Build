@@ -13,6 +13,7 @@ from app.engine.game_state import game
 from app.engine.sprites import SPRITES
 from app.utilities import utils
 
+from typing import List
 
 class UIView():
     legal_states = ('free', 'prep_formation', 'prep_formation_select')
@@ -729,8 +730,9 @@ class UIView():
         return surf
 
     @staticmethod
-    def draw_trade_preview(unit, surf):
+    def draw_trade_preview(unit, surf, ignore: List[bool] = None):
         items = unit.items
+        ignore = ignore or [False for _ in items]
         # Build window
         window = SPRITES.get('trade_window')
         width, height = window.get_width(), window.get_height()
@@ -750,6 +752,7 @@ class UIView():
 
         for idx, item in enumerate(items):
             item_option = menu_options.ItemOption(idx, item)
+            item_option.ignore = ignore[idx]
             item_option.draw(bg_surf, 5, 27 + idx * 16 - 2)
         if not items:
             FONT['text-grey'].blit('Nothing', bg_surf, (25, 27 - 2))

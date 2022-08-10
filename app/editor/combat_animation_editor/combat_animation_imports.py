@@ -348,7 +348,7 @@ def import_from_gba(current, fn):
     """
     weapon_types = {'Sword', 'Lance', 'Axe', 'Disarmed', 'Unarmed', 'Handaxe',
                     'Bow', 'Magic', 'Staff', 'Monster', 'Dragonstone', 'Refresh',
-                    'Transform', 'Revert'}
+                    'Transform', 'Revert', 'Knife'}
     logging.info("Import GBA weapon animation from script %s", fn)
     head, tail = os.path.split(fn)
     # if any(bad_char in head for bad_char in ('[', ']', '*', '?', '!')):
@@ -392,7 +392,10 @@ def import_from_gba(current, fn):
             my_palette = palette
             logging.info("Using existing palette! %s" % palette.nid)
             # Change first color to colorkey
-            colorkey_conversion = {qRgb(*all_palette_colors[0]): editor_utilities.qCOLORKEY}
+            colorkey_conversion = {
+                qRgb(*all_palette_colors[0]): editor_utilities.qCOLORKEY,
+                qRgb(0, 0, 0): qRgb(40, 40, 40),  # Need to make sure there's no 0, 0, 0 in the image
+            }
             pixmaps = {name: editor_utilities.color_convert_pixmap(pixmap, colorkey_conversion) for name, pixmap in pixmaps.items()}
             break
     else:
@@ -403,9 +406,15 @@ def import_from_gba(current, fn):
         palette_name = str_utils.get_next_name('GenericBlue', [name for name, nid in current.palettes])
         current.palettes.append([palette_name, my_palette.nid])
         # Change first color to colorkey
-        colorkey_conversion = {qRgb(*all_palette_colors[0]): editor_utilities.qCOLORKEY}
+        colorkey_conversion = {
+            qRgb(*all_palette_colors[0]): editor_utilities.qCOLORKEY,
+            qRgb(0, 0, 0): qRgb(40, 40, 40),  # Need to make sure there's no 0, 0, 0 in the image
+        }
         pixmaps = {name: editor_utilities.color_convert_pixmap(pixmap, colorkey_conversion) for name, pixmap in pixmaps.items()}
         all_palette_colors[0] = COLORKEY
+        if (0, 0, 0) in all_palette_colors:
+            idx = all_palette_colors.index((0, 0, 0))
+            all_palette_colors[idx] = (40, 40, 40)
         my_palette.assign_colors(all_palette_colors)
 
     # Now do a simple crop to get rid of palette extras
@@ -467,7 +476,10 @@ def import_from_gba(current, fn):
         add_weapon(ranged_weapon_anim)        
     elif weapon_type == 'Handaxe':
         ranged_weapon_anim.nid = "RangedAxe"
-        add_weapon(ranged_weapon_anim)        
+        add_weapon(ranged_weapon_anim)
+    elif weapon_type == 'Knife':
+        ranged_weapon_anim.nid = "RangedSword"
+        add_weapon(ranged_weapon_anim)    
     elif weapon_type == 'Bow':
         ranged_weapon_anim.nid = "RangedBow"
         add_weapon(ranged_weapon_anim)        

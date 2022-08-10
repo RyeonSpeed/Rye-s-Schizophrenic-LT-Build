@@ -456,7 +456,7 @@ class Event():
     def _evaluate_all(self, text: str) -> str:
         return self.text_evaluator._evaluate_all(text)
 
-    def _place_unit(self, unit, position, entry_type):
+    def _place_unit(self, unit, position, entry_type, entry_direc = None):
         if self.do_skip:
             action.do(action.ArriveOnMap(unit, position))
         elif entry_type == 'warp':
@@ -464,7 +464,7 @@ class Event():
         elif entry_type == 'swoosh':
             action.do(action.SwooshIn(unit, position))
         elif entry_type == 'fade':
-            action.do(action.FadeIn(unit, position))
+            action.do(action.FadeIn(unit, position, entry_direc))
         else:  # immediate
             action.do(action.ArriveOnMap(unit, position))
 

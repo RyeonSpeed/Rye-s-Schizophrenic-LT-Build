@@ -620,7 +620,12 @@ class InfoMenuState(State):
         if self.logo:
             self.logo.update()
             self.logo.draw(top_surf)
-        page = str(info_states.index(self.state) + 1) + '/' + str(len(info_states))
+        # Blit page numbers
+        if DB.constants.value('unit_notes') and self.unit.notes:
+            num_states = len(info_states)
+        else:
+            num_states = len(info_states) - 1
+        page = str(info_states.index(self.state) + 1) + '/' + str(num_states)
         render_text(top_surf, ['small'], [page], [], (235, 12), Alignments.RIGHT)
 
         self.draw_top_arrows(top_surf)

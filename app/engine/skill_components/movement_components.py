@@ -2,7 +2,7 @@ from typing import Set, Tuple
 from app.data.skill_components import SkillComponent, SkillTags
 from app.data.components import Type
 
-from app.engine import equations, target_system
+from app.engine import equations, target_system, action
 from app.engine.game_state import game
 from app.engine.objects.unit import UnitObject
 
@@ -123,3 +123,15 @@ class SpecificWitchWarp(SkillComponent):
             if partner_pos:
                 positions += [pos for pos in target_system.get_adjacent_positions(partner_pos) if game.movement.check_traversable(unit, pos)]
         return positions
+
+class Galeforce(SkillComponent):
+    nid = 'galeforce'
+    desc = "After killing an enemy on player phase, unit can move again."
+    tag = SkillTags.MOVEMENT
+
+    def end_combat(self, playback, unit, item, target, mode):
+        mark_playbacks = [p for p in playback if p.nid in ('mark_miss', 'mark_hit', 'mark_crit')]
+        if target and target.get_hp() <= 0 and \
+                any(p.main_attacker is unit for p in mark_playbacks):  # Unit is overall attacker
+            action.do(action.Reset(unit))
+            action.do(action.TriggerCharge(unit, self.skill))

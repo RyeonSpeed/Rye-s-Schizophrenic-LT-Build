@@ -18,8 +18,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 SAVE_THREAD = None
-GAME_NID = str(DB.constants.value('game_nid'))
-SUSPEND_LOC = 'saves/' + GAME_NID + '-suspend.pmeta'
+
+def GAME_NID():
+    return str(DB.constants.value('game_nid'))
+
+SUSPEND_LOC = 'saves/' + GAME_NID() + '-suspend.pmeta'
 
 class SaveSlot():
     no_name = '--NO DATA--'
@@ -51,7 +54,7 @@ class SaveSlot():
         if self.kind == 'turn_change':
             turn = int(re.findall(r'\d+', self.meta_loc)[-1])
             return self.name + (' - Turn %d' % turn)
-        elif self.kind:
+        elif self.kind and cf.SETTINGS['debug']:
             return self.name + ' - ' + self.kind
         else:
             return self.name
@@ -70,9 +73,9 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
     if name:
         save_loc = 'saves/' + name + '.p'
     elif force_loc:
-        save_loc = 'saves/' + GAME_NID + '-' + force_loc + '.p'
+        save_loc = 'saves/' + GAME_NID() + '-' + force_loc + '.p'
     elif slot is not None:
-        save_loc = 'saves/' + GAME_NID + '-' + str(slot) + '.p'
+        save_loc = 'saves/' + GAME_NID() + '-' + str(slot) + '.p'
     meta_loc = save_loc + 'meta'
 
     logger.info("Saving to %s", save_loc)
@@ -90,7 +93,7 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
 
     # For restart
     if not force_loc:
-        r_save = 'saves/' + GAME_NID + '-restart' + str(slot) + '.p'
+        r_save = 'saves/' + GAME_NID() + '-restart' + str(slot) + '.p'
         r_save_meta = r_save + 'meta'
         # If the slot I'm overwriting is a start of map
         # Then rename it to restart file
@@ -99,7 +102,7 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
                 shutil.copy(save_loc, r_save)
                 shutil.copy(meta_loc, r_save_meta)
         elif old_slot is not None:
-            old_name = 'saves/' + GAME_NID + '-restart' + str(old_slot) + '.p'
+            old_name = 'saves/' + GAME_NID() + '-restart' + str(old_slot) + '.p'
             old_name_meta = old_name + 'meta'
             if old_name != r_save:
                 shutil.copy(old_name, r_save)
@@ -107,11 +110,11 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
 
     # For preload
     if meta_dict['kind'] == 'start':
-        preload_saves = glob.glob('saves/' + GAME_NID + '-preload-' + str(meta_dict['level_nid']) + '-*.p')
+        preload_saves = glob.glob('saves/' + GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-*.p')
         nids = [p.split('-')[-1][:-2] for p in preload_saves]
         unique_nid = str(str_utils.get_next_int('0', nids))
-        preload_save = 'saves/' + GAME_NID + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.p'
-        preload_save_meta = 'saves/' + GAME_NID + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.pmeta'
+        preload_save = 'saves/' + GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.p'
+        preload_save_meta = 'saves/' + GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.pmeta'
 
         shutil.copy(save_loc, preload_save)
         shutil.copy(meta_loc, preload_save_meta)
@@ -168,7 +171,7 @@ def set_next_uids(game_state):
 def load_saves():
     save_slots = []
     for num in range(0, int(DB.constants.value('num_save_slots'))):
-        meta_fp = 'saves/' + GAME_NID + '-' + str(num) + '.pmeta'
+        meta_fp = 'saves/' + GAME_NID() + '-' + str(num) + '.pmeta'
         ss = SaveSlot(meta_fp, num)
         save_slots.append(ss)
     return save_slots
@@ -176,7 +179,7 @@ def load_saves():
 def load_restarts():
     save_slots = []
     for num in range(0, int(DB.constants.value('num_save_slots'))):
-        meta_fp = 'saves/' + GAME_NID + '-restart' + str(num) + '.pmeta'
+        meta_fp = 'saves/' + GAME_NID() + '-restart' + str(num) + '.pmeta'
         ss = SaveSlot(meta_fp, num)
         save_slots.append(ss)
     return save_slots
@@ -186,7 +189,7 @@ def get_all_saves():
     Grabs all the turn_change saves
     """
     save_slots = []
-    name = 'saves/' + GAME_NID + '-turn_change-*-*.pmeta'
+    name = 'saves/' + GAME_NID() + '-turn_change-*-*.pmeta'
     for meta_fn in glob.glob(name):
         ss = SaveSlot(meta_fn, 0)
         save_slots.append(ss)

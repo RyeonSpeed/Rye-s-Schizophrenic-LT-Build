@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFileDialog, QVBoxLayout, \
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QPen, QPixmap, QImage, QPainter, qRgb
 
-from typing import Tuple
+from typing import List, Tuple
 
 from app.constants import WINWIDTH, WINHEIGHT
 from app.resources.resources import RESOURCES
@@ -270,12 +270,6 @@ class EaselWidget(QGraphicsView):
         self.clear_scene()
         self.scene.addPixmap(self.working_image)
 
-    def get_coords_used_in_frame(self, frame: Frame) -> list:
-        im = QImage(frame.pixmap)
-        unique_colors = editor_utilities.find_palette(im)
-        coords = [(uc[1], uc[2]) for uc in unique_colors]
-        return coords
-
     def get_palette_image(self) -> QImage:
         side_length = self.palette_size * self.square_size
         base_image = QImage(side_length, side_length, QImage.Format_ARGB32)
@@ -295,7 +289,7 @@ class EaselWidget(QGraphicsView):
         painter.begin(base_image)
         if self.current_frame:
             painter.setPen(QPen(QColor(0, 0, 0, 255), 1, Qt.SolidLine))
-            for coord in self.get_coords_used_in_frame(self.current_frame):
+            for coord in editor_utilities.get_coords_used_in_frame(self.current_frame):
                 painter.drawRect(coord[0] * self.palette_size + 1, coord[1] * self.palette_size + 1, self.palette_size - 2, self.palette_size - 2)
         # Outline painting color in dashed line
         if painting_color_coord:
@@ -482,10 +476,14 @@ class PaletteProperties(QWidget):
         self.import_box = QPushButton("Import from PNG Image...")
         self.import_box.clicked.connect(self.import_palette_from_image)
 
+        self.import_with_base_box = QPushButton("Import from PNG Image with base frame...")
+        self.import_with_base_box.clicked.connect(self.import_palette_from_image_with_base)
+
         left_frame = self.window.left_frame
         grid = left_frame.layout()
         grid.addWidget(self.import_box, 3, 0, 1, 2)
-        grid.addWidget(self.nid_box, 4, 0, 1, 2)
+        grid.addWidget(self.import_with_base_box, 4, 0, 1, 2)
+        grid.addWidget(self.nid_box, 5, 0, 1, 2)
         
         self.raw_view = AnimView(self)
         self.raw_view.static_size = True
@@ -665,7 +663,7 @@ class PaletteProperties(QWidget):
 
     def import_palette_from_image(self):
         starting_path = self.settings.get_last_open_path()
-        fns, ok = QFileDialog.getOpenFileNames(self.window, "Select Legacy Script Files", starting_path, "PNG Files (*.png);;All Files (*)")
+        fns, ok = QFileDialog.getOpenFileNames(self.window, "Select Image to serve as palette", starting_path, "PNG Files (*.png);;All Files (*)")
         if fns and ok:
             parent_dir = os.path.split(fns[-1])[0]
             self.settings.set_last_open_path(parent_dir)
@@ -686,3 +684,56 @@ class PaletteProperties(QWidget):
             if did_import:
                 # Move view
                 self.model.move_to_bottom()
+
+    def import_palette_from_image_with_base(self):
+        """
+        Assumes you made a modification to an image in 
+        some other program
+        Uses that original image plus the new colors of your
+        new image to find the new palette
+        """
+        
+        combat_anim_nid, weapon_anim_nid = WeaponAnimSelection.get(self)
+        combat_anim = RESOURCES.combat_anims.get(combat_anim_nid)
+        if not combat_anim:
+            return
+        weapon_anim = combat_anim.weapon_anims.get(weapon_anim_nid)
+        if not weapon_anim:
+            return
+        combat_animation_display.populate_anim_pixmaps(combat_anim)
+        frame, ok = FrameSelector.get(combat_anim, weapon_anim, self)
+        if frame and ok:
+            starting_path = self.settings.get_last_open_path()
+            fn, ok = QFileDialog.getOpenFileName(self.window, "Select Image to serve as palette", starting_path, "PNG Files (*.png);;All Files (*)")
+            if fn and ok:
+                parent_dir = os.path.split(fn)[0]
+                self.settings.set_last_open_path(parent_dir)
+
+                image_fn = fn
+                if image_fn.endswith('.png'):
+                    head, tail = os.path.split(image_fn)
+                    palette_nid = tail[:-4]
+                    palette_nid = str_utils.get_next_name(palette_nid, RESOURCES.combat_palettes.keys())
+                    pix = QPixmap(image_fn)
+
+                    frame_coords: List[int, int] = \
+                        editor_utilities.get_coords_used_in_frame(frame)
+                    sorted_frame_coords = sorted(frame_coords, key=lambda i: (i[1], i[0]))
+                    frame_sort_idx = []
+                    for coord in frame_coords:
+                        new_idx = sorted_frame_coords.index(coord)
+                        frame_sort_idx.append(new_idx)
+                    palette_colors: List[int, int, int] = \
+                        editor_utilities.find_palette(pix.toImage())
+                    sorted_palette_colors = [None for _ in range(len(palette_colors))]
+                    for idx, color in enumerate(palette_colors):
+                        actual_idx = frame_sort_idx[idx]
+                        sorted_palette_colors[actual_idx] = color
+                    # Now need to re-order palette colors to match reorder from frame colors
+                    # frame colors is going to look like [(0, 0, 0), ()
+                    new_palette = Palette(palette_nid)
+                    colors = {(int(idx % 8), int(idx / 8)): color for idx, color in enumerate(sorted_palette_colors)}
+                    new_palette.colors = colors
+                    RESOURCES.combat_palettes.append(new_palette)
+                    # Move view
+                    self.model.move_to_bottom()

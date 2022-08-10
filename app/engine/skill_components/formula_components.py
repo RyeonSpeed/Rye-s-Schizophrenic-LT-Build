@@ -88,3 +88,37 @@ class AlternateDefenseSpeedFormula(SkillComponent):
 
     def defense_speed_formula(self, unit):
         return self.value
+
+class AlternateCriticalMultiplierFormula(SkillComponent):
+    nid = 'alternate_critical_multiplier_formula'
+    desc = 'Change how much damage a critical does in comparison to base damage'
+    tag = SkillTags.FORMULA
+
+    expose = Type.Equation
+    value = 'CRIT_MULT'
+
+    def critical_multiplier_formula(self, unit):
+        return self.value
+
+class AlternateCriticalAdditionFormula(SkillComponent):
+    nid = 'alternate_critical_addition_formula'
+    desc = 'Change how much damage a critical does in comparison to base damage'
+    tag = SkillTags.FORMULA
+
+    expose = Type.Equation
+    value = 'CRIT_ADD'
+
+    def critical_addition_formula(self, unit):
+        return self.value
+
+class AlternateThraciaCriticalMultiplierFormula(SkillComponent):
+    nid = 'alternate_thracia_critical_addition_formula'
+    desc = 'Change how much damage a critical does in comparison to base damage'
+    tag = SkillTags.FORMULA
+
+    expose = Type.Equation
+    value = 'THRACIA_CRIT'
+
+    def thracia_critical_multiplier_formula(self, unit):
+        return self.value
+
