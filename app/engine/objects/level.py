@@ -81,7 +81,7 @@ class LevelObject():
         level.nid = s_dict['nid']
         level.name = s_dict.get('name', "")
         level.tilemap = TileMapObject.restore(s_dict['tilemap'])
-        level.tilemap = TileMapObject.restore(s_dict['bg_tilemap']) if s_dict.get('bg_tilemap', None) else None
+        level.bg_tilemap = TileMapObject.restore(s_dict['bg_tilemap']) if s_dict.get('bg_tilemap', None) else None
         level.party = s_dict.get('party', "")
         level.roam = s_dict.get('roam', False)
         level.roam_unit = s_dict.get('roam_unit')
