@@ -637,8 +637,9 @@ class CantoWaitState(MapState):
             surf = self.menu.draw(surf)
         return surf
 
-class MoveCameraState(MapState):
+class MoveCameraState(State):
     name = 'move_camera'
+    transparent = True
 
     def update(self):
         super().update()
@@ -651,7 +652,15 @@ class MenuState(MapState):
     menu = None
     normal_options = {'Item', 'Wait', 'Take', 'Give', 'Rescue', 'Trade', 'Drop', 'Visit', 'Armory', 'Vendor', 'Spells', 'Attack', 'Steal', 'Shove', 'Pair Up', 'Swap', 'Separate', 'Transfer'}
 
+    def start(self):
+        self._proceed_with_targets_item = False
+
     def begin(self):
+        if self._proceed_with_targets_item:
+            self._proceed_with_targets_item = False
+            if game.memory.get('item') and game.memory.get('item').data.get('target_item'):
+                interaction.start_combat(self.cur_unit, self.cur_unit.position, game.memory.get('item'))
+                return 'repeat'
         # Play this here because there's a gap in sound while unit is moving
         get_sound_thread().play_sfx('Select 2')
         game.cursor.hide()
@@ -731,7 +740,7 @@ class MenuState(MapState):
         else:
             start_index = len(self.valid_regions)
         if self.combat_arts:
-            if DB.constants.value('combat_art_category'): 
+            if DB.constants.value('combat_art_category'):
                 options.insert(start_index, 'Combat Arts')
                 info_descs.insert(start_index, 'Combat Arts_desc')
             else:
@@ -872,6 +881,14 @@ class MenuState(MapState):
                         else:
                             game.memory['valid_spells'] = all_spells
                         game.state.change('spell_choice')
+                elif item.usable:
+                    if item_system.targets_items(self.cur_unit, item):
+                        game.memory['target'] = self.cur_unit
+                        game.memory['item'] = item
+                        self._proceed_with_targets_item = True
+                        game.state.change('item_targeting')
+                    else:
+                        interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
                 else:
                     game.state.change('combat_targeting')
             # A combat art
@@ -1453,7 +1470,7 @@ class CombatArtChoiceState(MapState):
         self.cur_unit = game.cursor.cur_unit
         self.cur_unit.sprite.change_state('chosen')
         skill_system.deactivate_all_combat_arts(self.cur_unit)
-        
+
         options = [ability_name for ability_name in self.combat_arts]
         info_desc = [self.combat_arts[ability_name][0].desc for ability_name in self.combat_arts]
         self.menu = menus.Choice(self.cur_unit, options, info=info_desc)
@@ -1987,6 +2004,9 @@ class CombatState(MapState):
     name = 'combat'
     fuzz_background = image_mods.make_translucent(SPRITES.get('bg_black'), 0.75)
 
+    is_animation_combat = False
+    combat = None
+
     def start(self):
         game.cursor.hide()
         self.skip = False
@@ -2031,7 +2051,8 @@ class CombatState(MapState):
                 surf = super().draw(surf)
         else:
             surf = super().draw(surf)
-        self.combat.draw(surf)
+        if self.combat:
+            self.combat.draw(surf)
         return surf
 
 class DyingState(MapState):

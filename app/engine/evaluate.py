@@ -1,5 +1,5 @@
 import logging
-import random, re
+import math, random, re
 from typing import Dict
 from app.engine.query_engine import GameQueryEngine
 

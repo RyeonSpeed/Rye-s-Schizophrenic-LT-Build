@@ -123,6 +123,11 @@ class GameBoard(object):
             return self.unit_grid[idx][0]
         return None
 
+    def rationalize_pos(self, pos: tuple):
+        """Similar to in roam_state, except
+        does not force the unit into a particular position"""
+        return (int(round(pos[0])), int(round(pos[1])))
+
     def get_team(self, pos):
         if not pos:
             return None

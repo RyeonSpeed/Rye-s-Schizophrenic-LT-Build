@@ -4,8 +4,9 @@ from app.events.regions import RegionType
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
 from app.engine.game_state import game
-from app.engine import engine, info_menu, evaluate, target_system, action
+from app.engine import engine, info_menu, evaluate, target_system, action, ai_controller, skill_system, equations, roam_ai
 from app.engine.input_manager import get_input_manager
+from app.data.database import DB
 
 import logging
 
@@ -22,8 +23,22 @@ class FreeRoamState(MapState):
         self.hspeed = 0.0
         self.direction = [0, 0]
 
+        # AI manager
+        self.ai_handler = roam_ai.FreeRoamAIHandler()
+        self.compose_target_list(game.get_all_units())
+
+    def compose_target_list(self, units):
+        targets = set()
+        for unit in units:
+            if unit.get_roam_ai() and DB.ai.get(unit.get_roam_ai()).roam_ai:
+                targets.add(roam_ai.FreeRoamUnit(unit, roam_ai.FreeRoamAIController(unit)))
+                if game.board.rationalize_pos(unit.position) == unit.position:
+                    game.leave(unit)
+        self.ai_handler.targets = targets
+
     def begin(self):
         game.cursor.hide()
+        self.compose_target_list(game.get_all_units())
 
         if game.level.roam and game.level.roam_unit:
             roam_unit_nid = game.level.roam_unit
@@ -188,6 +203,7 @@ class FreeRoamState(MapState):
 
     def update(self):
         super().update()
+        self.ai_handler.update()
         if self.last_move and engine.get_time() - self.last_move > 166:
             self.last_move = 0
             self.roam_unit.sprite.change_state('normal')
@@ -209,24 +225,25 @@ class FreeRoamState(MapState):
             self.roam_unit.position = true_pos  # Remember to reset the position to what we want
 
     def can_move(self, direc: str) -> bool:
+        tolerance = 0.4
         if direc == 'LEFT':
-            check_x = int(round(self.roam_unit.position[0] - 0.4))
+            check_x = int(round(self.roam_unit.position[0] - tolerance))
             check_y = int(round(self.roam_unit.position[1]))
             mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
             return mcost < 99 and self.no_bumps(check_x, check_y)
         elif direc == 'RIGHT':
-            check_x = int(round(self.roam_unit.position[0] + 0.4))
+            check_x = int(round(self.roam_unit.position[0] + tolerance))
             check_y = int(round(self.roam_unit.position[1]))
             mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
             return mcost < 99 and self.no_bumps(check_x, check_y)
         elif direc == 'UP':
             check_x = int(round(self.roam_unit.position[0]))
-            check_y = int(round(self.roam_unit.position[1] - 0.4))
+            check_y = int(round(self.roam_unit.position[1] - tolerance))
             mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
             return mcost < 99 and self.no_bumps(check_x, check_y)
         elif direc == 'DOWN':
             check_x = int(round(self.roam_unit.position[0]))
-            check_y = int(round(self.roam_unit.position[1] + 0.4))
+            check_y = int(round(self.roam_unit.position[1] + tolerance))
             mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
             return mcost < 99 and self.no_bumps(check_x, check_y)
         return True
@@ -254,11 +271,24 @@ class FreeRoamState(MapState):
         game.arrive(self.roam_unit)
         self.roam_unit.sprite.change_state('normal')
         self.roam_unit.sound.stop()
+
+        for t in self.ai_handler.targets:
+            t.ai.stop_unit()
+            self.rationalize_unit(t.unit)
+
         self.speed = 0
         self.vspeed = 0
         self.hspeed = 0
         self.roam_unit = None
         self.last_move = 0
+
+    def rationalize_unit(self, unit):
+        new_pos = (int(unit.position[0]), int(unit.position[1]))
+        current_occupant = game.board.get_unit(new_pos)
+        if current_occupant and current_occupant != unit:
+            new_pos = target_system.get_nearest_open_tile(unit, new_pos)
+        unit.position = new_pos
+        game.arrive(unit)
 
     def can_talk(self):
         """
@@ -268,7 +298,8 @@ class FreeRoamState(MapState):
         units = []
         for unit in game.units:
             if unit.position and unit is not self.roam_unit and self.roam_unit and \
-                    utils.calculate_distance(self.roam_unit.position, unit.position) < 1:
+                    utils.calculate_distance(self.roam_unit.position, unit.position) < 1 and \
+                    (self.roam_unit.nid, unit.nid) in game.talk_options:
                 units.append(unit)
         units = list(sorted(units, key=lambda unit: utils.calculate_distance(self.roam_unit.position, unit.position)))
         if units:

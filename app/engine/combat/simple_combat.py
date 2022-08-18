@@ -450,7 +450,7 @@ class SimpleCombat():
                 exp = int(utils.clamp(exp, DB.constants.value('min_exp'), 100))
 
             if DB.constants.value('pairup') and self.main_item:
-                self.handle_paired_exp(self.attacker)
+                self.handle_paired_exp(self.attacker, combat_object)
 
             if (self.alerts and exp > 0) or exp + self.attacker.exp >= 100:
                 game.exp_instance.append((self.attacker, exp, combat_object, 'init'))
@@ -464,7 +464,7 @@ class SimpleCombat():
             exp = int(utils.clamp(exp, DB.constants.value('min_exp'), 100))
 
             if DB.constants.value('pairup') and self.def_item:
-                self.handle_paired_exp(self.defender)
+                self.handle_paired_exp(self.defender, combat_object)
 
             if (self.alerts and exp > 0) or exp + self.defender.exp >= 100:
                 game.exp_instance.append((self.defender, exp, combat_object, 'init'))
@@ -473,7 +473,7 @@ class SimpleCombat():
             elif not self.alerts and exp > 0:
                 action.do(action.GainExp(self.defender, exp))
 
-    def handle_paired_exp(self, leader_unit):
+    def handle_paired_exp(self, leader_unit, combat_object=None):
         partner = None
         if leader_unit.strike_partner:
             # Get half the exp you would normally get
@@ -488,7 +488,7 @@ class SimpleCombat():
             exp = int(utils.clamp(exp, 0, 100))
         if partner:
             if (self.alerts and exp > 0) or exp + partner.exp >= 100:
-                game.exp_instance.append((partner, exp, None, 'init'))
+                game.exp_instance.append((partner, exp, combat_object, 'init'))
                 game.state.change('exp')
                 game.ai.end_skip()
             elif not self.alerts and exp > 0:

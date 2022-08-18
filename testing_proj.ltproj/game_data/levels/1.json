@@ -3,6 +3,7 @@
         "nid": "1",
         "name": "Chapter 1",
         "tilemap": "Test",
+        "bg_tilemap": null,
         "party": "Eirika",
         "music": {
             "player_phase": null,

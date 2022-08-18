@@ -705,6 +705,18 @@ class AnimationCombat(BaseCombat, MockCombat):
             a_crit = 0
         a_stats = a_hit, a_mt, a_crit
 
+        if self.attacker.strike_partner:
+            attacker = self.attacker.strike_partner
+            ap_hit = combat_calcs.compute_hit(attacker, self.defender, attacker.get_weapon(), self.def_item, 'attack', self.state_machine.get_attack_info())
+            ap_mt = combat_calcs.compute_damage(attacker, self.defender, attacker.get_weapon(), self.def_item, 'attack', self.state_machine.get_attack_info(), assist=True)
+            if DB.constants.value('crit'):
+                ap_crit = combat_calcs.compute_crit(attacker, self.defender, attacker.get_weapon(), self.def_item, 'attack', self.state_machine.get_attack_info())
+            else:
+                ap_crit = 0
+            ap_stats = ap_hit, ap_mt, ap_crit
+        else:
+            ap_stats = 0, 0, 0 
+
         if self.def_item and combat_calcs.can_counterattack(self.attacker, self.main_item, self.defender, self.def_item):
             d_hit = combat_calcs.compute_hit(self.defender, self.attacker, self.def_item, self.main_item, 'defense', self.state_machine.get_defense_info())
             d_mt = combat_calcs.compute_damage(self.defender, self.attacker, self.def_item, self.main_item, 'defense', self.state_machine.get_defense_info())
@@ -713,15 +725,38 @@ class AnimationCombat(BaseCombat, MockCombat):
             else:
                 d_crit = 0
             d_stats = d_hit, d_mt, d_crit
+
+            if self.defender.strike_partner:
+                defender = self.defender.strike_partner
+                dp_hit = combat_calcs.compute_hit(defender, self.attacker, defender.get_weapon(), self.main_item, 'defense', self.state_machine.get_defense_info())
+                dp_mt = combat_calcs.compute_damage(defender, self.attacker, defender.get_weapon(), self.main_item, 'defense', self.state_machine.get_defense_info(), assist=True)
+                if DB.constants.value('crit'):
+                    dp_crit = combat_calcs.compute_crit(defender, self.attacker, defender.get_weapon(), self.main_item, 'defense', self.state_machine.get_defense_info())
+                else:
+                    dp_crit = 0
+                dp_stats = dp_hit, dp_mt, dp_crit
+            else:
+                dp_stats = 0, 0, 0
         else:
             d_stats = None
+            dp_stats = None
+
+        if self.get_from_playback('attacker_partner_phase'):
+            ta_stats = ap_stats
+        else:
+            ta_stats = a_stats
+
+        if self.get_from_playback('defender_partner_phase'):
+            td_stats = dp_stats
+        else:
+            td_stats = d_stats
 
         if self.attacker is self.right:
-            self.left_stats = d_stats
-            self.right_stats = a_stats
+            self.left_stats = td_stats
+            self.right_stats = ta_stats
         else:
-            self.left_stats = a_stats
-            self.right_stats = d_stats
+            self.left_stats = ta_stats
+            self.right_stats = td_stats
 
     def set_up_pre_proc_animation(self, mark_type):
         marks = self.get_from_full_playback(mark_type)

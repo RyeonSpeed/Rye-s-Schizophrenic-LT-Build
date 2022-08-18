@@ -1578,8 +1578,8 @@ class AutoLevel(Action):
     def __init__(self, unit, diff, growth_method=None):
         self.unit = unit
         self.diff = diff
-        self.old_stats = self.unit.stats
-        self.old_growth_points = self.unit.growth_points
+        self.old_stats = self.unit.stats.copy()
+        self.old_growth_points = self.unit.growth_points.copy()
         self.old_hp = self.unit.get_hp()
         self.old_mana = self.unit.get_mana()
         self.growth_method = growth_method

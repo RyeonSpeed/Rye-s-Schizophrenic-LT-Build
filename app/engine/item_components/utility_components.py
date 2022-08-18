@@ -51,7 +51,7 @@ class Heal(ItemComponent):
             playback.append(pb.HitAnim(name, target))
 
     def ai_priority(self, unit, item, target, move):
-        if skill_system.check_ally(unit, target):
+        if target and skill_system.check_ally(unit, target):
             max_hp = target.get_max_hp()
             missing_health = max_hp - target.get_hp()
             help_term = utils.clamp(missing_health / float(max_hp), 0, 1)

@@ -1272,7 +1272,7 @@ class BaseSoundRoomState(State):
         self.fluid = FluidScroll()
         self.bg = game.memory.get('base_bg')
 
-        self.music_names = list(RESOURCES.music.keys())
+        self.music_names = [title for title in RESOURCES.music.keys() if not title.startswith('_')]
 
         layout = (6, 4)
         topleft = (80, 48)

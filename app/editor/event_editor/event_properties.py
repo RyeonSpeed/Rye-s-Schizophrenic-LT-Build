@@ -64,6 +64,7 @@ class Highlighter(QSyntaxHighlighter):
 
         function_head_format = QTextCharFormat()
         function_head_format.setForeground(self.func_color)
+        function_head_format.setFontWeight(QFont.Bold)
         # First part of line with semicolon
         self.function_head_rule1 = Rule(
             QRegularExpression("^(.*?);"), function_head_format)

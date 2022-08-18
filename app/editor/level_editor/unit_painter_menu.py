@@ -13,13 +13,15 @@ from app.editor import timer
 
 from app.extensions.custom_gui import PropertyBox, ComboBox, Dialog, RightClickListView
 from app.editor.base_database_gui import DragDropCollectionModel
-from app.editor.custom_widgets import UnitBox, ClassBox, FactionBox, AIBox, ObjBox
+from app.editor.custom_widgets import UnitBox, ClassBox, FactionBox, AIBox, ObjBox, RoamAIBox
 from app.editor.class_editor import class_model
 from app.editor.item_editor import item_model
 from app.editor.unit_editor import unit_tab
 from app.editor.faction_editor import faction_model
 from app.editor.stat_widget import StatAverageDialog, GenericStatAveragesModel
 from app.editor.item_list_widget import ItemListWidget
+from app.editor.event_editor.event_inspector import EventInspectorEngine
+from app.events.event_commands import ChangeRoaming
 
 
 class UnitPainterMenu(QWidget):
@@ -155,6 +157,7 @@ class UnitPainterMenu(QWidget):
             old_unit_nid = unit.nid
             old_unit_team = unit.team
             old_unit_ai = unit.ai
+            old_unit_roam_ai = unit.roam_ai
             old_unit_ai_group = unit.ai_group
             edited_unit, ok = LoadUnitDialog.get_unit(self, unit)
             if ok:
@@ -164,6 +167,7 @@ class UnitPainterMenu(QWidget):
                 unit.prefab = DB.units.get(unit.nid)
                 unit.team = old_unit_team
                 unit.ai = old_unit_ai
+                unit.roam_ai = old_unit_roam_ai
                 unit.ai_group = old_unit_ai_group
 
 
@@ -344,6 +348,8 @@ class LoadUnitDialog(Dialog):
         self.window = parent
         self.view = None
 
+        self.event_inspector = EventInspectorEngine(DB.events)
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -382,6 +388,16 @@ class LoadUnitDialog(Dialog):
 
         ai_layout = QHBoxLayout()
         ai_layout.addWidget(self.ai_box)
+
+        self.roam_ai_box = RoamAIBox(self)
+        self.roam_ai_box.edit.setValue(self.current.roam_ai)
+        self.roam_ai_box.edit.activated.connect(self.roam_ai_changed)
+        self.roam_ai_box.hide()
+
+        if self.event_inspector.find_all_calls_of_command(ChangeRoaming(), self.window.current_level.nid) or self.window.current_level.roam:
+            self.roam_ai_box.show()
+            ai_layout.addWidget(self.roam_ai_box)
+
         ai_layout.addWidget(self.ai_group_box)
         layout.addLayout(ai_layout)
 
@@ -424,6 +440,9 @@ class LoadUnitDialog(Dialog):
         text = partners[idx].nid
         self.current.starting_traveler = text
 
+    def roam_ai_changed(self, val):
+        self.current.roam_ai = self.roam_ai_box.edit.currentText()
+
     def access_units(self):
         unit, ok = unit_tab.get(self.current.nid)
         if ok:
@@ -433,7 +452,7 @@ class LoadUnitDialog(Dialog):
         old_nid = self.current.nid
         self.current.nid = nid
         self.current.prefab = DB.units.get(nid)
-        
+
         if not self.is_new_unit:
             # Swap level units
             self.window.current_level.units.update_nid(self.current, self.current.nid)
@@ -467,6 +486,8 @@ class GenericUnitDialog(Dialog):
         super().__init__(parent)
         self.setWindowTitle("Create Generic Unit")
         self.window = parent
+
+        self.event_inspector = EventInspectorEngine(DB.events)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -537,6 +558,15 @@ class GenericUnitDialog(Dialog):
 
         ai_layout = QHBoxLayout()
         ai_layout.addWidget(self.ai_box)
+
+        self.roam_ai_box = RoamAIBox(self)
+        self.roam_ai_box.edit.activated.connect(self.roam_ai_changed)
+        self.roam_ai_box.hide()
+
+        if self.event_inspector.find_all_calls_of_command(ChangeRoaming(), self.window.current_level.nid) or self.window.current_level.roam:
+            self.roam_ai_box.show()
+            ai_layout.addWidget(self.roam_ai_box)
+
         ai_layout.addWidget(self.ai_group_box)
         layout.addLayout(ai_layout)
 
@@ -620,6 +650,9 @@ class GenericUnitDialog(Dialog):
     def ai_changed(self, val):
         self.current.ai = self.ai_box.edit.currentText()
 
+    def roam_ai_changed(self, val):
+        self.current.roam_ai = self.roam_ai_box.edit.currentText()
+
     def ai_group_changed(self, text):
         self.current.ai_group = text
 
@@ -682,6 +715,7 @@ class GenericUnitDialog(Dialog):
             self.variant_box.edit.clear()
         self.faction_box.edit.setValue(current.faction)
         self.ai_box.edit.setValue(current.ai)
+        self.roam_ai_box.edit.setValue(current.roam_ai)
         if current.ai_group:
             self.ai_group_box.edit.setText(current.ai_group)
         else:

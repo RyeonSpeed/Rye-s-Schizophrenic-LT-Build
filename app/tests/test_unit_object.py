@@ -69,6 +69,7 @@ class UnitObjectUnitTests(unittest.TestCase):
                     'action_state': (False, False, False, False, False, False, False, False),
                     'affinity': 'Light',
                     'ai': 'None',
+                    'roam_ai': 'None',
                     'ai_group': None,
                     'ai_group_active': False,
                     'built_guard': False,
@@ -142,6 +143,7 @@ class UnitObjectUnitTests(unittest.TestCase):
         self.assertEqual(unit.generic, False)
         self.assertEqual(unit.persistent, True)
         self.assertEqual(unit.ai, 'None')
+        self.assertEqual(unit.roam_ai, 'None')
         self.assertEqual(unit.ai_group, None)
         self.assertEqual(unit.faction, None)
         self.assertEqual(unit.team, "player")

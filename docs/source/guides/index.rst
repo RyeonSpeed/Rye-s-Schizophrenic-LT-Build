@@ -14,6 +14,7 @@ These pages will contain various guides.
     Unit-Groups
     Shop-Portraits
     Title-Screen
+    Roaming-AI
 
 .. toctree::
     :maxdepth: 2

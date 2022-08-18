@@ -30,7 +30,7 @@ class PermanentStatChange(ItemComponent):
         # Ignore's splash
         defender = game.board.get_unit(def_pos)
         if not defender:
-            return False
+            return True
         return self._target_restrict(defender)
 
     def simple_target_restrict(self, unit, item):
