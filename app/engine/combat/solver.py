@@ -67,7 +67,8 @@ class AttackerState(SolverState):
                     solver.num_subattacks = 0
                     return 'attacker_partner'
                 if solver.item_has_uses() and \
-                        solver.num_subattacks < self.num_multiattacks:
+                        solver.num_subattacks < self.num_multiattacks and \
+                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
                     return 'attacker'
                 elif solver.allow_counterattack() and \
                         solver.num_defends < defender_outspeed:
@@ -157,7 +158,8 @@ class AttackerPartnerState(SolverState):
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_outspeed and \
+                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
                     solver.num_subattacks = 0
                     return 'attacker'
                 # When you double but your ally doesn't and also the opponent doesn't counter you.
@@ -226,7 +228,8 @@ class DefenderState(SolverState):
                         solver.num_subdefends < self.num_multiattacks:
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_outspeed and \
+                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.attacker.strike_partner and \
@@ -284,7 +287,8 @@ class DefenderPartnerState(SolverState):
                         solver.num_subdefends < self.num_multiattacks:
                     return 'defender_partner'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_outspeed and \
+                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.attacker.strike_partner and \
