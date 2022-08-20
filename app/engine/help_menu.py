@@ -232,11 +232,20 @@ class ItemHelpDialog(HelpDialog):
         rng = item_funcs.get_range_string(self.unit, self.item)
 
         self.vals = [weapon_rank, rng, weight, might, hit, crit]
-
+        
+        self.num_lines = self.find_num_lines(self.item.desc)
         if self.item.desc:
-            self.build_lines(self.item.desc, 148)
+            self.build_lines(self.item.desc)
         else:
             self.lines = []
+        
+        if len(self.lines) > 0:
+            greater_line_len = max([rendered_text_width([self.font], [line]) for line in self.lines])
+            self.width = greater_line_len + 24
+            print(self.width)
+        else:
+            self.width = 160
+        self.width = max([160, self.width])
 
         self.num_present = len([v for v in self.vals if v is not None])
 
@@ -244,23 +253,9 @@ class ItemHelpDialog(HelpDialog):
             size_y = 48 + font_height(self.font) * len(self.lines)
         else:
             size_y = 32 + font_height(self.font) * len(self.lines)
-        self.help_surf = base_surf.create_base_surf(160, size_y, 'help_bg_base')
-        self.h_surf = engine.create_surface((160, size_y + 3), transparent=True)
-
-    def build_lines(self, desc, width):
-        if not desc:
-            desc = ''
-        desc = text_funcs.translate(desc)
-        # Hard set num lines if desc is very short
-        if '\n' in desc:
-            lines = desc.splitlines()
-            self.lines = []
-            for line in lines:
-                num = self.find_num_lines(line)
-                line = text_funcs.line_wrap(self.font, line, width)
-                self.lines.extend(line)
-        else:
-            self.lines = text_funcs.line_wrap(self.font, desc, width)
+        print(self.width)
+        self.help_surf = base_surf.create_base_surf(self.width, size_y, 'help_bg_base')
+        self.h_surf = engine.create_surface((self.width, size_y + 3), transparent=True)
 
     def draw(self, surf, pos, right=False):
         time = engine.get_time()

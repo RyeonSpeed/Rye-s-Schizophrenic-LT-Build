@@ -75,7 +75,8 @@ class AttackerState(SolverState):
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_outspeed and \
+                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
                     solver.num_subattacks = 0
                     return 'attacker'
                 return None
