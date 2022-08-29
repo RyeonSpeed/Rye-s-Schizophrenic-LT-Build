@@ -242,12 +242,12 @@ class UnitObject(Prefab):
                 unit_funcs.apply_stat_changes(self, bonus)
 
             if self.generic:
-                unit_funcs.auto_level(self, num_levels)
+                unit_funcs.auto_level(self, 1, num_levels)
             # Existing units would have leveled up different with bonus growths
             elif DB.constants.value('backpropagate_difficulty_growths'):
                 difficulty_growth_bonus = mode.get_growth_bonus(self)
                 if difficulty_growth_bonus:
-                    unit_funcs.difficulty_auto_level(self, num_levels)
+                    unit_funcs.difficulty_auto_level(self, 1, num_levels)
 
             difficulty_autolevels = mode.get_difficulty_autolevels(self)
             # Handle the ones that you can change in events
@@ -259,7 +259,7 @@ class UnitObject(Prefab):
                 difficulty_autolevels += current_mode.boss_truelevels
 
             if difficulty_autolevels > 0:
-                unit_funcs.auto_level(self, difficulty_autolevels)
+                unit_funcs.auto_level(self, 1, difficulty_autolevels)
 
             if self.team.startswith('enemy'):
                 self.level += current_mode.enemy_truelevels
@@ -320,8 +320,6 @@ class UnitObject(Prefab):
         return equations.parser.get_gauge_inc(self)
 
     def get_field(self, key: str, default:str = None) -> str:
-        if not getattr(self, '_fields'):
-            return default
         if key in self._fields:
             return self._fields[key]
         my_klass = DB.classes.get(self.klass, None)

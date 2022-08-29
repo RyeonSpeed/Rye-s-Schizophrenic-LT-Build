@@ -54,8 +54,8 @@ class Djikstra():
         for i in range(-1, 2):
           for j in range(-1, 2):
             nx, ny = (x + i, y + j)
-            if self.bounds[0] <= nx <= self.bounds[1] and self.bounds[2] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
-                cells.append((nx, ny))
+            if self.bounds[0] <= nx <= self.bounds[2] and self.bounds[1] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
+                cells.append(self.get_cell(nx, ny))
         return cells
 
     def update_cell(self, adj, cell):
@@ -188,38 +188,16 @@ class AStar():
         return cells
 
     def get_surrounding_cells(self, cell):
+        x, y = cell.x, cell.y
         cells = []
-        top_left = cell.x - 1, cell.y - 1
-        top_right = cell.x + 1, cell.y - 1
-        bottom_left = cell.x - 1, cell.y + 1
-        bottom_right = cell.x + 1, cell.y + 1
-        right = cell.x + 1, cell.y
-        left = cell.x - 1, cell.y
-        top = cell.x, cell.y - 1
-        bottom = cell.x, cell.y + 1
-
-        if cell.x > self.bounds[0]:
-            cells.append(self.get_cell(left[0], left[1]))
-
-            if cell.y > self.bounds[1]:
-                cells.append(self.get_cell(top[0], top[1]))
-                self.get_single_diagonal(top, left, top_left, cells)
-
-            if cell.y < self.bounds[3]:
-                cells.append(self.get_cell(bottom[0], bottom[1]))
-                self.get_single_diagonal(bottom, left, bottom_left, cells)
-
-        if cell.x < self.bounds[2]:
-            cells.append(self.get_cell(right[0], right[1]))
-
-            if cell.y > self.bounds[1]:
-                cells.append(self.get_cell(top[0], top[1]))
-                self.get_single_diagonal(top, right, top_right, cells)
-
-            if cell.y < self.bounds[3]:
-                cells.append(self.get_cell(bottom[0], bottom[1]))
-                self.get_single_diagonal(bottom, right, bottom_right, cells)
-
+        for i in range(-1, 2):
+          for j in range(-1, 2):
+            nx, ny = (x + i, y + j)
+            if self.bounds[0] <= nx <= self.bounds[2] and self.bounds[1] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
+                if (j != 0 and i != 0):
+                    self.get_single_diagonal((x, ny), (nx, y), (nx, ny), cells)
+                else:
+                    cells.append(self.get_cell(nx, ny))
         return cells
 
     def get_single_diagonal(self, vadj: tuple, hadj: tuple, diagonal: tuple, cells):

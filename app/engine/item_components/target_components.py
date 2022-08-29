@@ -179,6 +179,17 @@ class EmptyTileTargetRestrict(ItemComponent):
             return True
         return False
 
+class TraversableTargetRestrict(ItemComponent):
+    nid = 'traversable_tile_target_restrict'
+    desc = 'Item targets tiles that are traversable by the unit. Useful for movement (warp) and summon skills, for example'
+    tag = ItemTags.TARGET
+
+    def target_restrict(self, unit, item, def_pos, splash) -> bool:
+        if unit and def_pos:
+            if game.movement.check_traversable(unit, def_pos):
+                return True
+        return False
+
 class MinimumRange(ItemComponent):
     nid = 'min_range'
     desc = "Set the minimum_range of the item to an integer"

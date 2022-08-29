@@ -33,6 +33,15 @@ class AuraTarget(SkillComponent):
     expose = Type.String
     value = 'unit'
 
+class AuraShow(SkillComponent):
+    nid = 'show_aura'
+    desc = 'Aura will always show on the map'
+    tag = SkillTags.STATUS
+    paired_with = ('aura', 'aura_range', 'aura_target')
+
+    expose = Type.Color3
+    value = (128, 0, 0)
+
 class PairUpBonus(SkillComponent):
     nid = 'pairup_bonus'
     desc = "Grants a child skill to lead units while in guard stance."

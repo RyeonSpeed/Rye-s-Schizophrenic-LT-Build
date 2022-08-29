@@ -1402,12 +1402,11 @@ def add_item_to_multiitem(self: Event, global_unit_or_convoy, multi_item, child_
         component.item = item
     item_system.init(subitem)
     self.game.register_item(subitem)
-    if global_unit_or_convoy.lower() == 'convoy':
-        owner_nid = None
-    else:
+    owner_nid = None
+    if unit:
         owner_nid = unit.nid
-        action.do(action.AddItemToMultiItem(owner_nid, item, subitem))
-    if 'equip' in flags:
+    action.do(action.AddItemToMultiItem(owner_nid, item, subitem))
+    if 'equip' in flags and owner_nid:
         action.do(action.EquipItem(unit, subitem))
 
 def remove_item_from_multiitem(self: Event, global_unit_or_convoy, multi_item, child_item=None, flags=None):
@@ -1538,6 +1537,8 @@ def give_exp(self: Event, global_unit, experience, flags=None):
                 autolevel_to(self, global_unit, unit.level - 1)
             else:
                 action.do(action.SetExp(unit, 0))
+        else:
+            action.do(action.SetExp(unit, old_exp + exp))
     else:
         self.game.exp_instance.append((unit, exp, None, 'init'))
         self.game.state.change('exp')

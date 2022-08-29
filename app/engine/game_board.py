@@ -1,7 +1,10 @@
-from app.data.database import DB
+from typing import Dict
 
-from app.engine import target_system, line_of_sight
+from app.data.database import DB
+from app.engine import line_of_sight, target_system
 from app.engine.game_state import game
+from app.utilities.typing import NID
+
 
 class Node():
     __slots__ = ['reachable', 'cost', 'x', 'y', 'parent', 'g', 'h', 'f', 'true_f']
@@ -73,21 +76,28 @@ class GameBoard(object):
 
     def reset_grid(self, tilemap):
         # For each movement type
+        mtype_grid = [[None for j in range(self.height)] for i in range(self.width)]
+        for x in range(self.width):
+            for y in range(self.height):
+                if DB.terrain:
+                    terrain_type = DB.terrain.get(tilemap.get_terrain((x, y)))
+                    if not terrain_type:
+                        terrain_type = DB.terrain[0]
+                    mtype_grid[x][y] = terrain_type.mtype
+                else:
+                    mtype_grid[x][y] = None
         for idx, mode in enumerate(DB.mcost.unit_types):
-            self.mcost_grids[mode] = self.init_grid(mode, tilemap)
+            self.mcost_grids[mode] = self.init_grid(mode, tilemap, mtype_grid)
         self.opacity_grid = self.init_opacity_grid(tilemap)
 
     # For movement
-    def init_grid(self, movement_group, tilemap):
+    def init_grid(self, movement_group, tilemap, mtype_grid: Dict[int, Dict[int, int]]):
         cells = []
         for x in range(self.width):
             for y in range(self.height):
-                terrain_nid = tilemap.get_terrain((x, y))
-                if DB.terrain:
-                    terrain = DB.terrain.get(terrain_nid)
-                    if not terrain:
-                        terrain = DB.terrain[0]
-                    tile_cost = DB.mcost.get_mcost(movement_group, terrain.mtype)
+                mtype = mtype_grid[x][y]
+                if mtype:
+                    tile_cost = DB.mcost.get_mcost(movement_group, mtype)
                 else:
                     tile_cost = 1
                 cells.append(Node(x, y, tile_cost < 99, tile_cost))

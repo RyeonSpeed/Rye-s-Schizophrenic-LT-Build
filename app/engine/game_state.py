@@ -765,6 +765,7 @@ class GameState():
                 for skill in unit.skills:
                     if skill.aura:
                         aura_funcs.release_aura(unit, skill, self)
+                self.boundary.unregister_unit_auras(unit)
             # Regions
             for region in game.level.regions:
                 if region.region_type == RegionType.STATUS and region.contains(unit.position):
@@ -828,6 +829,7 @@ class GameState():
                 for skill in unit.skills:
                     if skill.aura:
                         aura_funcs.propagate_aura(unit, skill, self)
+                self.boundary.register_unit_auras(unit)
             # Boundary
             if not test:
                 self.boundary.arrive(unit)

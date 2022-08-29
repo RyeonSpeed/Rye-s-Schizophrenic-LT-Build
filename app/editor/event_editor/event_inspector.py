@@ -42,5 +42,5 @@ class EventInspectorEngine():
             if level_nid == 'all' or event.level_nid == level_nid:
                 for idx, command in enumerate(event.commands):
                     if command.nid == qcommand.nid:
-                        all_commands[(event.level_nid, idx)] = command
+                        all_commands[(event.nid, idx)] = command
         return all_commands

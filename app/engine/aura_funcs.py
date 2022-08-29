@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+from typing import List
+from app.utilities.typing import Color3, NID
+from app.engine.objects.unit import UnitObject
 from app.data.database import DB
 
 from app.engine import action, skill_system, target_system, line_of_sight
@@ -5,6 +9,27 @@ from app.engine import action, skill_system, target_system, line_of_sight
 import logging
 
 from app.engine import item_funcs
+
+@dataclass
+class AuraInfo():
+    parent_skill: NID
+    aura_skill_nid: NID
+    aura_range: int
+    aura_target: str
+    show_aura: bool = False
+    aura_color: Color3 = None
+
+def get_all_aura_info(unit: UnitObject) -> List[AuraInfo]:
+    all_aura_info: List[AuraInfo] = []
+    for skill in unit.skills:
+        if skill.aura:
+            aura_info = AuraInfo(skill.nid, skill.aura.value,
+                                 skill.aura_range.value, skill.aura_target.value)
+            if skill.show_aura:
+                aura_info.show_aura = True
+                aura_info.aura_color = skill.show_aura.value
+            all_aura_info.append(aura_info)
+    return all_aura_info
 
 def pull_auras(unit, game, test=False):
     for aura_data in game.board.get_auras(unit.position):

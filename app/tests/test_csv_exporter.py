@@ -5,7 +5,7 @@ from app.data.items import ItemCatalog
 from app.data.klass import ClassCatalog
 from app.data.units import UnitCatalog
 
-import app.editor.lib.csv.csv_exporter as csv
+import app.editor.lib.csv.csv_data_exporter as csv
 
 class CsvExporterTests(unittest.TestCase):
     def setUp(self):

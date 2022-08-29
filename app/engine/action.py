@@ -1585,7 +1585,7 @@ class AutoLevel(Action):
         self.growth_method = growth_method
 
     def do(self):
-        unit_funcs.auto_level(self.unit, self.diff, self.growth_method)
+        unit_funcs.auto_level(self.unit, self.unit.get_internal_level(), self.diff, self.growth_method)
 
     def reverse(self):
         self.unit.stats = self.old_stats
@@ -2801,6 +2801,7 @@ class AddSkill(Action):
 
         if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:
             aura_funcs.propagate_aura(self.unit, self.skill_obj, game)
+            game.boundary.register_unit_auras(self.unit)
 
         # Handle affects movement
         self.reset_action.execute()
@@ -2810,6 +2811,7 @@ class AddSkill(Action):
         self.reset_action.reverse()
         if not self.skill_obj:
             return
+        game.boundary.unregister_unit_auras(self.unit)
         if self.skill_obj in self.unit.skills:
             self.unit.skills.remove(self.skill_obj)
             skill_system.on_remove(self.unit, self.skill_obj)

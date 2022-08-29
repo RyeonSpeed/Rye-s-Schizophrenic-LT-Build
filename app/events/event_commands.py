@@ -2577,7 +2577,7 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
         # we do NOT want to use this with evals, hence the '{' and '}' stoppage
         if '(' in arg and ')' in arg and '{' not in arg and '}' not in arg and \
                 ('FLAG' in arg or (cmd_keyword and cmd_keyword not in evaluables and 'list' not in cmd_keyword.lower())):
-            return arg[arg.find("(") + 1 : arg.find(")")]
+            return arg[arg.find("(") + 1 : arg.rfind(")")]
         return arg
 
     def _parse_command(command: EventCommand, arguments: List[str]) -> Tuple:

@@ -1,6 +1,6 @@
 import os
 import xml.etree.ElementTree as ET
-from app.editor.lib.csv.csv_exporter import update_db_with_unit_csv
+from app.editor.lib.csv.csv_data_exporter import update_db_with_unit_csv
 
 from app.utilities import str_utils
 from app.resources.resources import RESOURCES

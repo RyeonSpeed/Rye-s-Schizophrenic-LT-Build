@@ -454,7 +454,7 @@ class Steal(ItemComponent):
 
     def ai_priority(self, unit, item, target, move):
         if target:
-            steal_term = 0.75
+            steal_term = 0.075
             enemy_positions = utils.average_pos({other.position for other in game.units if other.position and skill_system.check_enemy(unit, other)})
             distance_term = utils.calculate_distance(move, enemy_positions)
             return steal_term + 0.01 * distance_term

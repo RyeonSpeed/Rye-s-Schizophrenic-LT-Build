@@ -202,6 +202,8 @@ class MainEditor(QMainWindow):
 
         self.dump_csv = QAction(
             "Dump CSV data", self, triggered=lambda: self.project_save_load_handler.dump_csv(DB))
+        self.dump_script = QAction(
+            "Dump script", self, triggered=lambda: self.project_save_load_handler.dump_script(DB))
 
         self.preferences_act = QAction(
             "&Preferences...", self, triggered=self.edit_preferences)
@@ -288,6 +290,7 @@ class MainEditor(QMainWindow):
         file_menu.addAction(self.save_act)
         file_menu.addAction(self.save_as_act)
         file_menu.addAction(self.dump_csv)
+        file_menu.addAction(self.dump_script)
         file_menu.addSeparator()
         file_menu.addAction(self.quit_act)
 
