@@ -202,6 +202,30 @@ class FreeState(MapState):
                 game.boundary.recalculate_unit(unit)
         phase.fade_in_phase_music()
 
+        # Auto-end turn
+        autoend_turn = True
+        if not cf.SETTINGS['autoend_turn']:
+            autoend_turn = False
+        if not any(unit.position for unit in game.units):
+            autoend_turn = False
+        for unit in game.get_player_units():
+            if not skill_system.can_select(unit):
+                continue
+            if not unit.finished:
+                autoend_turn = False
+                break
+        if DB.constants.value('initiative') and game.initiative.get_current_unit().finished:
+            autoend_turn = True
+
+        if autoend_turn:
+            # End the turn
+            logging.info('Autoending turn.')
+            game.state.change('turn_change')
+            game.state.change('status_endstep')
+            game.state.change('ai')
+            game.ui_view.remove_unit_display()
+            return 'repeat'
+
     def take_input(self, event):
         game.cursor.set_speed_state(get_input_manager().is_pressed('BACK'))
         game.cursor.take_input()
@@ -247,24 +271,6 @@ class FreeState(MapState):
     def update(self):
         super().update()
         game.highlight.handle_hover()
-
-        # Auto-end turn
-        autoend_turn = False
-        # Check to see if all ally units have completed their turns and no unit is active and the game is in the free state.
-        if cf.SETTINGS['autoend_turn'] and any(unit.position for unit in game.units) and \
-                (all(unit.finished for unit in game.units if unit.position and unit.team == 'player')):
-            autoend_turn = True
-        if DB.constants.value('initiative') and game.initiative.get_current_unit().finished:
-            autoend_turn = True
-
-        if autoend_turn:
-            # End the turn
-            logging.info('Autoending turn.')
-            game.state.change('turn_change')
-            game.state.change('status_endstep')
-            game.state.change('ai')
-            game.ui_view.remove_unit_display()
-            return 'repeat'
 
     def end(self):
         game.cursor.set_speed_state(False)

@@ -28,6 +28,14 @@ class CannotUseMagicItems(SkillComponent):
 
     def available(self, unit, item) -> bool:
         return not item_funcs.is_magic(unit, item)
+        
+class CannotTrade(SkillComponent):
+    nid = 'cannot_trade'
+    desc = "Unit cannot select Trade or be traded with"
+    tag = SkillTags.BASE
+    
+    def no_trade(self, unit) -> bool:
+        return True
 
 class AdditionalAccessories(SkillComponent):
     nid = 'additional_accessories'

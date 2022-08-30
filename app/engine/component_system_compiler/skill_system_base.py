@@ -25,7 +25,11 @@ class Defaults():
 
     @staticmethod
     def can_trade(unit1, unit2) -> bool:
-        return unit2.position and unit1.team == unit2.team and check_ally(unit1, unit2)
+        return unit2.position and unit1.team == unit2.team and check_ally(unit, unit2) and not no_trade(unit1) and not no_trade(unit2)
+        
+    @staticmethod
+    def no_trade(unit) -> bool:
+        return False
 
     @staticmethod
     def num_items_offset(unit) -> int:

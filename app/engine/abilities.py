@@ -298,11 +298,12 @@ class TradeAbility(Ability):
         if not DB.constants.value('trade'):
             return set()
 
-        adj_allies = target_system.get_adj_allies(unit)
-        adj = set([u.position for u in adj_allies if unit.team == u.team])
-        if unit.traveler:
+        adj_units = target_system.get_adj_units(unit)
+        adj = set([u.position for u in adj_units if skill_system.can_trade(unit, u)])
+        if unit.traveler and skill_system.can_trade(unit, unit.traveler):
             adj.add(unit.position)
         return adj
+
 
     @staticmethod
     def do(unit):
