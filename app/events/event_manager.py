@@ -25,7 +25,8 @@ class EventManager():
                 event_source_nid = None
         for event_prefab in DB.events.get(trigger.nid, event_source_nid):
             try:
-                result = evaluate.evaluate(event_prefab.condition, local_args=trigger.to_args())
+                args = trigger.to_args()
+                result = evaluate.evaluate(event_prefab.condition, unit1=args.get('unit1', None), unit2=args.get('unit2', None), position=args.get('position', None), local_args=args)
                 if event_prefab.nid not in game.already_triggered_events and result:
                     triggered_events.append(event_prefab)
             except:
