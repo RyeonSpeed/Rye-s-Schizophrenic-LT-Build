@@ -21,6 +21,7 @@ from app.engine import menus, base_surf, background, text_funcs, \
     engine
 from app.engine.fluid_scroll import FluidScroll
 import app.engine.config as cf
+from app.events import triggers
 
 
 class BaseMainState(State):
@@ -66,7 +67,7 @@ class BaseMainState(State):
         # initialize custom options and events
         events = [None for option in options]
         additional_options = game.game_vars.get('_base_additional_options')
-        additional_ignore = game.game_vars.get('_base_options_enabled')
+        additional_ignore = game.game_vars.get('_base_options_disabled')
         additional_events = game.game_vars.get('_base_options_events')
 
         options = options + additional_options if additional_options else options
@@ -104,7 +105,7 @@ class BaseMainState(State):
         self.menu = menus.Choice(None, options, topleft=topleft)
         self.menu.set_ignore(ignore)
 
-        game.events.trigger('on_base_start')
+        game.events.trigger(triggers.OnBaseStart())
 
         game.state.change('transition_in')
         return 'repeat'
@@ -287,7 +288,7 @@ class BaseConvosChildState(State):
                 get_sound_thread().play_sfx('Select 1')
                 # Auto-ignore
                 game.base_convos[selection] = True
-                game.events.trigger('on_base_convo', selection, local_args={'base_convo': selection})
+                game.events.trigger(triggers.OnBaseConvo(selection))
 
     def update(self):
         if self.menu:
@@ -352,10 +353,10 @@ class SupportDisplay():
             bonus = prefab.requirements[self.rank_idx]
             rank = bonus.support_rank
             if rank in pair.unlocked_ranks:
-                game.events.trigger('on_support', game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), local_args={'support_rank_nid': rank})
+                game.events.trigger(triggers.OnSupport(game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), rank))
                 return True
             elif pair.can_support() and rank in pair.locked_ranks:
-                game.events.trigger('on_support', game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), local_args={'support_rank_nid': rank})
+                game.events.trigger(triggers.OnSupport(game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), rank))
                 action.do(action.UnlockSupportRank(pair.nid, rank))
                 return True
         return False

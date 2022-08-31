@@ -1,11 +1,13 @@
-from app.utilities import utils
-from app.events.regions import RegionType
-
-from app.engine.game_state import game
-from app.engine import engine, evaluate, target_system, ai_controller, skill_system, equations, action, ai_state
-from app.data.database import DB
-
 import logging
+
+from app.data.database import DB
+from app.engine import (action, ai_controller, ai_state, engine, equations,
+                        evaluate, skill_system, target_system)
+from app.engine.game_state import game
+from app.events import triggers
+from app.events.regions import RegionType
+from app.utilities import utils
+
 
 class FreeRoamAIHandler():
     """Handles and selects all valid units with AI in free roam
@@ -220,9 +222,9 @@ class FreeRoamAIController(ai_controller.AIController):
                 except:
                     logging.warning("Could not evaluate region conditional %s" % r.condition)
         if region:
-            did_trigger = game.events.trigger(region.sub_nid, self.state.unit, position=rat_pos, local_args={'region': region})
+            did_trigger = game.events.trigger(triggers.RegionTrigger(region.sub_nid, self.state.unit, rat_pos, region))
             if not did_trigger:  # Just in case we need the generic one
-                did_trigger = game.events.trigger('on_region_interact', self.state.unit, position=rat_pos, local_args={'region': region})
+                did_trigger = game.events.trigger(triggers.OnRegionInteract(self.state.unit, rat_pos, region))
             if did_trigger and region.only_once:
                 action.do(action.RemoveRegion(region))
             if did_trigger:

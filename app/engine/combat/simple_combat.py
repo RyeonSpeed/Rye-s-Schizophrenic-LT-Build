@@ -1,13 +1,13 @@
-from app.utilities import utils
 from app.data.database import DB
-
+from app.engine import (action, banner, item_funcs, item_system, skill_system,
+                        static_random, supports)
 from app.engine.combat.solver import CombatPhaseSolver
-
-from app.engine import action, skill_system, banner, item_system, item_funcs, supports, static_random
 from app.engine.game_state import game
-
-from app.engine.objects.unit import UnitObject
 from app.engine.objects.item import ItemObject
+from app.engine.objects.unit import UnitObject
+from app.events import triggers
+from app.utilities import utils
+
 
 class SimpleCombat():
     ai_combat: bool = False
@@ -126,7 +126,7 @@ class SimpleCombat():
         self.turnwheel_death_messages(all_units)
 
         self.handle_state_stack()
-        game.events.trigger('combat_end', self.attacker, self.defender, self.attacker.position, {'item': self.main_item})
+        game.events.trigger(triggers.CombatEnd(self.attacker, self.defender, self.attacker.position, self.main_item))
         self.handle_item_gain(all_units)
 
         pairs = self.handle_supports(all_units)
@@ -170,7 +170,7 @@ class SimpleCombat():
 
     def start_event(self, full_animation=False):
         # region is set to True or False depending on whether we are in a battle anim
-        game.events.trigger('combat_start', self.attacker, self.defender, self.attacker.position, {'item': self.main_item, 'is_animation_combat': full_animation})
+        game.events.trigger(triggers.CombatStart(self.attacker, self.defender, self.attacker.position, self.main_item, full_animation))
 
     def start_combat(self):
         self.initial_random_state = static_random.get_combat_random_state()
@@ -630,7 +630,7 @@ class SimpleCombat():
                 killer = game.records.get_killer(unit.nid, game.level.nid if game.level else None)
                 if killer:
                     killer = game.get_unit(killer)
-                game.events.trigger('unit_death', unit, killer, unit.position)
+                game.events.trigger(triggers.UnitDeath(unit, killer, unit.position))
                 skill_system.on_death(unit)
 
         if self.arena_combat:

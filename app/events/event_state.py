@@ -1,12 +1,13 @@
-from app.data.database import DB
+import logging
 
+import app.engine.config as cf
+from app.data.database import DB
+from app.engine.dialog_log import DialogLogState
+from app.engine.game_state import game
 from app.engine.sound import get_sound_thread
 from app.engine.state import State
-from app.engine.dialog_log import DialogLogState
-import app.engine.config as cf
-from app.engine.game_state import game
+from app.events import triggers
 
-import logging
 
 class EventState(State):
     name = 'event'
@@ -114,7 +115,7 @@ class EventState(State):
             if game.level_vars.get('_level_end_triggered'):
                 self.level_end()
             else:
-                did_trigger = game.events.trigger('level_end')
+                did_trigger = game.events.trigger(triggers.LevelEnd())
                 if did_trigger:
                     game.level_vars['_level_end_triggered'] = True
                 else:

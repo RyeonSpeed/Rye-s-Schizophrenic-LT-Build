@@ -1,22 +1,23 @@
 from typing import List, Tuple
-from app.constants import TILEWIDTH, TILEHEIGHT, WINWIDTH, WINHEIGHT
 
+from app.constants import TILEHEIGHT, TILEWIDTH, WINHEIGHT, WINWIDTH
 # from app.resources.resources import RESOURCES
 from app.data.database import DB
-
-from app.engine.sprites import SPRITES
-from app.engine.sound import get_sound_thread
-from app.engine.fonts import FONT
-from app.engine.state import State, MapState
-
-from app.engine.background import SpriteBackground
+from app.engine import action, background, banner, base_surf
 from app.engine import config as cf
-from app.engine.game_state import game
-from app.engine import menus, banner, action, base_surf, background, \
-    info_menu, engine, equations, item_funcs, text_funcs, image_mods, \
-    convoy_funcs, item_system, gui, trade
+from app.engine import (convoy_funcs, engine, equations, gui, image_mods,
+                        info_menu, item_funcs, item_system, menus, text_funcs,
+                        trade)
+from app.engine.background import SpriteBackground
 from app.engine.combat import interaction
 from app.engine.fluid_scroll import FluidScroll
+from app.engine.fonts import FONT
+from app.engine.game_state import game
+from app.engine.sound import get_sound_thread
+from app.engine.sprites import SPRITES
+from app.engine.state import MapState, State
+from app.events import triggers
+
 
 class PrepMainState(MapState):
     name = 'prep_main'
@@ -74,7 +75,7 @@ class PrepMainState(MapState):
         self.fade_out = False
         self.last_update = 0
 
-        game.events.trigger('on_prep_start')
+        game.events.trigger(triggers.OnPrepStart())
 
     def create_background(self):
         img = SPRITES.get('focus_fade').convert_alpha()

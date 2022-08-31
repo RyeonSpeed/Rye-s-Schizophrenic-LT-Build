@@ -1,3 +1,4 @@
+from app.events.triggers import GenericTrigger
 from typing import List
 import unittest
 from unittest.mock import MagicMock, patch, call
@@ -28,7 +29,7 @@ class EventUnitTests(unittest.TestCase):
     def create_event(self, test_commands):
         from app.events.event import Event
         parsed_test_commands = [parse_text_to_command(command)[0] for command in test_commands]
-        event = Event('test_nid', parsed_test_commands, game=self.game)
+        event = Event('test_nid', parsed_test_commands, GenericTrigger(), game=self.game)
         return event
 
     def run_all_commands(self, event):

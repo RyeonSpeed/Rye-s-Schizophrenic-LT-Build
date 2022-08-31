@@ -1,6 +1,7 @@
 from app.data.database import DB
 from app.engine import target_system, skill_system, action, equations
 from app.engine.game_state import game
+from app.events import triggers
 
 class Ability():
     @staticmethod
@@ -58,7 +59,7 @@ class TalkAbility(Ability):
         u = game.board.get_unit(game.cursor.position)
         game.state.back()
         action.do(action.HasTraded(unit))
-        did_trigger = game.events.trigger('on_talk', unit, u, unit.position)
+        did_trigger = game.events.trigger(triggers.OnTalk(unit, u, unit.position))
         if did_trigger:
             action.do(action.RemoveTalk(unit.nid, u.nid))
 
@@ -89,7 +90,7 @@ class SupportAbility(Ability):
         rank = pair.locked_ranks[0]
         game.state.back()
         action.do(action.HasTraded(unit))
-        did_trigger = game.events.trigger('on_support', unit, u, unit.position, {'support_rank_nid': rank})
+        did_trigger = game.events.trigger(triggers.OnSupport(unit, u, unit.position, rank))
         action.do(action.UnlockSupportRank(pair.nid, rank))
 
 class DropAbility(Ability):

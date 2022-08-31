@@ -7,6 +7,7 @@ import sys
 from app.constants import TILEHEIGHT, TILEWIDTH
 from app.data.database import DB
 from app.events.regions import RegionType
+from app.events import triggers
 from app.resources.resources import RESOURCES
 from app.engine import (aura_funcs, banner, equations, item_funcs, item_system,
                         particles, skill_system, static_random, unit_funcs, animations)
@@ -517,7 +518,7 @@ class Wait(Action):
         for region in game.level.regions:
             if self.unit.position and region.contains(self.unit.position) and region.interrupt_move:
                 if region.region_type == RegionType.EVENT:
-                    did_trigger = game.events.trigger(region.sub_nid, self.unit, position=self.unit.position, local_args={'region': region})
+                    did_trigger = game.events.trigger(triggers.RegionTrigger(region.sub_nid, self.unit, self.unit.position, region))
                 if (region.region_type != RegionType.EVENT or did_trigger) and region.only_once:
                     regions_to_remove.append(RemoveRegion(region))
         return regions_to_remove

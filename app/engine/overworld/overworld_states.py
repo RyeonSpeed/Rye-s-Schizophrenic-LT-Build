@@ -1,3 +1,4 @@
+from app.events import triggers
 import logging
 
 import app.engine.config as cf
@@ -15,6 +16,7 @@ from app.engine.overworld.overworld_movement_manager import \
     OverworldMovementManager
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState, State
+from app.events import triggers
 from app.utilities.typing import NID
 
 
@@ -76,7 +78,7 @@ class OverworldFreeState(MapState):
         game.cursor.set_pos(game.overworld_controller.selected_party_node().position)
         game.camera.force_center(*game.overworld_controller.selected_party_node().position)
         if game.overworld_controller.next_level:
-            game.events.trigger('overworld_start', level_nid = game.overworld_controller.next_level)
+            game.events.trigger(triggers.OverworldStart(), level_nid=game.overworld_controller.next_level)
 
     def begin(self):
         game.cursor.show()
@@ -103,7 +105,8 @@ class OverworldFreeState(MapState):
                     party_node = game.overworld_controller.selected_party_node()
                     if game.overworld_controller.any_path(party_node, selected_node):  # if there is a path from our party to this node
                         # if there is an event that will take place upon reaching this node, or this is the next level, stop short and trigger event start
-                        if game.events.should_trigger('on_overworld_node_select', local_args={'entity_nid': game.overworld_controller.selected_entity, 'node_nid': selected_node.nid}, level_nid=game.overworld_controller.next_level) or selected_node.prefab.level == game.overworld_controller.next_level:
+                        if game.events.should_trigger(triggers.OnOverworldNodeSelect(game.overworld_controller.selected_entity, selected_node.nid),
+                                                      level_nid=game.overworld_controller.next_level) or selected_node.prefab.level == game.overworld_controller.next_level:
                             movement = OverworldMove(game.overworld_controller.selected_entity, selected_node, game.overworld_controller, event=True, remove_last=True)
                             if selected_node.prefab.level == game.overworld_controller.next_level:
                                 game.state.change('overworld_next_level')
@@ -188,7 +191,7 @@ class OverworldNodeTransition(State):
 
     def start(self):
         logging.debug("Trigger node arrival event")
-        if not game.events.trigger('on_overworld_node_select', local_args={'entity_nid': game.overworld_controller.selected_entity.nid, 'node_nid': game.game_vars['_target_node_nid']}, level_nid=game.overworld_controller.next_level):
+        if not game.events.trigger(triggers.OnOverworldNodeSelect(game.overworld_controller.selected_entity.nid, game.game_vars['_target_node_nid']), level_nid=game.overworld_controller.next_level):
             # no events, then just queue the move
             movement = OverworldMove(game.overworld_controller.selected_entity.nid,
                                     game.game_vars['_target_node_nid'],
@@ -210,7 +213,7 @@ class OverworldLevelTransition(State):
 
     def start(self):
         logging.debug("Begin Overworld-Level Transition State")
-        if not game.events.trigger('level_select', level_nid=game.overworld_controller.next_level):
+        if not game.events.trigger(triggers.LevelSelect(), level_nid=game.overworld_controller.next_level):
             # no events, then just queue the move
             movement = OverworldMove(game.overworld_controller.selected_entity.nid,
                                     game.overworld_controller.node_by_level(game.overworld_controller.next_level).nid,

@@ -1,12 +1,14 @@
-from app.resources.resources import RESOURCES
+import logging
+
 from app.data.database import DB
+from app.engine import (action, animations, engine, gui, health_bar,
+                        item_funcs, item_system, skill_system)
+from app.engine.game_state import game
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
-from app.engine.game_state import game
-from app.engine import engine, action, skill_system, \
-    health_bar, animations, item_system, item_funcs, gui
+from app.events import triggers
+from app.resources.resources import RESOURCES
 
-import logging
 
 class StatusUpkeepState(MapState):
     name = 'status_upkeep'
@@ -145,7 +147,7 @@ class StatusUpkeepState(MapState):
             # Handle death
             game.death.should_die(self.cur_unit)
             game.state.change('dying')
-            game.events.trigger('unit_death', self.cur_unit, position=self.cur_unit.position)
+            game.events.trigger(triggers.UnitDeath(self.cur_unit, None, position=self.cur_unit.position))
             skill_system.on_death(self.cur_unit)
         else:
             self.cur_unit.sprite.change_state('normal')

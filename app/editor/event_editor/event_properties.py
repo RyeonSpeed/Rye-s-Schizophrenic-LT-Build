@@ -1,3 +1,4 @@
+from app.events.triggers import ALL_TRIGGERS
 import functools
 import logging
 import math
@@ -888,7 +889,7 @@ class EventProperties(QWidget):
                     if region.region_type == RegionType.EVENT:
                         all_custom_triggers.add(region.sub_nid)
         all_items += list(all_custom_triggers)
-        all_items += [trigger.nid for trigger in event_prefab.all_triggers]
+        all_items += [trigger.nid for trigger in ALL_TRIGGERS]
         return all_items
 
     def insert_text(self, text):
@@ -956,7 +957,7 @@ class EventProperties(QWidget):
         cur_val = self.trigger_box.edit.currentText()
         if cur_val == 'None':
             self.current.trigger = None
-        elif cur_val in [trigger.nid for trigger in event_prefab.all_triggers]:
+        elif cur_val in [trigger.nid for trigger in ALL_TRIGGERS]:
             self.current.trigger = cur_val
         else:
             self.current.trigger = cur_val

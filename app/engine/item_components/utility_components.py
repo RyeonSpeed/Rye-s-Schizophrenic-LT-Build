@@ -3,6 +3,7 @@ from app.utilities import utils
 from app.data.item_components import ItemComponent, ItemTags
 from app.data.components import Type
 from app.events.regions import RegionType
+from app.events import triggers
 
 from app.engine import action
 from app.engine import item_system, item_funcs, skill_system, equations
@@ -167,7 +168,7 @@ class UnlockStaff(ItemComponent):
                     region = reg
                     break
             if region:
-                did_trigger = game.events.trigger(region.sub_nid, unit, position=pos, local_args={'item': item, 'region': region})
+                did_trigger = game.events.trigger(triggers.RegionTrigger(region.sub_nid, unit, pos, region, item))
                 if did_trigger and region.only_once:
                     action.do(action.RemoveRegion(region))
         self._did_hit = False

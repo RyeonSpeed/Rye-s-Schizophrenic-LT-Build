@@ -163,6 +163,39 @@ Example usage:
                       key=lambda pair: pair[1])[:num]
 
     @categorize(QueryType.MAP)
+    def get_units_within_distance(self, position, dist: int = 1, nid=None, team=None, tag=None, party=None) -> List[Tuple[UnitObject, int]]:
+        """Return a list containing all units within `dist` distance to the specific position
+        that match specific criteria
+
+        Args:
+            position: position or unit
+            dist (int, optional): How far to search. Defaults to 1.
+            nid (optional): use to check specific unit nid
+            team (optional): used to match for team. one of 'player', 'enemy', 'enemy2', 'other'
+            tag (optional): used to match for tag.
+            party (optional): used to match for party
+
+        Returns:
+            List[Tuple[UnitObject, int]]: Returns all pairs of `(unit, distance)`
+            within the specified `dist` that match criteria.
+        """
+        position = self._resolve_pos(position)
+        res = []
+        for unit in self.game.get_all_units():
+            if tag and not tag in unit.tags:
+                continue
+            if nid and not unit.nid == nid:
+                continue
+            if team and not unit.team == team:
+                continue
+            if party and not unit.party == party:
+                continue
+            distance = utils.calculate_distance(unit.position, position)
+            if distance <= dist:
+                res.append(unit)
+        return res
+
+    @categorize(QueryType.MAP)
     def get_allies_within_distance(self, position, dist: int = 1) -> List[Tuple[UnitObject, int]]:
         """Return a list containing all player units within `dist` distance to the specific position.
 
@@ -174,8 +207,7 @@ Example usage:
             List[Tuple[UnitObject, int]]: Returns all pairs of `(unit, distance)`
             within the specified `dist`.
         """
-        position = self._resolve_pos(position)
-        return [(unit, utils.calculate_distance(unit.position, position)) for unit in self.game.get_player_units() if utils.calculate_distance(unit.position, position) <= dist]
+        return self.get_units_within_distance(position, dist, team='player')
 
     @categorize(QueryType.MAP)
     def get_units_in_area(self, position_corner_1: Tuple[int, int], position_corner_2: Tuple[int, int]) -> List[UnitObject]:

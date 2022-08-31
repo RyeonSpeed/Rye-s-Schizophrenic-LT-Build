@@ -2,6 +2,7 @@ from app.data.database import DB
 from app.data.difficulty_modes import GrowthOption
 from app.engine import item_funcs, static_random
 from app.engine.game_state import game
+from app.events import triggers
 from app.utilities import utils
 
 import logging
@@ -339,5 +340,5 @@ def wait(unit):
     from app.engine import action
     if not unit.finished:  # Only wait if we aren't finished
         # To prevent double-waiting
-        game.events.trigger('unit_wait', unit, position=unit.position, local_args={'region': game.get_region_under_pos(unit.position)})
+        game.events.trigger(triggers.UnitWait(unit, unit.position, game.get_region_under_pos(unit.position)))
         action.do(action.Wait(unit))

@@ -1,14 +1,16 @@
-from app.utilities import utils
-from app.events.regions import RegionType
+import logging
 
+from app.data.database import DB
+from app.engine import (action, ai_controller, engine, equations, evaluate,
+                        info_menu, roam_ai, skill_system, target_system)
+from app.engine.game_state import game
+from app.engine.input_manager import get_input_manager
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
-from app.engine.game_state import game
-from app.engine import engine, info_menu, evaluate, target_system, action, ai_controller, skill_system, equations, roam_ai
-from app.engine.input_manager import get_input_manager
-from app.data.database import DB
+from app.events import triggers
+from app.events.regions import RegionType
+from app.utilities import utils
 
-import logging
 
 class FreeRoamState(MapState):
     name = 'free_roam'
@@ -157,7 +159,7 @@ class FreeRoamState(MapState):
                 if current_occupant:
                     rounded_position = target_system.get_nearest_open_tile(current_occupant, rounded_position)
                     self.roam_unit.position = rounded_position
-                did_trigger = game.events.trigger('roaming_interrupt', self.roam_unit, position=self.roam_unit.position, local_args={'region': region})
+                did_trigger = game.events.trigger(triggers.RoamingInterrupt(self.roam_unit, self.roam_unit.position, region))
                 if did_trigger:
                     self.rationalize()
                 if region.only_once and did_trigger:
@@ -168,13 +170,13 @@ class FreeRoamState(MapState):
             region = self.can_visit()
             if other_unit:
                 get_sound_thread().play_sfx('Select 2')
-                did_trigger = game.events.trigger('on_talk', self.roam_unit, other_unit)
+                did_trigger = game.events.trigger(triggers.OnTalk(self.roam_unit, other_unit, None))
                 if did_trigger:
                     action.do(action.RemoveTalk(self.roam_unit.nid, other_unit.nid))
                     self.rationalize()
             elif region:
                 get_sound_thread().play_sfx('Select 2')
-                did_trigger = game.events.trigger(region.sub_nid, self.roam_unit, position=self.roam_unit.position, local_args={'region': region})
+                did_trigger = game.events.trigger(triggers.RegionTrigger(region.sub_nid, self.roam_unit, self.roam_unit.position, region))
                 if did_trigger:
                     self.rationalize()
                 if did_trigger and region.only_once:
@@ -187,14 +189,14 @@ class FreeRoamState(MapState):
 
         elif event == 'INFO':
             other_unit = self.can_talk()
-            did_trigger = game.events.trigger('roam_press_info', self.roam_unit, other_unit)
+            did_trigger = game.events.trigger(triggers.RoamPressInfo(self.roam_unit, other_unit))
             if did_trigger:
                 self.rationalize()
             else:
                 info_menu.handle_info()
 
         elif event == 'START':
-            did_trigger = game.events.trigger('roam_press_start', self.roam_unit)
+            did_trigger = game.events.trigger(triggers.RoamPressStart(self.roam_unit))
             if did_trigger:
                 get_sound_thread().play_sfx('Select 2')
                 self.rationalize()

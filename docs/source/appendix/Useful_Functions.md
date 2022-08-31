@@ -156,6 +156,29 @@ Example usage:
   ---------------------
 
 
+#### Get Units Within Distance
+
+    get_units_within_distance(position, dist: 'int' = 1, nid=None, team=None, tag=None, party=None) 
+		-> 'List[Tuple[UnitObject, int]]'
+
+Return a list containing all units within `dist` distance to the specific position
+        that match specific criteria
+
+        Args:
+            position: position or unit
+            dist (int, optional): How far to search. Defaults to 1.
+            nid (optional): use to check specific unit nid
+            team (optional): used to match for team. one of 'player', 'enemy', 'enemy2', 'other'
+            tag (optional): used to match for tag.
+            party (optional): used to match for party
+
+        Returns:
+            List[Tuple[UnitObject, int]]: Returns all pairs of `(unit, distance)`
+            within the specified `dist` that match criteria.
+        
+  ---------------------
+
+
 ## Skills
 
 

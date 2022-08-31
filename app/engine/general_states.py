@@ -3,6 +3,7 @@ from collections import OrderedDict
 from app.constants import TILEWIDTH, TILEHEIGHT, WINWIDTH, WINHEIGHT, TILEX
 from app.data.database import DB
 from app.events.regions import RegionType
+from app.events import triggers
 from app.engine.objects.item import ItemObject
 
 from app.engine.sprites import SPRITES
@@ -61,12 +62,12 @@ class TurnChangeState(MapState):
             game.state.change('initiative_upkeep')
             if game.initiative.at_start():
                 action.do(action.IncrementTurn())
-                game.events.trigger('turn_change')
+                game.events.trigger(triggers.TurnChange())
                 if game.turncount - 1 <= 0:  # Beginning of the level
                     for unit in game.get_all_units_in_party():
                         # Give out fatigue statuses if necessary at the beginning of the level
                         action.do(action.ChangeFatigue(unit, 0))
-                    game.events.trigger('level_start')
+                    game.events.trigger(triggers.LevelStart())
 
         else:
             game.phase.next()  # Go to next phase
@@ -84,13 +85,13 @@ class TurnChangeState(MapState):
                         action.do(action.DecrementTimeRegion(region))
                         if region.sub_nid <= 0:
                             action.do(action.RemoveRegion(region))
-                            game.events.trigger('time_region_complete', position=region.position, local_args={'region': region})
-                game.events.trigger('turn_change')
+                            game.events.trigger(triggers.TimeRegionComplete(region))
+                game.events.trigger(triggers.TurnChange())
                 if game.turncount - 1 <= 0:  # Beginning of the level
                     for unit in game.get_all_units_in_party():
                         # Give out fatigue statuses if necessary at the beginning of the level
                         action.do(action.ChangeFatigue(unit, 0))
-                    game.events.trigger('level_start')
+                    game.events.trigger(triggers.LevelStart())
                 if DB.constants.value('pairup'):
                     self.handle_paired()
             else:
@@ -99,11 +100,12 @@ class TurnChangeState(MapState):
                 game.state.change('phase_change')
                 # EVENTS TRIGGER HERE
                 if game.phase.get_current() == 'enemy':
-                    game.events.trigger('enemy_turn_change')
+
+                    game.events.trigger(triggers.EnemyTurnChange())
                 elif game.phase.get_current() == 'enemy2':
-                    game.events.trigger('enemy2_turn_change')
+                    game.events.trigger(triggers.Enemy2TurnChange())
                 elif game.phase.get_current() == 'other':
-                    game.events.trigger('other_turn_change')
+                    game.events.trigger(triggers.OtherTurnChange())
 
     def take_input(self, event):
         return 'repeat'
@@ -245,7 +247,7 @@ class FreeState(MapState):
                     get_sound_thread().play_sfx('Select 3')
                     game.state.change('move')
                     game.cursor.place_arrows()
-                    game.events.trigger('unit_select', cur_unit, position=cur_unit.position)
+                    game.events.trigger(triggers.UnitSelect(cur_unit, cur_unit.position))
                 else:
                     if cur_unit.team == 'enemy' or cur_unit.team == 'enemy2':
                         get_sound_thread().play_sfx('Select 3')
@@ -853,9 +855,9 @@ class MenuState(MapState):
             elif selection in [region.sub_nid for region in self.valid_regions]:
                 for region in self.valid_regions:
                     if region.sub_nid == selection:
-                        did_trigger = game.events.trigger(selection, self.cur_unit, position=self.cur_unit.position, local_args={'region': region})
+                        did_trigger = game.events.trigger(triggers.RegionTrigger(selection, self.cur_unit, self.cur_unit.position, region))
                         if not did_trigger: # maybe this uses the more dynamic region trigger
-                            did_trigger = game.events.trigger('on_region_interact', self.cur_unit, position=self.cur_unit.position, local_args={'region': region})
+                            did_trigger = game.events.trigger(triggers.OnRegionInteract(self.cur_unit, self.cur_unit.position, region))
                         if did_trigger:
                             self.menu = None  # Remove menu for a little (Don't worry, it will come back)
                         if did_trigger and region.only_once:

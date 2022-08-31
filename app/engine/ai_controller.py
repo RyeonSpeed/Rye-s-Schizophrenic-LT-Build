@@ -2,13 +2,14 @@ import logging
 import math
 
 from app.data.database import DB
-from app.events.regions import RegionType
 from app.engine import (action, combat_calcs, engine, equations, evaluate,
                         item_funcs, item_system, line_of_sight, pathfinding,
                         skill_system, target_system)
 from app.engine.combat import interaction
 from app.engine.game_state import game
 from app.engine.movement import MovementManager
+from app.events import triggers
+from app.events.regions import RegionType
 from app.utilities import utils
 
 
@@ -148,9 +149,9 @@ class AIController():
                     except:
                         logging.warning("Could not evaluate region conditional %s" % r.condition)
             if region:
-                did_trigger = game.events.trigger(region.sub_nid, self.unit, position=self.unit.position, local_args={'region': region})
+                did_trigger = game.events.trigger(triggers.RegionTrigger(region.sub_nid, self.unit, self.unit.position, region))
                 if not did_trigger:  # Just in case we need the generic one
-                    did_trigger = game.events.trigger('on_region_interact', self.unit, position=self.unit.position, local_args={'region': region})
+                    did_trigger = game.events.trigger(triggers.OnRegionInteract(self.unit, self.unit.position, region))
                 if did_trigger and region.only_once:
                     action.do(action.RemoveRegion(region))
                 if did_trigger:
