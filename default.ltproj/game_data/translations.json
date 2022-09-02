@@ -332,26 +332,6 @@
         "text": "Take no further action this phase."
     },
     {
-        "nid": "Take_desc",
-        "text": "Take held unit from adjacent ally."
-    },
-    {
-        "nid": "Give_desc",
-        "text": "Give held unit to adjacent ally."
-    },
-    {
-        "nid": "Rescue_desc",
-        "text": "Pick up adjacent ally, but incur a SPD/SKL penalty."
-    },
-    {
-        "nid": "Trade_desc",
-        "text": "Give, take, or exchange items with adjacent ally."
-    },
-    {
-        "nid": "Drop_desc",
-        "text": "Release held unit onto adjacent tile."
-    },
-    {
         "nid": "Visit_desc",
         "text": "Visit a location."
     },

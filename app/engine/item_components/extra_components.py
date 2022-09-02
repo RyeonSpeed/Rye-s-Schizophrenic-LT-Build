@@ -18,11 +18,24 @@ class Effective(ItemComponent):
     def init(self, item):
         item.data['effective'] = self.value
 
+class EffectiveMultiplier(ItemComponent):
+    nid = 'effective_multiplier'
+    desc = 'If this item is effective against an enemy its might will be multiplied by this value and added to total damage.'
+    # requires = ['damage']
+    paired_with = ('effective_tag',)
+    tag = ItemTags.EXTRA
+
+    expose = Type.Float
+    value = 3
+
+    def init(self, item):
+        item.data['effective_multiplier'] = self.value
+
 class EffectiveTag(ItemComponent):
     nid = 'effective_tag'
     desc = "Item will be considered effective if the targeted enemy has any of the tags listed in this component."
     # requires = ['damage']
-    paired_with = ('effective',)
+    paired_with = ('effective_multiplier',)
     tag = ItemTags.EXTRA
 
     expose = (Type.List, Type.Tag)
@@ -45,6 +58,11 @@ class EffectiveTag(ItemComponent):
         if any(tag in target.tags for tag in self.value):
             if self._check_negate(target):
                 return 0
+            if item.data.get('effective_multiplier'):
+                might = item_system.damage(unit, item)
+                if might is None:
+                    return 0
+                return (item.data.get('effective_multiplier') - 1) * might
             return item.data.get('effective', 0)
         return 0
 

@@ -1,3 +1,4 @@
+from app.editor.lib.components.database_delegate import DBNamesDelegate, UnitFieldDelegate
 from app.extensions.key_value_delegate import KeyValueDelegate, KeyValueDoubleListModel
 from app.data.database import DB
 from app.editor.custom_widgets import AffinityBox, ClassBox
@@ -207,7 +208,7 @@ class UnitProperties(QWidget):
             self.unit_notes_widget.hide()
 
         fieldAttrs = ("Field", "Value")
-        self.unit_fields_widget = AppendMultiListWidget([], "Unit Fields", fieldAttrs, KeyValueDelegate, self, model=KeyValueDoubleListModel)
+        self.unit_fields_widget = AppendMultiListWidget([], "Unit Fields", fieldAttrs, UnitFieldDelegate, self, model=KeyValueDoubleListModel)
         self.unit_fields_widget.view.setMaximumHeight(120)
 
         default_weapons = {weapon_nid: DB.weapons.default() for weapon_nid in DB.weapons.keys()}

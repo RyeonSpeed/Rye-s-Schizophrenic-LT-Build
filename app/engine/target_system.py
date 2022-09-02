@@ -200,7 +200,7 @@ def get_path(unit, position, ally_block=False, use_limit=False, free_movement=Fa
     return path
 
 def check_path(unit, path) -> bool:
-    movement = equations.parser.movement(unit)
+    movement = unit.movement_left
     prev_pos = None
     for pos in path[:-1]:  # Don't need to count the starting position
         if prev_pos and pos not in get_adjacent_positions(prev_pos):

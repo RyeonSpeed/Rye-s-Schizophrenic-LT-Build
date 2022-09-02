@@ -301,7 +301,7 @@ class TradeAbility(Ability):
 
         adj_units = target_system.get_adj_units(unit)
         adj = set([u.position for u in adj_units if skill_system.can_trade(unit, u)])
-        if unit.traveler and skill_system.can_trade(unit, unit.traveler):
+        if unit.traveler and skill_system.can_trade(unit, game.get_unit(unit.traveler)):
             adj.add(unit.position)
         return adj
 

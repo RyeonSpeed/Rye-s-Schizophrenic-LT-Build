@@ -83,16 +83,28 @@ class RawDataValidator(EvalValidator):
             # we already have a raw data NID
             args = text.split('.')
             data_nid = args[0]
-            raw_data_prefab = self._db.raw_data.get(data_nid)
+            raw_data_prefab = self._db.raw_data.get_prefab(data_nid)
+            if not raw_data_prefab:
+                return []
             # are we searching, or quering a specific row?
             if args[1].startswith('[') and raw_data_prefab.dtype == 'list': # searching across column space
+                if args[1].endswith(']'): # finished searching
+                    return []
+                search_term = args[1].split(',')[-1].replace('[', '')
+                if '=' in search_term: # we're matching in column space
+                    search_col = search_term.split('=')[0]
+                    if search_col not in raw_data_prefab.oattrs:
+                        return []
+                    return [(None, getattr(row, search_col)) for row in raw_data_prefab.value.values()]
                 return [(None, oattr) for oattr in raw_data_prefab.oattrs]
             elif raw_data_prefab and raw_data_prefab.dtype in ['list', 'kv']: # searching for specific row nid
                 return [(None, key) for key in raw_data_prefab.value.keys()]
         elif level == 2:
             # this is a list type
             data_nid = text.split('.')[0]
-            raw_data_prefab = self._db.raw_data.get(data_nid)
+            raw_data_prefab = self._db.raw_data.get_prefab(data_nid)
+            if not raw_data_prefab:
+                return []
             if raw_data_prefab and raw_data_prefab.dtype == 'list': # get its columns
                 return [(None, oattr) for oattr in raw_data_prefab.oattrs]
         return []
@@ -108,7 +120,10 @@ class UnitFieldValidator(EvalValidator):
         text = self.process_arg_text(text)
         level = text.count('.')
         if level == 0: # we want to select a specific unit
-            return [(None, key) for key in self._db.units.keys()] + [(None, '_unit'), (None, '_unit2')]
+            all_keys = set()
+            all_keys.update(set(self._db.units.keys()))
+            all_keys.update(set(self._db.classes.keys()))
+            return [(None, key) for key in all_keys] + [(None, '_unit'), (None, '_unit2')]
         elif level == 1:
             # we already have unit nid
             unit_nid = text.split('.')[0]
@@ -117,11 +132,17 @@ class UnitFieldValidator(EvalValidator):
                 all_keys = set()
                 for unit in self._db.units:
                     all_keys.update(set([key for (key, _) in unit.fields]))
+                for klass in self._db.classes:
+                    all_keys.update(set([key for (key, _) in klass.fields]))
                 return [(None, key) for key in all_keys]
             else:
                 unit_prefab = self._db.units.get(unit_nid)
                 if unit_prefab: # get its predefined field keys
                     return [(None, key) for (key, _) in unit_prefab.fields]
+                else: # maybe try klass?
+                    klass_prefab = self._db.classes.get(unit_nid)
+                    if klass_prefab:
+                        return [(None, key) for (key, _) in klass_prefab.fields]
         return []
 
 class VarValidator(EvalValidator):

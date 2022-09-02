@@ -39,8 +39,11 @@ class GenericTrigger(EventTrigger):
     self_dict = self.__dict__.copy()
     del self_dict['local_args']
     if self.local_args:
-      self_dict.update(self.local_args)
-    return self_dict
+      final_args = self.local_args.copy()
+      final_args.update(self_dict)
+    else:
+      final_args = self_dict
+    return final_args
 
 @dataclass(init=True)
 class LevelStart(EventTrigger):
