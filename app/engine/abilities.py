@@ -59,9 +59,12 @@ class TalkAbility(Ability):
         u = game.board.get_unit(game.cursor.position)
         game.state.back()
         action.do(action.HasTraded(unit))
-        did_trigger = game.events.trigger(triggers.OnTalk(unit, u, unit.position))
-        if did_trigger:
-            action.do(action.RemoveTalk(unit.nid, u.nid))
+        game.events.trigger(triggers.OnTalk(unit, u, unit.position))
+        # Rely on the talk event itself to remove the trigger
+        # Behaves more like other things in the engine
+        # did_trigger = game.events.trigger(triggers.OnTalk(unit, u, unit.position))
+        # if did_trigger:
+            # action.do(action.RemoveTalk(unit.nid, u.nid))
 
 class SupportAbility(Ability):
     name = 'Support'

@@ -36,8 +36,8 @@ Now, when two units that are capable of supporting each other reach their first 
 
 ![SupportCombatScreenshot](images/SupportCombatScreenshot.png)
 
-Support conversations themselves are very similar to Talk conversations in overall structure. Create an event with the `on_support` trigger. `unit` and `unit2` are the units that are in the support conversation, and `item` is the ID of the support rank.
+Support conversations themselves are very similar to Talk conversations in overall structure. Create an event with the `on_support` trigger. `unit` and `unit2` are the units that are in the support conversation, and `support_rank_nid` is the ID of the support rank.
 
 So if you wanted an event to show when Eirika and Seth have their C support, your condition for that event would be:
 
-`check_pair('Seth', 'Eirika') and item == 'C'`
+`check_pair('Seth', 'Eirika') and support_rank_nid == 'C'`

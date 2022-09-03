@@ -858,6 +858,8 @@ class PrepItemsState(State):
                     convoy_funcs.restock(item)
                     self.menu.update_options()
                     self.state = 'free'
+                elif current == 'Nothing':
+                    self.state = 'free'
                 self.sub_menu = None
 
             elif self.state == 'convoy_item':
@@ -877,6 +879,8 @@ class PrepItemsState(State):
                 elif current == 'Use':
                     action.do(action.HasTraded(self.unit))
                     interaction.start_combat(self.unit, None, item)
+                    self.state = 'free'
+                elif current == 'Nothing':
                     self.state = 'free'
                 self.sub_menu = None
                 self.menu.update_options()

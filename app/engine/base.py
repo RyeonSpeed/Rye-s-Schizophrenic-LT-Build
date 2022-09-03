@@ -306,6 +306,7 @@ class SupportDisplay():
     def __init__(self):
         self.unit_nid = None
         self.topleft = (84, 4)
+        self.limit = 8
         self.width = WINWIDTH - 100
         self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT - 8)
         shimmer = SPRITES.get('menu_shimmer2')
@@ -319,6 +320,8 @@ class SupportDisplay():
 
         self.char_idx = 0
         self.rank_idx = 0
+
+        self.next_scroll_time = 0
 
     def update_entry(self, unit_nid):
         if self.unit_nid and unit_nid == self.unit_nid:
@@ -422,9 +425,8 @@ class SupportDisplay():
 
             map_sprites = []
 
-            limit = 8
-            start_index = utils.clamp(self.char_idx - 4, 0, max(0, len(other_unit_nids) - limit))
-            end_index = start_index + limit
+            start_index = utils.clamp(self.char_idx - 4, 0, max(0, len(other_unit_nids) - self.limit))
+            end_index = start_index + self.limit
             choices = other_unit_nids[start_index:end_index]
 
             for idx, other_unit_nid in enumerate(choices):
@@ -483,10 +485,10 @@ class SupportDisplay():
             surf.blit(self.support_word_sprite, (120, 11))
 
             # Scroll Bar
-            if len(self.options) > limit:
+            if len(self.options) > self.limit:
                 right = 100 + self.width
                 topright = (right, 4)
-                self.scroll_bar.draw(surf, topright, start_index, limit, len(self.options))
+                self.scroll_bar.draw(surf, topright, start_index, self.limit, len(self.options))
 
             # Cursor
             if self.draw_cursor:
@@ -497,6 +499,44 @@ class SupportDisplay():
 
         return surf
 
+    # MOUSE STUFF FOR SUPPORT DISPLAY MENU
+    def handle_mouse(self) -> bool:
+        mouse_position = get_input_manager().get_mouse_position()
+        if mouse_position:
+            mouse_x, mouse_y = mouse_position
+            idxs, option_rects = self.get_rects()
+            for idx, option_rect in zip(idxs, option_rects):
+                char_idx, rank_idx = idx
+                x, y, width, height = option_rect
+                if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+                    self.mouse_move(char_idx, rank_idx)
+                    return True
+        return False
+
+    def mouse_move(self, char_idx, rank_idx):
+        if engine.get_time() > self.next_scroll_time:
+            self.char_idx, self.rank_idx = char_idx, rank_idx
+            self.next_scroll_time = engine.get_time() + 50
+
+    def get_rects(self) -> tuple:
+        idxs = []
+        rects = []
+        if self.unit_nid:
+            other_unit_nids = self.options
+
+            start_index = utils.clamp(self.char_idx - 4, 0, max(0, len(other_unit_nids) - self.limit))
+            end_index = start_index + self.limit
+            choices = other_unit_nids[start_index:end_index]
+
+            for idx, other_unit_nid in enumerate(choices):
+                # Blit support levels
+                prefabs = DB.support_pairs.get_pairs(self.unit_nid, other_unit_nid)
+                if prefabs:
+                    prefab = prefabs[0]
+                    for ridx, bonus in enumerate(prefab.requirements):
+                        idxs.append((idx, ridx))
+                        rects.append((190 + ridx * 10, idx * 16 + 24, 10, 16))
+        return idxs, rects
 
 class BaseSupportsState(State):
     name = 'base_supports'
@@ -533,6 +573,7 @@ class BaseSupportsState(State):
         self.menu.handle_mouse()
         if not self.display.unit_nid or self.display.unit_nid != self.menu.get_current().nid:
             self.display.update_entry(self.menu.get_current().nid)
+        self.display.handle_mouse()
 
         if 'DOWN' in directions:
             if self.in_display:
@@ -586,10 +627,9 @@ class BaseSupportsState(State):
                 else:
                     get_sound_thread().play_sfx('Error')
             else:
-                if self.display.move_right():
-                    get_sound_thread().play_sfx('TradeRight')
-                else:
-                    get_sound_thread().play_sfx('Error')
+                get_sound_thread().play_sfx('TradeRight')
+                self.in_display = True
+                self.display.draw_cursor = True
 
         elif event == 'INFO':
             game.memory['scroll_units'] = self.units

@@ -178,8 +178,9 @@ class MovementManager():
                     new_position = data.path.pop()
                     if unit.position != new_position:
                         if self.check_position(unit, data, new_position):
-                            pass
+                            logging.debug("%s moved to %s", unit, new_position)
                         else:  # Can only happen when not in an event
+                            logging.debug("%s done moving", unit)
                             self.done_moving(unit_nid, data, unit, surprise=True)
                             if unit.team == 'player':
                                 self.update_surprise()

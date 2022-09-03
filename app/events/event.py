@@ -179,6 +179,10 @@ class Event():
             elif self.state == 'paused':
                 self.state = 'processing'
 
+            elif self.state == 'almost_complete':
+                if len(self.game.movement) <= 0:
+                    self.state = 'complete'
+
             elif self.state == 'complete':
                 break
 
@@ -268,7 +272,7 @@ class Event():
         return surf
 
     def end(self):
-        self.state = 'complete'
+        self.state = 'almost_complete'
 
     def process(self):
         while self.command_idx < len(self.commands) and self.state == 'processing':

@@ -1013,12 +1013,6 @@ class Table(Simple):
                 option = menu_options.BasicOption(idx, option)
             self.options.append(option)
 
-    def mouse_move(self, idx):
-        if engine.get_time() > self.next_scroll_time:
-            did_scroll = self.move_to(idx)
-            if did_scroll:
-                self.next_scroll_time = engine.get_time() + 50
-
     def move_to(self, idx):
         scroll = self.scroll
         idx = utils.clamp(idx, 0, len(self.options) - 1)
