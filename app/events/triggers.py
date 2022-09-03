@@ -259,9 +259,11 @@ class OnBaseConvo(EventTrigger):
     This trigger fires when the player selects a base conversation to view.
 
         base_convo: contains the name of the base conversation.
+        unit: DEPRECATED, contains the name of the base conversation.
     """
     nid: ClassVar[NID] = 'on_base_convo'
     base_convo: NID
+    unit: NID  # DEPRECATED - Just a copy of the base_convo
 
 @dataclass(init=True)
 class OnPrepStart(EventTrigger):

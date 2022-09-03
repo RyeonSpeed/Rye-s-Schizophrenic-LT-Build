@@ -288,7 +288,7 @@ class BaseConvosChildState(State):
                 get_sound_thread().play_sfx('Select 1')
                 # Auto-ignore
                 game.base_convos[selection] = True
-                game.events.trigger(triggers.OnBaseConvo(selection))
+                game.events.trigger(triggers.OnBaseConvo(selection, selection))
 
     def update(self):
         if self.menu:
