@@ -126,7 +126,7 @@ class Event():
         local_args = {k: action.Action.restore_obj(v) for k, v in local_args.items()}
         commands = ser_dict['commands']
         nid = ser_dict['nid']
-        self = cls(nid, commands, unit, unit2, position, local_args, game)
+        self = cls(nid, commands, triggers.GenericTrigger(unit, unit2, position, local_args), game)
         self.command_idx = ser_dict['command_idx']
         self.if_stack = ser_dict['if_stack']
         self.parse_stack = ser_dict['parse_stack']
