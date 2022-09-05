@@ -1768,14 +1768,19 @@ def set_mode_autolevels(self: Event, level, flags=None):
         else:
             self.game.current_mode.enemy_truelevels = autolevel
 
-def promote(self: Event, global_unit, klass=None, flags=None):
+def promote(self: Event, global_unit, klass_list=None, flags=None):
     flags = flags or set()
     unit = self._get_unit(global_unit)
     if not unit:
         self.logger.error("promote: Couldn't find unit %s" % global_unit)
         return
-    if klass:
-        new_klass = klass
+    if klass_list:
+        s_klass = klass_list.split(',')
+        if len(s_klass) == 1:
+            new_klass = s_klass[0]
+        else:
+            self.game.memory['promo_options'] = s_klass
+            new_klass = None
     else:
         klass = DB.classes.get(unit.klass)
         if len(klass.turns_into) == 0:
@@ -1788,7 +1793,13 @@ def promote(self: Event, global_unit, klass=None, flags=None):
 
     self.game.memory['current_unit'] = unit
     silent = 'silent' in flags
-    if silent and new_klass:
+    if self.game.memory.get('promo_options', False):
+        if silent:
+            self.logger.warning("promote: silent flag set with multiple klass options. Silent will be ignored.")
+        self.game.state.change('promotion_choice')
+        self.game.state.change('transition_out')
+        self.state = 'paused'
+    elif silent and new_klass:
         swap_class = action.Promote(unit, new_klass)
         action.do(swap_class)
         #check for new class skill
@@ -2538,6 +2549,7 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
         if anim_dir == 'fade':
             enter_anim = fade_anim(0, 1, 1000)
             exit_anim = fade_anim(1, 0, 1000)
+            component.margin = (x, y, 0, 0)
         else:
             if anim_dir == 'west':
                 start_x = -component.width
@@ -2555,7 +2567,8 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
             exit_anim = translate_anim((x, y), (start_x, start_y), 750, disable_after=True, interp_mode=InterpolationType.CUBIC)
         component.save_animation(enter_anim, '!enter')
         component.save_animation(exit_anim, '!exit')
-
+    else:
+        component.margin = (x, y, 0, 0)
     self.overlay_ui.add_child(component)
     if self.do_skip:
         component.enable()

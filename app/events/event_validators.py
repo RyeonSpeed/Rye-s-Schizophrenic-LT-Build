@@ -1010,6 +1010,21 @@ class StatList(Validator):
         valids = [(None, stat.nid) for stat in self._db.stats.values()]
         return valids
 
+class KlassList(Validator):
+    desc = "accepts a comma-delimited list of klass nids."
+
+    def validate(self, text, level):
+        s_l = text.split(',')
+
+        for entry in s_l:
+            if entry not in self._db.classes.keys():
+                return None
+        return text
+
+    def valid_entries(self, level: NID = None, text: str = None) -> List[Tuple[str, NID]]:
+        valids = [(None, klass.nid) for klass in self._db.classes.values()]
+        return valids
+
 class ArgList(Validator):
     desc = "accepts a comma-delimited list of pairs of keywords and values. For example, `Color,Purple,Animal,Dog`."
 

@@ -1589,12 +1589,12 @@ class Promote(EventCommand):
 
     desc = \
         """
-Promotes *GlobalUnit* into a specified class (*Klass*) or, if no *Klass* is given, the unit promotes as normal using its promotion data.
+Promotes *GlobalUnit* into a specified class (*Klass*) or, if no *Klass* is given, the unit promotes as normal using its promotion data. If more than one *Klass* is given (comma-delimited), the player will receive a promotion choice menu.
 If the *silent* flag is given, the unit will promote immediately into the specified class (*Klass*).
         """
 
     keywords = ["GlobalUnit"]
-    optional_keywords = ["Klass"]
+    optional_keywords = ["KlassList"]
     _flags = ["silent"]
 
 class ChangeClass(EventCommand):

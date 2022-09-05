@@ -23,7 +23,8 @@ class PromotionChoiceState(State):
         self.bg = background.create_background('settings_background')
 
     def _get_choices(self):
-        self.class_options = self.unit_klass.turns_into
+        self.class_options = game.memory.get('promo_options', None) or self.unit_klass.turns_into
+        game.memory['promo_options'] = None
         return [DB.classes.get(c).name for c in self.class_options]
 
     def _proceed(self, next_class):
@@ -39,7 +40,6 @@ class PromotionChoiceState(State):
         game.memory['can_go_back'] = None
         self.combat_item = game.memory.get('combat_item')
         game.memory['combat_item'] = None
-
         self.unit = game.memory['current_unit']
         self.unit_klass = DB.classes.get(self.unit.klass)
         display_options = self._get_choices()
