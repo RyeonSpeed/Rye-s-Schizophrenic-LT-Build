@@ -10,7 +10,7 @@ import app.engine.graphics.ui_framework as uif
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database import DB
 from app.engine import (action, dialog, engine, evaluate,
-                        static_random, target_system)
+                        static_random, target_system, item_funcs)
 from app.engine.game_state import GameState
 from app.engine.objects.overworld import OverworldNodeObject
 from app.engine.objects.unit import UnitObject
@@ -592,7 +592,7 @@ class Event():
         self.game.full_register(new_unit)
         return new_unit
 
-    def _get_item_in_inventory(self, unit_nid: str, item: str) -> tuple[UnitObject, ItemObject]:
+    def _get_item_in_inventory(self, unit_nid: str, item: str, recursive=False) -> tuple[UnitObject, ItemObject]:
         if unit_nid.lower() == 'convoy':
             unit = self.game.get_party()
         else:
@@ -601,12 +601,16 @@ class Event():
                 self.logger.error("Couldn't find unit with nid %s" % unit_nid)
                 return None, None
         item_id = item
-        inids = [item.nid for item in unit.items]
-        iuids = [item.uid for item in unit.items]
+        if recursive:
+            item_list = item_funcs.get_all_items_with_multiitems(unit.items)
+        else:
+            item_list = unit.items
+        inids = [item.nid for item in item_list]
+        iuids = [item.uid for item in item_list]
         if (item_id not in inids) and (not str_utils.is_int(item_id) or not int(item_id) in iuids):
             self.logger.error("Couldn't find item with id %s" % item)
             return None, None
-        item = [item for item in unit.items if (item.nid == item_id or (str_utils.is_int(item_id) and item.uid == int(item_id)))][0]
+        item = [item for item in item_list if (item.nid == item_id or (str_utils.is_int(item_id) and item.uid == int(item_id)))][0]
         return unit, item
 
     def _apply_stat_changes(self, unit, stat_changes, flags):

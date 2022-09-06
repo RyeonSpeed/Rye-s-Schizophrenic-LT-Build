@@ -136,6 +136,18 @@ def get_all_items(unit) -> list:
         else:
             items.append(item)
     return items
+    
+def get_all_items_with_multiitems(item_list) -> list:
+    """
+    Get all of the normal items, subitems and the multi items themselves from a list of items
+    """
+    items = []
+    for item in item_list:
+        if item.multi_item:
+            subitems = get_all_items_with_multiitems(item.subitems)
+            items += subitems
+        items.append(item)
+    return items
 
 def is_weapon_recursive(unit, item) -> bool:
     if item_system.is_weapon(unit, item):

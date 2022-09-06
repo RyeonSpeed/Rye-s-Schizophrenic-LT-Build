@@ -1284,23 +1284,30 @@ def give_item(self: Event, global_unit_or_convoy, item, flags=None):
 
 def equip_item(self: Event, global_unit, item, flags=None):
     flags = flags or set()
+    recursive_flag = 'recursive' in flags
     item_input = item
     unit = self._get_unit(global_unit)
     if not unit:
         self.logger.error("equip_item: Couldn't find unit with nid %s" % global_unit)
         return
-    unit, item = self._get_item_in_inventory(global_unit, item)
+    unit, item = self._get_item_in_inventory(global_unit, item, recursive=recursive_flag)
     if not unit or not item:
-        self.logger.error("equip_item: Either unit %s or item %s was invalid, see above" % (global_unit, item_input))
+        self.logger.error("equip_item: Item %s was invalid, see above" % item_input)
         return
-
-    if not item_system.equippable(unit, item):
-        self.logger.error("equip_item: %s is not an item that can be equipped" % item.nid)
-        return
-    if not item_system.available(unit, item):
-        self.logger.error("equip_item: %s is unable to equip %s" % (unit.nid, item.nid))
-        return
-
+    if item.multi_item:
+        for subitem in item.subitems:
+            if item_system.equippable(unit, subitem) and item_system.available(unit, subitem):
+                equip_action = action.EquipItem(unit, subitem)
+                action.do(equip_action)
+                return
+        self.logger.error("equip_item: No valid subitem to equip in %s" % item.nid)
+    else:
+        if not item_system.equippable(unit, item):
+            self.logger.error("equip_item: %s is not an item that can be equipped" % item.nid)
+            return
+        if not item_system.available(unit, item):
+            self.logger.error("equip_item: %s is unable to equip %s" % (unit.nid, item.nid))
+            return
     equip_action = action.EquipItem(unit, item)
     action.do(equip_action)
 

@@ -1238,9 +1238,13 @@ Forces *GlobalUnit* to equip *Item*.
 
 The event will produce no effect if the item does not exist in the unit's inventory yet.
 It will also produce no effect if the item cannot be equipped by that unit.
+If the item chosen is a multi-item, the top-most valid option will be equipped.
+If the *recursive* flag is set, the event will first attempt to equip items directly
+in the unit's inventory, and then if no matching item is found, check the sub-items of multi-items.
         """
 
     keywords = ["GlobalUnit", "Item"]
+    _flags = ['recursive']
 
 class RemoveItem(EventCommand):
     nid = 'remove_item'
