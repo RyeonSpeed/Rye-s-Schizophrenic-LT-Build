@@ -117,6 +117,7 @@ class TileMapObject(Prefab):
         super().__init__()
         self.weather: List[particles.ParticleSystem] = []
         self.animations: List[animations.MapAnimation] = []
+        self.high_animations: List[animations.MapAnimation] = []
         self.width: int = 0
         self.height: int = 0
         self.nid: NID = None
@@ -266,7 +267,11 @@ class TileMapObject(Prefab):
                 reverse=anim['reverse'],
                 speed_adj=anim['speed_adj'],
                 contingent=anim.get('contingent', False))
-            new_anim.set_tint(anim.get('tint', False))
+            # @todo(mag): remove this eventually, this is just a stopgap to prevent crashes on load
+            try:
+                new_anim.set_tint(engine.BlendMode(anim.get('tint', 0)))
+            except:
+                pass
             self.animations.append(new_anim)
 
         return self

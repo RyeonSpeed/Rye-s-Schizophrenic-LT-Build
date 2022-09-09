@@ -128,6 +128,11 @@ class MapView():
         else:
             self.draw_units(surf, cull_rect)
 
+
+        game.tilemap.high_animations = [anim for anim in game.tilemap.high_animations if not anim.update()]
+        for anim in game.tilemap.high_animations:
+            anim.draw(surf, offset=(-game.camera.get_x(), -game.camera.get_y()))
+
         # Handle time region text
         self.time_region_text(surf, cull_rect)
 

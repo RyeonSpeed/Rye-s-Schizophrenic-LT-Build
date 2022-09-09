@@ -1913,12 +1913,22 @@ Stores a given position as the event's home position. It can later be referenced
 class MapAnim(EventCommand):
     nid = 'map_anim'
     tag = Tags.TILEMAP
-    desc = ('Plays a map animation denoted by the nid *MapAnim* at *Position*. Optional args: a speed multiplier'
-            ' which increases the length of time it takes to play the animation (larger is slower)')
+    desc = \
+'''Plays a map animation denoted by the nid *MapAnim* at *Position*. Optional args: a speed multiplier
+which increases the length of time it takes to play the animation (larger is slower).
+
+Flags:
+* *no_block* - whether to wait until the animation finishes to continue
+* *permanent* - whether the effect persists
+* *blend* - additive blending
+* *multiply* - multiplicative blending
+* *overlay* - whether the animation will be played above units or below units
+'''
+
     keywords = ["MapAnim", "FloatPosition"]
     optional_keywords = ["Speed"]
     keyword_types = ["MapAnim", "FloatPosition", "Float"]
-    _flags = ["no_block", "permanent", "blend"]
+    _flags = ["no_block", "permanent", "blend", "multiply", "overlay"]
 
 class RemoveMapAnim(EventCommand):
     nid = 'remove_map_anim'

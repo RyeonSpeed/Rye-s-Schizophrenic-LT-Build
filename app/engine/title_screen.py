@@ -17,6 +17,7 @@ from app.engine.sound import get_sound_thread
 from app.engine.sprites import SPRITES
 from app.engine.state import State
 from app.events.event import Event
+from app.events import triggers
 from app.resources.resources import RESOURCES
 
 import logging
@@ -711,7 +712,7 @@ class TitleExtrasState(TitleLoadState):
                 game.sweep()  # Set up event manager
                 event_prefab = DB.events.get_from_nid('Global Credits')
                 if event_prefab:
-                    event = Event(event_prefab.nid, event_prefab.commands)
+                    event = Event(event_prefab.nid, event_prefab.commands, triggers.GenericTrigger())
                     game.events.append(event)
                     game.memory['next_state'] = 'event'
                     game.state.change('transition_to')

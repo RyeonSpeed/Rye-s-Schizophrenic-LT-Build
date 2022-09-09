@@ -1,8 +1,10 @@
 from __future__ import annotations
+from app.utilities.typing import NID
 
 import functools
 import logging
 import sys
+from typing import Tuple
 
 from app.constants import TILEHEIGHT, TILEWIDTH
 from app.data.database import DB
@@ -15,6 +17,7 @@ from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
 from app.engine.objects.unit import UnitObject
+from app.engine import engine
 from app.events.regions import Region
 from app.utilities import utils
 
@@ -2565,23 +2568,33 @@ class RemoveWeather(Action):
             game.tilemap.weather.append(new_ps)
 
 class AddMapAnim(Action):
-    def __init__(self, nid, pos, speed_mult, blend):
-        self.nid = nid
-        self.pos = pos
-        self.speed_mult = speed_mult
-        self.blend = blend
+    def __init__(self, nid: NID, pos: Tuple[int, int], speed_mult: float, blend_mode: engine.BlendMode, upper_layer: bool=False):
+        self.nid: NID = nid
+        self.pos: Tuple[int, int] = pos
+        self.speed_mult: float = speed_mult
+        self.blend_mode: engine.BlendMode = blend_mode
+        self.is_upper_layer: bool = upper_layer
 
     def do(self):
         anim = RESOURCES.animations.get(self.nid)
         anim = animations.MapAnimation(anim, self.pos, loop=True, speed_adj=self.speed_mult)
-        anim.set_tint(self.blend)
-        game.tilemap.animations.append(anim)
+        anim.set_tint(self.blend_mode)
+        if self.is_upper_layer:
+            game.tilemap.high_animations.append(anim)
+        else:
+            game.tilemap.animations.append(anim)
 
     def reverse(self):
-        for anim in game.tilemap.animations[:]:
-            if anim.nid == self.nid and anim.xy_pos == self.pos:
-                game.tilemap.animations.remove(anim)
-                break
+        if self.is_upper_layer:
+            for anim in game.tilemap.high_animations[:]:
+                if anim.nid == self.nid and anim.xy_pos == self.pos:
+                    game.tilemap.high_animations.remove(anim)
+                    break
+        else:
+            for anim in game.tilemap.animations[:]:
+                if anim.nid == self.nid and anim.xy_pos == self.pos:
+                    game.tilemap.animations.remove(anim)
+                    break
 
 class RemoveMapAnim(Action):
     def __init__(self, nid, pos):

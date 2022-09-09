@@ -180,7 +180,7 @@ class Event():
                 self.state = 'processing'
 
             elif self.state == 'almost_complete':
-                if len(self.game.movement) <= 0:
+                if not self.game.movement or len(self.game.movement) <= 0:
                     self.state = 'complete'
 
             elif self.state == 'complete':
