@@ -188,12 +188,7 @@ class FreeRoamState(MapState):
             game.state.change('option_menu')
 
         elif event == 'INFO':
-            other_unit = self.can_talk()
-            did_trigger = game.events.trigger(triggers.RoamPressInfo(self.roam_unit, other_unit))
-            if did_trigger:
-                self.rationalize()
-            else:
-                info_menu.handle_info()
+            get_sound_thread().play_sfx('Error')
 
         elif event == 'START':
             did_trigger = game.events.trigger(triggers.RoamPressStart(self.roam_unit))
