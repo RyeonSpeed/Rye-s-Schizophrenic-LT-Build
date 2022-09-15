@@ -335,6 +335,14 @@ class OptionMenuState(MapState):
         self.menu = menus.Choice(None, options, info=info_desc)
         self.menu.set_ignore(ignore)
 
+    def begin(self):
+        if game.memory.get('next_state') in ('objective_menu', 'settings_menu', 'base_guide', 'unit_menu'):
+            game.state.change('transition_in')
+            game.memory['next_state'] = None
+            return 'repeat'
+        else:
+            game.memory['next_state'] = None
+
     def take_input(self, event):
         first_push = self.fluid.update()
         directions = self.fluid.get_directions()
@@ -555,7 +563,10 @@ class MoveState(MapState):
                 else:
                     witch_warp = set(skill_system.witch_warp(cur_unit))
                     if cur_unit.has_attacked or cur_unit.has_traded:
-                        cur_unit.current_move = action.CantoMove(cur_unit, game.cursor.position)
+                        if game.cursor.position in witch_warp:
+                            cur_unit.current_move = action.Warp(cur_unit, game.cursor.position)
+                        else:
+                            cur_unit.current_move = action.CantoMove(cur_unit, game.cursor.position)
                         game.state.change('canto_wait')
                     elif game.cursor.position in witch_warp:
                         cur_unit.current_move = action.Warp(cur_unit, game.cursor.position)

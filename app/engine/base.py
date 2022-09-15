@@ -356,10 +356,10 @@ class SupportDisplay():
             bonus = prefab.requirements[self.rank_idx]
             rank = bonus.support_rank
             if rank in pair.unlocked_ranks:
-                game.events.trigger(triggers.OnSupport(game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), rank))
+                game.events.trigger(triggers.OnSupport(game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), None, rank, True))
                 return True
             elif pair.can_support() and rank in pair.locked_ranks:
-                game.events.trigger(triggers.OnSupport(game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), rank))
+                game.events.trigger(triggers.OnSupport(game.get_unit(self.unit_nid), game.get_unit(other_unit_nid), None, rank, False))
                 action.do(action.UnlockSupportRank(pair.nid, rank))
                 return True
         return False

@@ -307,11 +307,11 @@ class Event():
                 arg_list = self.text_evaluator.direct_eval(cond)
                 arg_list = [self._object_to_str(arg) for arg in arg_list]
             except Exception as e:
-                self.logger.error("%s: Could not evaluate {%s}" % (e, command.parameters['Expression']))
+                self.logger.error("%s: Could not evaluate {%s} in %s" % (e, command.parameters['Expression'], command.to_plain_text()))
                 return True
             if not arg_list:
                 if show_warning:
-                    self.logger.warning("Arg list is empty for: %s" % (command.parameters['Expression']))
+                    self.logger.warning("Arg list is empty for: %s in %s" % (command.parameters['Expression'], command.to_plain_text()))
 
             # template and paste all commands inside the for loop
             # to find the correct endf, we'll need to make sure that
@@ -347,13 +347,13 @@ class Event():
             return True
         return False
 
-    def _get_truth(self, command) -> bool:
+    def _get_truth(self, command: event_commands.EventCommand) -> bool:
         try:
             cond = command.parameters['Expression']
             cond = self._evaluate_all(cond)
             truth = bool(self.text_evaluator.direct_eval(cond))
         except Exception as e:
-            self.logger.error("%s: Could not evaluate {%s}" % (e, cond))
+            self.logger.error("%s: Could not evaluate {%s} in %s" % (e, cond, command.to_plain_text()))
             truth = False
         self.logger.info("Result: %s" % truth)
         return truth

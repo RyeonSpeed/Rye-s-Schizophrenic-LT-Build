@@ -115,6 +115,8 @@ class UnitSprite():
         self.particles = []
         self.damage_numbers = []
 
+        self.speed = cf.SETTINGS['unit_speed']
+
         self.map_sprite = load_map_sprite(self.unit, self.unit.team)
 
         self.health_bar = health_bar.MapHealthBar(self.unit)
@@ -128,8 +130,12 @@ class UnitSprite():
         return self.transition_state != 'normal' or self.particles
 
     def reset(self):
+        self.speed = cf.SETTINGS['unit_speed']
         self.offset = [0, 0]
         ANIMATION_COUNTERS.attack_movement_counter.reset()
+
+    def set_speed(self, speed):
+        self.speed = speed
 
     def get_round_fake_pos(self):
         if self.fake_position:
@@ -170,8 +176,8 @@ class UnitSprite():
             anim_trans.sprite = image_mods.make_translucent(anim_trans.sprite, .33)
             self.animations[nid] = anim_trans
             anim_blend = Animation(anim, (-7, -24), reverse=reverse)
-            anim_blend.set_tint(True)
-            self.animations[nid] = anim_blend
+            anim_blend.set_tint(engine.BlendMode.BLEND_RGB_ADD)
+            self.animations[nid + '_blend'] = anim_blend
 
     def add_warp_flowers(self, reverse=False):
         ps = particles.ParticleSystem('warp_flower', particles.WarpFlower, -1, (-1, -1, -1, -1), (-1, -1))
@@ -334,8 +340,8 @@ class UnitSprite():
             last_update = game.movement.get_last_update(self.unit.nid)
             current_time = engine.get_time()
             dt = current_time - last_update
-            self.offset[0] = int(TILEWIDTH * dt / cf.SETTINGS['unit_speed'] * self.net_position[0])
-            self.offset[1] = int(TILEHEIGHT * dt / cf.SETTINGS['unit_speed'] * self.net_position[1])
+            self.offset[0] = int(TILEWIDTH * dt / max(self.speed, 1) * self.net_position[0])
+            self.offset[1] = int(TILEHEIGHT * dt / max(self.speed, 1) * self.net_position[1])
             self.handle_net_position(self.net_position)
         elif self.state == 'fake_transition_in':
             if self.offset[0] > 0:

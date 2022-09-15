@@ -456,7 +456,7 @@ A style only applies to `speak` commands inside this event.
 
     keywords = ['Style']
     optional_keywords = ['Speaker', 'TextPosition', 'Width', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail']
-    keyword_types = ['Nid', 'Speaker', 'TextPosition', 'Width', 'Float', 'FontColor', 'FontType', 'DialogBox', 'PositiveInteger', 'Bool', 'MessageTail']
+    keyword_types = ['Nid', 'Speaker', 'TextPosition', 'Width', 'Float', 'FontColor', 'Font', 'DialogVariant', 'PositiveInteger', 'Bool', 'MessageTail']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit']
 
 class Speak(EventCommand):
@@ -494,7 +494,7 @@ Extra flags:
 
     keywords = ['Speaker', 'Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail']
-    keyword_types = ['Speaker', 'Text', 'TextPosition', 'Width', 'Nid', 'Float', 'FontColor', 'FontType', 'DialogBox', 'PositiveInteger', 'Bool', 'MessageTail']
+    keyword_types = ['Speaker', 'Text', 'TextPosition', 'Width', 'Nid', 'Float', 'FontColor', 'Font', 'DialogVariant', 'PositiveInteger', 'Bool', 'MessageTail']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block']
 
 class Unhold(EventCommand):
@@ -937,13 +937,14 @@ Causes *Unit* to move to a new position on the map.
 The optional keywords define how the movement occurs.
 *Position* indicates the target map coordinates. *MovementType* selects the method of movement.
 *Placement* defines the behavior that occurs if the chosen map position is already occupied.
+*Speed* defines the speed of the moving unit. 120 is the default. Lower numbers are faster and higher slower.
 
 The *no_block* optional flag causes the event script to continue to execute while the unit is moving.
 The *no_follow* flag prevents the camera from tracking the unit as it moves.
         """
 
     keywords = ["Unit"]
-    optional_keywords = ["Position", "MovementType", "Placement"]
+    optional_keywords = ["Position", "MovementType", "Placement", "Speed"]
     _flags = ['no_block', 'no_follow']
 
 class RemoveUnit(EventCommand):

@@ -36,68 +36,70 @@ Anywhere `unit1` is a supported field, you can also use `unit`. Anywhere `unit2`
 
 ---------------------
 > `on_region_interact`:  Occurs when a unit interacts with an event region. All event region type events (like Shop, Armory, Visit, etc.) follow this trigger's format.  
-> - **unit1**:  the unit that is interacting.
-> - **position**:  the position of the unit.
-> - **region**:  the event region.
+> - **unit1** (`UnitObject`):  the unit that is interacting.
+> - **position** (`Tuple[int, int]`):  the position of the unit.
+> - **region** (`Region`):  the event region.
 
 ---------------------
 > `unit_death`:  Occurs when any unit dies, including generics.  
-> - **unit1**:  the unit that died.
-> - **unit2**:  the unit that killed them (can be None).
-> - **position**:  the position they died at.
+> - **unit1** (`UnitObject`):  the unit that died.
+> - **unit2** (`UnitObject`):  the unit that killed them (can be None).
+> - **position** (`Tuple[int, int]`):  the position they died at.
 
 ---------------------
 > `unit_wait`:  Occurs when any unit waits.  
-> - **unit1**:  the unit that waited.
-> - **position**:  the position they waited at.
-> - **region**:  region under the unit (can be None)
+> - **unit1** (`UnitObject`):  the unit that waited.
+> - **position** (`Tuple[int, int]`):  the position they waited at.
+> - **region** (`Region`):  region under the unit (can be None)
 
 ---------------------
 > `unit_select`:  Occurs when a unit is selected by the cursor.  
-> - **unit1**:  the unit that was selected.
-> - **position**:  the position they were selected at.
+> - **unit1** (`UnitObject`):  the unit that was selected.
+> - **position** (`Tuple[int, int]`):  the position they were selected at.
 
 ---------------------
 > `unit_level_up`:  Occurs after a unit levels up.  
-> - **unit1**:  the unit that leveled up
-> - **stat_changes**:  a dict containing their stat changes.
+> - **unit1** (`UnitObject`):  the unit that leveled up
+> - **stat_changes** (`Dict[NID, int]`):  a dict containing their stat changes.
 
 ---------------------
 > `during_unit_level_up`:  Occurs during a unit's level-up screen, immediately after stat changes are granted. This event is useful for implementing level-up quotes.  
-> - **unit1**:  the unit that leveled up
-> - **stat_changes**:  a dict containing their stat changes.
+> - **unit1** (`UnitObject`):  the unit that leveled up
+> - **stat_changes** (`Dict[NID, int]`):  a dict containing their stat changes.
 
 ---------------------
 > `combat_start`:  Occurs when non-scripted combat is begun between any two units. Useful for boss quotes.  
-> - **unit1**:  the unit who initiated combat.
-> - **unit2**:  the target of the combat (can be None).
-> - **item**:  the item/ability used by unit1.
-> - **position**:  the position of the unit1.
-> - **is_animation_combat**:  a boolean denoting whether or not we are in an actual animation or merely a map animation.
+> - **unit1** (`UnitObject`):  the unit who initiated combat.
+> - **unit2** (`UnitObject`):  the target of the combat (can be None).
+> - **item** (`ItemObject`):  the item/ability used by unit1.
+> - **position** (`Tuple[int, int]`):  the position of the unit1.
+> - **is_animation_combat** (`bool`):  a boolean denoting whether or not we are in an actual animation or merely a map animation.
 
 ---------------------
 > `combat_end`:  This trigger fires at the end of combat. Useful for checking win or loss conditions.  
-> - **unit1**:  the unit who initiated combat.
-> - **unit2**:  the target of the combat (can be None).
-> - **item**:  the item/ability used by unit1.
-> - **position**:  contains the position of unit1.
+> - **unit1** (`UnitObject`):  the unit who initiated combat.
+> - **unit2** (`UnitObject`):  the target of the combat (can be None).
+> - **item** (`ItemObject`):  the item/ability used by unit1.
+> - **position** (`Tuple[int, int]`):  contains the position of unit1.
 
 ---------------------
 > `on_talk`:  This trigger fires when two units "Talk" to one another.  
-> - **unit1**:  the unit who is the talk initiator.
-> - **unit2**:  the unit who is the talk receiver.
-> - **position**:  the position of unit1 (is None if triggered during free roam)
+> - **unit1** (`UnitObject`):  the unit who is the talk initiator.
+> - **unit2** (`UnitObject`):  the unit who is the talk receiver.
+> - **position** (`Tuple[int, int]`):  the position of unit1 (is None if triggered during free roam)
 
 ---------------------
 > `on_support`:  This trigger fires when two units "Support" to one another.  
-> - **unit1**:  the unit who is the support initiator.
-> - **unit2**:  the unit who is the support receiver.
-> - **position**:  the position of unit1 (could be None, for instance during Base).
-> - **support_rank_nid**:  contains the nid of the support rank (e.g. `A`, `B`, `C`, or `S`)
+> - **unit1** (`UnitObject`):  the unit who is the support initiator.
+> - **unit2** (`UnitObject`):  the unit who is the support receiver.
+> - **position** (`Tuple[int, int]`):  the position of unit1 (could be None, for instance during Base).
+> - **support_rank_nid** (`NID`):  contains the nid of the support rank (e.g. `A`, `B`, `C`, or `S`)
+> - **is_replay** (`bool`):  whether or not this is just a replay of the support convo from the base menu.
 
 ---------------------
 > `on_base_convo`:  This trigger fires when the player selects a base conversation to view.  
-> - **base_convo**:  contains the name of the base conversation.
+> - **base_convo** (`NID`):  contains the name of the base conversation.
+> - **unit** (`NID`):  DEPRECATED, contains the name of the base conversation.
 
 ---------------------
 > `on_prep_start`:  Occurs each time the player enters preps. 
@@ -117,34 +119,34 @@ Anywhere `unit1` is a supported field, you can also use `unit`. Anywhere `unit2`
 
 ---------------------
 > `time_region_complete`:  Occurs when a time region runs out of time and would be removed.  
-> - **region**:  the region that has run out of time..
+> - **region** (`Region`):  the region that has run out of time..
 
 ---------------------
 > `on_overworld_node_select`:  Occurs when an entity is about to issue a move to a node (which may or may not contain the next level, or any level at all). Because of implementation detail, when this event occurs, it supersedes any queued moves. Therefore, the entity will _not move_ to the selected node. Any events that use this trigger should include a scripted move if movement is desired.  
-> - **entity_nid**:  Contains the id of entity that will issue a move.
-> - **node_nid**:  Contains the id of the node.
+> - **entity_nid** (`NID`):  Contains the id of entity that will issue a move.
+> - **node_nid** (`NID`):  Contains the id of the node.
 
 ---------------------
 > `roam_press_start`:  Occurs when the `start` key is pressed in Free Roam.  
-> - **unit1**:  The current roam unit.
+> - **unit1** (`UnitObject`):  The current roam unit.
 
 ---------------------
 > `roam_press_info`:  Occurs when the `info` key is pressed in Free Roam.  
-> - **unit1**:  The current roam unit.
-> - **unit2**:  the closest nearby other unit, if there is any unit nearby.
+> - **unit1** (`UnitObject`):  The current roam unit.
+> - **unit2** (`UnitObject`):  the closest nearby other unit, if there is any unit nearby.
 
 ---------------------
 > `roaming_interrupt`:  Occurs when the player enters an `interrupt` region on the map.  
-> - **unit1**:  The current roam unit.
-> - **position**:  The position of the current roam unit
-> - **region**:  The region that was triggered.
+> - **unit1** (`UnitObject`):  The current roam unit.
+> - **position** (`Tuple[int, int]`):  The position of the current roam unit
+> - **region** (`Region`):  The region that was triggered.
 
 ---------------------
 > `RegionTrigger`:  Special trigger. This trigger has a custom nid, and will be created whenever you make an interactable event region.  
-> - **nid**:  the nid of the region
-> - **unit1**:  The unit triggering the region
-> - **position**:  The position of the unit triggering the region
-> - **region**:  the name of the region that was triggered
-> - **item (Optional)**:  the item used to trigger this region (used with unlock staves and keys)
+> - **nid** (`NID`):  the nid of the region
+> - **unit1** (`UnitObject`):  The unit triggering the region
+> - **position** (`Tuple[int, int]`):  The position of the unit triggering the region
+> - **region** (`Region`):  the name of the region that was triggered
+> - **item** (`ItemObject`):  the item used to trigger this region (used with unlock staves and keys)
 
 ---------------------

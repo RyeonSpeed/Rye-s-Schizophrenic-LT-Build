@@ -5,7 +5,7 @@ TRIGGER_TEMPLATE = \
 '''
 
 PROPERTY_TEMPLATE = \
-'''> - **{property_name}**: {property_desc}
+'''> - **{property_name}** (`{property_type}`): {property_desc}
 '''
 
 NO_FIELD_MSG = \
@@ -23,7 +23,8 @@ def _document_trigger(trigger: EventTrigger) -> str:
     for argline in arglines:
       any_property = True
       name, desc = argline.strip().split(":")
-      desc_str += PROPERTY_TEMPLATE.format(property_name=name, property_desc=desc)
+      typename = trigger.__annotations__.get(name, '')
+      desc_str += PROPERTY_TEMPLATE.format(property_name=name, property_type=typename, property_desc=desc)
     if not any_property:
       desc_str += NO_FIELD_MSG
     desc_str += '\n---------------------'

@@ -1054,7 +1054,10 @@ class Table(Simple):
         row, col = self._true_coords(old_index)
         idx = old_index
         while True:
-            row += 1
+            if self.mode in 'objective_menu':
+                row += 5
+            else:
+                row += 1
             if self._exists(row, col):
                 pass
             elif first_push:
@@ -1063,7 +1066,9 @@ class Table(Simple):
             else:
                 break
             idx = self._idx_coords(row, col)
-            if row > self.scroll + self.rows - 2:
+            if row > self.scroll + self.rows - 5 and self.mode in 'objective_menu':
+                self.scroll += 5
+            elif row > self.scroll + self.rows - 2:
                 self.scroll += 1
             elif row != 0:
                 self.cursor.y_offset_down()
@@ -1083,7 +1088,10 @@ class Table(Simple):
         row, col = self._true_coords(old_index)
         idx = old_index
         while True:
-            row -= 1
+            if self.mode in 'objective_menu':
+                row -= 5
+            else:
+                row -= 1
             if self._exists(row, col):
                 pass
             elif first_push:
@@ -1093,7 +1101,9 @@ class Table(Simple):
             else:
                 break
             idx = self._idx_coords(row, col)
-            if row < self.scroll + 1:
+            if row < self.scroll + 4 and self.mode in 'objective_menu':
+                self.scroll -= 5
+            elif row < self.scroll + 1:
                 self.scroll -= 1
             elif row != self._get_bottom(col):
                 self.cursor.y_offset_up()
@@ -1154,7 +1164,10 @@ class Table(Simple):
     def get_menu_width(self):
         max_width = max(option.width() - option.width()%8 for option in self.options)
         total_width = max_width * self.columns
-        total_width = total_width - total_width%8
+        if self.mode in 'objective_menu':
+            total_width = 120
+        else:
+            total_width = total_width - total_width%8
         if self.mode in ('unit', 'prep_manage'):
             total_width += 32
         return total_width
@@ -1217,20 +1230,38 @@ class Table(Simple):
             for idx, choice in enumerate(choices):
                 top = topleft[1] + 4 + (idx // self.columns * height)
                 left = topleft[0] + (idx % self.columns * width)
-                if self.mode in ('unit', 'prep_manage'):
-                    left += 16
-
-                if idx + (self.scroll * self.columns) == self.current_index and self.takes_input and self.draw_cursor:
-                    choice.draw_highlight(surf, left, top, width - 8 if draw_scroll_bar else width)
-                elif idx + (self.scroll * self.columns) == self.fake_cursor_idx:
-                    choice.draw_highlight(surf, left, top, width - 8 if draw_scroll_bar else width)
-                else:
+                if self.mode == 'objective_menu':
+                    win_con = game.level.objective['win']
+                    win_count = str(win_con).count(',')
+                    if idx + (self.scroll * self.columns) < self.takes_input:
+                        surf.blit(SPRITES.get('lowlight'), (topleft[0] + 2, topleft[1] + 12))
+                        FONT['text-yellow'].blit("Win Conditions", surf, (topleft[0] + 4, topleft[1] + 4))
+                        surf.blit(SPRITES.get('lowlight'), (topleft[0] + 2, topleft[1] + 44 + win_count * 16))
+                        FONT['text-yellow'].blit("Loss Conditions", surf, (topleft[0] + 4, topleft[1] + 36 + win_count * 16))
+                        if win_count > 3:
+                            surf.blit(SPRITES.get('lowlight'), (topleft[0] + 2, topleft[1] + 12))
+                            FONT['text-yellow'].blit("Win Conditions", surf, (topleft[0] + 4, topleft[1] + 4))
+                    elif idx + (self.scroll * self.columns) == self.current_index and self.takes_input:
+                        if self.current_index <= 6:
+                            surf.blit(SPRITES.get('lowlight'), (topleft[0] + 2, topleft[1] + 12 + (win_count - self.scroll + 2) * 16))
+                            FONT['text-yellow'].blit("Loss Conditions", surf, (topleft[0] + 4, topleft[1] + 4 + (win_count - self.scroll + 2) * 16))
+                        elif self.current_index > 6 and win_count >= self.scroll - 2:
+                            surf.blit(SPRITES.get('lowlight'), (topleft[0] + 2, topleft[1] + 12 + (win_count - self.scroll + 2) * 16))
+                            FONT['text-yellow'].blit("Loss Conditions", surf, (topleft[0] + 4, topleft[1] + 4 + (win_count - self.scroll + 2) * 16))
                     choice.draw(surf, left, top)
-                if idx + (self.scroll * self.columns) == self.fake_cursor_idx:
-                    self.stationary_cursor.draw(surf, left, top)
-                if idx + (self.scroll * self.columns) == self.current_index and self.takes_input and self.draw_cursor:
-                    self.cursor.draw(surf, left, top)
-
+                else:
+                    if self.mode in ('unit', 'prep_manage'):
+                        left += 16
+                    if idx + (self.scroll * self.columns) == self.current_index and self.takes_input and self.draw_cursor:
+                        choice.draw_highlight(surf, left, top, width - 8 if draw_scroll_bar else width)
+                    elif idx + (self.scroll * self.columns) == self.fake_cursor_idx:
+                        choice.draw_highlight(surf, left, top, width - 8 if draw_scroll_bar else width)
+                    else:
+                        choice.draw(surf, left, top)
+                    if idx + (self.scroll * self.columns) == self.fake_cursor_idx:
+                        self.stationary_cursor.draw(surf, left, top)
+                    if idx + (self.scroll * self.columns) == self.current_index and self.takes_input and self.draw_cursor:
+                        self.cursor.draw(surf, left, top)
         else:
             FONT['text-grey'].blit("Nothing", bg_surf, (topleft[0] + 16, topleft[1] + 4))
 

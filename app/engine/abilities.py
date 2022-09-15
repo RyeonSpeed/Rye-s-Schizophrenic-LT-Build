@@ -93,7 +93,7 @@ class SupportAbility(Ability):
         rank = pair.locked_ranks[0]
         game.state.back()
         action.do(action.HasTraded(unit))
-        did_trigger = game.events.trigger(triggers.OnSupport(unit, u, unit.position, rank))
+        did_trigger = game.events.trigger(triggers.OnSupport(unit, u, unit.position, rank, False))
         action.do(action.UnlockSupportRank(pair.nid, rank))
 
 class DropAbility(Ability):

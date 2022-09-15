@@ -16,8 +16,6 @@ These are guides on various useful skills and items.
     Auras
     Skill-Swap
 
-    skill/index.rst
-
 .. toctree::
     :maxdepth: 2
     :caption: Advanced

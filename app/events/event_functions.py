@@ -840,7 +840,7 @@ def add_unit(self: Event, unit, position=None, entry_type=None, placement=None, 
         action.do(action.InsertInitiative(unit))
     self._place_unit(unit, position, entry_type, fade_direction)
 
-def move_unit(self: Event, unit, position=None, movement_type=None, placement=None, flags=None):
+def move_unit(self: Event, unit, position=None, movement_type=None, placement=None, speed=None, flags=None):
     flags = flags or set()
 
     new_unit = self._get_unit(unit)
@@ -881,7 +881,10 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
         action.do(action.FadeMove(unit, position))
     elif movement_type == 'normal':
         path = target_system.get_path(unit, position)
-        action.do(action.Move(unit, position, path, event=True, follow=follow))
+        if speed:
+            action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed))
+        else:
+            action.do(action.Move(unit, position, path, event=True, follow=follow))
 
     if 'no_block' in flags or self.do_skip:
         pass

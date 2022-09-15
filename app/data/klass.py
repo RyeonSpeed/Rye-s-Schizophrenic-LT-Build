@@ -52,7 +52,7 @@ class Klass(Prefab):
         return [option for option in self.turns_into if db.classes.get(option).tier == self.tier + 1]
 
     def save_attr(self, name, value):
-        if name in ('bases', 'growths', 'growth_bonus', 'promotion', 'max_stats'):
+        if name in ('bases', 'growths', 'growth_bonus', 'promotion', 'max_stats', 'fields', 'tags'):
             return value.copy()  # So we don't make a copy
         elif name == 'learned_skills':
             return [val.copy() for val in value]  # So we don't make a copy

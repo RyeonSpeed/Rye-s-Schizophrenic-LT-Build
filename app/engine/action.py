@@ -4,6 +4,7 @@ from app.utilities.typing import NID
 import functools
 import logging
 import sys
+import app.engine.config as cf
 from typing import Tuple
 
 from app.constants import TILEHEIGHT, TILEWIDTH
@@ -112,7 +113,7 @@ class Move(Action):
     A basic, user-directed move
     """
 
-    def __init__(self, unit, new_pos, path=None, event=False, follow=True):
+    def __init__(self, unit, new_pos, path=None, event=False, follow=True, speed=cf.SETTINGS['unit_speed']):
         self.unit = unit
         self.old_pos = self.unit.position
         self.new_pos = new_pos
@@ -124,12 +125,13 @@ class Move(Action):
         self.has_moved = self.unit.has_moved
         self.event = event
         self.follow = follow
+        self.speed = speed
 
     def do(self):
         if self.path is None:
             self.path = game.cursor.path[:]
         game.boundary.frozen = True
-        game.movement.begin_move(self.unit, self.path, self.event, self.follow)
+        game.movement.begin_move(self.unit, self.path, self.event, self.follow, speed=self.speed)
 
     def execute(self):
         game.leave(self.unit)

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Dict, List, Tuple, Type
 
 from app.data.database import Database
 from app.editor.event_editor.event_inspector import EventInspectorEngine
+from app.engine.fonts import FONT
 from app.engine.graphics.ui_framework.ui_framework_layout import (HAlignment,
                                                                   VAlignment)
 from app.events import event_commands
@@ -488,6 +489,9 @@ it will be facing right, and vice versa.
 
 class Slide(OptionValidator):
     valid = ["normal", "left", "right"]
+
+class Font(OptionValidator):
+    valid = FONT.keys()
 
 class Direction(OptionValidator):
     valid = ["open", "close"]

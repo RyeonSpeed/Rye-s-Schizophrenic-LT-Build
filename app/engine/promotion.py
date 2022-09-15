@@ -117,7 +117,7 @@ class PromotionChoiceState(State):
                 get_sound_thread().play_sfx('Select 4')
                 game.state.back()
                 if self.combat_item:
-                    action.do(action.Reset(self.unit))
+                    action.do(action.HasNotAttacked(self.unit))
                     item_system.reverse_use(self.unit, self.combat_item)
             else:
                 # Can't go back...

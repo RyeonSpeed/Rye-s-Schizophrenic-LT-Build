@@ -246,12 +246,14 @@ class OnSupport(EventTrigger):
         unit2: the unit who is the support receiver.
         position: the position of unit1 (could be None, for instance during Base).
         support_rank_nid: contains the nid of the support rank (e.g. `A`, `B`, `C`, or `S`)
+        is_replay: whether or not this is just a replay of the support convo from the base menu.
     """
     nid: ClassVar[NID] = 'on_support'
     unit1: UnitObject
     unit2: UnitObject
     position: Tuple[int, int]
     support_rank_nid: NID
+    is_replay: bool
 
 @dataclass(init=True)
 class OnBaseConvo(EventTrigger):
@@ -367,7 +369,7 @@ class RegionTrigger(EventTrigger):
         unit1: The unit triggering the region
         position: The position of the unit triggering the region
         region: the name of the region that was triggered
-        item (Optional): the item used to trigger this region (used with unlock staves and keys)
+        item: the item used to trigger this region (used with unlock staves and keys)
     """
     nid: NID
     unit1: UnitObject
