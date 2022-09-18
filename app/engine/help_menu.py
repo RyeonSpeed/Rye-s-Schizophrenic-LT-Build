@@ -242,7 +242,6 @@ class ItemHelpDialog(HelpDialog):
         if len(self.lines) > 0:
             greater_line_len = max([rendered_text_width([self.font], [line]) for line in self.lines])
             self.width = greater_line_len + 24
-            print(self.width)
         else:
             self.width = 160
         self.width = max([160, self.width])
@@ -253,7 +252,6 @@ class ItemHelpDialog(HelpDialog):
             size_y = 48 + font_height(self.font) * len(self.lines)
         else:
             size_y = 32 + font_height(self.font) * len(self.lines)
-        print(self.width)
         self.help_surf = base_surf.create_base_surf(self.width, size_y, 'help_bg_base')
         self.h_surf = engine.create_surface((self.width, size_y + 3), transparent=True)
 
