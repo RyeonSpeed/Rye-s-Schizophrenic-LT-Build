@@ -2588,7 +2588,7 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
         component.save_animation(enter_anim, '!enter')
         component.save_animation(exit_anim, '!exit')
     else:
-        component.margin = (x, y, 0, 0)
+        component.margin = (x, 0, y, 0)
     self.overlay_ui.add_child(component)
     if self.do_skip:
         component.enable()
@@ -2605,8 +2605,10 @@ def remove_overlay_sprite(self: Event, nid, flags=None):
     component = self.overlay_ui.get_child(nid)
     if component:
         if self.do_skip:
+            self.overlay_ui._should_redraw = True
             component.disable()
         else:
+            self.overlay_ui._should_redraw = True
             component.exit()
             if component.is_animating() and 'no_block' not in flags:
                 self.wait_time = engine.get_time() + 750

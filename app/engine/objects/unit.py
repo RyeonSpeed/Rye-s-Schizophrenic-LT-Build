@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 @dataclass
 class UnitObject(Prefab):
     nid: NID
+    prefab_nid: NID = None
     generic: bool = False
     persistent: bool = True
     ai: str = None
@@ -95,15 +96,18 @@ class UnitObject(Prefab):
         if attr.startswith('__') and attr.endswith('__'):
             return super().__getattr__(attr)
         elif self.nid:
-            prefab = DB.units.get(self.nid)
-            return getattr(prefab, attr)
+            prefab = DB.units.get(self.prefab_nid)
+            if prefab:
+                return getattr(prefab, attr)
         return None
 
     @classmethod
-    def from_prefab(cls, prefab: UniqueUnit | GenericUnit | UnitPrefab, current_mode: DifficultyModeObject = None):
-        self = cls(prefab.nid)
+    def from_prefab(cls, prefab: UniqueUnit | GenericUnit | UnitPrefab, current_mode: DifficultyModeObject = None, new_nid = None):
+        new_nid = new_nid or prefab.nid
+        self = cls(new_nid)
         is_level_unit = not isinstance(prefab, UnitPrefab)
-        self.nid = prefab.nid
+        self.nid = new_nid
+        self.prefab_nid = prefab.nid
         if not is_level_unit: # initing a non-level unit
             self.generic = False
             self.persistent = True
@@ -120,7 +124,6 @@ class UnitObject(Prefab):
             self.ai_group = prefab.ai_group
             self.faction = prefab.faction
             self.team = prefab.team
-
         self.portrait_nid = prefab.portrait_nid if not self.generic else None
         self.affinity = prefab.affinity if not self.generic else None
         self.notes = [(n[0], n[1]) for n in prefab.unit_notes] if not self.generic else []
@@ -635,6 +638,7 @@ class UnitObject(Prefab):
 
     def save(self):
         s_dict = {'nid': self.nid,
+                  'prefab_nid': self.prefab_nid,
                   'position': self.position,
                   'team': self.team,
                   'party': self.party,
@@ -679,6 +683,7 @@ class UnitObject(Prefab):
     @classmethod
     def restore(cls, s_dict, game):
         self = cls(s_dict['nid'])
+        self.prefab_nid = s_dict.get('prefab_nid', s_dict['nid'])
         if s_dict['position']:
             self.position = self.previous_position = tuple(s_dict['position'])
         else:

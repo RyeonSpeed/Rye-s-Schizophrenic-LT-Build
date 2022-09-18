@@ -529,8 +529,23 @@ class IllegalCharacterList(Validator):
         valids = [(None, option) for option in self.valid_sets]
         return valids
 
-class DialogVariant(OptionValidator):
-    valid = ["thought_bubble", "noir", "hint", "narration", "narration_top", "cinematic", "clear"]
+class DialogVariant(Validator):
+    built_in = ["thought_bubble", "noir", "hint", "narration", "narration_top", "cinematic", "clear"]
+
+    def validate(self, text, level):
+        slots = self.built_in.copy()
+        predefined_variants = EventInspectorEngine(self._db.events).find_all_calls_of_command(event_commands.SpeakStyle())
+        slots += list(set([variant.parameters['Style'] for variant in predefined_variants.values()]))
+        if text in slots:
+            return text
+        return None
+
+    def valid_entries(self, level: NID = None, text: str = None) -> List[Tuple[str, NID]]:
+        slots = [(None, style) for style in self.built_in]
+        text = text.split(',')
+        predefined_variants = EventInspectorEngine(self._db.events).find_all_calls_of_command(event_commands.SpeakStyle())
+        slots += [(None, style) for style in list(set([variant.parameters['Style'] for variant in predefined_variants.values()]))]
+        return slots
 
 class StringList(Validator):
     desc = "must be delimited by commas. For example: `Water,Earth,Fire,Air`"

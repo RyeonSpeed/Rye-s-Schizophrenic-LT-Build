@@ -262,7 +262,7 @@ class ChannelBox(QWidget):
         self.blue_slider.change_red(color)
         self.blue_slider.change_green(color)
         self.blue_slider.change_blue(color)
-        
+
         self.red_spin.setValue(color.red())
         self.green_spin.setValue(color.green())
         self.blue_spin.setValue(color.blue())

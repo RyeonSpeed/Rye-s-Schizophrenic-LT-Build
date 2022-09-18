@@ -279,7 +279,7 @@ Example usage:
         return all_units
 
     @categorize(QueryType.MAP)
-    def any_unit_in_region(self, region, nid=None, team=None, tag=None) -> List[UnitObject]:
+    def any_unit_in_region(self, region, nid=None, team=None, tag=None) -> bool:
         """checks if any unit matching the criteria is in the region
 
 Example usage:

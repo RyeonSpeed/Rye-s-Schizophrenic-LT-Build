@@ -494,7 +494,7 @@ Extra flags:
 
     keywords = ['Speaker', 'Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail']
-    keyword_types = ['Speaker', 'Text', 'TextPosition', 'Width', 'Nid', 'Float', 'FontColor', 'Font', 'DialogVariant', 'PositiveInteger', 'Bool', 'MessageTail']
+    keyword_types = ['Speaker', 'Text', 'TextPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'DialogVariant', 'PositiveInteger', 'Bool', 'MessageTail']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block']
 
 class Unhold(EventCommand):
@@ -615,7 +615,7 @@ Causes the cursor to briefly blink on and off at the indicated *Position*.
 
 class GameVar(EventCommand):
     nid = 'game_var'
-    nickname = 'set'
+    nickname = 'gvar'
     tag = Tags.GAME_VARS
 
     desc = \
@@ -629,7 +629,7 @@ The *Nid* is the variable's identifier, and the *Condition* is the value that is
 
 class IncGameVar(EventCommand):
     nid = 'inc_game_var'
-    nickname = 'inc'
+    nickname = 'ginc'
     tag = Tags.GAME_VARS
 
     desc = \
@@ -643,6 +643,7 @@ Increments a game variable by one, or by a Python expression provided using the 
 
 class LevelVar(EventCommand):
     nid = 'level_var'
+    nickname = 'lvar'
     tag = Tags.LEVEL_VARS
 
     desc = \
@@ -658,6 +659,7 @@ value that is given to the variable. *Expression* can be a number or a Python ex
 
 class IncLevelVar(EventCommand):
     nid = 'inc_level_var'
+    nickname = 'linc'
     tag = Tags.LEVEL_VARS
 
     desc = \
