@@ -1,3 +1,4 @@
+from app.editor.custom_widgets import CustomQtRoles
 import os
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
@@ -43,6 +44,10 @@ class IconModel(ResourceCollectionModel):
             if item.pixmap:
                 pixmap = item.pixmap.scaled(max(self.width, 32), max(self.height, 32))
                 return QIcon(pixmap)
+        elif role == CustomQtRoles.FilterRole:
+            item = self.sub_data[index.row()]
+            text = item.parent_nid
+            return text
         return None
 
     def setData(self, index, value, role):

@@ -77,6 +77,9 @@ class MapView():
         game.tilemap.update()
         # Camera Cull
         cull_rect = camera_cull
+        shake = game.camera.get_shake()
+        cull_rect = (cull_rect[0] + shake[0], cull_rect[1] + shake[1], cull_rect[2], cull_rect[3])
+
         full_size = game.tilemap.width * TILEWIDTH, game.tilemap.height * TILEHEIGHT
 
         if game.bg_tilemap:
@@ -99,11 +102,11 @@ class MapView():
             map_image = game.tilemap.get_full_image(cull_rect)
             surf = engine.copy_surface(base_image)
             surf = surf.convert_alpha()
-            surf.blit(map_image, (0, 0))
+            surf.blit(map_image, shake)
         else:
             surf = engine.create_surface(cull_rect[2:])
             map_image = game.tilemap.get_full_image(cull_rect)
-            surf.blit(map_image, (0, 0))
+            surf.blit(map_image, shake)
             surf = surf.convert_alpha()
 
         surf = game.boundary.draw_auras(surf, full_size, cull_rect)
@@ -127,7 +130,6 @@ class MapView():
                 pass # Don't draw units
         else:
             self.draw_units(surf, cull_rect)
-
 
         game.tilemap.high_animations = [anim for anim in game.tilemap.high_animations if not anim.update()]
         for anim in game.tilemap.high_animations:

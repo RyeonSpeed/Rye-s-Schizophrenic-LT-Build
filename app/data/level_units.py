@@ -1,5 +1,6 @@
+from typing import List, Tuple
 from app.utilities.typing import NID
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.utilities.data import Prefab
 
@@ -13,7 +14,8 @@ class GenericUnit(Prefab):
 
     faction: str = None
 
-    starting_items: list = None
+    starting_items: List[Tuple[NID, bool]] = field(default_factory=list)
+    starting_skills: List[NID] = field(default_factory=list)
 
     team: str = None
     ai: str = None

@@ -102,7 +102,7 @@ class UnitObject(Prefab):
         return None
 
     @classmethod
-    def from_prefab(cls, prefab: UniqueUnit | GenericUnit | UnitPrefab, current_mode: DifficultyModeObject = None, new_nid = None):
+    def from_prefab(cls, prefab: UniqueUnit | GenericUnit | UnitPrefab, current_mode: DifficultyModeObject = None, new_nid=None):
         new_nid = new_nid or prefab.nid
         self = cls(new_nid)
         is_level_unit = not isinstance(prefab, UnitPrefab)
@@ -225,6 +225,9 @@ class UnitObject(Prefab):
             self.skills += personal_skills
             class_skills = unit_funcs.get_starting_skills(self)
             self.skills += class_skills
+            if self.generic:
+                generic_skills = item_funcs.create_skills(self, prefab.starting_skills)
+                self.skills += generic_skills
 
         klass = DB.classes.get(self.klass)
         if klass.tier == 0:
@@ -532,7 +535,10 @@ class UnitObject(Prefab):
             skill_system.on_add_item(self, item)
 
     def remove_item(self, item):
-        if item is self.equipped_weapon or item is self.equipped_accessory:
+        if self.equipped_weapon is item or \
+                self.equipped_accessory is item or \
+                item.multi_item and self.equipped_weapon in item_funcs.get_all_items_from_multi_item(self, item) or \
+                item.multi_item and self.equipped_accessory in item_funcs.get_all_items_from_multi_item(self, item):
             self.unequip(item)
         self.items.remove(item)
         item.change_owner(None)

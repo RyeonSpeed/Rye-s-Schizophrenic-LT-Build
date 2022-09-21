@@ -7,6 +7,11 @@ from app.data.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox
 
+class CustomQtRoles():
+    # PyQt uses ints 0-14 for its roles.
+    # Therefore, for custom roles, we must use 15+
+    FilterRole = 15
+
 class ObjBox(PropertyBox):
     def __init__(self, title, model, database, parent=None, button=False):
         super().__init__(title, ComboBox, parent)

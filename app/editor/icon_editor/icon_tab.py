@@ -1,3 +1,4 @@
+from app.editor.custom_widgets import CustomQtRoles
 import re
 from typing import Callable, List
 
@@ -42,6 +43,7 @@ class IconTab(QWidget):
         self.view.setGridSize(QSize(80, 80))
 
         if self.side_menu_enabled:
+            self.model.setFilterRole(CustomQtRoles.FilterRole)
             left_layout = QVBoxLayout()
 
             self.icon_sheet_search = QLineEdit()

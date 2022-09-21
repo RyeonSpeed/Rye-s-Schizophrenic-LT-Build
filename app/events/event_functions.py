@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import ast
 from typing import TYPE_CHECKING
 
@@ -497,6 +498,41 @@ def flicker_cursor(self: Event, position, flags=None):
     self.commands.insert(self.command_idx + 1, disp_cursor_command1)
     self.commands.insert(self.command_idx + 1, move_cursor_command)
 
+def screen_shake(self: Event, duration, shake_type=None, flags=None):
+    flags = flags or set()
+    shake_type = shake_type or 'default'
+    duration = int(duration)
+
+    shake_offset = None
+    if shake_type == 'default':
+        shake_offset = [(0, -2), (0, -2), (0, 0), (0, 0)]
+    elif shake_type == 'combat':
+        shake_offset = [(-3, -3), (0, 0), (3, 3), (0, 0)]
+    elif shake_type == 'kill':
+        shake_offset = [(3, 3), (0, 0), (0, 0), (3, 3), (-3, -3), (3, 3), (-3, -3), (0, 0)]
+    elif shake_type == 'random':
+        shake_offset = [(random.randint(-4, 4), random.randint(-4, 4)) for _ in range(16)]
+    elif shake_type == 'celeste':
+        shake_offset = [(random.choice([-1, 1]), random.choice([-1, 1])) for _ in range(16)]
+
+    if not shake_offset:
+        self.logger.error("shake mode %s not recognized by screen shake command. Recognized modes are ('default', 'combat').", shake_type)
+        return
+    
+    self.game.camera.set_shake(shake_offset, duration)
+    if self.background:
+        self.background.set_shake(shake_offset, duration)
+    if 'no_block' in flags:
+        pass
+    else:
+        self.wait_time = engine.get_time() + duration
+        self.state = 'waiting'
+
+def screen_shake_end(self: Event, flags=None):
+    self.game.camera.reset_shake()
+    if self.background:
+        self.background.reset_shake()
+
 def game_var(self: Event, nid, expression, flags=None):
     try:
         val = self.text_evaluator.direct_eval(expression)
@@ -736,8 +772,8 @@ def make_generic(self: Event, nid, klass, level, team, ai=None, faction=None, an
         starting_items = item_list.split(',')
     else:
         starting_items = []
-    level_unit_prefab = GenericUnit(unit_nid, animation_variant, level, klass, faction, starting_items, team, ai)
-    new_unit = UnitObject.from_prefab(level_unit_prefab)
+    level_unit_prefab = GenericUnit(unit_nid, animation_variant, level, klass, faction, starting_items, [], team, ai)
+    new_unit = UnitObject.from_prefab(level_unit_prefab, self.game.current_mode)
     new_unit.party = self.game.current_party
     #self.game.full_register(new_unit)
     action.do(action.RegisterUnit(new_unit))
@@ -782,7 +818,7 @@ def create_unit(self: Event, unit, nid=None, level=None, position=None, entry_ty
     if not faction:
         faction = DB.factions[0].nid
     level_unit_prefab = GenericUnit(
-        unit_nid, unit.variant, int(level), unit.klass, faction, [item.nid for item in unit.items], unit.team, unit.ai)
+        unit_nid, unit.variant, int(level), unit.klass, faction, [item.nid for item in unit.items], [skill.nid for skill in unit.skills], unit.team, unit.ai)
     new_unit = UnitObject.from_prefab(level_unit_prefab, self.game.current_mode)
 
     if 'copy_stats' in flags:
@@ -2569,7 +2605,7 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
         if anim_dir == 'fade':
             enter_anim = fade_anim(0, 1, 1000)
             exit_anim = fade_anim(1, 0, 1000)
-            component.margin = (x, y, 0, 0)
+            component.margin = (x, 0, y, 0)
         else:
             if anim_dir == 'west':
                 start_x = -component.width
