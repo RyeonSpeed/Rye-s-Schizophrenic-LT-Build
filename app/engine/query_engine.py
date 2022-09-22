@@ -246,6 +246,19 @@ Example usage:
         """
         unit = self._resolve_to_unit(unit)
         return len([skill for skill in unit.skills if skill.negative])
+        
+    @categorize(QueryType.SKILL)
+    def get_debuff_count_sigma(self, unit) -> int:
+        """Checks how many negative skills the unit has.
+
+        Args:
+            unit: Unit in question
+
+        Returns:
+            int: Number of unique negative skills on the unit
+        """
+        unit = self._resolve_to_unit(unit)
+        return len([skill for skill in unit.skills if skill.negative or (skill.has_tags.value and condition(skill, target) and 'NegativeSticky' in skill.has_tags.value)])
 
     @categorize(QueryType.MAP)
     def get_units_in_region(self, region, nid=None, team=None, tag=None) -> List[UnitObject]:
