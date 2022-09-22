@@ -258,7 +258,7 @@ Example usage:
             int: Number of unique negative skills on the unit
         """
         unit = self._resolve_to_unit(unit)
-        return len([skill for skill in unit.skills if skill.negative or (skill.has_tags.value and condition(skill, target) and 'NegativeSticky' in skill.has_tags.value)])
+        return len([skill for skill in unit.skills if skill.negative or (skill.has_tags and 'NegativeSticky' in skill.has_tags.value)])
 
     @categorize(QueryType.MAP)
     def get_units_in_region(self, region, nid=None, team=None, tag=None) -> List[UnitObject]:
