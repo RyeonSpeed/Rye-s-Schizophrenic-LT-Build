@@ -17,7 +17,7 @@ class LevelPrefab(Prefab):
         self.bg_tilemap = None # bg tilemap nid
         self.party = None  # Party Prefab Nid
         self.music = OrderedDict()
-        
+
         for key in music_keys:
             self.music[key] = None
         self.objective = {'simple': '',
@@ -29,7 +29,7 @@ class LevelPrefab(Prefab):
         self.go_to_overworld: bool = False
 
         self.units = Data[Union[UniqueUnit, GenericUnit]]()
-        self.regions = Data()
+        self.regions = Data[Region]()
         self.unit_groups = Data()
 
     def save_attr(self, name, value):

@@ -99,7 +99,8 @@ class UnitObject(Prefab):
             prefab = DB.units.get(self.prefab_nid)
             if prefab:
                 return getattr(prefab, attr)
-        return None
+        # not in prefab, so...
+        raise AttributeError('UnitObject has no attribute %s' % attr)
 
     @classmethod
     def from_prefab(cls, prefab: UniqueUnit | GenericUnit | UnitPrefab, current_mode: DifficultyModeObject = None, new_nid=None):

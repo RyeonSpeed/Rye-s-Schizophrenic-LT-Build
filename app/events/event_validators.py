@@ -1,5 +1,6 @@
 from __future__ import annotations
 from app.data.items import ItemPrefab
+from app.data.levels import LevelPrefab
 from app.data.skills import SkillPrefab
 
 import re
@@ -671,7 +672,7 @@ class ShakeType(OptionValidator):
 class Position(Validator):
     desc = "accepts a valid `(x, y)` position. You use a unit's nid to use their position. Alternatively, you can use one of (`{unit}`, `{unit1}`, `{unit2}`, `{position}`)"
 
-    def validate(self, text, level):
+    def validate(self, text, level: LevelPrefab):
         text = text.split(',')
         if len(text) == 1:
             text = text[0]
@@ -681,6 +682,9 @@ class Position(Validator):
                 return text
             elif text in self.valid_overworld_nids().values():
                 return text
+            if level and level.regions:
+                if text in level.regions.keys():
+                    return text
             return None
         if len(text) > 2:
             return None
@@ -707,6 +711,8 @@ class Position(Validator):
             valids.append((None, "{position}"))
             for pair in self.valid_overworld_nids().items():
                 valids.append(pair)
+            for region in level_prefab.regions.values():
+                valids.append((None, region.nid))
             return valids
         else:
             valids = []
