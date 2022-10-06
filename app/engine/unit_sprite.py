@@ -27,14 +27,17 @@ class MapSprite():
         self.resource = map_sprite
         if not map_sprite.standing_image:
             map_sprite.standing_image = engine.image_load(map_sprite.stand_full_path)
-        gray_stand = map_sprite.standing_image.copy()
         if not map_sprite.moving_image:
             map_sprite.moving_image = engine.image_load(map_sprite.move_full_path)
         stand, move = self.convert_to_team_colors(map_sprite)
         engine.set_colorkey(stand, COLORKEY, rleaccel=True)
         engine.set_colorkey(move, COLORKEY, rleaccel=True)
         self.passive = [engine.subsurface(stand, (num*64, 0, 64, 48)) for num in range(3)]
-        self.gray = self.create_gray([engine.subsurface(gray_stand, (num*64, 0, 64, 48)) for num in range(3)])
+        if DB.constants.value('autogenerate_grey_map_sprites'):
+            gray_stand = map_sprite.standing_image.copy()
+            self.gray = self.create_gray([engine.subsurface(gray_stand, (num*64, 0, 64, 48)) for num in range(3)])
+        else:
+            self.gray = [engine.subsurface(stand, (num*64, 48, 64, 48)) for num in range(3)]
         self.active = [engine.subsurface(stand, (num*64, 96, 64, 48)) for num in range(3)]
         self.down = [engine.subsurface(move, (num*48, 0, 48, 40)) for num in range(4)]
         self.left = [engine.subsurface(move, (num*48, 40, 48, 40)) for num in range(4)]

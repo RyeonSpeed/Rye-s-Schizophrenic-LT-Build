@@ -44,7 +44,7 @@ class ParticleSystem():
             self.update()
 
     def draw(self, surf, offset_x=0, offset_y=0):
-        if self.blend == SPRITES.get('particle_bg_night'):
+        if self.blend == SPRITES.get('particle_bg_night') or self.blend == SPRITES.get('particle_bg_sunset'):
             engine.blit(surf, self.blend, (0, 0), None, engine.BLEND_RGB_MULT)
         elif self.blend:
             engine.blit(surf, self.blend, (0, 0), None, engine.BLEND_RGB_ADD)
@@ -230,6 +230,9 @@ class DarkMote(LightMote):
 class Night(Particle):
     speed = 0
 
+class Sunset(Particle):
+    speed = 0
+
 class EventTileParticle(Particle):
     sprite = SPRITES.get('particle_light_mote')
     x_speed = 0.16
@@ -291,6 +294,10 @@ def create_system(nid, width, height, position):
         creation_bounds = 0, WINWIDTH + 64, WINHEIGHT, WINHEIGHT + 16
         blend = SPRITES.get('particle_bg_night')
         ps = ParticleSystem(nid, Night, 0, creation_bounds, (width, height), blend=blend)
+    elif nid == 'sunset':
+        creation_bounds = 0, WINWIDTH + 64, WINHEIGHT, WINHEIGHT + 16
+        blend = SPRITES.get('particle_bg_sunset')
+        ps = ParticleSystem(nid, Sunset, 0, creation_bounds, (width, height), blend=blend)
     elif nid == 'event_tile':
         ypos = (position[1] + 1) * TILEHEIGHT
         creation_bounds = position[0] * TILEWIDTH, (position[0] + 1) * TILEWIDTH, ypos - 5, ypos

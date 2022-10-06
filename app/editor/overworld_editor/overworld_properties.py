@@ -1,3 +1,4 @@
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.data.database import DB
 from app.editor.sound_editor import sound_tab
 from app.editor.tile_editor import tile_tab
@@ -39,7 +40,7 @@ class OverworldPropertiesMenu(QWidget):
         form = QVBoxLayout(self)
         form.setAlignment(Qt.AlignTop)
 
-        self.nid_box = PropertyBox("Overworld ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Overworld ID", NidLineEdit, self)
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)
         form.addWidget(self.nid_box)

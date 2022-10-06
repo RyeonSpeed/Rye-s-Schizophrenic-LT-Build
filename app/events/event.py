@@ -463,6 +463,7 @@ class Event():
         return self.text_evaluator._evaluate_all(text)
 
     def _place_unit(self, unit, position, entry_type, entry_direc = None):
+        position = tuple(position)
         if self.do_skip:
             action.do(action.ArriveOnMap(unit, position))
         elif entry_type == 'warp':

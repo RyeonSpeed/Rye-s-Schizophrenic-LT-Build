@@ -22,6 +22,7 @@ from app.editor.faction_editor import faction_model
 from app.editor.stat_widget import StatAverageDialog, GenericStatAveragesModel
 from app.editor.item_list_widget import ItemListWidget
 from app.editor.event_editor.event_inspector import EventInspectorEngine
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.events.event_commands import ChangeRoaming
 
 
@@ -513,7 +514,7 @@ class GenericUnitDialog(Dialog):
                 new_nid, None, 1, DB.classes[0].nid, DB.factions[0].nid,
                 [(DB.items[0].nid, False)], [], 'player', DB.ai[0].nid)
 
-        self.nid_box = PropertyBox("Unique ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Unique ID", NidLineEdit, self)
         self.nid_box.edit.setPlaceholderText("Unique ID")
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)

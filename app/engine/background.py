@@ -65,6 +65,10 @@ class PanoramaBackground():
         self.shake_offset = self.no_shake
         self.shake_to_end = 0
 
+        # For pause
+        self.paused = False
+        self.pause_at = None
+
     def set_shake(self, shake_offset: List[Tuple[int, int]], duration: int = 0):
         self.shake_offset = shake_offset
         self.shake_idx = 0
@@ -75,6 +79,16 @@ class PanoramaBackground():
         self.shake_offset = self.no_shake
         self.shake_idx = 0
         self.shake_to_end = 0
+
+    def pause(self, at: int = None):
+        if at is None:
+            self.paused = True
+        else:
+            self.pause_at = at
+
+    def unpause(self):
+        self.pause_at = None
+        self.paused = False
 
     def update(self):
         self.shake_idx += 1
@@ -98,13 +112,17 @@ class PanoramaBackground():
                     self.fade_state = 'off'
 
         # For procession of frames
-        if engine.get_time() - self.last_update > self.speed:
+        if not self.paused and engine.get_time() - self.last_update > self.speed:
             self.counter += 1
             if self.counter >= self.panorama.num_frames:
                 self.counter = 0
             self.last_update = engine.get_time()
             if self.counter == 0 and not self.loop:
                 return True
+            # Check if we should pause here
+            if self.pause_at is not None and self.counter == self.pause_at:
+                self.paused = True
+                self.pause_at = None
         return False
 
     def _draw(self, surf, image):

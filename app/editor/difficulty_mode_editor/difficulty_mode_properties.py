@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLineEdit, QMessageBox, QSpinBox,
 
 from app.data.difficulty_modes import GrowthOption, PermadeathOption, RNGOption
 from app.editor.stat_widget import StatListWidget
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.extensions.custom_gui import ComboBox, PropertyBox
 from app.sprites import SPRITES
 from app.utilities import str_utils
@@ -29,7 +30,7 @@ class DifficultyModeProperties(QWidget):
 
         self.current = current
 
-        self.nid_box = PropertyBox("Unique ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Unique ID", NidLineEdit, self)
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)
 
@@ -100,8 +101,8 @@ class DifficultyModeProperties(QWidget):
         self.setLayout(main_section)
 
     def nid_changed(self, text):
-        if self.current.name == self.current.nid:
-            self.name_box.edit.setText(text)
+        if self.current.name == self.current.nid.replace('_', ' '):
+            self.name_box.edit.setText(text.replace('_', ' '))
         self.current.nid = text
         self.window.update_list()
 

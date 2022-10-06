@@ -9,6 +9,7 @@ from app.editor.stat_widget import (StatAverageDialog, StatListWidget,
                                     UnitStatAveragesModel)
 from app.editor.tag_widget import TagDialog
 from app.editor.weapon_editor import weapon_model
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.extensions.custom_gui import ComboBox, PropertyBox, QHLine
 from app.extensions.list_models import ReverseDoubleListModel, VirtualListModel
 from app.extensions.list_widgets import (AppendMultiListWidget,
@@ -139,7 +140,7 @@ class UnitProperties(QWidget):
 
         # name_section = QVBoxLayout()
 
-        self.nid_box = PropertyBox("Unique ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Unique ID", NidLineEdit, self)
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)
         main_section.addWidget(self.nid_box, 0, 1)
@@ -264,8 +265,8 @@ class UnitProperties(QWidget):
 
     def nid_changed(self, text):
         # Also change name if they are identical
-        if self.current.name == self.current.nid:
-            self.name_box.edit.setText(text)
+        if self.current.name == self.current.nid.replace('_', ' '):
+            self.name_box.edit.setText(text.replace('_', ' '))
         self.current.nid = text
         self.window.update_list()
 

@@ -132,6 +132,9 @@ class InitiativeUpkeep(MapState):
 class PhaseChangeState(MapState):
     name = 'phase_change'
 
+    def is_roam(self):
+        return game.level.roam and game.level.roam_unit
+
     def refresh_fatigue(self):
         refresh_these = [unit for unit in game.get_all_units_in_party() if not unit.position]
         for unit in refresh_these:
@@ -145,13 +148,16 @@ class PhaseChangeState(MapState):
         # in between this and turn change
         # And they technically happen before I want the player to have the turnwheel locked
         # units reset, etc.
-        phase.fade_out_phase_music()
+
+        # we want to skip aesthetics if we're in free roam mode though
+        if not self.is_roam():
+            phase.fade_out_phase_music()
+            game.phase.slide_in()
+        game.cursor.hide()
         action.do(action.LockTurnwheel(game.phase.get_current() != 'player'))
         if DB.constants.value('fatigue') and DB.constants.value('reset_fatigue') and game.turncount == 1 and game.phase.get_current() == 'player':
             self.refresh_fatigue()
         action.do(action.ResetAll([unit for unit in game.units if not unit.dead]))
-        game.cursor.hide()
-        game.phase.slide_in()
 
         if DB.constants.value('initiative'):
             unit = game.initiative.get_current_unit()
@@ -160,17 +166,23 @@ class PhaseChangeState(MapState):
 
     def update(self):
         super().update()
+        if self.is_roam():
+            game.state.back()
+            return
         done = game.phase.update()
         if done:
             game.state.back()
 
     def draw(self, surf):
         surf = super().draw(surf)
-        surf = game.phase.draw(surf)
+        if not self.is_roam():
+            surf = game.phase.draw(surf)
         return surf
 
     def end(self):
         logging.info("Phase Change End")
+        if self.is_roam():
+            return
         phase.fade_in_phase_music()
 
     def finish(self):
@@ -1311,6 +1323,7 @@ class WeaponChoiceState(MapState):
         self.cur_unit.sprite.change_state('chosen')
         options = self.options
         self.menu = menus.Choice(self.cur_unit, options)
+        self.menu.set_limit(8)
         self.item_desc_panel = ui_view.ItemDescriptionPanel(self.cur_unit, self.menu.get_current())
         self.disp_attacks(self.cur_unit, self.menu.get_current())
 
@@ -1370,7 +1383,6 @@ class WeaponChoiceState(MapState):
                 equip_action = action.EquipItem(self.cur_unit, selection)
                 # game.memory['equip_action'] = equip_action
                 action.do(equip_action)
-
 
             # If the item is in our inventory, bring it to the top
             if selection in self.cur_unit.items:
@@ -1484,7 +1496,6 @@ class CombatArtChoiceState(MapState):
             return
 
     def begin(self):
-
         game.cursor.hide()
         self.cur_unit = game.cursor.cur_unit
         self.cur_unit.sprite.change_state('chosen')
@@ -1499,9 +1510,7 @@ class CombatArtChoiceState(MapState):
         first_push = self.fluid.update()
         directions = self.fluid.get_directions()
 
-        did_move = self.menu.handle_mouse()
-        if did_move:
-            self._item_desc_update()
+        self.menu.handle_mouse()
 
         if 'DOWN' in directions:
             get_sound_thread().play_sfx('Select 6')

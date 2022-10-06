@@ -184,7 +184,7 @@ class AIController():
         elif self.behaviour.view_range == -1:
             target_positions = {(pos, mag) for pos, mag in target_positions if mag < zero_move}
         else:
-            target_positions = {(pos, mag) for pos, mag in target_positions if mag < self.view_range}
+            target_positions = {(pos, mag) for pos, mag in target_positions if mag < self.behaviour.view_range}
 
         if target_positions and len(valid_positions) > 1:
             self.goal_position = utils.smart_farthest_away_pos(self.unit.position, valid_positions, target_positions)

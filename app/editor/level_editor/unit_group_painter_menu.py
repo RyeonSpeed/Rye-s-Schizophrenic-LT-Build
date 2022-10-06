@@ -1,3 +1,4 @@
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 import functools
 
 from PyQt5.QtWidgets import QPushButton, QLineEdit, \
@@ -136,7 +137,7 @@ class GroupWidget(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
-        self.nid_box = QLineEdit(self)
+        self.nid_box = NidLineEdit(self)
         self.nid_box.textChanged.connect(self.nid_changed)
         self.nid_box.editingFinished.connect(self.nid_done_editing)
         self.layout.addWidget(self.nid_box, 0, 0)
@@ -179,7 +180,7 @@ class GroupWidget(QWidget):
     def tick(self):
         self.model.layoutChanged.emit()
 
-    def nid_changed(self, text):
+    def nid_changed(self, text: str):
         self.current.nid = text
 
     def nid_done_editing(self):

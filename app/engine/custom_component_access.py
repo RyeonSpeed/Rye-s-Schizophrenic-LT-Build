@@ -1,3 +1,6 @@
+import logging
+import traceback
+
 current_custom_path = None
 def get_components() -> bool:
     # For getting custom project components at runtime
@@ -17,11 +20,15 @@ def get_components() -> bool:
     if module_path != current_custom_path and os.path.exists(module_path):
         current_custom_path = module_path
         print("Importing Custom Components")
-        spec = importlib.util.spec_from_file_location('custom_components', module_path)
-        module = importlib.util.module_from_spec(spec)
-        # spec.name is 'custom_components'
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
+        try:
+            spec = importlib.util.spec_from_file_location('custom_components', module_path)
+            module = importlib.util.module_from_spec(spec)
+            # spec.name is 'custom_components'
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+        except:
+            import_failure_msg = traceback.format_exc()
+            logging.error("Failed to import custom components: %s" % (import_failure_msg))
 
     return os.path.exists(module_path)
 

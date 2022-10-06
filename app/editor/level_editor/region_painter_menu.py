@@ -12,6 +12,7 @@ from app.utilities.data import Data
 from app.extensions.custom_gui import PropertyBox, PropertyCheckBox, ComboBox, RightClickListView
 from app.editor.base_database_gui import DragDropCollectionModel
 from app.editor.custom_widgets import SkillBox
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.events import regions
 
 from app.editor import timer
@@ -178,7 +179,7 @@ class ModifyRegionWidget(QWidget):
 
         self.current = current
 
-        self.nid_box = PropertyBox("Unique ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Unique ID", NidLineEdit, self)
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)
         layout.addWidget(self.nid_box)
@@ -190,7 +191,7 @@ class ModifyRegionWidget(QWidget):
             self.region_type_changed)
         layout.addWidget(self.region_type_box)
 
-        self.sub_nid_box = PropertyBox("Event Name", QLineEdit, self)
+        self.sub_nid_box = PropertyBox("Event Name", NidLineEdit, self)
         # if self.current.sub_nid and self.current.region_type == 'Event':
         #     self.sub_nid_box.edit.setText(self.current.sub_nid)
         self.sub_nid_box.edit.textChanged.connect(self.sub_nid_changed)
@@ -204,7 +205,7 @@ class ModifyRegionWidget(QWidget):
         self.only_once_box = PropertyCheckBox("Only once?", QCheckBox, self)
         self.only_once_box.edit.stateChanged.connect(self.only_once_changed)
         layout.addWidget(self.only_once_box)
-        
+
         self.interrupt_move_box = PropertyCheckBox("Interrupts Movement?", QCheckBox, self)
         self.interrupt_move_box.edit.stateChanged.connect(self.interrupt_move_changed)
         layout.addWidget(self.interrupt_move_box)
@@ -272,7 +273,7 @@ class ModifyRegionWidget(QWidget):
 
     def only_once_changed(self, state):
         self.current.only_once = bool(state)
-        
+
     def interrupt_move_changed(self, state):
         self.current.interrupt_move = bool(state)
 

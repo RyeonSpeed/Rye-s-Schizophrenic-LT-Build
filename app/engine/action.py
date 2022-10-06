@@ -1221,6 +1221,17 @@ class MakeItemDroppable(Action):
             item.droppable = self.is_droppable[idx]
         self.item.droppable = self.was_droppable
 
+class SetDroppable(Action):
+    def __init__(self, item, value):
+        self.item = item
+        self.was_droppable = item.droppable
+        self.value = value
+
+    def do(self):
+        self.item.droppable = self.value
+
+    def reverse(self):
+        self.item.droppable = self.was_droppable
 
 class StoreItem(Action):
     def __init__(self, unit, item):
@@ -1872,17 +1883,27 @@ class SetNid(Action):
 
     def do(self):
         if self.unit.generic:
+            # Leave and arrive are necessary because the game
+            # board has references to unit's by their nid
+            if self.unit.position:
+                game.leave(self.unit)
             if self.unit.nid in game.unit_registry:
                 del game.unit_registry[self.unit.nid]
             self.unit.nid = self.new_nid
             game.register_unit(self.unit)
+            if self.unit.position:
+                game.arrive(self.unit)
 
     def reverse(self):
         if self.unit.generic:
+            if self.unit.position:
+                game.leave(self.unit)
             if self.unit.nid in game.unit_registry:
                 del game.unit_registry[self.unit.nid]
             self.unit.nid = self.old_nid
             game.register_unit(self.unit)
+            if self.unit.position:
+                game.arrive(self.unit)
 
 class SetHP(Action):
     def __init__(self, unit, new_hp):
@@ -2032,6 +2053,8 @@ class Resurrect(Action):
 
     def do(self):
         self.unit.dead = False
+        self.unit.sprite.set_transition('normal')
+        self.unit.sprite.change_state('normal')
 
     def reverse(self):
         self.unit.dead = self.old_dead

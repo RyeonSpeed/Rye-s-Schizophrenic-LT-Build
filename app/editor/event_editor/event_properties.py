@@ -1,3 +1,4 @@
+from app.editor.lib.components.validated_line_edit import NoParentheticalLineEdit
 from app.events.triggers import ALL_TRIGGERS
 import functools
 import logging
@@ -810,7 +811,7 @@ class EventProperties(QWidget):
         self.level_filter_box = left_frame.level_filter_box
         grid = left_frame.layout()
 
-        self.name_box = PropertyBox("Name", QLineEdit, self)
+        self.name_box = PropertyBox("Name", NoParentheticalLineEdit, self)
         self.name_box.edit.textChanged.connect(self.name_changed)
         self.name_box.edit.editingFinished.connect(self.name_done_editing)
 

@@ -76,6 +76,7 @@ constants = ConstantCatalog([
     Constant('boss_crit', "Final blow on boss will use critical animation", bool, False, 'aesthetic'),
     Constant('battle_platforms', "Use battle platforms when battle backgrounds are on", bool, True, 'aesthetic'),
     Constant('roam_hide_hp', "Hide hp bars during free roam", bool, False, 'aesthetic'),
+    Constant('autogenerate_grey_map_sprites', 'Automatically generate grey "wait" map sprites', bool, True, 'aesthetic'),
     Constant('convoy_on_death', "Items held by dead player units are sent to convoy", bool),
     Constant('repair_shop', "Access the Repair Shop in prep and base", bool, False),
     Constant('sound_room_in_codex', "Can access sound room from Codex menu in base", bool, True),

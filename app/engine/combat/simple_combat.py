@@ -5,7 +5,7 @@ from app.engine.combat.solver import CombatPhaseSolver
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
 from app.engine.objects.unit import UnitObject
-from app.events import triggers
+from app.events import triggers, event_commands
 from app.utilities import utils
 
 
@@ -329,39 +329,39 @@ class SimpleCombat():
                 game.state.change('wait')
 
     def handle_item_gain(self, all_units):
+        # What we are doing is basically mocking a drop item event so it will happen in the correct order with other
+        # events that we are adding to the event trigger stack
         enemies = all_units.copy()
         enemies.remove(self.attacker)
-        has_discard = False
+        counter = 0
         for unit in enemies:
             if unit.is_dying:
                 for item in unit.items[:]:
                     if item.droppable:
                         action.do(action.RemoveItem(unit, item))
-                        if not has_discard and item_funcs.inventory_full(self.attacker, item):
-                            action.do(action.DropItem(self.attacker, item))
-                            game.cursor.cur_unit = self.attacker
-                            game.state.change('item_discard')
-                            has_discard = True
-                        else:
-                            action.do(action.DropItem(self.attacker, item))
+                        event_nid = 'DropItem%d' % counter
                         if self.alerts:
-                            game.alerts.append(banner.AcquiredItem(self.attacker, item))
-                            game.state.change('alert')
-        has_discard = False
+                            flags = None
+                        else:
+                            flags = {'no_banner'}
+                        command = event_commands.GiveItem({'GlobalUnitOrConvoy': '{unit}', 'Item': str(item.uid)}, flags)
+                        trigger = triggers.GenericTrigger(self.attacker, unit, self.attacker.position, {'item_uid': item.uid})
+                        game.events._add_event(event_nid, [command], trigger)
+                        counter += 1
+                        
         if self.attacker.is_dying and self.defender:
             for item in self.attacker.items[:]:
                 if item.droppable:
                     action.do(action.RemoveItem(self.attacker, item))
-                    if not has_discard and item_funcs.inventory_full(self.defender, item):
-                        action.do(action.DropItem(self.defender, item))
-                        game.cursor.cur_unit = self.defender
-                        game.state.change('item_discard')
-                        has_discard = True
-                    else:
-                        action.do(action.DropItem(self.defender, item))
+                    event_nid = 'DropItem%d' % counter
                     if self.alerts:
-                        game.alerts.append(banner.AcquiredItem(self.defender, item))
-                        game.state.change('alert')
+                        flags = None
+                    else:
+                        flags = {'no_banner'}
+                    command = event_commands.GiveItem({'GlobalUnitOrConvoy': '{unit}', 'Item': str(item.uid)}, flags)
+                    trigger = triggers.GenericTrigger(self.defender, self.attacker, self.defender.position, {'item_uid': item.uid})
+                    game.events._add_event(event_nid, [command], trigger)
+                    counter += 1
 
     def find_broken_items(self):
         a_broke, d_broke = False, False

@@ -13,6 +13,7 @@ from app.editor.custom_widgets import MovementCostBox
 from app.editor.mcost_dialog import McostDialog
 from app.editor.skill_editor import skill_model
 from app.extensions.color_icon import ColorIcon
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.utilities import str_utils
 
 class TerrainProperties(QWidget):
@@ -34,7 +35,7 @@ class TerrainProperties(QWidget):
 
         name_section = QVBoxLayout()
 
-        self.nid_box = PropertyBox("Unique ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Unique ID", NidLineEdit, self)
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)
         name_section.addWidget(self.nid_box)

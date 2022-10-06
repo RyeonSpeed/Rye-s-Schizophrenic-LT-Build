@@ -536,9 +536,14 @@ class Transition(EventCommand):
 If a scene is currently displayed, it is faded out to a black screen.
 The next use of this function will fade the scene back into view.
 The optional *Speed* and *Color3* keywords control the speed and color of the transition.
+
+Extra flags:
+
+1. *no_block*: The event script will continue to execute while the screen is fading in or out
         """
 
     optional_keywords = ['Direction', 'Speed', 'Color3']
+    _flags = ['no_block']
 
 class ChangeBackground(EventCommand):
     # Also does remove background
@@ -555,6 +560,27 @@ Displayed portraits are also removed unless the *keep_portraits* flag is set.
 
     optional_keywords = ['Panorama']
     _flags = ["keep_portraits"]
+
+class PauseBackground(EventCommand):
+    nid = "pause_background"
+    tag = Tags.BG_FG
+
+    desc = \
+        """
+Pauses the current background if it has multiple frames. Optional *PauseAt* parameter lets you control exactly which frame to pause on.
+        """
+
+    optional_keywords = ['PauseAt']
+    keyword_types = ['WholeNumber']
+
+class UnpauseBackground(EventCommand):
+    nid = "unpause_background"
+    tag = Tags.BG_FG
+
+    desc = \
+        """
+Unpauses the current background.
+        """
 
 class DispCursor(EventCommand):
     nid = "disp_cursor"
@@ -1287,6 +1313,33 @@ Also, if the item is removed from the convoy, there will not be a banner.
 
     keywords = ["GlobalUnitOrConvoy", "Item"]
     _flags = ['no_banner']
+
+class MoveItem(EventCommand):
+    nid = 'move_item'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Removes *Item* from the inventory of *Giver* and adds it to the inventory of *Receiver*.
+If *Item* is not supplied, just moves the last item from the inventory of *Giver*.
+If the inventory of *Receiver* is full, this command will not succeed.
+        """
+
+    keywords = ["Giver", "Receiver"]
+    optional_keywords = ["Item"]
+    keyword_types = ["GlobalUnitOrConvoy", "GlobalUnitOrConvoy", "Item"]
+
+class MoveItemBetweenConvoys(EventCommand):
+    nid = 'move_item_between_convoys'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Moves *Item* from the convoy of *Party1* and adds it to the convoy of *Party2*.
+        """
+
+    keywords = ["Item", "Party1", "Party2"]
+    keyword_types = ["Item", "Party", "Party"]
 
 class SetItemUses(EventCommand):
     nid = 'set_item_uses'

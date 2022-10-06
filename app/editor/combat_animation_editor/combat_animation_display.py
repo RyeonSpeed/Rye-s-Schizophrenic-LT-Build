@@ -1,3 +1,4 @@
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 import time, os, glob
 import json
 import pickle
@@ -56,7 +57,7 @@ class CombatAnimProperties(QWidget):
 
         self.info_form = QFormLayout()
 
-        self.nid_box = QLineEdit()
+        self.nid_box = NidLineEdit()
         self.nid_box.textChanged.connect(self.nid_changed)
         self.nid_box.editingFinished.connect(self.nid_done_editing)
 

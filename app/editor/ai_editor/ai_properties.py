@@ -9,6 +9,7 @@ from app.data.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox, PropertyCheckBox
 from app.editor.custom_widgets import ClassBox, UnitBox, FactionBox, PartyBox
+from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.utilities import str_utils
 
 # Target Specifications
@@ -428,7 +429,7 @@ class AIProperties(QWidget):
 
         self.top_section = QHBoxLayout()
 
-        self.nid_box = PropertyBox("Unique ID", QLineEdit, self)
+        self.nid_box = PropertyBox("Unique ID", NidLineEdit, self)
         self.nid_box.edit.textChanged.connect(self.nid_changed)
         self.nid_box.edit.editingFinished.connect(self.nid_done_editing)
         self.top_section.addWidget(self.nid_box)

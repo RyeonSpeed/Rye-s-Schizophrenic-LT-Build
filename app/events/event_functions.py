@@ -409,6 +409,7 @@ def unhold(self: Event, nid, flags=None):
             box.hold = False
 
 def transition(self: Event, direction=None, speed=None, color3=None, flags=None):
+    flags = flags or set()
     current_time = engine.get_time()
     if direction:
         self.transition_state = direction.lower()
@@ -421,8 +422,11 @@ def transition(self: Event, direction=None, speed=None, color3=None, flags=None)
 
     if not self.do_skip:
         self.transition_update = current_time
-        self.wait_time = current_time + int(self.transition_speed * 1.33)
-        self.state = 'waiting'
+        if 'no_block' in flags:
+            pass
+        else:
+            self.wait_time = current_time + int(self.transition_speed * 1.33)
+            self.state = 'waiting'
 
 def change_background(self: Event, panorama=None, flags=None):
     flags = flags or set()
@@ -437,6 +441,18 @@ def change_background(self: Event, panorama=None, flags=None):
         pass
     else:
         self.portraits.clear()
+
+def pause_background(self: Event, pause_at=None, flags=None):
+    if not self.background:
+        self.logger.warning("No current background to pause!")
+        return
+    self.background.pause(pause_at)
+
+def unpause_background(self: Event, flags=None):
+    if not self.background:
+        self.logger.warning("No current background to unpause")
+        return
+    self.background.unpause()
 
 def disp_cursor(self: Event, show_cursor, flags=None):
     if show_cursor.lower() in self.true_vals:
@@ -482,7 +498,7 @@ def center_cursor(self: Event, position, speed=None, flags=None):
             # we are using a custom camera speed
             duration = int(speed)
             self.game.camera.do_slow_pan(duration)
-            self.game.camera.set_center(*position)
+        self.game.camera.set_center(*position)
         self.game.state.change('move_camera')
         self.state = 'paused'  # So that the message will leave the update loop
 
@@ -518,7 +534,7 @@ def screen_shake(self: Event, duration, shake_type=None, flags=None):
     if not shake_offset:
         self.logger.error("shake mode %s not recognized by screen shake command. Recognized modes are ('default', 'combat').", shake_type)
         return
-    
+
     self.game.camera.set_shake(shake_offset, duration)
     if self.background:
         self.background.set_shake(shake_offset, duration)
@@ -1290,7 +1306,7 @@ def give_item(self: Event, global_unit_or_convoy, item, flags=None):
         self.logger.error("give_item: Couldn't find item with nid %s" % item_id)
         return
     banner_flag = 'no_banner' not in flags
-    item.droppable = 'droppable' in flags
+    action.do(action.SetDroppable(item, 'droppable' in flags))
 
     if unit:
         if item_funcs.inventory_full(unit, item):
@@ -1371,6 +1387,80 @@ def remove_item(self: Event, global_unit_or_convoy, item, flags=None):
             self.game.alerts.append(b)
             self.game.state.change('alert')
             self.state = 'paused'
+
+def move_item(self: Event, giver, receiver, item=None, flags=None):
+    flags = flags or set()
+
+    if item:
+        unit, item = self._get_item_in_inventory(giver, item)
+        if not unit or not item:
+            self.logger.error("move_item: Either unit or item was invalid, see above")
+            return
+    else:
+        item = None
+        if giver.lower() == 'convoy':
+            unit = self.game.get_party()
+        else:
+            unit = self.game.get_unit(giver)
+            if not unit:
+                self.logger.error("Could not find unit %s", giver)
+                return
+
+        if unit.items:
+            item = unit.items[-1]
+        else:
+            self.logger.warning("Unit %s has no items", giver)
+            return
+
+    if giver.lower() == 'convoy':
+        if receiver.lower() == 'convoy':
+            self.logger.warning("No change, since moving from current convoy to current convoy")
+        else:
+            other_unit = self.game.get_unit(receiver)
+            if not other_unit:
+                self.logger.error("Could not find unit %s", receiver)
+                return
+            if not item_funcs.inventory_full(other_unit, item):
+                action.do(action.TakeItemFromConvoy(other_unit, item))
+            else:
+                self.logger.warning("No space in unit %s's inventory", receiver)
+                return
+    else:
+        if receiver.lower() == 'convoy':
+            action.do(action.RemoveItem(unit, item))
+            action.do(action.PutItemInConvoy(item))
+        else:
+            other_unit = self.game.get_unit(receiver)
+            if not other_unit:
+                self.logger.error("Could not find unit %s", receiver)
+                return
+            if not item_funcs.inventory_full(other_unit, item):
+                action.do(action.MoveItem(unit, other_unit, item))
+            else:
+                self.logger.warning("No space in unit %s's inventory", receiver)
+                return
+
+def move_item_between_convoys(self: Event, item, party1, party2, flags=None):
+    giver = self.game.get_party(party1)
+    if not giver:
+        self.logger.error("Could not find party with nid %s", party1)
+        return
+    receiver = self.game.get_party(party2)
+    if not receiver:
+        self.logger.error("Could not find party with nid %s", party2)
+        return
+
+    item_id = item
+    item_list = giver.items
+    inids = [item.nid for item in item_list]
+    iuids = [item.uid for item in item_list]
+    if (item_id not in inids) and (not str_utils.is_int(item_id) or not int(item_id) in iuids):
+        self.logger.error("Couldn't find item with id %s" % item)
+        return
+    item = [item for item in item_list if (item.nid == item_id or (str_utils.is_int(item_id) and item.uid == int(item_id)))][0]
+
+    action.do(action.RemoveItemFromConvoy(item, party1))
+    action.do(action.PutItemInConvoy(item, party2))
 
 def set_item_uses(self: Event, global_unit_or_convoy, item, uses, flags=None):
     flags = flags or set()
