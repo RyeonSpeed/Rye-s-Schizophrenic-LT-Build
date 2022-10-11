@@ -44,7 +44,7 @@ def rendered_text_width(fonts: List[NID], texts: List[str]) -> int:
         if any_tags:
             tag_start, tag_end = any_tags.span()
             tag_font = any_tags.group().strip("<>")
-            if tag_font == '/':
+            if '/' in tag_font:
                 tag_font = font_history_stack.pop() if font_history_stack else base_font
             else:
                 font_history_stack.append(curr_font)

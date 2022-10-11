@@ -1,10 +1,13 @@
+from __future__ import annotations
 from typing import Dict
+from app.data.units import UnitPrefab
 from app.engine.game_counters import ANIMATION_COUNTERS
 import math
 
 from app.constants import TILEWIDTH, TILEHEIGHT, COLORKEY
 from app.data.palettes import gray_colors, enemy_colors, other_colors, enemy2_colors, black_colors, \
     player_dark_colors, enemy_dark_colors, other_dark_colors, gray_dark_colors
+from app.engine.objects.unit import UnitObject
 
 from app.resources.resources import RESOURCES
 from app.data.database import DB
@@ -78,11 +81,12 @@ class MapSprite():
             engine.set_colorkey(img, COLORKEY, rleaccel=True)
         return imgs
 
-def load_map_sprite(unit, team='player'):
+def load_map_sprite(unit: UnitObject | UnitPrefab, team='player'):
     klass = DB.classes.get(unit.klass)
     nid = klass.map_sprite_nid
-    if unit.variant:
-        nid += unit.variant
+    variant =  unit.variant or (isinstance(unit, UnitObject) and skill_system.change_variant(unit))
+    if variant:
+        nid += variant
     res = RESOURCES.map_sprites.get(nid)
     if not res:  # Try without unit variant
         res = RESOURCES.map_sprites.get(klass.map_sprite_nid)

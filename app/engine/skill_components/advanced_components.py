@@ -84,6 +84,7 @@ class AutomaticCombatArt(SkillComponent):
     def on_endstep(self, actions, playback, unit):
         actions.append(action.RemoveSkill(unit, self.value))
 
+
 class AllowedWeapons(SkillComponent):
     nid = 'allowed_weapons'
     desc = "Defines what weapons are allowed for combat art or proc skill"
@@ -132,6 +133,25 @@ def get_weapon_filter(skill, unit, item) -> bool:
         if component.defines('weapon_filter'):
             return component.weapon_filter(unit, item)
     return True
+
+class ProcGainSkillForTurn(SkillComponent):
+    nid = 'proc_turn_skill'
+    desc = "Unit has a chance to gain the proc skill at the beginning of the turn, and will lose it on endstep"
+    tag = SkillTags.ADVANCED
+
+    expose = Type.Skill
+    _did_action = False
+
+    def on_upkeep(self, actions, playback, unit):
+        proc_rate = get_proc_rate(unit, self.skill)
+        if static_random.get_combat() < proc_rate:
+            actions.append(action.AddSkill(unit, self.value))
+            actions.append(action.TriggerCharge(unit, self.skill))
+            self._did_action = True
+
+    def on_endstep(self, actions, playback, unit):
+        if self._did_action:
+            actions.append(action.RemoveSkill(unit, self.value))
 
 class AttackProc(SkillComponent):
     nid = 'attack_proc'

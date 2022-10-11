@@ -329,7 +329,7 @@ class Event():
                     internal_fors -= 1
                 looped_commands.append(curr_command)
                 curr_idx += 1
-                if curr_idx > len(self.commands):
+                if curr_idx >= len(self.commands):
                     self.logger.error("%s: could not find endf command for loop %s" % ('handle_conditional', cond))
                     return True
                 curr_command = self.commands[curr_idx]

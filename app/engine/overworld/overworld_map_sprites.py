@@ -19,13 +19,13 @@ from app.constants import TILEHEIGHT, TILEWIDTH
 from app.data.database import DB
 from app.data.overworld_node import OverworldNodePrefab
 from app.engine.overworld.overworld_road_sprite_wrapper import OverworldRoadSpriteWrapper
-from app.engine import engine, image_mods
+from app.engine import engine, image_mods, skill_system
 from app.engine.animations import MapAnimation
 from app.engine.sound import get_sound_thread
 from app.resources.map_icons import MapIcon
 from app.resources.resources import RESOURCES
 from app.utilities import utils
-from app.utilities.typing import Point
+from app.utilities.typing import NID, Point
 
 class FlagSprite():
     def __init__(self) -> None:
@@ -205,8 +205,9 @@ class OverworldUnitSprite():
     def load_sprites(self):
         klass: Klass = DB.classes.get(self.unit.klass)
         nid = klass.map_sprite_nid
-        if self.unit.variant:
-            nid += self.unit.variant
+        variant = self.unit.variant or (skill_system.change_variant(self.unit) if isinstance(self.unit, UnitObject) else None)
+        if variant:
+            nid += variant
         res = RESOURCES.map_sprites.get(nid)
         if not res:  # Try without unit variant
             res = RESOURCES.map_sprites.get(klass.map_sprite_nid)

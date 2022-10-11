@@ -121,6 +121,15 @@ class ChangeVariant(SkillComponent):
     expose = Type.String
     value = ''
 
+    def on_add(self, unit, skill):
+        unit.sprite.load_sprites()
+
+    def re_add(self, unit, skill):
+        unit.sprite.load_sprites()
+
+    def on_remove(self, unit, skill):
+        unit.sprite.load_sprites()
+
     def change_variant(self, unit):
         return self.value
 
