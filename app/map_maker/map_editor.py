@@ -482,6 +482,11 @@ if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
     from app import dark_theme
+    
+    # For High DPI displays
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+
     ap = QApplication(sys.argv)
     ap.setWindowIcon(QIcon('favicon.ico'))
     settings = MainSettingsController()

@@ -263,11 +263,14 @@ class DisplayExpResults(QWidget):
                                                                   self._data.get('exp_curve').value,
                                                                   self._data.get('exp_magnitude').value)
         elif self._data.get('exp_formula').value == ExpCalcType.GOMPERTZ.value:
-            exp_gained = ExpCalculator.gompertz_curve_calculator(level_diff,
-                                                                 self._data.get('gexp_max').value,
-                                                                 self._data.get('gexp_min').value,
-                                                                 self._data.get('gexp_slope').value,
-                                                                 self._data.get('gexp_intercept').value)
+            try:
+                exp_gained = ExpCalculator.gompertz_curve_calculator(level_diff,
+                                                                    self._data.get('gexp_max').value,
+                                                                    self._data.get('gexp_min').value,
+                                                                    self._data.get('gexp_slope').value,
+                                                                    self._data.get('gexp_intercept').value)
+            except:
+                exp_gained = 0
         display = str(int(exp_gained)) + " (" + str(round(exp_gained, 2)) + ")"
         self.edit_box.setText(display)
 

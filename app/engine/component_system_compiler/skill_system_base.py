@@ -410,8 +410,11 @@ def get_combat_arts(unit):
                 if combat_art_set_max_range:
                     weapon._force_max_range = max(0, combat_art_set_max_range)
                 elif combat_art_modify_max_range:
-                    max_range = max(item_funcs.get_range(unit, weapon))
-                    weapon._force_max_range = max(0, max_range + combat_art_modify_max_range)
+                    item_range = item_funcs.get_range(unit, weapon)
+                    if item_range:
+                        max_range = max(item_range)
+                        weapon._force_max_range = max(0, max_range + combat_art_modify_max_range)
+                
                 # activate_combat_art(unit, skill)
                 act = action.AddSkill(unit, skill.combat_art.value)
                 act.do()

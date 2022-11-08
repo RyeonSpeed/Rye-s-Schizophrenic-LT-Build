@@ -5,7 +5,7 @@ from app.utilities import str_utils
 
 def read_config_file():
     from app.engine import engine
-    lines = OrderedDict([('debug', 1),
+    lines = OrderedDict([('debug', 0),
                          ('random_seed', -1),
                          ('screen_size', 2),
                          ('fullscreen', 0),

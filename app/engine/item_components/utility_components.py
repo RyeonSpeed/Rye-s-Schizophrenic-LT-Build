@@ -208,6 +208,8 @@ class Repair(ItemComponent):
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
         # Unit has item that can be repaired
         defender = game.board.get_unit(def_pos)
+        if not defender:
+            return False
         return self._target_restrict(defender)
 
     def simple_target_restrict(self, unit, item):

@@ -134,11 +134,16 @@ class Armsthrift(SkillComponent):
     value = 1
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
-        if not item.data.get('uses', None) or not item.data.get('starting_uses', None):
-            return
-        curr_uses = item.data.get('uses')
-        max_uses = item.data.get('starting_uses')
-        actions.append(action.SetObjData(item, 'uses', min(curr_uses + self.value - 1, max_uses)))
+        # Handles Uses
+        if item.data.get('uses', None) and item.data.get('starting_uses', None):
+            curr_uses = item.data.get('uses')
+            max_uses = item.data.get('starting_uses')
+            actions.append(action.SetObjData(item, 'uses', min(curr_uses + self.value - 1, max_uses)))
+        # Handles Chapter Uses
+        if item.data.get('c_uses', None) and item.data.get('starting_c_uses', None):
+            curr_uses = item.data.get('c_uses')
+            max_uses = item.data.get('starting_c_uses')
+            actions.append(action.SetObjData(item, 'c_uses', min(curr_uses + self.value - 1, max_uses)))
 
 class LimitMaximumRange(SkillComponent):
     nid = 'limit_maximum_range'

@@ -156,6 +156,10 @@
         false
     ],
     [
+        "autogenerate_grey_map_sprites",
+        true
+    ],
+    [
         "convoy_on_death",
         false
     ],

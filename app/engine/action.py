@@ -2211,6 +2211,26 @@ class ChangeParty(Action):
         self.unit.party = self.old_party_nid
 
 
+class ChangeFaction(Action):
+    def __init__(self, unit, faction_nid: str):
+        self.unit = unit
+        self.faction_nid = faction_nid
+        self.old_faction_nid = self.unit.faction
+        self.old_name = self.unit.name
+        self.old_desc = self.unit.desc
+
+    def do(self):
+        self.unit.faction = self.faction_nid
+        if self.unit.generic:
+            self.unit.name = DB.factions.get(self.faction_nid).name
+            self.unit.desc = DB.factions.get(self.faction_nid).desc
+
+    def reverse(self):
+        self.unit.faction = self.old_faction_nid
+        self.unit.name = self.old_name
+        self.unit.desc = self.old_desc
+
+
 class ChangeTeam(Action):
     def __init__(self, unit, team):
         self.unit = unit

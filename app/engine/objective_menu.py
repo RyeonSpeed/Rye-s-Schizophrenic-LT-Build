@@ -1,3 +1,4 @@
+from app.engine.graphics.text.text_renderer import fix_tags
 import logging
 from app.engine.text_evaluator import TextEvaluator
 import datetime
@@ -74,11 +75,13 @@ class ObjectiveMenuState(State):
         text_parser = TextEvaluator(logging.getLogger(), game)
         win_lines = text_parser._evaluate_all(','+win_con).split(',')
         win_lines = [w.replace('{comma}', ',') for w in win_lines]
+        win_lines = fix_tags(win_lines)
 
         loss_con = game.level.objective['loss']
         text_parser = TextEvaluator(logging.getLogger(), game)
         loss_lines = text_parser._evaluate_all(','+loss_con).split(',')
         loss_lines = [line.replace('{comma}', ',') for line in loss_lines]
+        loss_lines = fix_tags(loss_lines)
 
         self.topleft = (4, 60)
         self.menu = menus.Table(None, win_lines+loss_lines, (6, 1), self.topleft)

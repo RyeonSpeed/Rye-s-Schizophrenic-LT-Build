@@ -101,7 +101,7 @@ class WitchWarp(SkillComponent):
                 left = (pos[0] - 1, pos[1])
                 right = (pos[0] + 1, pos[1])
                 for point in [up, down, left, right]:
-                    if game.board.check_bounds(point) and game.movement.check_traversable(unit, point):
+                    if game.board.check_bounds(point) and game.movement.check_weakly_traversable(unit, point):
                         warp_spots.add(point)
         return warp_spots
 
@@ -121,7 +121,7 @@ class SpecificWitchWarp(SkillComponent):
             else:
                 continue
             if partner_pos:
-                positions += [pos for pos in target_system.get_adjacent_positions(partner_pos) if game.movement.check_traversable(unit, pos)]
+                positions += [pos for pos in target_system.get_adjacent_positions(partner_pos) if game.movement.check_weakly_traversable(unit, pos)]
         return positions
 
 class Galeforce(SkillComponent):

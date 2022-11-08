@@ -24,6 +24,8 @@ class Tags(Enum):
     UNIT_GROUPS = 'Unit Groups'
     MISCELLANEOUS = 'Miscellaneous'
     OVERWORLD = 'Overworld'
+    ACHIEVEMENT = 'Achievement'
+    PERSISTENT_RECORDS = 'Persistent Records'
     HIDDEN = 'Hidden'
 
 UNIVERSAL_FLAGS = ['no_warn']
@@ -1569,6 +1571,18 @@ Changes the *Party* of *GlobalUnit*. Used for games in which the player's units 
 
     keywords = ["GlobalUnit", "Party"]
 
+class ChangeFaction(EventCommand):
+    nid = 'change_faction'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Changes the *Faction* of *GlobalUnit*.
+        """
+
+    keywords = ["GlobalUnit", "Faction"]
+
+
 class ChangeTeam(EventCommand):
     nid = 'change_team'
     tag = Tags.MODIFY_UNIT_PROPERTIES
@@ -2618,6 +2632,60 @@ class SetOverworldMenuOptionVisible(EventCommand):
 
     keywords = ['OverworldNodeNID', 'OverworldNodeMenuOption', 'Setting']
     keyword_types = ['OverworldNodeNID', 'OverworldNodeMenuOption', 'Bool']
+
+class CreateAchievement(EventCommand):
+    nid = 'create_achievement'
+    tag = Tags.ACHIEVEMENT
+    desc = ('Creates a new achievement. Set `completed` flag to automatically complete the achievement when it is first unlocked. Set `hidden` flag to prevent the player from seeing it until it is completed. Does nothing if nid already present.')
+
+    keywords = ['Nid', 'Name', 'Description']
+    _flags = ['completed', 'hidden']
+    keyword_types = ['Nid', 'String', 'String']
+
+class UpdateAchievement(EventCommand):
+    nid = 'update_achievement'
+    tag = Tags.ACHIEVEMENT
+    desc = ('Updates the name and description of achievement with the given nid. Does nothing if there is no achievement with that nid.')
+
+    keywords = ['Achievement', 'Name', 'Description']
+    _flags = ['hidden']
+    keyword_types = ['Achievement', 'String', 'String']
+
+class CompleteAchievement(EventCommand):
+    nid = 'complete_achievement'
+    tag = Tags.ACHIEVEMENT
+    desc = ('True marks the achievement as complete. False marks it as incomplete. No effect if achievement doesn\'t exist.\n\nYou can check an achievement\'s completion status with `check_achievement("nid")`\n\nbanner flag determines whether a pop-up box will appear notifying the player.')
+
+    keywords = ['Achievement', 'Completed']
+    keyword_types = ['Achievement', 'Bool']
+
+    _flags = ['banner']
+
+class ClearAchievements(EventCommand):
+    nid = 'clear_achievements'
+    tag = Tags.ACHIEVEMENT
+    desc = ('Clear all achievements from the player\'s computer')
+
+class CreateRecord(EventCommand):
+    nid = 'create_record'
+    tag = Tags.PERSISTENT_RECORDS
+    desc = ('Creates a new persistent record. Does nothing if nid is already present')
+
+    keywords = ['Nid', 'Expression']
+
+class UpdateRecord(EventCommand):
+    nid = 'update_record'
+    tag = Tags.PERSISTENT_RECORDS
+    desc = ('Updates a persistent record with a new value. Does nothing if nid is not present')
+
+    keywords = ['Nid', 'Expression']
+
+class DeleteRecord(EventCommand):
+    nid = 'delete_record'
+    tag = Tags.PERSISTENT_RECORDS
+    desc = ('Remove a persistent record. Does nothing if nid is not present')
+
+    keywords = ['Nid']
 
 def get_commands():
     return EventCommand.__subclasses__()

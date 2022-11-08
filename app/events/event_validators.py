@@ -18,6 +18,7 @@ from app.sprites import SPRITES
 from app.utilities import str_utils
 from app.utilities.enums import Alignments
 from app.utilities.typing import NID, Point
+from app.events.event_commands import CreateAchievement
 
 class Validator():
     desc = ""
@@ -234,6 +235,17 @@ class UnitField(Validator):
         for unit in self._db.units:
             all_keys.update(set([key for (key, _) in unit.fields]))
         return [(None, key) for key in all_keys]
+
+class Achievement(Validator):
+    desc = "can be any nid of an achievement"
+
+    def validate(self, text, level):
+        return text
+
+    def valid_entries(self, level: NID = None, text: str = None) -> List[Tuple[str, NID]]:
+        achs = EventInspectorEngine(self._db.events).find_all_calls_of_command(CreateAchievement)
+        slots = [(None, command.parameters['Nid']) for command in achs.values()]
+        return slots
 
 class GeneralVar(Validator):
     desc = "can be any nid"

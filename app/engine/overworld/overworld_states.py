@@ -235,7 +235,7 @@ class OverworldLevelTransition(State):
 
         game.start_level(next_level_nid)
 
-        game.memory['next_state'] = 'turn_change'
+        game.memory['next_state'] = 'start_level_asset_loading'
         game.state.change('transition_to')
 
     def end(self):

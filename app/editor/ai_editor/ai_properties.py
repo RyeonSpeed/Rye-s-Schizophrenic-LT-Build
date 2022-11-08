@@ -305,10 +305,12 @@ class BehaviourBox(QGroupBox):
         self.layout.addWidget(self.action)
         self.layout.addWidget(self.target)
         self.layout.addWidget(self.target_spec)
+        self.layout.addWidget(self.speed_box)
+        self.layout.addWidget(self.proximity_box)
 
         self.show_range()
 
-        self.construct_roam_info(False)
+        self.show_roam_info(False)
 
         self.custom_view_range.hide()
         self.setLayout(self.layout)
@@ -332,17 +334,13 @@ class BehaviourBox(QGroupBox):
     def set_desired_proximity(self, val):
         self.current.desired_proximity = int(val)
 
-    def construct_roam_info(self, enable: bool):
+    def show_roam_info(self, enable: bool):
         if enable and self.target_spec and not isinstance(self.target_spec.currentWidget(), WaitSpecification):
             self.speed_box.show()
             self.proximity_box.show()
-            self.layout.addWidget(self.speed_box)
-            self.layout.addWidget(self.proximity_box)
         else:
             self.speed_box.hide()
             self.proximity_box.hide()
-            self.layout.removeWidget(self.speed_box)
-            self.layout.removeWidget(self.proximity_box)
 
     def action_changed(self, index):
         action = self.action.currentText().replace(' ', '_')
@@ -380,7 +378,6 @@ class BehaviourBox(QGroupBox):
             target_spec = self.target_spec.currentWidget()
             target_spec.set_current(self.current.target_spec)
 
-        self.construct_roam_info(True)
         self.show_range()
 
     def target_changed(self, index):
@@ -478,12 +475,8 @@ class AIProperties(QWidget):
 
     def construct_roam_info(self):
         if self.current:
-            enable = False
-            if self.current.roam_ai:
-                enable = True
-
             for b in self.behaviour_boxes:
-                b.construct_roam_info(enable)
+                b.show_roam_info(self.current.roam_ai)
 
     def nid_changed(self, text):
         self.current.nid = text

@@ -200,20 +200,21 @@ class ScrollBar():
     def __init__(self):
         self.arrow_counter = counters.arrow_counter()
 
-    def draw(self, surf, topright, scroll, limit, num_options):
+    def draw(self, surf, topright, scroll, limit, num_options, option_height=16):
         """
         surf -- Surface to draw the scroll bar on
         topright -- Topright coordinate to display scroll bar
         scroll -- How far down the menu has scrolled
         limit -- How many options can be displayed at once
         num_options -- Total number of options in menu
+        option_height -- height of each option
         """
         self.arrow_counter.update()
 
         # Get properties
         x = topright[0] - 9
         y = topright[1] + 12
-        height = limit * 16 - 20
+        height = limit * option_height - 20
         start_fraction = scroll / num_options
         end_fraction = min(1, (scroll + limit) / num_options)
 

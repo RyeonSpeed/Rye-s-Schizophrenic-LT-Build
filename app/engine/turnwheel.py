@@ -50,6 +50,8 @@ class ActionLog():
         for act in reversed(self.actions[idx:]):
             if act.__class__.__name__ == 'EquipItem':
                 logging.debug("Not going to reverse or remove the EquipItem action")
+            elif act.__class__.__name__ == 'BringToTopItem':
+                logging.debug("Not going to reverse or remove the BringToTopItem action")
             else:
                 act.reverse()
                 self.actions.remove(act)

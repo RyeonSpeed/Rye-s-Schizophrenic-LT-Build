@@ -65,6 +65,21 @@ def get_nearest_open_tile(unit, position):
         r += 1
     return None
 
+def get_nearest_open_tile_rationalization(unit, position, taken_positions):
+    r = 0
+    _abs = abs
+    while r < 10:
+        for x in range(-r, r + 1):
+            magn = _abs(x)
+            n1 = position[0] + x, position[1] + r - magn
+            n2 = position[0] + x, position[1] - r + magn
+            if game.movement.check_weakly_traversable(unit, n1) and not game.board.get_unit(n1) and not n1 in taken_positions:
+                return n1
+            elif game.movement.check_weakly_traversable(unit, n2) and not game.board.get_unit(n2) and not n2 in taken_positions:
+                return n2
+        r += 1
+    return None
+
 def distance_to_closest_enemy(unit, pos=None):
     if pos is None:
         pos = unit.position
@@ -106,6 +121,9 @@ def get_attacks(unit: UnitObject, item: ItemObject = None, force=False) -> set:
         return set()
 
     item_range = item_funcs.get_range(unit, item)
+    if not item_range:
+        return set()
+
     if max(item_range) >= 99:
         attacks = {(x, y) for x in range(game.tilemap.width) for y in range(game.tilemap.height)}
     else:
@@ -122,6 +140,8 @@ def _get_possible_attacks(unit, valid_moves, items):
         if no_attack_after_move and unit.has_moved_any_distance:
             continue
         item_range = item_funcs.get_range(unit, item)
+        if not item_range:  # Possible if you have a weapon with say range 2-3 but your maximum range is limited to 1
+            continue
         max_range = max(max_range, max(item_range))
         if max_range >= 99:
             attacks = {(x, y) for x in range(game.tilemap.width) for y in range(game.tilemap.height)}
@@ -270,8 +290,12 @@ def get_valid_targets(unit, item=None) -> set:
         valid_targets = {position for position in valid_targets if game.board.in_vision(position, unit.team)}
     # Line of Sight
     if DB.constants.value('line_of_sight'):
-        max_item_range = max(item_funcs.get_range(unit, item))
-        valid_targets = set(line_of_sight.line_of_sight([unit.position], valid_targets, max_item_range))
+        item_range = item_funcs.get_range(unit, item)
+        if item_range:
+            max_item_range = max(item_range)
+            valid_targets = set(line_of_sight.line_of_sight([unit.position], valid_targets, max_item_range))
+        else: # I think this is impossible to happen, as it is checked in various places above in this function
+            valid_targets = set()
     return valid_targets
 
 def get_valid_targets_recursive_with_availability_check(unit, item) -> set:

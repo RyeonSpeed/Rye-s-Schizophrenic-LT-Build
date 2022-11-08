@@ -96,11 +96,13 @@ class ClassModel(DragDropCollectionModel):
         super().delete(idx)
 
     def on_nid_changed(self, old_nid, new_nid):
+        if not new_nid:
+            return
         for unit in DB.units:
             if unit.klass == old_nid:
                 unit.klass = new_nid
         for k in DB.classes:
-            if k.promotes_from == old_nid:
+            if old_nid and k.promotes_from == old_nid:
                 k.promotes_from = new_nid
             k.turns_into = [new_nid if elem == old_nid else elem for elem in k.turns_into]
         for ai in DB.ai:

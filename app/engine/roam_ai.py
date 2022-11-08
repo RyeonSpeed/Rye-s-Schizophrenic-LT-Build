@@ -1,4 +1,5 @@
 import logging
+import math
 
 from app.data.database import DB
 from app.engine import (action, ai_controller, ai_state, engine, equations,
@@ -361,6 +362,17 @@ class RoamMovementHandler():
         else:
             self.stop_unit()
 
+    def rationalization(self):
+        """We want to end up in the exact correct position"""
+        if self.goal_position != self.unit.position:
+            current_time = engine.get_time()
+            pause_time = 20
+            if current_time - self.last_move > pause_time:
+                self.last_move = current_time
+                self.handle_direction(self.unit.position, self.path[-1], rationalizing=True)
+        else:
+            self.stop_unit()
+
     def stop_unit(self):
         """Halts the unit and all move-related activities"""
         self.path = []
@@ -373,7 +385,7 @@ class RoamMovementHandler():
         self.unit.sprite.change_state('normal')
         self.unit.sound.stop()
 
-    def handle_direction(self, pos, next_pos):
+    def handle_direction(self, pos, next_pos, rationalizing=False):
         """Sets speed values and calls the move if they reach a threshold"""
         base_speed = 0.008
         base_accel = 0.008
@@ -401,12 +413,13 @@ class RoamMovementHandler():
 
         self.dir_collides(next_pos)
 
+        rounded_pos = game.board.rationalize_pos(self.unit.position)
+
         # Actually move the unit
-        if abs(self.hspeed) > base_speed or abs(self.vspeed) > base_speed:
+        if abs(self.hspeed) > base_speed or abs(self.vspeed) > base_speed or rationalizing:
             self.handle_move()
 
-        rounded_pos = round(self.unit.position[0]), round(self.unit.position[1])
-        if self.path[-1] == rounded_pos:
+        if not rationalizing and self.path[-1] == rounded_pos:
             self.path.pop()
 
     def handle_move(self):
@@ -445,4 +458,15 @@ class RoamMovementHandler():
         """Changes the unit position"""
         x, y = self.unit.position
         self.unit.position = x + dx, y + dy
+
+        rounded_pos = game.board.rationalize_pos(self.unit.position)
+        if self.check_close(self.unit.position, rounded_pos):
+            self.unit.position = rounded_pos
+
         self.unit.sound.play()
+
+    def check_close(self, pos1, pos2):
+        dis = 0.1
+        if math.isclose(pos1[0], pos2[0], abs_tol=dis) and math.isclose(pos1[1], pos2[1], abs_tol=dis):
+            return True
+        return False

@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from app.engine.graphics.text.text_renderer import render_text, rendered_text_width
+from app.engine.graphics.text.text_renderer import render_text, text_width
 from app.engine.objects.unit import UnitObject
 from dataclasses import dataclass
 
@@ -698,11 +698,12 @@ class InfoMenuState(State):
         right_stats = right_stats[:6]
 
         for idx, stat_nid in enumerate(left_stats):
+            curr_stat = DB.stats.get(stat_nid)
             # Value
             if growths:
                 icons.draw_growth(surf, stat_nid, self.unit, (47, 16 * idx + 24))
             else:
-                highest_stat = DB.stats.get(stat_nid).maximum
+                highest_stat = curr_stat.maximum
                 max_stat = max_stats.get(stat_nid, 30)
                 if max_stat > 0:
                     total_length = int(max_stat / highest_stat * 42)
@@ -710,26 +711,29 @@ class InfoMenuState(State):
                     build_groove(surf, (27, 16 * idx + 32), total_length, frac)
                 icons.draw_stat(surf, stat_nid, self.unit, (47, 16 * idx + 24))
             # Name
-            name = DB.stats.get(stat_nid).name
+            name = curr_stat.name
             render_text(surf, ['text'], [name], ['yellow'], (8, 16 * idx + 24))
             base_value = self.unit.stats.get(stat_nid, 0)
             contribution = self.unit.stat_contribution(stat_nid)
             contribution['Base Value'] = base_value
-            help_box = help_menu.StatDialog('%s_desc' % stat_nid, contribution)
+            desc_text = curr_stat.desc
+            help_box = help_menu.StatDialog(desc_text or ('%s_desc' % stat_nid), contribution)
             self.info_graph.register((96 + 8, 16 * idx + 24, 64, 16), help_box, state, first=(idx == 0))
 
         for idx, stat_nid in enumerate(right_stats):
+            curr_stat = DB.stats.get(stat_nid)
             if growths:
                 icons.draw_growth(surf, stat_nid, self.unit, (111, 16 * idx + 24))
             else:
                 icons.draw_stat(surf, stat_nid, self.unit, (111, 16 * idx + 24))
             # Name
-            name = DB.stats.get(stat_nid).name
+            name = curr_stat.name
             render_text(surf, ['text'], [name], ['yellow'], (72, 16 * idx + 24))
             base_value = self.unit.stats.get(stat_nid, 0)
             contribution = self.unit.stat_contribution(stat_nid)
             contribution['Base Value'] = base_value
-            help_box = help_menu.StatDialog('%s_desc' % stat_nid, contribution)
+            desc_text = curr_stat.desc
+            help_box = help_menu.StatDialog(desc_text or ('%s_desc' % stat_nid), contribution)
             self.info_graph.register((96 + 72, 16 * idx + 24, 64, 16), help_box, state)
 
         other_stats = ['TRV', 'AID', 'RAT']
@@ -1036,7 +1040,7 @@ class InfoMenuState(State):
         build_groove(surf, (27, WINHEIGHT - 9), 88, utils.clamp(fatigue / max_fatigue, 0, 1))
         x_pos = 27 + 88 // 2
         text = str(fatigue) + '/' + str(max_fatigue)
-        x_pos -= rendered_text_width(['text'], [text])//2
+        x_pos -= text_width('text', text)//2
         render_text(surf, ['text'], [text], ['blue'], (x_pos, WINHEIGHT - 17))
         if fatigue >= max_fatigue:
             render_text(surf, ['text'], [str(fatigue)], ['red'], (x_pos, WINHEIGHT - 17))
@@ -1061,7 +1065,7 @@ class InfoMenuState(State):
                 entries = note[1].split(',')
                 render_text(menu_surf, ['text'], [category], ['blue'], (10, total_height))
                 for entry in entries:
-                    category_length = rendered_text_width(['text'], [category])
+                    category_length = text_width('text', category)
                     left_pos = 64 if category_length <= 64 else (category_length + 8)
                     render_text(menu_surf, ['text'], [entry], [], (left_pos, total_height))
                     total_height += 16

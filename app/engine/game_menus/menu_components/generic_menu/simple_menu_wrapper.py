@@ -21,6 +21,7 @@ from app.resources.resources import RESOURCES
 from app.sprites import SPRITES
 from app.utilities.enums import Alignments, Orientation
 from app.utilities.typing import NID
+
 class SimpleMenuUI():
     def __init__(self, data: List[str] | Callable[[], List] = None, data_type: str = 'str',
                  title: str = None, rows: int = 0, cols: int = 1, row_width: int = -1,

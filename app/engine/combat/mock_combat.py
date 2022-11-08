@@ -222,7 +222,7 @@ class MockCombat():
             animation = RESOURCES.animations.get(anim_nid)
             if animation:
                 anim = Animation(animation, position)
-                anim.set_tint(True)
+                anim.set_tint(engine.BlendMode.BLEND_RGB_ADD)
                 self.animations.append(anim)
         else:
             self.no_damage()
@@ -238,7 +238,7 @@ class MockCombat():
                     pass
                 else:
                     anim.sprite = engine.flip_horiz(anim.sprite)
-                anim.set_tint(True)
+                anim.set_tint(engine.BlendMode.BLEND_RGB_ADD)
                 self.animations.append(anim)
         else:
             self.no_damage()

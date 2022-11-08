@@ -101,7 +101,7 @@ class EvalSpecialRange(ItemComponent):
     # luckily, the calculation is trivial.
     @staticmethod
     @lru_cache(maxsize=None)
-    def calculate_range_restrict(condition, max_rng):
+    def calculate_range_restrict(condition, max_rng) -> set:
         valid_range_squares = set()
         try:
             # neat performance trick
@@ -114,9 +114,12 @@ class EvalSpecialRange(ItemComponent):
             logging.error("eval_special_range failed for condition %s with error %s", condition, str(e))
         return valid_range_squares
 
-    def range_restrict(self, unit, item):
+    def range_restrict(self, unit, item) -> set:
         rng = item_funcs.get_range(unit, item)
-        return EvalSpecialRange.calculate_range_restrict(self.value, max(rng))
+        if not rng:
+            return set()
+        max_rng = max(rng)
+        return EvalSpecialRange.calculate_range_restrict(self.value, max_rng)
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
         net_pos = (def_pos[0] - unit.position[0], def_pos[1] - unit.position[1])

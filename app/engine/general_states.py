@@ -1,9 +1,11 @@
+from typing import List
+from app.editor.event_editor.event_inspector import EventInspectorEngine
 from collections import OrderedDict
 
 from app.constants import TILEWIDTH, TILEHEIGHT, WINWIDTH, WINHEIGHT, TILEX
 from app.data.database import DB
 from app.events.regions import RegionType
-from app.events import triggers
+from app.events import triggers, event_commands
 from app.engine.objects.item import ItemObject
 
 from app.engine.sprites import SPRITES
@@ -21,8 +23,53 @@ from app.engine.selection_helper import SelectionHelper
 from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES
 from app.engine.input_manager import get_input_manager
 from app.engine.fluid_scroll import FluidScroll
+import threading
 
 import logging
+
+class LoadingState(State):
+    name = 'start_level_asset_loading'
+    transparent = False
+
+    # For A E S T H E T I C S
+    duration = 1000  # How long to wait after we load in everything to actually move to the turn_change state
+
+    def start(self):
+        logging.debug("Loading state...")
+        self.completed_time = None
+        # magic number, adjust at will
+        self.loading_threads: List[threading.Thread] = []
+
+        # unload used assets
+        # unload music
+        get_sound_thread().reset()
+        get_sound_thread().set_music_volume(cf.SETTINGS['music_volume'])
+        get_sound_thread().set_sfx_volume(cf.SETTINGS['sound_volume'])
+
+        # load music used in the level
+        self.level_nid = game.level_nid
+        if game.level:
+            logging.debug("Loading music for level %s" % self.level_nid)
+            level_songs = set(game.level.music.values())
+            inspector = EventInspectorEngine(DB.events)
+            for music_command in inspector.find_all_calls_of_command(event_commands.Music(), self.level_nid).values():
+                level_songs.add(music_command.parameters.get('Music'))
+            for music_command in inspector.find_all_calls_of_command(event_commands.ChangeMusic(), self.level_nid).values():
+                level_songs.add(music_command.parameters.get('Music'))
+            loading_music_thread = threading.Thread(target=get_sound_thread().load_songs, args=[level_songs])
+            loading_music_thread.start()
+            self.loading_threads.append(loading_music_thread)
+
+    def update(self):
+        if not self.completed_time and not any([thread.is_alive() for thread in self.loading_threads]):
+            self.completed_time = engine.get_time()
+        if self.completed_time:
+            if engine.get_time() - self.completed_time > self.duration:
+                logging.debug("All loading threads complete for level %s" % self.level_nid)
+                game.state.change('turn_change')
+
+    def end(self):
+        pass
 
 class TurnChangeState(MapState):
     name = 'turn_change'
@@ -847,8 +894,13 @@ class MenuState(MapState):
                 get_sound_thread().play_sfx('Info Out')
                 self.menu.info_flag = False
             else:
-                get_sound_thread().play_sfx('Info In')
-                self.menu.info_flag = True
+                selection = self.menu.get_current()
+                # Show info menu for the basic stuff
+                if selection in ('Attack', 'Spells', 'Item', 'Wait'):
+                    info_menu.handle_info()
+                else:  # Show description for everything else.
+                    get_sound_thread().play_sfx('Info In')
+                    self.menu.info_flag = True
 
         elif event == 'SELECT':
             get_sound_thread().play_sfx('Select 1')
@@ -1321,7 +1373,8 @@ class WeaponChoiceState(MapState):
         game.cursor.hide()
         self.cur_unit = game.cursor.cur_unit
         self.cur_unit.sprite.change_state('chosen')
-        options = self.options
+        # Sort it by the current unit's inventory so that if the order of the inventory changes, it changes here too
+        options = sorted(self.options, key=lambda item: self.cur_unit.items.index(item) if item in self.cur_unit.items else 99)
         self.menu = menus.Choice(self.cur_unit, options)
         self.menu.set_limit(8)
         self.item_desc_panel = ui_view.ItemDescriptionPanel(self.cur_unit, self.menu.get_current())

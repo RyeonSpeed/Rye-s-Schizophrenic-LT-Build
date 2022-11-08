@@ -757,6 +757,12 @@ class EventCollection(QWidget):
                 first_index = self.level_filtered_model.index(0, 0)
                 self.view.setCurrentIndex(first_index)
                 self.set_current_index(first_index)
+        elif self.display and not self.display.current:
+            # Change selection only if we need to!
+            first_index = self.level_filtered_model.index(0, 0)
+            self.view.setCurrentIndex(first_index)
+            self.set_current_index(first_index)
+
         self.update_list()
 
         if self.level_filtered_model.rowCount() > 0:

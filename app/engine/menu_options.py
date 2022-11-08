@@ -7,7 +7,7 @@ from app.engine.fonts import FONT
 from app.engine import engine, image_mods, icons, help_menu, text_funcs, item_system, item_funcs
 from app.engine.game_state import game
 
-from app.engine.graphics.text.text_renderer import render_text
+from app.engine.graphics.text.text_renderer import render_text, text_width
 
 class EmptyOption():
     def __init__(self, idx):
@@ -60,7 +60,7 @@ class BasicOption():
         self.display_text = text_funcs.translate(text)
 
     def width(self):
-        return FONT[self.font].width(self.display_text) + 24
+        return text_width(self.font, self.display_text) + 24
 
     def height(self):
         return 16
@@ -85,6 +85,59 @@ class BasicOption():
         self.draw(surf, x, y)
         return surf
 
+class AchievementOption(BasicOption):
+    def __init__(self, idx, achievement):
+        self.idx = idx
+        self.achievement = achievement
+        self.help_box = None
+        self.font = 'text'
+        self.color = None
+        self.ignore = False
+        self.mode = None
+
+    def height(self):
+        return 32
+
+    def width(self):
+        return 220
+
+    def get(self):
+        return self.achievement
+
+    def set_text(self, text):
+        pass
+
+    def draw(self, surf, x, y):
+        x_offset = 5
+        font = self.font
+        
+        # Render Title
+        if self.achievement.get_hidden():
+            front_half = "Hidden - "
+        else:
+            front_half = self.achievement.name + " - "
+        if rendered_text_width([font], [front_half + "Complete"]) > 220:
+            font = 'narrow'
+        front_color = 'yellow' if self.achievement.get_complete() else 'grey'
+        render_text(surf, [font], [front_half], [front_color], (x + x_offset, y))
+
+        # Render Description
+        offset = rendered_text_width([font], [front_half])
+        if self.achievement.get_complete():
+            render_text(surf, [font], ["Complete"], ['green'], (x + x_offset + offset, y))
+        else:
+            render_text(surf, [font], ["Locked"], ['red'], (x + x_offset + offset, y))
+        if self.achievement.get_hidden():
+            desc = "???"
+        else:
+            desc = self.achievement.desc
+        render_text(surf, [font], [desc], [self.get_color()], (x + x_offset, y + 13))
+
+    def get_color(self):
+        if self.achievement.get_complete():
+            return 'white'
+        return 'grey'
+
 class NullOption(BasicOption):
     def __init__(self, idx):
         super().__init__(idx, "Nothing")
@@ -102,7 +155,7 @@ class NullOption(BasicOption):
 
 class HorizOption(BasicOption):
     def width(self):
-        return FONT[self.font].width(self.display_text)
+        return text_width(self.font, self.display_text)
 
 class SingleCharacterOption(BasicOption):
     def width(self):
@@ -269,7 +322,7 @@ class ItemOption(BasicOption):
             surf.blit(icon, (x + 2, y))
         main_color, uses_color = self.get_color()
         main_font = self.font
-        if FONT[main_font].width(self.item.name) > 60:
+        if text_width(main_font, self.item.name) > 60:
             main_font = 'narrow'
         uses_font = 'text'
         FONT[main_font].blit(self.item.name, surf, (x + 20, y), main_color)
@@ -318,7 +371,7 @@ class FullItemOption(ItemOption):
             surf.blit(icon, (x + 2, y))
         main_color, uses_color = self.get_color()
         main_font = self.font
-        width = FONT[main_font].width(self.item.name)
+        width = text_width(main_font, self.item.name)
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
@@ -359,7 +412,7 @@ class ValueItemOption(ItemOption):
             surf.blit(icon, (x + 2, y))
         main_color, uses_color = self.get_color()
         main_font = self.font
-        width = FONT[main_font].width(self.item.name)
+        width = text_width(main_font, self.item.name)
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
@@ -405,7 +458,7 @@ class RepairValueItemOption(ValueItemOption):
             surf.blit(icon, (x + 2, y))
         main_color, uses_color = self.get_color()
         main_font = self.font
-        width = FONT[main_font].width(self.item.name)
+        width = text_width(main_font, self.item.name)
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
@@ -507,7 +560,7 @@ class UnitOption(BasicOption):
     def draw_text(self, surf, x, y):
         color = self.get_color()
         font = self.font
-        if FONT[font].width(self.unit.name) > 44:
+        if text_width(font, self.unit.name) > 44:
             font = 'narrow'
         FONT[font].blit(self.unit.name, surf, (x + 20, y), color)
 
@@ -567,7 +620,7 @@ class LoreOption(BasicOption):
             s = self.lore.category
         else:
             s = self.display_text
-        width = FONT[main_font].width(s)
+        width = text_width(main_font, s)
         if width > 78:
             main_font = 'narrow'
         font = FONT[main_font]

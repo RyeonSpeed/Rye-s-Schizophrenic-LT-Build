@@ -65,7 +65,11 @@ chapter.colors['green'] = ((232, 232, 232, 255), (144, 224, 160, 255), (128, 208
                            (104, 184, 120, 255), (112, 160, 104, 255), (56, 112, 64, 255),
                            (16, 8, 8, 255))
 
-font_types = [text, narrow, small, info, nconvo, convo, chapter]
+stat = FontType('stat', 'white')
+stat.colors['white'] = ((248, 248, 200, 255), (248, 112, 40, 255), (152, 32, 0, 255), (80, 56, 32, 255))
+stat.colors['purple'] = ((184, 184, 248, 255), (104, 156, 184, 255), (0, 120, 152, 255), (80, 56, 32, 255))
+
+font_types = [text, narrow, small, info, nconvo, convo, chapter, stat]
 
 # Load in default, uncolored fonts
 FONT: Dict[NID, bmpfont.BmpFont] = {}

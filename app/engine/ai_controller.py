@@ -435,9 +435,13 @@ class PrimaryAI():
             # Check line of sight
             line_of_sight_flag = True
             if DB.constants.value('line_of_sight'):
-                max_item_range = max(item_funcs.get_range(self.unit, item))
-                valid_targets = line_of_sight.line_of_sight([move], [target], max_item_range)
-                if not valid_targets:
+                item_range = item_funcs.get_range(self.unit, item)
+                if item_range:
+                    max_item_range = max(item_range)
+                    valid_targets = line_of_sight.line_of_sight([move], [target], max_item_range)
+                    if not valid_targets:
+                        line_of_sight_flag = False
+                else:
                     line_of_sight_flag = False
 
             if line_of_sight_flag:
@@ -741,6 +745,8 @@ class SecondaryAI():
 
         if self.behaviour.target == 'Event':
             adj_good_enough = False
+        elif self.behaviour.target == 'Position' and not game.board.get_unit(goal_pos):
+            adj_good_enough = False  # Don't move adjacent if it's not necessary
         else:
             adj_good_enough = True
 
@@ -803,6 +809,17 @@ class SecondaryAI():
                 terms += new_terms
             else:
                 return 0
+        elif self.behaviour.action == 'Support' and enemy:
+            ally = enemy
+            # Try to help others since we already checked ourself in Primary AI
+            if ally is self.unit:  
+                return 0
+            else:
+                max_hp = ally.get_max_hp()
+                missing_health = max_hp - ally.get_hp()
+                help_term = utils.clamp(missing_health / float(max_hp), 0, 1)
+                terms.append((help_term, 100))
+
         elif self.behaviour.action == "Steal" and enemy:
             return 0  # TODO: For now, Steal just won't work with secondary AI
         else:

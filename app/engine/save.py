@@ -202,7 +202,7 @@ def remove_suspend():
 
 def get_save_title(save_slots):
     options = [save_slot.get_name() for save_slot in save_slots]
-    colors = [DB.difficulty_modes.get(save_slot.mode).color if save_slot.mode else 'green' for save_slot in save_slots]
+    colors = [DB.difficulty_modes.get(save_slot.mode).color if (save_slot.mode and DB.difficulty_modes.get(save_slot.mode)) else 'green' for save_slot in save_slots]
     return options, colors
 
 def check_save_slots():

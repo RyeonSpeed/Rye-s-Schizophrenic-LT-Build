@@ -1,4 +1,6 @@
+from app.utilities.typing import NID
 import os
+from typing import Set
 import pygame
 
 from app.utilities import utils
@@ -21,20 +23,9 @@ class MusicDict(dict):
         for nid in nids:
             self.get(nid)
 
-    def full_preload(self):
-        try:
-            for prefab in RESOURCES.music:
-                if prefab.nid not in self and os.path.exists(prefab.full_path):
-                    self[prefab.nid] = Song(prefab)
-        except pygame.error as e:
-            logging.warning(e)
-
-    def clear(self):
-        pass
-
     def get(self, val):
         if val not in self:
-            logging.debug("%s was not preloaded in MusicDict", val)
+            logging.debug("Loading %s into MusicDict", val)
             prefab = RESOURCES.music.get(val)
             if prefab:
                 try:
@@ -558,25 +549,16 @@ class SoundController():
             return sfx
         return None
 
+    def load_songs(self, nids: Set[NID]):
+        MUSIC.preload(nids)
+
     def reset(self):
         """
         Needs to reset the sounds that are stored in memory
         so if the main editor runs the engine again
         we can reload everything like new
         """
-        # MUSIC.clear()
-        # Threading is required because loading in the sound objects takes
-        # so damn long. If you do it at start, your staring at a black screen
-        # for >20 seconds. If you do it on the fly, you get 500 ms hiccups everytime
-        # you load a new sound.
-        # Threading solves these issues
-        # WARNING: I have no thread locks at all on the music dictionary
-        # It *might* be possible for both threads to try to touch the music dictionary
-        # at the same time and break everything
-        import threading
-        logging.debug('Starting up preload thread')
-        self.PRELOADTHREAD = threading.Thread(target=MUSIC.full_preload)
-        self.PRELOADTHREAD.start()
+        MUSIC.clear()
         SFX.clear()
         self.__init__()
 

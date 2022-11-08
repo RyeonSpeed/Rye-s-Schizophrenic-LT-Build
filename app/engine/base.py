@@ -8,6 +8,8 @@ from app.utilities import utils
 from app.resources.resources import RESOURCES
 from app.data.database import DB
 
+from app.engine.achievements import ACHIEVEMENTS
+
 from app.engine.sprites import SPRITES
 from app.engine.sound import get_sound_thread
 from app.engine.fonts import FONT
@@ -46,7 +48,7 @@ class BaseMainState(State):
             # make sure we have supports to begin with
             player_units = game.get_units_in_party()
             units = [unit for unit in player_units if
-                        any(prefab.unit1 == unit.nid or prefab.unit2 == unit.nid for prefab in DB.support_pairs)]
+                     any(prefab.unit1 == unit.nid or prefab.unit2 == unit.nid for prefab in DB.support_pairs)]
             if units:
                 ignore.insert(2, False)
             else:
@@ -667,8 +669,8 @@ class BaseCodexChildState(State):
         options.append('Records')
         if DB.constants.value('sound_room_in_codex'):
             options.append('Sound Room')
-        # TODO Achievements?
-        # TODO Tactics?
+        if ACHIEVEMENTS:
+            options.append('Achievements')
         unlocked_guide = [lore for lore in unlocked_lore if lore.category == 'Guide']
         if unlocked_guide:
             options.append('Guide')
@@ -712,6 +714,9 @@ class BaseCodexChildState(State):
                 game.state.change('transition_to')
             elif selection == 'Sound Room':
                 game.memory['next_state'] = 'base_sound_room'
+                game.state.change('transition_to')
+            elif selection == 'Achievements':
+                game.memory['next_state'] = 'base_achievement'
                 game.state.change('transition_to')
 
     def update(self):
@@ -1312,6 +1317,68 @@ class BaseBEXPAllocateState(State):
                              include_face=True, include_top=True, shimmer=2)
         return surf
 
+class BaseAchievementState(State):
+    name = 'base_achievement'
+
+    def start(self):
+        self.fluid = FluidScroll()
+        self.bg = game.memory.get('base_bg')
+
+        topleft = (10, 34)
+        layout = (3, 1)
+        self.achievements = ACHIEVEMENTS.values()
+        self.menu = menus.Table(None, self.achievements, layout, topleft)
+        self.menu.gem = True
+        self.menu.shimmer = 2
+        self.menu.set_mode('achievements')
+
+        game.state.change('transition_in')
+        return 'repeat'
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        self.menu.handle_mouse()
+
+        if 'DOWN' in directions:
+            if self.menu.move_down(first_push):
+                get_sound_thread().play_sfx('Select 6')
+        elif 'UP' in directions:
+            if self.menu.move_up(first_push):
+                get_sound_thread().play_sfx('Select 6')
+
+        if event == 'BACK':
+            get_sound_thread().play_sfx('Select 4')
+            game.state.change('transition_pop')
+
+        elif event == 'SELECT':
+            pass
+
+        elif event == 'START':
+            pass
+
+        elif event == 'INFO':
+            pass
+
+    def update(self):
+        if self.menu:
+            self.menu.update()
+
+    def draw(self, surf):
+        if self.bg:
+            self.bg.draw(surf)
+        self.menu.draw(surf)
+        num_complete = len([a for a in self.achievements if a.get_complete()])
+        num_total = len(self.achievements)
+        text = text_funcs.translate('Unlocked: ') + str(num_complete) + ' / ' + str(num_total)
+        self.draw_top_section(surf, (24, 2), text)
+        return surf
+
+    def draw_top_section(self, surf, topleft, title):
+        surf.blit(SPRITES.get('chapter_select_green'), (topleft[0], topleft[1]))
+        FONT['text-yellow'].blit_center(title, surf, (topleft[0] + 98, topleft[1] + 8))
+        return surf
 
 class BaseSoundRoomState(State):
     name = 'base_sound_room'

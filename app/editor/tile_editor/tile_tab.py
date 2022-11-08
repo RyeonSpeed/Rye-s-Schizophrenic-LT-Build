@@ -115,7 +115,8 @@ class TileTab(QWidget):
         return None
 
     def duplicate(self):
-        self.model.duplicate(self.current)
+        if self.current:
+            self.model.duplicate(self.current)
 
 class TileSetDatabase(TileTab):
     @classmethod

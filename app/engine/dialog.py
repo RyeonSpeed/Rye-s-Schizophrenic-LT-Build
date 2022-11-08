@@ -1,5 +1,6 @@
 import re
-from app.engine.graphics.text.text_renderer import render_text, rendered_text_width
+from typing import List
+from app.engine.graphics.text.text_renderer import MATCH_CAPTURE_TAG_RE, fix_tags, render_text, text_width
 
 from app.utilities import utils
 from app.constants import WINWIDTH, WINHEIGHT
@@ -12,6 +13,8 @@ from app.engine import config as cf
 
 from app.engine.game_state import game
 
+MATCH_DIALOG_COMMAND_RE = re.compile('(\{[^\{]*?\})')
+
 class Dialog():
     solo_flag = False
     cursor = SPRITES.get('waiting_cursor')
@@ -19,8 +22,6 @@ class Dialog():
     transition_speed = 166  # 10 frames
     pause_time = 150  # 9 frames
     attempt_split: bool = True # Whether we attempt to split big chunks across multiple lines
-
-    aesthetic_commands = ('{red}', '{/red}', '{black}', '{/black}', '{white}', '{/white}', '{green}', '{/green}')
 
     def __init__(self, text, portrait=None, background=None, position=None, width=None,
                  speaker=None, style_nid=None, autosize=False, speed=1, font_color='black',
@@ -113,20 +114,22 @@ class Dialog():
             self.no_wait = True
         elif not text.endswith('{w}'):
             text += '{w}'
-        command = None
-        processed_text = []
-        for character in text:
-            if character == '{' and command is None:
-                command = '{'
-            elif character == '}' and command is not None:
-                command += '}'
-                processed_text.append(command)
-                command = None
-            elif command is not None:
-                command += character
-            else:
-                processed_text.append(character)
-        processed_text = [';' if char == '{semicolon}' else char for char in processed_text]
+        text = text.replace('{semicolon}', ';')
+        processed_text: List[str] = []
+        # obligatory regex explanation: turns "A line.{w} With some <red>text</>."
+        # into ["A line.", "{w}", " With some ", "<red>", "text", "</>", "."]
+        # and then decomposes the non-command/tag elements into individual chars.
+        text_split_by_commands: List[str] = re.split(MATCH_DIALOG_COMMAND_RE, text)
+        text_split_by_commands_and_tags: List[str] = []
+        for block in text_split_by_commands:
+            text_split_by_commands_and_tags += re.split(MATCH_CAPTURE_TAG_RE, block)
+        for block in text_split_by_commands_and_tags:
+            if block.startswith('<') and block.endswith('>'): # tag (e.g. "<red>")
+                processed_text.append(block)
+            elif block.startswith('{') and block.endswith('}'): # command (e.g. "{br}")
+                processed_text.append(block)
+            else: # normal char str (e.g. "hello")
+                processed_text += list(block)
         return processed_text
 
     def determine_desired_center(self, portrait):
@@ -158,7 +161,7 @@ class Dialog():
                     split_lines = self.get_lines_from_block(current_line, 1)
                 else:
                     split_lines = self.get_lines_from_block(current_line)
-                width = max(width, max(rendered_text_width([self.font_type], [s]) for s in split_lines))
+                width = max(width, text_funcs.get_max_width(self.font_type, split_lines))
                 if len(split_lines) == 1:
                     waiting_cursor = True
                 current_line = ''
@@ -174,7 +177,7 @@ class Dialog():
                 split_lines = self.get_lines_from_block(current_line)
             else:
                 split_lines = self.get_lines_from_block(current_line, 1)
-            width = max(width, max(rendered_text_width([self.font_type], [s]) for s in split_lines))
+            width = max(width, text_funcs.get_max_width(self.font_type, split_lines))
             if len(split_lines) == 1:
                 waiting_cursor = True
         if waiting_cursor:
@@ -218,10 +221,10 @@ class Dialog():
             self.state = 'process'
             if self.portrait:
                 self.portrait.talk()
-        self.text_lines.append([])
+        self.text_lines.append("")
 
     def _add_letter(self, letter):
-        self.text_lines[-1].append(letter)
+        self.text_lines[-1] += letter
 
     def _next_char(self, sound=True):  # Add the next character to the text_lines list
         if self.text_index >= len(self.text_commands):
@@ -236,18 +239,17 @@ class Dialog():
             self.text_lines.clear()
             self._next_line()
         elif command == ' ':  # Check to see if we should move to next line
-            current_line = ''.join(self.text_lines[-1])
+            current_line = self.text_lines[-1]
             # Remove any commands from line
             current_line = re.sub(r'\{[^}]*\}', '', current_line)
             next_word = self._get_next_word(self.text_index)
-            if self.font.width(current_line + ' ' + next_word) > self.text_width:
+            next_width = text_width(self.font_type, current_line + ' ' + next_word)
+            if next_width > self.text_width:
                 self._next_line()
             else:
                 self._add_letter(' ')
                 if sound:
                     self.play_talk_boop()
-        elif command in self.aesthetic_commands:
-            self._add_letter(command)
         else:
             self._add_letter(command)
             if sound:
@@ -260,10 +262,10 @@ class Dialog():
             if letter == ' ':
                 break
             elif len(letter) > 1:  # Command
-                if letter in self.aesthetic_commands:
-                    continue
-                else:
+                if letter.startswith('{'):
                     break
+                elif letter.startswith('<'):
+                    continue
             else:
                 word += letter
         return word
@@ -343,69 +345,36 @@ class Dialog():
 
         self.cursor_offset_index = (self.cursor_offset_index + 1) % len(self.cursor_offset)
 
-    def chunkify(self, line: list, current_color: str):
-        chunks = []
-        current_chunk = ['', current_color]
-        for char in line:
-            if char in self.aesthetic_commands:
-                if char == '{red}':
-                    current_color = 'red'
-                elif char == '{black}':
-                    current_color = 'black'
-                elif char == '{white}':
-                    current_color = 'white'
-                elif char == '{green}':
-                    current_color = 'green'
-                elif char in ('{/red}', '{/black}', '{/white}', '{/green}'):
-                    current_color = self.font_color
-                # Create new chunk
-                chunks.append(current_chunk)
-                current_chunk = ['', current_color]
-            else:
-                current_chunk[0] += char
-        chunks.append(current_chunk)
-        return chunks, current_color
-
     def draw_text(self, surf):
         end_x_pos, end_y_pos = 0, 0
         text_surf = engine.create_surface((self.text_width, self.text_height), transparent=True)
 
-        current_color = self.font_color
-
         # Draw line that's disappearing
-        if self.y_offset and len(self.text_lines) > self.num_lines:
+        processed_text_lines = fix_tags(self.text_lines)
+        if self.y_offset and len(processed_text_lines) > self.num_lines:
             x_pos = 0
             y_pos = -16 + self.y_offset
-            line = self.text_lines[-self.num_lines - 1]
+            line = processed_text_lines[-self.num_lines - 1]
+            width = text_width(self.font_type, line)
+            render_text(text_surf, [self.font_type], [line], [self.font_color], (x_pos, y_pos))
+            x_pos += width
 
-            line_chunks, current_color = self.chunkify(line, current_color)
-            for chunk in line_chunks:
-                text, color = chunk
-                width = rendered_text_width([self.font_type], [text])
-                render_text(text_surf, [self.font_type], [text], [color], (x_pos, y_pos))
-                x_pos += width
-
-        display_lines = self.text_lines[-self.num_lines:]
+        display_lines = processed_text_lines[-self.num_lines:]
         for idx, line in enumerate(display_lines):
             x_pos = 0
             y_pos = 16 * idx
-            if len(self.text_lines) > self.num_lines:
+            if len(processed_text_lines) > self.num_lines:
                 y_set = y_pos + self.y_offset
             else:
                 y_set = y_pos
-
-            line_chunks, current_color = self.chunkify(line, current_color)
-            for chunk in line_chunks:
-                text, color = chunk
-                width = rendered_text_width([self.font_type], [text])
-                render_text(text_surf, [self.font_type], [text], [color], (x_pos, y_set))
-                x_pos += width
+            width = text_width(self.font_type, line)
+            render_text(text_surf, [self.font_type], [line], [self.font_color], (x_pos, y_set))
+            x_pos += width
 
             end_x_pos = self.position[0] + 8 + x_pos
             end_y_pos = self.position[1] + 8 + y_pos
 
         surf.blit(text_surf, (self.position[0] + 8, self.position[1] + 8))
-
         return end_x_pos, end_y_pos
 
     def draw_tail(self, surf, portrait):
@@ -473,6 +442,7 @@ class LocationCard():
     def __init__(self, text, background='menu_bg_brown'):
         self.plain_text = text
         self.font = FONT['text']
+        self.font_name = 'text'
 
         self.text_lines = self.format_text(text)
         self.determine_size()
@@ -493,7 +463,7 @@ class LocationCard():
         return [text]
 
     def determine_size(self):
-        self.width = max(self.font.width(line) for line in self.text_lines) + 16
+        self.width = text_funcs.get_max_width(self.font_name, self.text_lines) + 16
         self.height = len(self.text_lines) * self.font.height + 8
 
     def make_background(self, background):
@@ -567,7 +537,7 @@ class Credits():
             lines = text_funcs.line_wrap(self.font_name, line, x_bound)
             for li in lines:
                 if self.center_flag:
-                    x_pos = WINWIDTH//2 - self.font.width(li)//2
+                    x_pos = WINWIDTH//2 - text_width(self.font_name, li)//2
                 else:
                     x_pos = 88
                 y_pos = self.font.height * index + self.title_font.height
@@ -630,6 +600,7 @@ class Ending():
         self.speaker = None  # Unused attribute to match Dialog
         self.unit = unit
         self.font = FONT['text']
+        self.font_name = 'text'
 
         # Build dialog
         self.dialog = Dialog(text, num_lines=6, draw_cursor=False)
@@ -651,7 +622,7 @@ class Ending():
         self.bg.blit(self.background, (0, 0))
         self.bg.blit(self.portrait, (136, 57))
 
-        title_pos_x = 68 - self.font.width(self.title)//2
+        title_pos_x = 68 - text_width(self.font_name, self.title)//2
         self.font.blit(self.title, self.bg, (title_pos_x, 24))
 
         # Stats
