@@ -1,19 +1,19 @@
 from __future__ import annotations
-from app.data.items import ItemPrefab
-from app.data.levels import LevelPrefab
-from app.data.skills import SkillPrefab
+from app.data.database.items import ItemPrefab
+from app.data.database.levels import LevelPrefab
+from app.data.database.skills import SkillPrefab
 
 import re
 from typing import TYPE_CHECKING, Dict, List, Tuple, Type
 
-from app.data.database import Database
+from app.data.database.database import Database
 from app.editor.event_editor.event_inspector import EventInspectorEngine
 from app.engine.fonts import FONT
 from app.engine.graphics.ui_framework.ui_framework_layout import (HAlignment,
                                                                   VAlignment)
 from app.events import event_commands
 from app.events.screen_positions import horizontal_screen_positions, vertical_screen_positions
-from app.resources.resources import Resources
+from app.data.resources.resources import Resources
 from app.sprites import SPRITES
 from app.utilities import str_utils
 from app.utilities.enums import Alignments

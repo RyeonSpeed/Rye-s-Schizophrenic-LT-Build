@@ -3,7 +3,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QHBoxLayout, QLineEdit, QMessageBox, QSpinBox,
                              QVBoxLayout, QWidget, QDoubleSpinBox)
 
-from app.data.difficulty_modes import GrowthOption, PermadeathOption, RNGOption
+from app.data.database.difficulty_modes import GrowthOption, PermadeathOption, RNGOption
 from app.editor.stat_widget import StatListWidget
 from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.extensions.custom_gui import ComboBox, PropertyBox

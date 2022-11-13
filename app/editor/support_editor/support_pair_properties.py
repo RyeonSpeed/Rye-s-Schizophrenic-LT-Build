@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QLineEdit, QCheckBox, QMessageBox, \
     QSpinBox, QStyledItemDelegate, QVBoxLayout, QHBoxLayout, QDoubleSpinBox
 
-from app.data.database import DB
-from app.data.supports import SupportRankRequirementList
+from app.data.database.database import DB
+from app.data.database.supports import SupportRankRequirementList
 
 from app.extensions.custom_gui import ComboBox, PropertyCheckBox
 from app.editor.custom_widgets import UnitBox
@@ -34,7 +34,7 @@ class SupportPairProperties(QWidget):
 
         attrs = ('support_rank', 'requirement', 'gate', 'damage', 'resist', 'accuracy', 'avoid', 'crit', 'dodge', 'attack_speed', 'defense_speed')
         self.rank_bonus = AppendMultiListWidget(
-            SupportRankRequirementList(), "Rank Requirements & Personal Bonuses", 
+            SupportRankRequirementList(), "Rank Requirements & Personal Bonuses",
             attrs, SupportRankRequirementDelegate, self)
         main_layout.addWidget(self.rank_bonus)
         self.setLayout(main_layout)

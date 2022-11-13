@@ -1,8 +1,8 @@
 import os, sys
 
 from app.constants import VERSION
-from app.resources.resources import RESOURCES
-from app.data.database import DB
+from app.data.resources.resources import RESOURCES
+from app.data.database.database import DB
 from app.engine import engine
 from app.engine import config as cf
 from app.engine import driver

@@ -1,5 +1,5 @@
 from typing import Dict
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.engine import bmpfont, image_mods
 from app.utilities.typing import NID
 

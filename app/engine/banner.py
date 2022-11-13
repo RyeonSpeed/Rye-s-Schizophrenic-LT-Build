@@ -5,7 +5,7 @@ from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
 from app.engine import engine, base_surf, image_mods, icons, text_funcs, item_system
 from app.engine.graphics.text.text_renderer import text_width, render_text
-from app.data import skills, items
+from app.data.database import skills, items
 
 from typing import TYPE_CHECKING
 

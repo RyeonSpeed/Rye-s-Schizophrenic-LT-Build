@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, \
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QPainter, QImage, QColor
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.extensions.custom_gui import PropertyBox
 
@@ -88,7 +88,7 @@ class MapSpriteProperties(QWidget):
         self.grid_button.setText("Show Grid")
         # self.grid_button.buttonPressed.connect(self.grid_toggled)
         bg_section.addWidget(self.bg_button)
-        bg_section.addWidget(self.grid_button) 
+        bg_section.addWidget(self.grid_button)
         bg_section.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 
         right_section.addLayout(button_section)
@@ -128,7 +128,7 @@ class MapSpriteProperties(QWidget):
             current.moving_pixmap = QPixmap(current.move_full_path)
 
         # Painting
-        base_image = QImage(self.standing_width + self.moving_width, 
+        base_image = QImage(self.standing_width + self.moving_width,
                             max(self.standing_height, self.moving_height),
                             QImage.Format_ARGB32)
         base_image.fill(QColor(0, 0, 0, 0))
@@ -196,7 +196,7 @@ class MapSpriteProperties(QWidget):
         else:
             image = QImage(48, 48, QImage.Format_ARGB32)
             image.fill(QColor(0, 0, 0, 0))
-        
+
         painter = QPainter()
         painter.begin(image)
 

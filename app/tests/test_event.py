@@ -8,7 +8,7 @@ from app.events.event_commands import parse_text_to_command
 
 class EventUnitTests(unittest.TestCase):
     def setUp(self):
-        from app.data.database import DB
+        from app.data.database.database import DB
         DB.load('testing_proj.ltproj')
         self.patchers = self.initialize_patchers()
         for patcher in self.patchers:

@@ -1,6 +1,6 @@
 import math
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
@@ -110,7 +110,7 @@ class AchievementOption(BasicOption):
     def draw(self, surf, x, y):
         x_offset = 5
         font = self.font
-        
+
         # Render Title
         if self.achievement.get_hidden():
             front_half = "Hidden - "

@@ -3,7 +3,7 @@ from app.constants import WINWIDTH, WINHEIGHT, TILEX, TILEY
 from app.utilities import utils
 from app.sprites import SPRITES
 from app.engine.sound import get_sound_thread
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import engine, image_mods
 from app.engine.state import MapState
 from app.engine.game_state import game

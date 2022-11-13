@@ -1,7 +1,7 @@
 import logging
 
 import app.engine.config as cf
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import action, engine, equations, skill_system
 from app.engine.game_state import game
 from app.engine.sound import get_sound_thread

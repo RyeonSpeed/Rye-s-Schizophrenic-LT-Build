@@ -12,7 +12,7 @@ from app import autoupdate
 from app.editor.settings import MainSettingsController
 
 from app.constants import VERSION
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.editor import timer
 

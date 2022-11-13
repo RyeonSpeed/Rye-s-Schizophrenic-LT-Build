@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QWidget, QLineEdit, \
 from PyQt5.QtGui import QIcon
 
 from app.utilities import str_utils
-from app.data.database import DB
-from app.data.weapons import CombatBonusList
+from app.data.database.database import DB
+from app.data.database.weapons import CombatBonusList
 
 from app.extensions.custom_gui import ComboBox, PropertyBox, PropertyCheckBox
 from app.extensions.list_widgets import AppendMultiListWidget

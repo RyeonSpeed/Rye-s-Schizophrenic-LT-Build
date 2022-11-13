@@ -3,8 +3,8 @@ import logging
 from app.engine.text_evaluator import TextEvaluator
 import app.engine.config as cf
 from app.constants import TILEX, TILEY, WINHEIGHT, WINWIDTH
-from app.data.database import DB
-from app.data.difficulty_modes import RNGOption
+from app.data.database.database import DB
+from app.data.database.difficulty_modes import RNGOption
 from app.engine import (base_surf, combat_calcs, engine, equations, evaluate,
                         icons, image_mods, item_funcs, item_system,
                         menu_options, skill_system, text_funcs)

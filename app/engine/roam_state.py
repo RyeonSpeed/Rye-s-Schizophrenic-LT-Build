@@ -1,7 +1,7 @@
 import logging
 import math
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (action, ai_controller, engine, equations, evaluate,
                         info_menu, roam_ai, skill_system, target_system)
 from app.engine.game_state import game

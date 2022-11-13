@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import FrozenSet, TYPE_CHECKING, List, Tuple
 from functools import lru_cache
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (combat_calcs, equations, item_funcs, item_system,
                         line_of_sight, pathfinding, skill_system)
 from app.engine.game_state import game

@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.editor.table_model import TableModel
 from app.utilities import str_utils

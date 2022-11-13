@@ -1,5 +1,5 @@
-from app.data.skill_components import SkillComponent, SkillTags
-from app.data.components import Type
+from app.data.database.skill_components import SkillComponent, SkillTags
+from app.data.database.components import ComponentType
 
 from app.utilities import utils
 from app.engine import action, skill_system, target_system
@@ -38,7 +38,7 @@ class LiveToServe(SkillComponent):
     desc = r"Unit will be healed X% of amount healed"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 1.0
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
@@ -59,7 +59,7 @@ class Lifetaker(SkillComponent):
     desc = r"Heal % of total HP after a kill"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 0.5
 
     def end_combat(self, playback, unit, item, target, mode):
@@ -79,7 +79,7 @@ class Lifelink(SkillComponent):
     desc = "Heals user %% of damage dealt"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 0.5
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
@@ -101,7 +101,7 @@ class AllyLifelink(SkillComponent):
     desc = "Heals adjacent allies %% of damage dealt"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 0.5
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
@@ -130,7 +130,7 @@ class Armsthrift(SkillComponent):
     desc = 'Restores uses on hit.'
     tag = SkillTags.COMBAT2
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
@@ -150,7 +150,7 @@ class LimitMaximumRange(SkillComponent):
     desc = "limits unit's maximum allowed range"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def limit_maximum_range(self, unit, item):
@@ -161,7 +161,7 @@ class ModifyMaximumRange(SkillComponent):
     desc = "modifies unit's maximum allowed range"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def modify_maximum_range(self, unit, item):
@@ -172,7 +172,7 @@ class EvalMaximumRange(SkillComponent):
     desc = "Gives +X range solved using evaluate"
     tag = SkillTags.COMBAT2
 
-    expose = Type.String
+    expose = ComponentType.String
 
     def modify_maximum_range(self, unit, item):
         from app.engine import evaluate
@@ -247,7 +247,7 @@ class GiveStatusAfterCombat(SkillComponent):
     desc = "Gives a status to target enemy after combat"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         from app.engine import skill_system
@@ -260,7 +260,7 @@ class GiveAllyStatusAfterCombat(SkillComponent):
     desc = "Gives a status to target ally after combat"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         from app.engine import skill_system
@@ -273,7 +273,7 @@ class GiveStatusAfterAttack(SkillComponent):
     desc = "Gives a status to target after attacking the target"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         mark_playbacks = [p for p in playback if p.nid in ('mark_miss', 'mark_hit', 'mark_crit')]
@@ -287,7 +287,7 @@ class GiveStatusAfterCombatOnHit(SkillComponent):
     desc = "Gives a status to target after combat assuming you hit the target"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         mark_playbacks = [p for p in playback if p.nid in ('mark_hit', 'mark_crit')]
@@ -301,7 +301,7 @@ class GiveStatusAfterHit(SkillComponent):
     desc = "Gives a status to target after hitting them"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
         mark_playbacks = [p for p in playback if p.nid in ('mark_hit', 'mark_crit')]
@@ -315,7 +315,7 @@ class GainSkillAfterKill(SkillComponent):
     desc = "Gives a skill to user after a kill"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         if target and target.get_hp() <= 0:
@@ -327,7 +327,7 @@ class GainSkillAfterAttacking(SkillComponent):
     desc = "Gives a skill to user after an attack"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         mark_playbacks = [p for p in playback if p.nid in ('mark_miss', 'mark_hit', 'mark_crit')]
@@ -340,7 +340,7 @@ class GainSkillAfterActiveKill(SkillComponent):
     desc = "Gives a skill after a kill on personal phase"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def end_combat(self, playback, unit, item, target, mode):
         mark_playbacks = [p for p in playback if p.nid in ('mark_miss', 'mark_hit', 'mark_crit')]
@@ -353,7 +353,7 @@ class DelayInitiativeOrder(SkillComponent):
     desc = "Delays the target's next turn by X after hit. Cannot activate when unit is defending."
     tag = SkillTags.COMBAT2
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
     author = "KD"
 
@@ -368,7 +368,7 @@ class Recoil(SkillComponent):
     desc = "Unit takes non-lethal damage after combat with an enemy"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
     author = 'Lord_Tweed'
 
@@ -383,7 +383,7 @@ class PostCombatDamage(SkillComponent):
     desc = "Target takes non-lethal flat damage after combat"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
     author = 'Lord_Tweed'
 
@@ -398,7 +398,7 @@ class PostCombatDamagePercent(SkillComponent):
     desc = "Target takes non-lethal MaxHP percent damage after combat"
     tag = SkillTags.COMBAT2
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 0.2
     author = 'Lord_Tweed'
 
@@ -414,7 +414,7 @@ class PostCombatSplash(SkillComponent):
     tag = SkillTags.COMBAT2
     paired_with = ('post_combat_splash_aoe', )
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
     author = 'Lord_Tweed'
 
@@ -427,7 +427,7 @@ class PostCombatSplashAOE(SkillComponent):
     tag = SkillTags.COMBAT2
     paired_with = ('post_combat_splash', )
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
     author = 'Lord_Tweed'
 

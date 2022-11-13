@@ -1,7 +1,7 @@
 import math
 
 from app.constants import WINWIDTH, WINHEIGHT
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine.sprites import SPRITES
 
 from app.utilities import utils

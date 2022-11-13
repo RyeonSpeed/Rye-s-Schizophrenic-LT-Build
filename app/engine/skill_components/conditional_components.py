@@ -1,12 +1,12 @@
-from app.data.skill_components import SkillComponent, SkillTags
-from app.data.components import Type
+from app.data.database.skill_components import SkillComponent, SkillTags
+from app.data.database.components import ComponentType
 
 class CombatCondition(SkillComponent):
     nid = 'combat_condition'
     desc = "Status is conditional based on combat properties"
     tag = SkillTags.ADVANCED
 
-    expose = Type.String
+    expose = ComponentType.String
     value = 'False'
 
     ignore_conditional = True
@@ -38,7 +38,7 @@ class Condition(SkillComponent):
     desc = "Status is conditional"
     tag = SkillTags.ADVANCED
 
-    expose = Type.String
+    expose = ComponentType.String
     value = 'False'
 
     ignore_conditional = True

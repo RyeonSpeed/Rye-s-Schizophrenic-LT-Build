@@ -1,5 +1,5 @@
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 from app.engine import action
 from app.engine import skill_system
 from app.engine.game_state import game
@@ -10,7 +10,7 @@ class MultiItem(ItemComponent):
     desc = "Stores a list of other items to be included as part of this multi item. When using the item the sub-items stored within the list can each be accessed and used. Useful for Three Houses-like magic system."
     tag = ItemTags.ADVANCED
 
-    expose = (Type.List, Type.Item)
+    expose = (ComponentType.List, ComponentType.Item)
 
 class MultiItemHidesUnusableChildren(ItemComponent):
     nid = 'multi_item_hides_unavailable'
@@ -22,14 +22,14 @@ class SequenceItem(ItemComponent):
     desc = "Item requires various sub-items to be work properly. Useful for complex items like Warp or Rescue. Items are used from list's top to bottom."
     tag = ItemTags.ADVANCED
 
-    expose = (Type.List, Type.Item)
+    expose = (ComponentType.List, ComponentType.Item)
 
 class MultiTarget(ItemComponent):
     nid = 'multi_target'
     desc = "Can target a specified number of units when used."
     tag = ItemTags.ADVANCED
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 2
 
     def num_targets(self, unit, item) -> int:

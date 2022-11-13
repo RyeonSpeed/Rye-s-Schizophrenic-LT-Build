@@ -1,10 +1,10 @@
 from app.constants import TILEHEIGHT, TILEWIDTH
-from app.data.database import DB
+from app.data.database.database import DB
 from app.editor.settings import MainSettingsController
 from app.editor.terrain_painter_menu import TerrainPainterMenu
 from app.editor.tilemap_editor import PaintTool
 from app.extensions.tiled_view import DraggableTileImageView
-from app.resources.tiles import TileSet
+from app.data.resources.tiles import TileSet
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QIcon, QPainter, QPen
 from PyQt5.QtWidgets import (QAction, QActionGroup, QDesktopWidget, QDialog,

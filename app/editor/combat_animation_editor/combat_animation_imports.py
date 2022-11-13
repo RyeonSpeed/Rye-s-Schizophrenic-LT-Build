@@ -5,8 +5,8 @@ from PyQt5.QtGui import QImage, QPixmap, qRgb, QColor, QPainter
 
 from app.constants import COLORKEY
 from app.utilities import str_utils
-from app.resources.resources import RESOURCES
-from app.resources import combat_anims, combat_commands, combat_palettes
+from app.data.resources.resources import RESOURCES
+from app.data.resources import combat_anims, combat_commands, combat_palettes
 
 from app.editor.settings import MainSettingsController
 
@@ -190,7 +190,7 @@ def import_effect_from_legacy(fn: str):
             RESOURCES.combat_effects.remove_key(current.nid)
         RESOURCES.combat_effects.append(current)
         return current
-        
+
     images = glob.glob(fn.replace('-Script.txt', '-*.png'))
     if not images:
         QMessageBox.critical(None, "Error", "Could not find any associated palettes")
@@ -210,7 +210,7 @@ def import_effect_from_legacy(fn: str):
 
     # Determine if this has any child effects
     get_child_effects(fn_dir, current)
-    
+
     # Actually add effect animation to RESOURCES
     if current.nid in RESOURCES.combat_effects.keys():
         RESOURCES.combat_effects.remove_key(current.nid)
@@ -355,7 +355,7 @@ def import_from_gba(current, fn):
     #     QMessageBox.critical(None, "Error", "Bad character in filepath %s found. Remove all ('[', ']', '*', '?', '!') characters from the filepath." % head)
     #     return
     tail = tail.replace('_without_comment', '')
-    
+
     weapon_type = tail[:-4].lower().capitalize()
     if weapon_type not in weapon_types:
         QMessageBox.critical(None, "Error", "Weapon type %s not a supported weapon type!" % weapon_type)
@@ -463,26 +463,26 @@ def import_from_gba(current, fn):
         melee_weapon_anim.nid = "Sword"
         ranged_weapon_anim.nid = "MagicSword"
         add_weapon(melee_weapon_anim)
-        add_weapon(ranged_weapon_anim)        
+        add_weapon(ranged_weapon_anim)
     elif weapon_type == 'Lance':
         melee_weapon_anim.nid = "Lance"
         ranged_weapon_anim.nid = "RangedLance"
         add_weapon(melee_weapon_anim)
-        add_weapon(ranged_weapon_anim)        
+        add_weapon(ranged_weapon_anim)
     elif weapon_type == 'Axe':
         melee_weapon_anim.nid = "Axe"
         ranged_weapon_anim.nid = "MagicAxe"
         add_weapon(melee_weapon_anim)
-        add_weapon(ranged_weapon_anim)        
+        add_weapon(ranged_weapon_anim)
     elif weapon_type == 'Handaxe':
         ranged_weapon_anim.nid = "RangedAxe"
         add_weapon(ranged_weapon_anim)
     elif weapon_type == 'Knife':
         ranged_weapon_anim.nid = "RangedSword"
-        add_weapon(ranged_weapon_anim)    
+        add_weapon(ranged_weapon_anim)
     elif weapon_type == 'Bow':
         ranged_weapon_anim.nid = "RangedBow"
-        add_weapon(ranged_weapon_anim)        
+        add_weapon(ranged_weapon_anim)
     elif weapon_type == 'Unarmed':
         melee_weapon_anim.nid = "Unarmed"
         # Make sure we only use stand and dodge poses
@@ -631,7 +631,7 @@ def parse_gba_script(fn, pixmaps, weapon_type, empty_pixmaps):
                 if width > 0 and height > 0:
                     pixmap = pixmap.copy(x, y, width, height)
                     new_frame = combat_anims.Frame(frame_nid, (0, 0, width, height), (x, y), pixmap=pixmap)
-                    current_anim.frames.append(new_frame) 
+                    current_anim.frames.append(new_frame)
         used_images.clear()
 
     def cape_animation():
@@ -722,7 +722,7 @@ def parse_gba_script(fn, pixmaps, weapon_type, empty_pixmaps):
                     parse_text('spell')
                 write_extra_frame = False
             elif command_code == '06':  # Normally starts enemy turn, but that doesn't happen in LT script
-                write_extra_frame = False 
+                write_extra_frame = False
             elif command_code == '07':
                 begin = True
             elif command_code in ('08', '09', '0A', '0B', '0C'):  # Start crit

@@ -2,7 +2,7 @@ from app.editor.lib.components.validated_line_edit import NidLineEdit
 from app.editor.lib.components.database_delegate import DBNamesDelegate
 from typing import List
 
-from app.data import raw_data
+from app.data.database import raw_data
 from app.extensions.custom_gui import ComboBox, PropertyBox
 from app.extensions.generic_attr_object_delegate import (
     GenericObjectDelegate, GenericObjectListModel)

@@ -3,7 +3,7 @@ from app.utilities.data import Data, Prefab
 
 from app.engine import persistent_data
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 class PersistentRecord(Prefab):
     def __init__(self, nid: str = '', value=None):

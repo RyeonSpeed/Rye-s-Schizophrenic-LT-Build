@@ -8,7 +8,7 @@ except ImportError:
     import pickle
 
 from app.utilities import str_utils
-from app.data.database import DB
+from app.data.database.database import DB
 
 import app.engine.config as cf
 from app.engine.objects.item import ItemObject

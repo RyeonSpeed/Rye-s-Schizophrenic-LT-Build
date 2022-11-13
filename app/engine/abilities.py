@@ -1,4 +1,4 @@
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import target_system, skill_system, action, equations
 from app.engine.game_state import game
 from app.events import triggers

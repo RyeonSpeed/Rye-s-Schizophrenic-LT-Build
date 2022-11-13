@@ -3,7 +3,7 @@ from typing import List
 from app.engine.graphics.text.text_renderer import text_width
 
 def translate(string):
-    from app.data.database import DB
+    from app.data.database.database import DB
     if string in DB.translations.keys():
         return DB.translations.get(string).text
     else:

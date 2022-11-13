@@ -29,12 +29,12 @@ if TYPE_CHECKING:
     from app.utilities.typing import NID, UID
 
 from app.constants import VERSION
-from app.data.database import DB
-from app.data.difficulty_modes import GrowthOption, PermadeathOption
+from app.data.database.database import DB
+from app.data.database.difficulty_modes import GrowthOption, PermadeathOption
 from app.events.regions import RegionType
 from app.engine import config as cf
 from app.engine import state_machine, static_random
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 import logging
 
@@ -183,7 +183,7 @@ class GameState():
         from app.engine import turnwheel
         from app.events import event_manager
         from app.engine.dialog_log import DialogLog
-        
+
         self.level_vars = Counter()
         self.turncount = 0
         self.talk_options = []

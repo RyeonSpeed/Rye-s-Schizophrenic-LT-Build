@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 from app.constants import WINWIDTH, WINHEIGHT
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.engine import engine, image_mods
 from app.engine.sprites import SPRITES
 from app.utilities import utils

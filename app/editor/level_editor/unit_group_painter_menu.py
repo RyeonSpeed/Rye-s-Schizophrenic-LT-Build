@@ -9,8 +9,8 @@ from PyQt5.QtGui import QBrush, QColor, QIcon
 
 from app.utilities import str_utils
 from app.utilities.data import Data
-from app.data.database import DB
-from app.data.level_units import GenericUnit
+from app.data.database.database import DB
+from app.data.database.level_units import GenericUnit
 
 from app.editor import timer
 
@@ -21,7 +21,7 @@ from app.editor.level_editor.unit_painter_menu import AllUnitModel, InventoryDel
 from app.editor.base_database_gui import DragDropCollectionModel
 from app.editor.class_editor import class_model
 
-from app.data.level_units import UnitGroup
+from app.data.database.level_units import UnitGroup
 
 import logging
 

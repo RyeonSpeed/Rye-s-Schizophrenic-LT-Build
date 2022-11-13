@@ -5,9 +5,9 @@ from typing import Callable, List, Tuple
 
 import app.engine.graphics.ui_framework as uif
 from app.constants import WINHEIGHT, WINWIDTH
-from app.data.database import DB
-from app.data.stats import StatPrefab
-from app.data.weapons import WeaponType
+from app.data.database.database import DB
+from app.data.database.stats import StatPrefab
+from app.data.database.weapons import WeaponType
 from app.engine import engine, icons, image_mods, item_system
 from app.engine.base_surf import create_base_surf, create_highlight_surf
 from app.engine.game_counters import ANIMATION_COUNTERS

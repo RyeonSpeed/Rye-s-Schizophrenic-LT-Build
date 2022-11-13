@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from app.constants import WINWIDTH, WINHEIGHT
 from app.utilities import utils
 
-from app.resources.resources import RESOURCES
-from app.data.database import DB
+from app.data.resources.resources import RESOURCES
+from app.data.database.database import DB
 
 from app.engine.sprites import SPRITES
 from app.engine.sound import get_sound_thread

@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QWidget, QButtonGroup, QMenu, \
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from app.utilities import str_utils
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.extensions.custom_gui import ComboBox
 from app.editor.combat_animation_editor.palette_model import PaletteModel
 

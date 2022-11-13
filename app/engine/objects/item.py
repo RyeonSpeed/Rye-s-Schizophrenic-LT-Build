@@ -1,6 +1,6 @@
 from app.utilities.data import Data
 
-from app.data.database import DB
+from app.data.database.database import DB
 import app.engine.item_component_access as ICA
 
 import logging

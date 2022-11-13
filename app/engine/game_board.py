@@ -1,6 +1,6 @@
 from typing import Dict
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import line_of_sight, target_system
 from app.engine.game_state import game
 from app.utilities.typing import NID

@@ -1,4 +1,4 @@
-from app.data.database import DB
+from app.data.database.database import DB
 from PyQt5.QtWidgets import QLineEdit, QItemDelegate
 from PyQt5 import QtCore
 from app.extensions.custom_gui import ComboBox

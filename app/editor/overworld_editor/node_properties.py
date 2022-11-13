@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, \
     QWidget, QMessageBox, QLabel, QComboBox, QHBoxLayout
 from PyQt5.QtCore import Qt
 
-from app.data.database import DB
-from app.resources.resources import RESOURCES
+from app.data.database.database import DB
+from app.data.resources.resources import RESOURCES
 
 from app.editor.icons import MapIconButton
 

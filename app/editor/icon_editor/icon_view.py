@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 from PyQt5.QtGui import QPixmap
 
-from app.resources.icons import Icon, IconSheet
+from app.data.resources.icons import Icon, IconSheet
 
 class IconView(QGraphicsView):
     min_scale = 0.5

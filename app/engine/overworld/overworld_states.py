@@ -2,7 +2,7 @@ from app.events import triggers
 import logging
 
 import app.engine.config as cf
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import engine, menus
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.game_state import game

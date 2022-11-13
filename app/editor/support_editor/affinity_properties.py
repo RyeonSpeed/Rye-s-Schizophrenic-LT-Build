@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QWidget, QLineEdit, QTextEdit, \
 from PyQt5.QtGui import QFontMetrics
 
 from app.utilities import str_utils
-from app.data.database import DB
-from app.data.supports import SupportRankBonusList
+from app.data.database.database import DB
+from app.data.database.supports import SupportRankBonusList
 
 from app.extensions.custom_gui import ComboBox, PropertyBox
 from app.extensions.list_widgets import AppendMultiListWidget

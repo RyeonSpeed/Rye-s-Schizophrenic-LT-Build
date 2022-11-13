@@ -1,10 +1,10 @@
 from app.utilities.typing import NID
 import os
-from typing import Set
+from typing import Set, List
 import pygame
 
 from app.utilities import utils
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.engine import engine
 
 import logging
@@ -36,6 +36,15 @@ class MusicDict(dict):
             else:
                 return None
         return self[val]
+
+    def clear(self, song_to_keep: NID=None):
+        if not song_to_keep:
+            super().clear()
+        else:
+            our_keys = list(self.keys())
+            for key in our_keys:
+                if key != song_to_keep:
+                    del self[key]
 
 class SoundDict(dict):
     def get(self, val):
@@ -314,7 +323,7 @@ class SoundController():
         self.channel4 = ChannelPair(6)
 
         self.channel_stack = [self.channel1, self.channel2, self.channel3, self.channel4]
-        self.song_stack = []
+        self.song_stack: List[Song] = []
 
         self.reset_timers()
 
@@ -551,6 +560,21 @@ class SoundController():
 
     def load_songs(self, nids: Set[NID]):
         MUSIC.preload(nids)
+
+    def flush(self, should_interrupt_current_song=True):
+        """Simply flushes the song cache from memory - this prevents memory bloat.
+
+        Args:
+            should_interrupt_current_song (bool, optional): Whether or not to keep the current song playing while flushing all others.
+                                                            Defaults to True.
+        """
+        current_song = None
+        if not should_interrupt_current_song:
+            current_song = self.get_current_song()
+            if current_song:
+                print(current_song.nid)
+        MUSIC.clear(current_song)
+        SFX.clear()
 
     def reset(self):
         """

@@ -11,9 +11,9 @@ from PyQt5.QtCore import Qt, QRect, QDateTime
 from PyQt5.QtGui import QImage, QPainter, QPixmap, QIcon, QColor, QPen
 
 from app.constants import TILEWIDTH, TILEHEIGHT, TILEX, TILEY
-from app.resources.resources import RESOURCES
-from app.resources.tiles import LayerGrid
-from app.data.database import DB
+from app.data.resources.resources import RESOURCES
+from app.data.resources.tiles import LayerGrid
+from app.data.database.database import DB
 
 from app.editor.tile_editor import autotiles
 from app.editor.icon_editor.icon_view import IconView

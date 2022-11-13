@@ -1,5 +1,5 @@
-from app.resources.resources import Resources
-from app.data.database import Database
+from app.data.resources.resources import Resources
+from app.data.database.database import Database
 from typing import List, Tuple, Type
 
 from app.editor.settings import MainSettingsController

@@ -1,13 +1,13 @@
 import logging
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (action, animations, engine, gui, health_bar,
                         item_funcs, item_system, skill_system)
 from app.engine.game_state import game
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
 from app.events import triggers
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 
 class StatusUpkeepState(MapState):

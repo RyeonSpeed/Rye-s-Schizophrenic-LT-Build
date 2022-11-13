@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QWidget, QLineEdit, QMessageBox, QVBoxLayout, \
     QSpinBox
 from PyQt5.QtCore import Qt
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.utilities import str_utils
 from app.extensions.custom_gui import PropertyBox, ComboBox

@@ -1,10 +1,10 @@
 import math, string
 
 from app.constants import TILEX, WINWIDTH, WINHEIGHT
-from app.data.database import DB
+from app.data.database.database import DB
 from app.utilities import utils
 
-from app.data import lore
+from app.data.database import lore
 from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
 from app.engine.input_manager import get_input_manager

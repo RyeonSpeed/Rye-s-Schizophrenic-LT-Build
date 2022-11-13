@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon, QColor, QPixmap
 from app.editor.settings import MainSettingsController
 
 from app.constants import WINWIDTH, WINHEIGHT
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 from app.editor.combat_animation_editor.frame_selector import FrameSelector
 from app.extensions.color_icon import ColorIcon

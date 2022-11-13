@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Tuple
 import app.engine.config as cf
 import app.engine.graphics.ui_framework as uif
 from app.constants import WINHEIGHT, WINWIDTH
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (action, dialog, engine, evaluate,
                         static_random, target_system, item_funcs)
 from app.engine.game_state import GameState

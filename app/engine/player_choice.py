@@ -1,6 +1,6 @@
 import logging
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import action
 from app.engine.game_menus.menu_components.generic_menu.choice_table_wrapper import ChoiceMenuUI
 from app.engine.game_state import game

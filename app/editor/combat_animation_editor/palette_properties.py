@@ -9,7 +9,7 @@ from PyQt5.QtGui import QColor, QPen, QPixmap, QImage, QPainter, qRgb
 from typing import List, Tuple
 
 from app.constants import WINWIDTH, WINHEIGHT
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 from app.editor.settings import MainSettingsController
 
@@ -20,8 +20,8 @@ from app.editor.combat_animation_editor.frame_selector import FrameSelector
 from app.editor.combat_animation_editor import combat_animation_model, combat_effect_display, combat_animation_display
 from app.editor.combat_animation_editor.color_editor import ColorEditorWidget
 from app.editor.lib.components.validated_line_edit import NidLineEdit
-from app.resources.combat_anims import Frame
-from app.resources.combat_palettes import Palette
+from app.data.resources.combat_anims import Frame
+from app.data.resources.combat_palettes import Palette
 from app.editor.icon_editor.icon_view import IconView
 import app.editor.utilities as editor_utilities
 

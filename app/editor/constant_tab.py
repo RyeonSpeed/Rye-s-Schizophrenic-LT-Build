@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QGridLayout, QLineEdit, QSpinBox, QHBoxLayout, \
 from PyQt5.QtCore import Qt, QAbstractItemModel
 
 from app.utilities.data import Data
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox
 

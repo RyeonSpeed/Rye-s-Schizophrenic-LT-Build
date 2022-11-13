@@ -8,10 +8,10 @@ import app.engine.config as cf
 from typing import Tuple
 
 from app.constants import TILEHEIGHT, TILEWIDTH
-from app.data.database import DB
+from app.data.database.database import DB
 from app.events.regions import RegionType
 from app.events import triggers
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.engine import (aura_funcs, banner, equations, item_funcs, item_system,
                         particles, skill_system, static_random, unit_funcs, animations)
 from app.engine.game_state import game

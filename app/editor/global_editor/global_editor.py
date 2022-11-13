@@ -5,7 +5,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.editor.map_view import GlobalModeLevelMapView
 from app.editor.settings import MainSettingsController
@@ -153,7 +153,7 @@ class GlobalEditor(QMainWindow):
 if __name__ == '__main__':
     import sys
     from PyQt5.QtWidgets import QApplication
-    from app.resources.resources import RESOURCES
+    from app.data.resources.resources import RESOURCES
     from app.editor.lib.state_editor.editor_state_manager import EditorStateManager
     app = QApplication(sys.argv)
     RESOURCES.load('default.ltproj')

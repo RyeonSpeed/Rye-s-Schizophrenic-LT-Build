@@ -4,12 +4,12 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 
-from app.resources.animations import Animation
-from app.resources.resources import RESOURCES
+from app.data.resources.animations import Animation
+from app.data.resources.resources import RESOURCES
 
 from app.utilities.data import Data
-from app.data.database import DB
-from app.data import item_components
+from app.data.database.database import DB
+from app.data.database import item_components
 
 from app.extensions.custom_gui import DeletionDialog
 
@@ -62,7 +62,7 @@ class AnimationModel(ResourceCollectionModel):
         # Check to see what is using me?
         res = self._data[idx]
         nid = res.nid
-        affected_items = item_components.get_items_using(item_components.Type.MapAnimation, nid, DB)
+        affected_items = item_components.get_items_using(item_components.ComponentType.MapAnimation, nid, DB)
         if affected_items:
             affected = Data(affected_items)
             from app.editor.item_editor.item_model import ItemModel
@@ -78,5 +78,5 @@ class AnimationModel(ResourceCollectionModel):
     def on_nid_changed(self, old_nid, new_nid):
         # What uses Animations
         # Certain item components
-        affected_items = item_components.get_items_using(item_components.Type.MapAnimations, old_nid, DB)
-        item_components.swap_values(affected_items, item_components.Type.MapAnimations, old_nid, new_nid)
+        affected_items = item_components.get_items_using(item_components.ComponentType.MapAnimations, old_nid, DB)
+        item_components.swap_values(affected_items, item_components.ComponentType.MapAnimations, old_nid, new_nid)

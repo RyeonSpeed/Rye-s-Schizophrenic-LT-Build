@@ -8,8 +8,8 @@ from PyQt5.QtGui import QPixmap, QIcon, QImage, QPainter
 from app.constants import WINWIDTH, WINHEIGHT
 
 from app import utilities
-from app.resources import combat_anims, combat_palettes
-from app.resources.resources import RESOURCES
+from app.data.resources import combat_anims, combat_palettes
+from app.data.resources.resources import RESOURCES
 
 from app.editor.settings import MainSettingsController
 

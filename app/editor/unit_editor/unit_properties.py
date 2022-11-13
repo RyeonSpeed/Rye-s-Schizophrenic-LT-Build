@@ -1,6 +1,6 @@
 from app.editor.lib.components.database_delegate import DBNamesDelegate, UnitFieldDelegate
 from app.extensions.key_value_delegate import KeyValueDelegate, KeyValueDoubleListModel
-from app.data.database import DB
+from app.data.database.database import DB
 from app.editor.custom_widgets import AffinityBox, ClassBox
 from app.editor.icons import UnitPortrait
 from app.editor.item_list_widget import ItemListWidget

@@ -1,7 +1,7 @@
 from app.editor.lib.components.validated_line_edit import NidLineEdit
 from functools import partial
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.editor import timer
 from app.editor.custom_widgets import PartyBox, UnitBox
 from app.editor.sound_editor import sound_tab

@@ -5,7 +5,7 @@ from typing import Callable, List
 from app.editor.data_editor import MultiResourceEditor, SingleResourceEditor
 from app.editor.icon_editor import icon_model
 from app.editor.settings.main_settings_controller import MainSettingsController
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.utilities.data import Data
 from app.utilities.typing import NID
 from PyQt5.QtCore import QSize, QSortFilterProxyModel, Qt

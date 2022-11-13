@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QModelIndex
 from app.utilities import str_utils
 from app.utilities.data import Prefab
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 class VirtualListModel(QAbstractItemModel):
     def set_new_data(self, data):

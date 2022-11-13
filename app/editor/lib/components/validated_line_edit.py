@@ -4,7 +4,7 @@ from PyQt5.QtGui import QRegExpValidator
 
 # Custom Widgets
 from app.utilities.data import Data
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox
 

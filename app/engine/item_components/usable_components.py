@@ -1,6 +1,6 @@
 from typing import Dict
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 
 from app.engine import action, item_funcs
 
@@ -10,7 +10,7 @@ class Uses(ItemComponent):
     paired_with = ('uses_options',)
     tag = ItemTags.USES
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def init(self, item):
@@ -64,7 +64,7 @@ class ChapterUses(ItemComponent):
     paired_with = ('uses_options',)
     tag = ItemTags.USES
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def init(self, item):
@@ -109,7 +109,7 @@ class UsesOptions(ItemComponent):
     desc = 'Additional options for uses'
     tag = ItemTags.HIDDEN
 
-    expose = (Type.MultipleOptions)
+    expose = (ComponentType.MultipleOptions)
 
     value = [
         ['LoseUsesOnMiss (T/F)', 'F', 'Lose uses even on miss']
@@ -129,7 +129,7 @@ class HPCost(ItemComponent):
     desc = "Item subtracts the specified amount of HP upon use. If the subtraction would kill the unit the item becomes unusable."
     tag = ItemTags.USES
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def available(self, unit, item) -> bool:
@@ -146,7 +146,7 @@ class ManaCost(ItemComponent):
     desc = "Item subtracts the specified amount of Mana upon use. MANA must be defined in the equations editor. If unit does not have enough mana the item will not be usable."
     tag = ItemTags.USES
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     _did_something = False
@@ -181,7 +181,7 @@ class Cooldown(ItemComponent):
     desc = "The item cannot be used for the specified number of turns. Since timers tick down at the start of the turn, setting cooldown to one will allow the unit to use the item on their next turn."
     tag = ItemTags.USES
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def init(self, item):
@@ -229,7 +229,7 @@ class PrfUnit(ItemComponent):
     desc = 'Item can only be wielded by certain units'
     tag = ItemTags.USES
 
-    expose = (Type.List, Type.Unit)
+    expose = (ComponentType.List, ComponentType.Unit)
 
     def available(self, unit, item) -> bool:
         return unit.nid in self.value
@@ -239,7 +239,7 @@ class PrfClass(ItemComponent):
     desc = 'Item can only be wielded by certain classes'
     tag = ItemTags.USES
 
-    expose = (Type.List, Type.Class)
+    expose = (ComponentType.List, ComponentType.Class)
 
     def available(self, unit, item) -> bool:
         return unit.klass in self.value
@@ -249,7 +249,7 @@ class PrfTag(ItemComponent):
     desc = 'Item can only be wielded by units with certain tags'
     tag = ItemTags.USES
 
-    expose = (Type.List, Type.Tag)
+    expose = (ComponentType.List, ComponentType.Tag)
 
     def available(self, unit, item) -> bool:
         return any(tag in self.value for tag in unit.tags)
@@ -259,7 +259,7 @@ class PrfAffinity(ItemComponent):
     desc = 'Item can only be wielded by units with certain affinity'
     tag = ItemTags.USES
 
-    expose = (Type.List, Type.Affinity)
+    expose = (ComponentType.List, ComponentType.Affinity)
 
     def available(self, unit, item) -> bool:
         return unit.affinity in self.value

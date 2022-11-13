@@ -1,5 +1,5 @@
 from app.events.triggers import EventTrigger
-from app.data.database import DB
+from app.data.database.database import DB
 from app.events.event import Event
 from app.events import triggers
 from app.engine.game_state import game

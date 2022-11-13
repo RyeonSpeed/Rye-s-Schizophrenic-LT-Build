@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import Qt, pyqtSignal
 
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 import app.editor.utilities as editor_utilities
 

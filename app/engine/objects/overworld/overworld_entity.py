@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict
 from enum import Enum
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 if TYPE_CHECKING:
     from app.engine.game_state import GameState

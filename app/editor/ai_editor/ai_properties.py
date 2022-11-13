@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit, \
     QGridLayout, QListWidget, QListWidgetItem, QPushButton
 from PyQt5.QtCore import Qt
 
-import app.data.ai as ai
-from app.data.database import DB
+import app.data.database.ai as ai
+from app.data.database.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox, PropertyCheckBox
 from app.editor.custom_widgets import ClassBox, UnitBox, FactionBox, PartyBox

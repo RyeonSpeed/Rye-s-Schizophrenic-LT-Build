@@ -5,8 +5,8 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QLineEdit, \
 from PyQt5.QtGui import QFontMetrics, QIcon
 from PyQt5.QtCore import Qt
 
-from app.resources.resources import RESOURCES
-from app.data.database import DB
+from app.data.resources.resources import RESOURCES
+from app.data.database.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox, QHLine
 from app.extensions.list_widgets import AppendMultiListWidget, MultiDictWidget

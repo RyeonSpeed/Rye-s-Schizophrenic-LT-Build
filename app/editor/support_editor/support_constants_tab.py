@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QSpinBox, QCheckBox, \
     QVBoxLayout, QGroupBox, QWidget
 from PyQt5.QtCore import Qt
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.extensions.custom_gui import PropertyBox, ComboBox, PropertyCheckBox
 
@@ -60,7 +60,7 @@ class SupportConstantDatabase(DatabaseTab):
         section = QGroupBox(self)
         layout = QVBoxLayout()
         section.setLayout(layout)
-        
+
         for constant_nid in constants:
             constant = self._data.get(constant_nid)
             if not constant:

@@ -1,5 +1,6 @@
 # Binary-compiled files
 *.py[co]
+__pycache__
 
 # test project
 test.ltproj
@@ -84,3 +85,4 @@ Temporary Items
 # Cython compilation results
 *.c
 *.pyd
+

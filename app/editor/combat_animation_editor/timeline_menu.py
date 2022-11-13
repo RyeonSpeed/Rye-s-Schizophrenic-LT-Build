@@ -8,7 +8,7 @@ from PyQt5.QtGui import QIcon
 
 from app.editor.settings import MainSettingsController
 
-from app.resources import combat_commands
+from app.data.resources import combat_commands
 
 from app.editor import combat_command_widgets
 from app.extensions.widget_list import WidgetList
@@ -179,7 +179,7 @@ class TimelineMenu(QWidget):
         try:
             text = self.entry.text()
             command = combat_commands.parse_text(text)
-            self.add_command(command)                
+            self.add_command(command)
             self.entry.clear()
         except Exception:
             # play error sound

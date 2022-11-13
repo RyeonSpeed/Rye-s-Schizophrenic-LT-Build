@@ -2,7 +2,7 @@ import os
 
 from PyQt5.QtWidgets import QFileDialog, QDialog
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.editor.data_editor import SingleDatabaseEditor
 from app.editor.base_database_gui import DatabaseTab
 from app.editor.settings import MainSettingsController
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     from app import dark_theme
     d = dark_theme.QDarkPalette()
     d.set_app(app)
-    from app.resources.resources import RESOURCES
+    from app.data.resources.resources import RESOURCES
     RESOURCES.load('default.ltproj')
     DB.load('default.ltproj')
     window = SingleDatabaseEditor(UnitDatabase)

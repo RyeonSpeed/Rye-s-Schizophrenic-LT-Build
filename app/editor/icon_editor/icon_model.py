@@ -6,11 +6,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 
 from app.utilities import str_utils
-from app.resources.icons import Icon, IconSheet
-from app.resources.map_icons import MapIcon, MapIconCatalog
-from app.resources.resources import RESOURCES
+from app.data.resources.icons import Icon, IconSheet
+from app.data.resources.map_icons import MapIcon, MapIconCatalog
+from app.data.resources.resources import RESOURCES
 from app.utilities.data import Data
-from app.data.database import DB
+from app.data.database.database import DB
 from app.editor.base_database_gui import ResourceCollectionModel
 from app.extensions.custom_gui import DeletionDialog
 

@@ -4,7 +4,7 @@ from typing import Dict
 from app.engine.query_engine import GameQueryEngine
 
 from app.utilities import utils
-from app.data.database import DB
+from app.data.database.database import DB
 
 import app.engine.config as cf
 from app.engine.persistent_records import RECORDS

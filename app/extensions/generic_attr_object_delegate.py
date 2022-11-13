@@ -1,4 +1,4 @@
-from app.data.raw_data import RawListDataObjectBase
+from app.data.database.raw_data import RawListDataObjectBase
 from app.extensions.list_models import MultiAttrListModel
 from app.utilities import str_utils
 from PyQt5.QtCore import Qt

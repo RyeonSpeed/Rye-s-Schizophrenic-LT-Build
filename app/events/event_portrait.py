@@ -1,5 +1,5 @@
 from app.utilities.typing import Point
-from app.resources.portraits import Portrait
+from app.data.resources.portraits import Portrait
 import random
 
 from app import counters

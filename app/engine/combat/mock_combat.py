@@ -1,7 +1,7 @@
 import random
 
 from app.constants import WINWIDTH, WINHEIGHT
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 from app.engine.sprites import SPRITES
 
@@ -362,7 +362,7 @@ class MockCombat():
         total_shake_x = self.shake_offset[0] + self.platform_shake_offset[0]
         total_shake_y = self.shake_offset[1] + self.platform_shake_offset[1]
         # Platform
-        from app.data.database import DB
+        from app.data.database.database import DB
         if not self.battle_background or DB.constants.value('battle_platforms'):
             top = platform_top + (platform_trans - self.bar_offset * platform_trans) + total_shake_y
             if self.at_range:

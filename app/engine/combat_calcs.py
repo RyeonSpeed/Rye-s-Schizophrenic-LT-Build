@@ -1,7 +1,7 @@
 from app.engine.game_state import game
 from app.utilities import utils
-from app.data.database import DB
-from app.data import weapons
+from app.data.database.database import DB
+from app.data.database import weapons
 from app.engine import equations, item_system, item_funcs, skill_system
 
 def get_weapon_rank_bonus(unit, item):

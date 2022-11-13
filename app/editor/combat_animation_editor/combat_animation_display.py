@@ -11,9 +11,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QPainter
 
 from app.constants import WINWIDTH, WINHEIGHT
-from app.resources import combat_anims, combat_palettes
-from app.resources.resources import RESOURCES
-from app.data.database import DB
+from app.data.resources import combat_anims, combat_palettes
+from app.data.resources.resources import RESOURCES
+from app.data.database.database import DB
 
 from app.editor.settings import MainSettingsController
 

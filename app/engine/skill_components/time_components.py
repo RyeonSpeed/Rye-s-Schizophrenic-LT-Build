@@ -1,7 +1,7 @@
 from typing import Dict
-from app.data.skill_components import SkillComponent, SkillTags
-from app.data.components import Type
-from app.data.database import DB
+from app.data.database.skill_components import SkillComponent, SkillTags
+from app.data.database.components import ComponentType
+from app.data.database.database import DB
 
 from app.engine import action
 from app.engine.game_state import game
@@ -11,7 +11,7 @@ class Time(SkillComponent):
     desc = "Lasts for some number of turns (checked on upkeep)"
     tag = SkillTags.TIME
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 2
 
     def init(self, skill):
@@ -35,7 +35,7 @@ class EndTime(SkillComponent):
     desc = "Lasts for some number of turns (checked on endstep)"
     tag = SkillTags.TIME
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 2
 
     def init(self, skill):
@@ -59,7 +59,7 @@ class CombinedTime(SkillComponent):
     desc = "Lasts for twice the number of phases (counts both upkeep and endstep)"
     tag = SkillTags.TIME
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def init(self, skill):
@@ -89,7 +89,7 @@ class UpkeepStatChange(SkillComponent):
     desc = "Gives changing stat bonuses"
     tag = SkillTags.TIME
 
-    expose = (Type.Dict, Type.Stat)
+    expose = (ComponentType.Dict, ComponentType.Stat)
     value = []
 
     def init(self, skill):
@@ -121,7 +121,7 @@ class LostOnEndCombat(SkillComponent):
     desc = "Remove after combat"
     tag = SkillTags.TIME
 
-    expose = (Type.MultipleOptions)
+    expose = (ComponentType.MultipleOptions)
 
     value = [["LostOnSelf (T/F)", "T", 'Lost after self combat (e.g. vulnerary)'],["LostOnAlly (T/F)", "T", 'Lost after combat with an ally'],["LostOnEnemy (T/F)", "T", 'Lost after combat with an enemy'],["LostOnSplash (T/F)", "T", 'Lost after combat if using an AOE item']]
 
@@ -162,7 +162,7 @@ class EventOnRemove(SkillComponent):
     desc = "Calls event when removed"
     tag = SkillTags.TIME
 
-    expose = Type.Event
+    expose = ComponentType.Event
 
     def on_true_remove(self, unit, skill):
         event_prefab = DB.events.get_from_nid(self.value)

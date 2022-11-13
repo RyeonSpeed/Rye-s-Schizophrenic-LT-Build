@@ -6,10 +6,10 @@ from typing import Tuple
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 
-from app.data.database import DB
+from app.data.database.database import DB
 # Data
-from app.data.overworld import OverworldPrefab
-from app.data.overworld_node import OverworldNodePrefab
+from app.data.database.overworld import OverworldPrefab
+from app.data.database.overworld_node import OverworldNodePrefab
 # Components
 from app.editor.lib.components.dock import Dock
 # utils
@@ -19,7 +19,7 @@ from app.editor.lib.state_editor.state_enums import MainEditorScreenStates
 # Application State
 from app.editor.settings import MainSettingsController
 from app.editor.world_map_view import WorldMapView
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.utilities import str_utils, utils
 from app.utilities.typing import Point
 from PyQt5.QtCore import Qt

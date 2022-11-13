@@ -1,9 +1,9 @@
 from app.utilities import utils
 
-from app.data.database import DB
+from app.data.database.database import DB
 
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 
 from app.engine import action, combat_calcs, equations, banner
 from app.engine import item_system, skill_system, item_funcs
@@ -15,7 +15,7 @@ class PermanentStatChange(ItemComponent):
     desc = "Using this item permanently changes the stats of the target in the specified ways. The target and user are often the same unit (think of normal FE stat boosters)."
     tag = ItemTags.SPECIAL
 
-    expose = (Type.Dict, Type.Stat)
+    expose = (ComponentType.Dict, ComponentType.Stat)
 
     _hit_count = 0
 
@@ -62,7 +62,7 @@ class PermanentGrowthChange(ItemComponent):
     desc = "Using this item permanently changes the growth values of the target in the specified ways."
     tag = ItemTags.SPECIAL
 
-    expose = (Type.Dict, Type.Stat)
+    expose = (ComponentType.Dict, ComponentType.Stat)
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         growth_changes = {k: v for (k, v) in self.value}
@@ -74,7 +74,7 @@ class WexpChange(ItemComponent):
     desc = "Using this item permanently changes the WEXP of the target. Can specify individual amounts for different weapon types. Useful for Arms Scroll."
     tag = ItemTags.SPECIAL
 
-    expose = (Type.Dict, Type.WeaponType)
+    expose = (ComponentType.Dict, ComponentType.WeaponType)
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         wexp_changes = {k: v for (k, v) in self.value}
@@ -86,7 +86,7 @@ class FatigueOnHit(ItemComponent):
     desc = "If fatigue is enabled, increases the amount of fatigue a target suffers when hit by this item. Can be negative in order to remove fatigue."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
@@ -110,7 +110,7 @@ class StatusOnHit(ItemComponent):
     desc = "Target gains the specified status on hit. Applies instantly, potentially causing values to change mid-combat."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Skill  # Nid
+    expose = ComponentType.Skill  # Nid
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         act = action.AddSkill(target, self.value, unit)
@@ -127,7 +127,7 @@ class SelfStatusOnHit(ItemComponent):
     desc = "User gains the specified status on hit. Applies instantly, potentially causing values to change mid-combat."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Skill  # Nid
+    expose = ComponentType.Skill  # Nid
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         act = action.AddSkill(unit, self.value, unit)
@@ -144,7 +144,7 @@ class StatusesOnHit(ItemComponent):
     tag = ItemTags.SPECIAL
     author = 'BigMood'
 
-    expose = (Type.List, Type.Skill)  # Nid
+    expose = (ComponentType.List, ComponentType.Skill)  # Nid
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         for status_nid in self.value:
@@ -164,7 +164,7 @@ class StatusAfterCombatOnHit(StatusOnHit, ItemComponent):
     desc = "If the target is hit they gain the specified status at the end of combat. Prevents changes being applied mid-combat."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Skill  # Nid
+    expose = ComponentType.Skill  # Nid
 
     _did_hit = set()
 
@@ -186,7 +186,7 @@ class Shove(ItemComponent):
     desc = "Item shoves target on hit"
     tag = ItemTags.SPECIAL
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def _check_shove(self, unit_to_move, anchor_pos, magnitude):
@@ -214,7 +214,7 @@ class ShoveOnEndCombat(Shove):
     desc = "Item shoves target at the end of combat"
     tag = ItemTags.SPECIAL
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def end_combat(self, playback, unit, item, target, mode):
@@ -228,7 +228,7 @@ class ShoveTargetRestrict(Shove, ItemComponent):
     desc = "Works the same as shove but will not allow the item to be selected if the action cannot be performed."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
@@ -276,7 +276,7 @@ class Pivot(ItemComponent):
     tag = ItemTags.SPECIAL
     author = "Lord Tweed"
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def _check_pivot(self, unit_to_move, anchor_pos, magnitude):
@@ -306,7 +306,7 @@ class PivotTargetRestrict(Pivot, ItemComponent):
     tag = ItemTags.SPECIAL
     author = "Lord Tweed"
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
@@ -333,7 +333,7 @@ class DrawBack(ItemComponent):
     tag = ItemTags.SPECIAL
     author = "Lord Tweed"
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def _check_draw_back(self, target, user, magnitude):
@@ -369,7 +369,7 @@ class DrawBackTargetRestrict(DrawBack, ItemComponent):
     tag = ItemTags.SPECIAL
     author = "Lord Tweed"
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
@@ -479,7 +479,7 @@ class EventOnHit(ItemComponent):
     desc = "The selected event plays before a hit, if the unit will hit with this item. The event is triggered with args (unit1=attacking unit, unit2=target, item=item, position=attacking unit's position, target_pos=position of target, mode='attack' or 'defense', attack_info=a tuple containing which attack this is as the first element, and which subattack this is as the second element)"
     tag = ItemTags.SPECIAL
 
-    expose = Type.Event
+    expose = ComponentType.Event
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         event_prefab = DB.events.get_from_nid(self.value)
@@ -492,7 +492,7 @@ class EventAfterCombatOnHit(ItemComponent):
     desc = "The selected event plays at the end of combat so long as an attack in combat hit."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Event
+    expose = ComponentType.Event
 
     _did_hit = False
 
@@ -513,7 +513,7 @@ class EventAfterCombatEvenMiss(ItemComponent):
     desc = "The selected event plays at the end of combat."
     tag = ItemTags.SPECIAL
 
-    expose = Type.Event
+    expose = ComponentType.Event
 
     def end_combat(self, playback, unit, item, target, mode):
         event_prefab = DB.events.get_from_nid(self.value)

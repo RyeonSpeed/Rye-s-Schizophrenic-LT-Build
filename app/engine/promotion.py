@@ -1,7 +1,7 @@
 from app.constants import WINWIDTH, WINHEIGHT
 
-from app.data.database import DB
-from app.resources.resources import RESOURCES
+from app.data.database.database import DB
+from app.data.resources.resources import RESOURCES
 from app.utilities import utils
 
 from app.engine.fonts import FONT

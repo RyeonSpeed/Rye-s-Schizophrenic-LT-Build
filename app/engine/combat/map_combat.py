@@ -1,4 +1,4 @@
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 
 from app.engine.combat.solver import CombatPhaseSolver
 

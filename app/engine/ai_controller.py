@@ -1,7 +1,7 @@
 import logging
 import math
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (action, combat_calcs, engine, equations, evaluate,
                         item_funcs, item_system, line_of_sight, pathfinding,
                         skill_system, target_system)
@@ -812,7 +812,7 @@ class SecondaryAI():
         elif self.behaviour.action == 'Support' and enemy:
             ally = enemy
             # Try to help others since we already checked ourself in Primary AI
-            if ally is self.unit:  
+            if ally is self.unit:
                 return 0
             else:
                 max_hp = ally.get_max_hp()

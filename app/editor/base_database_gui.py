@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QLineEdit, QTextEdit, QWidget, QHBoxLayout, QGridLay
     QSizePolicy, QSplitter, QMessageBox, QApplication, QAbstractItemView
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtCore import QAbstractListModel
-from app.data.components import Component
+from app.data.database.components import Component
 from app.editor import timer
 
 from app.utilities.data import Prefab

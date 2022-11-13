@@ -1,5 +1,5 @@
-from app.data.components import Component
-from app.data.database import DB
+from app.data.database.components import Component
+from app.data.database.database import DB
 from app.engine.game_state import GameState
 from app.engine import evaluate
 import re

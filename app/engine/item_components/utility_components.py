@@ -1,7 +1,7 @@
 from app.utilities import utils
 
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 from app.events.regions import RegionType
 from app.events import triggers
 
@@ -15,7 +15,7 @@ class Heal(ItemComponent):
     desc = "Item heals this amount on hit"
     tag = ItemTags.UTILITY
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 10
 
     def _get_heal_amount(self, unit, target):
@@ -119,7 +119,7 @@ class RestoreSpecific(Restore, ItemComponent):
     desc = "Item removes specific status from target on hit"
     tag = ItemTags.UTILITY
 
-    expose = Type.Skill # Nid
+    expose = ComponentType.Skill # Nid
 
     def _can_be_restored(self, status):
         return status.nid == self.value
@@ -178,7 +178,7 @@ class CanUnlock(ItemComponent):
     desc = "Allows the item to unlock specific types of locks. In GBA games, the unlock staff can only unlock doors. This component would allow for that limited functionality. In particular, region.nid.startswith('Door') would limit the staff to unlocking doors."
     tag = ItemTags.UTILITY
 
-    expose = Type.String
+    expose = ComponentType.String
     value = 'True'
 
     def can_unlock(self, unit, item, region) -> bool:

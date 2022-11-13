@@ -1,4 +1,4 @@
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (action, banner, item_funcs, item_system, skill_system,
                         static_random, supports)
 from app.engine.combat.solver import CombatPhaseSolver
@@ -348,7 +348,7 @@ class SimpleCombat():
                         trigger = triggers.GenericTrigger(self.attacker, unit, self.attacker.position, {'item_uid': item.uid})
                         game.events._add_event(event_nid, [command], trigger)
                         counter += 1
-                        
+
         if self.attacker.is_dying and self.defender:
             for item in self.attacker.items[:]:
                 if item.droppable:

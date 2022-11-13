@@ -5,8 +5,8 @@ import ast
 from typing import TYPE_CHECKING
 
 from app.constants import WINHEIGHT, WINWIDTH
-from app.data.database import DB
-from app.data.level_units import GenericUnit, UniqueUnit
+from app.data.database.database import DB
+from app.data.database.level_units import GenericUnit, UniqueUnit
 from app.engine import (action, background, banner, dialog, engine, evaluate,
                         icons, image_mods, item_funcs, item_system, base_surf,
                         skill_system, target_system, unit_funcs)
@@ -30,7 +30,7 @@ from app.events import event_commands, regions, triggers
 from app.events.event_portrait import EventPortrait
 from app.events.speak_style import SpeakStyle
 from app.events.screen_positions import parse_screen_position
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.sprites import SPRITES
 from app.utilities import str_utils, utils
 from app.utilities.enums import Alignments

@@ -7,8 +7,8 @@ from PyQt5.QtGui import QIcon, QBrush, QColor, QFontMetrics
 
 from app.utilities import str_utils
 from app.utilities.data import Data
-from app.data.level_units import GenericUnit, UniqueUnit
-from app.data.database import DB
+from app.data.database.level_units import GenericUnit, UniqueUnit
+from app.data.database.database import DB
 
 from app.editor import timer
 

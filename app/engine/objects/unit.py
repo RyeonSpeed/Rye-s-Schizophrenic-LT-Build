@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
 
-from app.data.database import DB
-from app.data.difficulty_modes import GrowthOption
-from app.data.level_units import GenericUnit, UniqueUnit
-from app.data.units import UnitPrefab
-from app.data.weapons import WexpGain
+from app.data.database.database import DB
+from app.data.database.difficulty_modes import GrowthOption
+from app.data.database.level_units import GenericUnit, UniqueUnit
+from app.data.database.units import UnitPrefab
+from app.data.database.weapons import WexpGain
 from app.engine import (combat_calcs, equations, item_funcs,
                         item_system, skill_system, unit_funcs)
 from app.engine.objects.difficulty_mode import DifficultyModeObject

@@ -1,5 +1,5 @@
-from app.data.database import DB
-from app.data.difficulty_modes import RNGOption
+from app.data.database.database import DB
+from app.data.database.difficulty_modes import RNGOption
 from app.engine import (combat_calcs, item_funcs, item_system, skill_system,
                         static_random, action)
 from app.engine.game_state import game

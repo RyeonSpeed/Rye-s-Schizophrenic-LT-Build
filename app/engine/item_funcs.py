@@ -3,7 +3,7 @@ import logging
 import math
 from typing import TYPE_CHECKING, List
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import item_system, skill_system, text_funcs
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
@@ -136,7 +136,7 @@ def get_all_items(unit) -> list:
         else:
             items.append(item)
     return items
-    
+
 def get_all_items_with_multiitems(item_list) -> list:
     """
     Get all of the normal items, subitems and the multi items themselves from a list of items

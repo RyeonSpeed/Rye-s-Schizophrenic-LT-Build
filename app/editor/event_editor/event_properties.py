@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from app.extensions.markdown2 import Markdown
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.events.regions import RegionType
 from app.editor import table_model, timer
 from app.editor.base_database_gui import CollectionModel
@@ -20,7 +20,7 @@ from app.events import event_commands, event_prefab, event_validators
 from app.events.mock_event import IfStatementStrategy
 from app.extensions.custom_gui import (ComboBox, PropertyBox, PropertyCheckBox,
                                        QHLine, TableView)
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
 from app.utilities import str_utils
 from PyQt5.QtCore import (QRect, QRegularExpression, QSize,
                           QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal)

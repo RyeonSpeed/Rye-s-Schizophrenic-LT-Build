@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from app.data.components import Type
-from app.data.skill_components import SkillComponent, SkillTags
+from app.data.database.components import ComponentType
+from app.data.database.skill_components import SkillComponent, SkillTags
 from app.engine import (action, equations, item_funcs, skill_system,
                         static_random)
 from app.engine.game_state import game
@@ -16,7 +16,7 @@ class Ability(SkillComponent):
     desc = "Give unit an item as an extra ability"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Item
+    expose = ComponentType.Item
 
     def extra_ability(self, unit):
         item_uid = self.skill.data.get('ability_item_uid', None)
@@ -37,7 +37,7 @@ class CombatArt(SkillComponent):
     desc = "Unit has the ability to apply an extra effect to next attack"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
     _action = None
 
     def init(self, skill):
@@ -75,7 +75,7 @@ class AutomaticCombatArt(SkillComponent):
     desc = "Unit will be given skill on upkeep and removed on endstep"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
 
     def on_upkeep(self, actions, playback, unit):
         actions.append(action.AddSkill(unit, self.value))
@@ -90,7 +90,7 @@ class AllowedWeapons(SkillComponent):
     desc = "Defines what weapons are allowed for combat art or proc skill"
     tag = SkillTags.ADVANCED
 
-    expose = Type.String
+    expose = ComponentType.String
 
     def weapon_filter(self, unit, item) -> bool:
         from app.engine import evaluate
@@ -106,7 +106,7 @@ class CombatArtSetMaxRange(SkillComponent):
     tag = SkillTags.ADVANCED
     paired_with = ('combat_art', )
 
-    expose = Type.Int
+    expose = ComponentType.Int
 
     def combat_art_set_max_range(self, unit) -> int:
         return max(0, self.value)
@@ -117,7 +117,7 @@ class CombatArtModifyMaxRange(SkillComponent):
     tag = SkillTags.ADVANCED
     paired_with = ('combat_art', )
 
-    expose = Type.Int
+    expose = ComponentType.Int
 
     def combat_art_modify_max_range(self, unit) -> int:
         return self.value
@@ -139,7 +139,7 @@ class ProcGainSkillForTurn(SkillComponent):
     desc = "Unit has a chance to gain the proc skill at the beginning of the turn, and will lose it on endstep"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
     _did_action = False
 
     def on_upkeep(self, actions, playback, unit):
@@ -158,7 +158,7 @@ class AttackProc(SkillComponent):
     desc = "Allows skill to proc on a single attacking strike"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
     _did_action = False
 
     def start_sub_combat(self, actions, playback, unit, item, target, mode, attack_info):
@@ -181,7 +181,7 @@ class DefenseProc(SkillComponent):
     desc = "Allows skill to proc when defending a single strike"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
     _did_action = False
 
     def start_sub_combat(self, actions, playback, unit, item, target, mode, attack_info):
@@ -204,7 +204,7 @@ class AttackPreProc(SkillComponent):
     desc = "Allows skill to proc when initiating combat. Lasts entire combat."
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
     _did_action = False
 
     def start_combat(self, playback, unit, item, target, mode):
@@ -228,7 +228,7 @@ class DefensePreProc(SkillComponent):
     desc = "Allows skill to proc when defending in combat. Lasts entire combat."
     tag = SkillTags.ADVANCED
 
-    expose = Type.Skill
+    expose = ComponentType.Skill
     _did_action = False
 
     def start_combat(self, playback, unit, item, target, mode):
@@ -252,7 +252,7 @@ class ProcRate(SkillComponent):
     desc = "Set the proc rate"
     tag = SkillTags.ADVANCED
 
-    expose = Type.Equation
+    expose = ComponentType.Equation
 
     def proc_rate(self, unit):
         return equations.parser.get(self.value, unit)
@@ -273,7 +273,7 @@ class ItemOverride(SkillComponent):
     desc = 'allows overriding of item properties'
     tag = SkillTags.ADVANCED
 
-    expose = Type.Item
+    expose = ComponentType.Item
     value = ""
 
     item: ItemObject = None

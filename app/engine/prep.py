@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 from app.constants import TILEHEIGHT, TILEWIDTH, WINHEIGHT, WINWIDTH
-# from app.resources.resources import RESOURCES
-from app.data.database import DB
+# from app.data.resources.resources import RESOURCES
+from app.data.database.database import DB
 from app.engine import action, background, banner, base_surf
 from app.engine import config as cf
 from app.engine import (convoy_funcs, engine, equations, gui, image_mods,

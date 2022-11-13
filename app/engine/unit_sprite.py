@@ -1,16 +1,16 @@
 from __future__ import annotations
 from typing import Dict
-from app.data.units import UnitPrefab
+from app.data.database.units import UnitPrefab
 from app.engine.game_counters import ANIMATION_COUNTERS
 import math
 
 from app.constants import TILEWIDTH, TILEHEIGHT, COLORKEY
-from app.data.palettes import gray_colors, enemy_colors, other_colors, enemy2_colors, black_colors, \
+from app.data.database.palettes import gray_colors, enemy_colors, other_colors, enemy2_colors, black_colors, \
     player_dark_colors, enemy_dark_colors, other_dark_colors, gray_dark_colors
 from app.engine.objects.unit import UnitObject
 
-from app.resources.resources import RESOURCES
-from app.data.database import DB
+from app.data.resources.resources import RESOURCES
+from app.data.database.database import DB
 
 from app.utilities import utils
 

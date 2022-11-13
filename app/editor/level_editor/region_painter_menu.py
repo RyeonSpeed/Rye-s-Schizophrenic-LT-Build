@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QPushButton, QLineEdit, \
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QColor, QPixmap
 
-from app.data.database import DB
+from app.data.database.database import DB
 from app.events.regions import RegionType
 
 from app.utilities import utils, str_utils

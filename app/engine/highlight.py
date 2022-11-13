@@ -1,5 +1,5 @@
 from app.constants import TILEWIDTH, TILEHEIGHT
-from app.data.database import DB
+from app.data.database.database import DB
 from app.events.regions import RegionType
 
 from app.engine.sprites import SPRITES
@@ -90,7 +90,7 @@ class HighlightController():
             guard = ai_prefab.guard_ai()
             if guard:
                 valid_moves = {unit.position}
-                
+
         valid_attacks = target_system.get_possible_spell_attacks(unit, valid_moves)
         self.display_possible_spell_attacks(valid_attacks, light=light)
         valid_attacks = target_system.get_possible_attacks(unit, valid_moves)

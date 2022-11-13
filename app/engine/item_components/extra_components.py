@@ -1,5 +1,5 @@
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 
 from app.utilities import utils
 from app.engine import action, combat_calcs, image_mods, engine, item_system, skill_system
@@ -12,7 +12,7 @@ class Effective(ItemComponent):
     paired_with = ('effective_tag',)
     tag = ItemTags.EXTRA
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
 
     def init(self, item):
@@ -25,7 +25,7 @@ class EffectiveMultiplier(ItemComponent):
     paired_with = ('effective_tag',)
     tag = ItemTags.EXTRA
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 1
 
     def init(self, item):
@@ -38,7 +38,7 @@ class EffectiveTag(ItemComponent):
     paired_with = ('effective_multiplier',)
     tag = ItemTags.EXTRA
 
-    expose = (Type.List, Type.Tag)
+    expose = (ComponentType.List, ComponentType.Tag)
     value = []
 
     def _check_negate(self, target) -> bool:
@@ -104,7 +104,7 @@ class Lifelink(ItemComponent):
     # requires = ['damage']
     tag = ItemTags.EXTRA
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 0.5
 
     def after_hit(self, actions, playback, unit, item, target, mode, attack_info):
@@ -124,7 +124,7 @@ class DamageOnMiss(ItemComponent):
     desc = "Item deals a percentage of it's normal damage on a miss."
     tag = ItemTags.EXTRA
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 0.5
 
     def on_miss(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
@@ -208,7 +208,7 @@ class CustomTriangleMultiplier(ItemComponent):
     desc = "Weapon advantage effects are multiplied by the provided value."
     tag = ItemTags.EXTRA
 
-    expose = Type.Float
+    expose = ComponentType.Float
     value = 1.0
 
     def modify_weapon_triangle(self, unit, item):
@@ -219,7 +219,7 @@ class StatusOnEquip(ItemComponent):
     desc = "A unit with this item equipped will receive the specified status."
     tag = ItemTags.EXTRA
 
-    expose = Type.Skill  # Nid
+    expose = ComponentType.Skill  # Nid
 
     def on_equip_item(self, unit, item):
         if self.value not in [skill.nid for skill in unit.skills]:
@@ -234,7 +234,7 @@ class MultiStatusOnEquip(ItemComponent):
     desc = "Item gives these statuses while equipped"
     tag = ItemTags.EXTRA
 
-    expose = (Type.List, Type.Skill)  # Nid
+    expose = (ComponentType.List, ComponentType.Skill)  # Nid
 
     def on_equip_item(self, unit, item):
         for skl in self.value:
@@ -251,7 +251,7 @@ class StatusOnHold(ItemComponent):
     desc = "Item gives status while in unit's inventory"
     tag = ItemTags.EXTRA
 
-    expose = Type.Skill  # Nid
+    expose = ComponentType.Skill  # Nid
 
     def on_add_item(self, unit, item):
         action.do(action.AddSkill(unit, self.value))
@@ -265,7 +265,7 @@ class GainManaAfterCombat(ItemComponent):
     tag = ItemTags.EXTRA
     author = 'KD'
 
-    expose = Type.String
+    expose = ComponentType.String
 
     def end_combat(self, playback, unit, item, target, mode):
         from app.engine import evaluate

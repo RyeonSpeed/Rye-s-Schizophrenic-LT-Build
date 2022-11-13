@@ -1,8 +1,8 @@
 from app.utilities import utils
-from app.data.database import DB
+from app.data.database.database import DB
 
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 
 from app.engine import action, combat_calcs, equations, item_system, skill_system
 from app.engine.game_state import game
@@ -13,7 +13,7 @@ class WeaponType(ItemComponent):
     desc = "The type of weapon that the wielder must be able to use in order to attack with this item."
     tag = ItemTags.WEAPON
 
-    expose = Type.WeaponType
+    expose = ComponentType.WeaponType
 
     def weapon_type(self, unit, item):
         return self.value
@@ -32,7 +32,7 @@ class WeaponRank(ItemComponent):
     requires = ['weapon_type']
     tag = ItemTags.WEAPON
 
-    expose = Type.WeaponRank
+    expose = ComponentType.WeaponRank
 
     def weapon_rank(self, unit, item):
         return self.value
@@ -81,7 +81,7 @@ class Hit(ItemComponent):
     desc = "Item has a chance to hit. If left off, item will always hit."
     tag = ItemTags.WEAPON
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 75
 
     def hit(self, unit, item):
@@ -92,7 +92,7 @@ class Damage(ItemComponent):
     desc = "Item does damage on hit"
     tag = ItemTags.WEAPON
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
 
     def damage(self, unit, item):
@@ -161,7 +161,7 @@ class Crit(ItemComponent):
     desc = "Item has a chance to crit. If left off, item cannot crit."
     tag = ItemTags.WEAPON
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
 
     def crit(self, unit, item):
@@ -172,7 +172,7 @@ class Weight(ItemComponent):
     desc = "Lowers attack speed. At first, subtracted from the CONSTITUTION equation. If negative, subtracts from overall attack speed."
     tag = ItemTags.WEAPON
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
 
     def modify_attack_speed(self, unit, item):
@@ -186,7 +186,7 @@ class Unwieldy(ItemComponent):
     desc = "Item lowers unit's defense by X"
     tag = ItemTags.WEAPON
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 0
 
     def modify_defense(self, unit, item):
@@ -197,7 +197,7 @@ class StatChange(ItemComponent):
     desc = "A list of stats that correspond to integers. When equipped, stats are changed by that amount."
     tag = ItemTags.WEAPON
 
-    expose = (Type.Dict, Type.Stat)
+    expose = (ComponentType.Dict, ComponentType.Stat)
     value = []
 
     def stat_change(self, unit):

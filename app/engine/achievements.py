@@ -3,7 +3,7 @@ from app.utilities.data import Data, Prefab
 
 from app.engine import persistent_data
 
-from app.data.database import DB
+from app.data.database.database import DB
 
 class Achievement(Prefab):
     def __init__(self, nid: str = '', name: str = '', desc: str = '', complete: bool = False, hidden=False):
@@ -45,7 +45,7 @@ class AchievementManager(Data):
             a.hidden = hidden
         else:
             logging.info("Attempted to update non-existant achievement with nid %s", nid)
-        persistent_data.serialize(self.location, self.save())        
+        persistent_data.serialize(self.location, self.save())
 
     def remove_achievement(self, nid: str):
         if nid in self.keys():

@@ -7,12 +7,13 @@ from pathlib import Path
 from time import time_ns
 
 from app.constants import VERSION
-from app.data.database import DB, Database
+from app.data.database.database import DB, Database
 from app.editor import timer
 from app.editor.lib.csv import text_data_exporter, csv_data_exporter
 from app.editor.new_game_dialog import NewGameDialog
 from app.editor.settings import MainSettingsController
-from app.resources.resources import RESOURCES
+from app.data.resources.resources import RESOURCES
+from app.utilities import exceptions
 from PyQt5.QtCore import QDir, Qt
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QProgressDialog
 
@@ -213,6 +214,14 @@ class ProjectFileBackend():
                 self.settings.set_current_project(self.current_proj)
                 self.load()
                 return True
+            except exceptions.CustomComponentsException as e:
+                logging.exception(e)
+                logging.error("Failed to load project at %s due to syntax error. Likely there's a problem in your Custom Components file, located at %s. See error above." % (path, RESOURCES.get_custom_components_path()))
+                QMessageBox.warning(self.parent, "Load of project failed",
+                                    "Failed to load project at %s due to syntax error. Likely there's a problem in your Custom Components file, located at %s. Exception:\n%s." % (path, RESOURCES.get_custom_components_path(), e))
+                logging.warning("falling back to default.ltproj")
+                self.auto_open_fallback()
+                return False
             except Exception as e:
                 logging.exception(e)
                 backup_project_name = path + '.lttmp'

@@ -1,6 +1,6 @@
 import app.engine.config as cf
 from app.constants import WINHEIGHT, WINWIDTH
-from app.data.database import DB
+from app.data.database.database import DB
 from app.engine import (base_surf, engine, icons, item_funcs,
                         item_system, text_funcs)
 from app.engine.fonts import FONT

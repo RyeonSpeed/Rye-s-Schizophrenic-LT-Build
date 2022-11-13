@@ -1,10 +1,10 @@
 from app.engine.exp_calculator import ExpCalcType, ExpCalculator
 import math
 
-from app.data.database import DB
+from app.data.database.database import DB
 
-from app.data.item_components import ItemComponent, ItemTags
-from app.data.components import Type
+from app.data.database.item_components import ItemComponent, ItemTags
+from app.data.database.components import ComponentType
 
 from app.engine import skill_system, action
 
@@ -13,7 +13,7 @@ class Exp(ItemComponent):
     desc = "Item gives a fixed integer of EXP each use. Useful for staves like Warp or Rescue."
     tag = ItemTags.EXP
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 15
 
     def exp(self, playback, unit, item, target) -> int:
@@ -84,7 +84,7 @@ class Wexp(ItemComponent):
     desc = "Item gives a custom number of wexp to user while using"
     tag = ItemTags.EXP
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 2
 
     def wexp(self, playback, unit, item, target):
@@ -95,7 +95,7 @@ class Fatigue(ItemComponent):
     desc = "If fatigue is enabled, increases the amount of fatigue a user suffers while using this item. Can be negative in order to remove fatigue."
     tag = ItemTags.EXP
 
-    expose = Type.Int
+    expose = ComponentType.Int
     value = 1
 
     def end_combat(self, playback, unit, item, target, mode):

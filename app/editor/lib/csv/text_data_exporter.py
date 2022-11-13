@@ -1,5 +1,5 @@
 from typing import Dict, List
-from app.data.levels import LevelCatalog
+from app.data.database.levels import LevelCatalog
 from app.editor.event_editor.event_inspector import EventInspectorEngine
 from app.events.event_commands import EventCommand, Speak
 from app.events.event_prefab import EventCatalog

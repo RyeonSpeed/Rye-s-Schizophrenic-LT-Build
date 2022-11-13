@@ -8,7 +8,7 @@ from app.editor.custom_widgets import EventBox
 from app.utilities.data import Data
 from app.utilities import str_utils
 from app.extensions.custom_gui import ComboBox, SimpleDialog, PropertyBox, PropertyCheckBox, QHLine, RightClickListView
-from app.data.database import DB
+from app.data.database.database import DB
 
 class NodeEventPropertiesMenu(QWidget):
     def __init__(self, state_manager, parent=None):

@@ -1,6 +1,6 @@
-from app.data.varslot import VarSlot, VarSlotCatalog
+from app.data.database.varslot import VarSlot, VarSlotCatalog
 from app.editor.event_editor.event_inspector import EventInspectorEngine
-from app.data.database import DB
+from app.data.database.database import DB
 
 from app.extensions.list_dialogs import MultiAttrListDialog
 from app.extensions.list_models import MultiAttrListModel
