@@ -1,3 +1,5 @@
+from typing import List
+
 import app.engine.config as cf
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
@@ -12,6 +14,7 @@ from app.utilities import utils
 from app.utilities.enums import Alignments
 from app.utilities.typing import NID
 
+MAX_TEXT_WIDTH = WINWIDTH - 40
 
 class HelpDialog():
     help_logo = SPRITES.get('help_logo')
@@ -26,30 +29,31 @@ class HelpDialog():
         if not desc:
             desc = ''
         desc = text_funcs.translate(desc)
+        lines = self.build_lines(desc)
+        num_lines = len(lines)
 
-        self.num_lines = self.find_num_lines(desc)
-        self.build_lines(desc)
-
-        greater_line_len = text_funcs.get_max_width(self.font, self.lines)
+        if lines:
+            self.greatest_line_len = text_funcs.get_max_width(self.font, lines)
+        else:
+            self.greatest_line_len = 8
         if self.name:
-            greater_line_len = max(greater_line_len, text_width(self.font, self.name))
+            self.greatest_line_len = max(self.greatest_line_len, text_width(self.font, self.name))
+            num_lines += 1
 
-        self.width = greater_line_len + 24
-        if self.name:
-            self.num_lines += 1
-        self.height = font_height(self.font) * self.num_lines + 16
+        self.create_dialog(desc)
 
-        self.help_surf = base_surf.create_base_surf(self.width, self.height, 'help_bg_base')
-        self.h_surf = engine.create_surface((self.width, self.height + 3), transparent=True)
+        height = font_height(self.font) * num_lines + 16
+        self.help_surf = base_surf.create_base_surf(self.dlg.width, height, 'help_bg_base')
+        self.h_surf = engine.create_surface((self.dlg.width, height + 3), transparent=True)
 
+    def create_dialog(self, desc):
         from app.engine import dialog
         desc = desc.replace('\n', '{br}')
-        self.dlg = dialog.Dialog(desc, num_lines=8, draw_cursor=False, speed=0.5)
+        self.dlg = \
+            dialog.Dialog(desc, num_lines=8, width=self.greatest_line_len + 16, 
+                          font_type=self.font, font_color='black',
+                          draw_cursor=False, speed=0.5)
         self.dlg.position = (0, (16 if self.name else 0))
-        self.dlg.text_width = greater_line_len
-        self.dlg.font = FONT[self.font]
-        self.dlg.font_type = self.font
-        self.dlg.font_color = 'black'
 
     def get_width(self):
         return self.help_surf.get_width()
@@ -57,18 +61,32 @@ class HelpDialog():
     def get_height(self):
         return self.help_surf.get_height()
 
-    def build_lines(self, desc):
+    def find_num_lines(self, desc: str) -> int:
+        '''Returns the number of lines in the description'''
+        # Split on \n, then go through each element in the list 
+        # and break it into further strings if too long
+        desc = desc.replace('{br}', '\n')
+        lines = desc.split("\n")
+        total_lines = len(lines)
+        for line in lines:
+            desc_length = text_width(self.font, line)
+            total_lines += desc_length // MAX_TEXT_WIDTH
+        return total_lines
+
+    def build_lines(self, desc: str) -> List[str]:
         # Hard set num lines if desc is very short
         if '\n' in desc:
-            lines = desc.splitlines()
-            self.lines = []
-            for line in lines:
+            desc_lines = desc.splitlines()
+            lines = []
+            for line in desc_lines:
                 num = self.find_num_lines(line)
-                line = text_funcs.split(self.font, line, num, WINWIDTH - 20)
-                self.lines.extend(line)
+                line = text_funcs.split(self.font, line, num, MAX_TEXT_WIDTH)
+                lines.extend(line)
         else:
-            self.lines = text_funcs.split(self.font, desc, self.num_lines, WINWIDTH - 20)
-        self.lines = fix_tags(self.lines)
+            num = self.find_num_lines(desc)
+            lines = text_funcs.split(self.font, desc, num, MAX_TEXT_WIDTH)
+        lines = fix_tags(lines)
+        return lines
 
     def set_transition_in(self):
         self.transition_in = True
@@ -121,6 +139,7 @@ class HelpDialog():
             self.start_time = time - 16
             self.transition_in = True
             self.transition_out = 0
+            self.create_dialog(self.dlg.plain_text)
         self.last_time = time
 
         help_surf = engine.copy_surface(self.help_surf)
@@ -137,17 +156,6 @@ class HelpDialog():
 
         return surf
 
-    def find_num_lines(self, desc: str) -> int:
-        '''Returns the number of lines in the description'''
-        # Split on \n, then go through each element in the list and break it into further strings if too long
-        desc = desc.replace('{br}', '\n')
-        lines = desc.split("\n")
-        total_lines = len(lines)
-        for line in lines:
-            desc_length = text_width(self.font, line)
-            total_lines += desc_length // (WINWIDTH - 20)
-        return total_lines
-
 class StatDialog(HelpDialog):
     text_font: NID = 'text'
 
@@ -159,23 +167,22 @@ class StatDialog(HelpDialog):
         desc = text_funcs.translate(desc)
         self.bonuses = bonuses
 
-        self.lines = fix_tags(text_funcs.line_wrap(self.font, desc, 148))
-        self.size_y = font_height(self.font) * (len(self.lines) + len(self.bonuses)) + 16
-
-        self.help_surf = base_surf.create_base_surf(160, self.size_y, 'help_bg_base')
-        self.h_surf = engine.create_surface((160, self.size_y + 3), transparent=True)
+        self.lines = fix_tags(text_funcs.line_wrap(self.font, desc, 144))
+        height = font_height(self.font) * (len(self.lines) + len(self.bonuses)) + 16
 
         self.create_dialog(desc)
+
+        self.help_surf = base_surf.create_base_surf(self.dlg.width, height, 'help_bg_base')
+        self.h_surf = engine.create_surface((self.dlg.width, height + 3), transparent=True)
 
     def create_dialog(self, desc):
         from app.engine import dialog
         desc = desc.replace('\n', '{br}')
-        self.dlg = dialog.Dialog(desc, num_lines=8, draw_cursor=False, speed=0.5)
+        self.dlg = \
+            dialog.Dialog(desc, num_lines=8, width=160, 
+                          font_type=self.font, font_color='black',
+                          draw_cursor=False, speed=0.5)
         self.dlg.position = (0, 0)
-        self.dlg.text_width = 148
-        self.dlg.font = FONT[self.font]
-        self.dlg.font_type = self.font
-        self.dlg.font_color = 'black'
 
     def draw(self, surf, pos, right=False):
         time = engine.get_time()
@@ -255,38 +262,43 @@ class ItemHelpDialog(HelpDialog):
         self.vals = [weapon_rank, rng, weight, might, hit, crit]
         
         self.num_lines = self.find_num_lines(self.item.desc)
-        if self.item.desc:
-            self.build_lines(self.item.desc)
-        else:
-            self.lines = []
-        
         if len(self.lines) > 0:
             greater_line_len = max([rendered_text_width([self.font], [line]) for line in self.lines])
             self.width = greater_line_len + 24
         else:
             self.width = 160
         self.width = max([160, self.width])
+        
+        if self.item.desc:
+            self.build_lines(self.item.desc, self.width - 24)
+        else:
+            self.lines = []
+       
 
         self.num_present = len([v for v in self.vals if v is not None])
 
         if self.num_present > 3:
-            size_y = 48 + font_height(self.font) * len(self.lines)
+            height = 48 + font_height(self.font) * len(self.lines)
         else:
-            size_y = 32 + font_height(self.font) * len(self.lines)
+            height = 32 + font_height(self.font) * len(self.lines)
 
-        self.help_surf = base_surf.create_base_surf(self.width, size_y, 'help_bg_base')
-        self.h_surf = engine.create_surface((self.width, size_y + 3), transparent=True)
+        self.help_surf = base_surf.create_base_surf(self.width, height, 'help_bg_base')
+        self.h_surf = engine.create_surface((self.width, height + 3), transparent=True)
 
-        if self.item.desc:
+
+        self.create_dialog(self.item.desc)
+
+
+    def create_dialog(self, desc):
+        if desc:
             from app.engine import dialog
-            desc = self.item.desc.replace('\n', '{br}')
-            self.dlg = dialog.Dialog(desc, num_lines=8, draw_cursor=False, speed=0.5)
+            desc = desc.replace('\n', '{br}')
+            self.dlg = \
+                dialog.Dialog(desc, font_type=self.font,
+                              width=160, font_color='black',
+                              num_lines=8, draw_cursor=False, speed=0.5)
             y_height = 32 if self.num_present > 3 else 16
             self.dlg.position = (0, y_height)
-            self.dlg.text_width = self.width
-            self.dlg.font = FONT[self.font]
-            self.dlg.font_type = self.font
-            self.dlg.font_color = 'black'
         else:
             self.dlg = None
 
@@ -312,6 +324,8 @@ class ItemHelpDialog(HelpDialog):
             self.start_time = time - 16
             self.transition_in = True
             self.transition_out = 0
+            if self.dlg:
+                self.create_dialog(self.dlg.plain_text)
         self.last_time = time
 
         help_surf = engine.copy_surface(self.help_surf)

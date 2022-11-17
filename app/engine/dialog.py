@@ -51,8 +51,9 @@ class Dialog():
         # Size
         if width:
             self.width = width
-            self.width -= self.width%8
-            self.text_width = max(8, self.width - 24)
+            if self.width % 8:
+                self.width += 8 - self.width%8
+            self.text_width = max(8, self.width - 16)
             self.determine_height()
         elif self.portrait or self.autosize:
             self.determine_size()
