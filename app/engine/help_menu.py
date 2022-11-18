@@ -260,12 +260,11 @@ class ItemHelpDialog(HelpDialog):
         rng = item_funcs.get_range_string(self.unit, self.item)
 
         self.vals = [weapon_rank, rng, weight, might, hit, crit]
-        
+
         if self.item.desc:
             self.build_lines(self.item.desc, 144)
         else:
             self.lines = []
-       
 
         self.num_present = len([v for v in self.vals if v is not None])
 
@@ -274,12 +273,10 @@ class ItemHelpDialog(HelpDialog):
         else:
             height = 32 + font_height(self.font) * len(self.lines)
 
-        self.help_surf = base_surf.create_base_surf(self.width, height, 'help_bg_base')
-        self.h_surf = engine.create_surface((self.width, height + 3), transparent=True)
-
-
         self.create_dialog(self.item.desc)
 
+        self.help_surf = base_surf.create_base_surf(160, height, 'help_bg_base')
+        self.h_surf = engine.create_surface((160, height + 3), transparent=True)
 
     def create_dialog(self, desc):
         if desc:
