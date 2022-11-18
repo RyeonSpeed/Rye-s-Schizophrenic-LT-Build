@@ -261,16 +261,8 @@ class ItemHelpDialog(HelpDialog):
 
         self.vals = [weapon_rank, rng, weight, might, hit, crit]
         
-        self.num_lines = self.find_num_lines(self.item.desc)
-        if len(self.lines) > 0:
-            greater_line_len = max([rendered_text_width([self.font], [line]) for line in self.lines])
-            self.width = greater_line_len + 24
-        else:
-            self.width = 160
-        self.width = max([160, self.width])
-        
         if self.item.desc:
-            self.build_lines(self.item.desc, self.width - 24)
+            self.build_lines(self.item.desc, 144)
         else:
             self.lines = []
        
