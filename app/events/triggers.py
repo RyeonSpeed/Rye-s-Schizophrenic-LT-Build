@@ -204,8 +204,8 @@ class CombatStart(EventTrigger):
     unit1: UnitObject
     unit2: UnitObject
     position: Tuple[int, int]
-    is_animation_combat: bool
     item: ItemObject
+    is_animation_combat: bool
 
 @dataclass(init=True)
 class CombatEnd(EventTrigger):
