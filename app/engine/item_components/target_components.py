@@ -77,13 +77,13 @@ class TargetsSpecificTiles(ItemComponent):
     def valid_targets(self, unit, item) -> set:
         rng = item_funcs.get_range(unit, item)
         range_restrictions = target_system.find_manhattan_spheres(rng, *unit.position)
-        targetable_positions = self.resolve_targets()
+        targetable_positions = self.resolve_targets(unit, item)
         return {pos for pos in targetable_positions if pos in range_restrictions}
 
-    def resolve_targets(self):
+    def resolve_targets(self, unit, item):
         from app.engine import evaluate
         try:
-            value_list = evaluate.evaluate(self.value)
+            value_list = evaluate.evaluate(self.value, unit, position=unit.position, local_args={'item': item})
         except Exception as e:
             logging.error("target_specific_tile component failed to evaluate expression %s with error %s", self.value, e)
             value_list = []

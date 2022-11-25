@@ -955,6 +955,16 @@ class Weather(OptionValidator):
 class Align(OptionValidator):
     valid = [align.value for align in Alignments]
 
+class AlignOrPosition(OptionValidator):
+    valid = [align.value for align in Alignments]
+
+    def validate(self, text, level):
+        if text in self.valid:
+            return text
+        elif text and ',' in text and len(text.split(',')) == 2 and all(str_utils.is_int(t) for t in text.split(',')):
+            return text
+        return None
+
 class HAlign(OptionValidator):
     valid = [align.value for align in HAlignment]
 

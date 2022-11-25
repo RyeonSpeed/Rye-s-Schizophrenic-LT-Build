@@ -132,6 +132,9 @@ class MovementManager():
             if unit.team == 'player':
                 self.surprised = True
                 self.update_surprise()
+            # If unit is an ai unit, their turn is now complete
+            if game.ai.unit is unit:
+                game.ai.interrupt()
 
         del self.moving_units[unit_nid]
         game.arrive(unit)
@@ -184,9 +187,6 @@ class MovementManager():
                         else:  # Can only happen when not in an event
                             logging.debug("%s done moving", unit)
                             self.done_moving(unit_nid, data, unit, surprise=True)
-                            if unit.team == 'player':
-                                self.update_surprise()
-                                self.surprised = True
                             continue
 
                         mcost = self.get_mcost(unit, new_position)

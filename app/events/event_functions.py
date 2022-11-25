@@ -1,42 +1,45 @@
 from __future__ import annotations
 
-import random
 import ast
-from typing import TYPE_CHECKING
+import random
+from typing import TYPE_CHECKING, Optional
 
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
 from app.data.database.level_units import GenericUnit, UniqueUnit
-from app.engine import (action, background, banner, dialog, engine, evaluate,
-                        icons, image_mods, item_funcs, item_system, base_surf,
+from app.data.resources.resources import RESOURCES
+from app.engine import (action, background, banner, base_surf, dialog, engine,
+                        evaluate, icons, image_mods, item_funcs, item_system,
                         skill_system, target_system, unit_funcs)
+from app.engine.achievements import ACHIEVEMENTS
 from app.engine.animations import MapAnimation
 from app.engine.combat import interaction
+from app.engine.fonts import FONT
 from app.engine.game_menus.menu_components.generic_menu.simple_menu_wrapper import \
     SimpleMenuUI
-from app.engine.graphics.ui_framework.premade_animations.animation_templates import \
-    fade_anim, translate_anim
+from app.engine.graphics.text.text_renderer import rendered_text_width
+from app.engine.graphics.ui_framework.premade_animations.animation_templates import (
+    fade_anim, translate_anim)
+from app.engine.graphics.ui_framework.premade_components.plain_text_component import \
+    PlainTextLine
 from app.engine.graphics.ui_framework.ui_framework import UIComponent
-from app.engine.graphics.ui_framework.premade_components.plain_text_component import PlainTextLine
 from app.engine.graphics.ui_framework.ui_framework_animation import \
     InterpolationType
-from app.engine.graphics.ui_framework.ui_framework_layout import HAlignment, VAlignment
-from app.engine.graphics.text.text_renderer import rendered_text_width
+from app.engine.graphics.ui_framework.ui_framework_layout import (HAlignment,
+                                                                  VAlignment)
 from app.engine.objects.item import ItemObject
 from app.engine.objects.tilemap import TileMapObject
 from app.engine.objects.unit import UnitObject
+from app.engine.persistent_records import RECORDS
 from app.engine.sound import get_sound_thread
 from app.events import event_commands, regions, triggers
 from app.events.event_portrait import EventPortrait
-from app.events.speak_style import SpeakStyle
 from app.events.screen_positions import parse_screen_position
-from app.data.resources.resources import RESOURCES
+from app.events.speak_style import SpeakStyle
 from app.sprites import SPRITES
 from app.utilities import str_utils, utils
 from app.utilities.enums import Alignments
 from app.utilities.typing import NID
-from app.engine.achievements import ACHIEVEMENTS
-from app.engine.persistent_records import RECORDS
 
 if TYPE_CHECKING:
     from app.events.event import Event
@@ -261,7 +264,8 @@ def expression(self: Event, portrait, expression_list, flags=None):
     _portrait.set_expression(expression_list)
 
 def speak_style(self: Event, style, speaker=None, text_position=None, width=None, text_speed=None,
-                font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None, message_tail=None, flags=None):
+                font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None, message_tail=None,
+                name_tag_bg=None, flags=None):
     flags = flags or set()
     style_nid = style
     if style_nid in self.game.speak_styles:
@@ -272,10 +276,12 @@ def speak_style(self: Event, style, speaker=None, text_position=None, width=None
     if speaker:
         style.speaker = speaker
     if text_position:
-        if text_position == 'center':
-            style.text_position = text_position
-        else:
+        try:
+            align = Alignments(text_position)
+            style.text_position = align
+        except:
             style.text_position = self._parse_pos(text_position)
+
     if width:
         style.width = int(width)
     if text_speed:
@@ -292,20 +298,17 @@ def speak_style(self: Event, style, speaker=None, text_position=None, width=None
         style.draw_cursor = bool(draw_cursor)
     if message_tail:
         style.message_tail = message_tail
+    if name_tag_bg:
+        style.name_tag_bg = name_tag_bg
     if flags:
         style.flags = flags
     self.game.speak_styles[style.nid] = style
 
 def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=None, text_speed=None,
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
-          message_tail=None, flags=None):
+          message_tail=None, name_tag_bg=None, flags=None):
     flags = flags or set()
-    # special char: this is a unicode single-line break.
-    # basically equivalent to {br}
-    # the first char shouldn't be one of these
-    if text[0] == '\u2028':
-        text = text[1:]
-    text = text.replace('\u2028', '{sub_break}')  # sub break to distinguish it
+    text = dialog.clean_newlines(text)
 
     if 'no_block' in flags:
         text += '{no_wait}'
@@ -313,6 +316,7 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
     speak_style = None
     if style_nid and style_nid in self.game.speak_styles:
         speak_style = self.game.speak_styles[style_nid]
+    default_speak_style = self.game.speak_styles['__default']
 
     if not speaker and speak_style:
         speaker = speak_style.speaker
@@ -322,70 +326,77 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
     portrait = self.portraits.get(speaker)
 
     if text_position:
-        if text_position == 'center':
-            position = 'center'
-        else:
+        try:
+            position = Alignments(text_position)
+        except:
             position = self._parse_pos(text_position)
     elif speak_style and speak_style.text_position:
         position = speak_style.text_position
     else:
-        position = None
+        position = default_speak_style.text_position
 
     if width:
         box_width = int(width)
     elif speak_style and speak_style.width:
         box_width = speak_style.width
     else:
-        box_width = None
+        box_width = default_speak_style.width
 
     if text_speed:
         speed = float(text_speed)
     elif speak_style and speak_style.text_speed:
         speed = speak_style.text_speed
     else:
-        speed = 1
+        speed = default_speak_style.text_speed
 
     if font_color:
         fcolor = font_color
     elif speak_style and speak_style.font_color:
         fcolor = speak_style.font_color
     else:
-        fcolor = None
+        fcolor = default_speak_style.font_color
 
     if font_type:
         ftype = font_type
     elif speak_style and speak_style.font_type:
         ftype = speak_style.font_type
     else:
-        ftype = 'convo'
+        ftype = default_speak_style.font_type
 
     if dialog_box:
         bg = dialog_box
     elif speak_style and speak_style.dialog_box:
         bg = speak_style.dialog_box
     else:
-        bg = 'message_bg_base'
+        bg = default_speak_style.dialog_box
 
     if num_lines:
         lines = int(num_lines)
     elif speak_style and speak_style.num_lines:
         lines = speak_style.num_lines
     else:
-        lines = 2
+        lines = default_speak_style.num_lines
 
     if draw_cursor:
         cursor = bool(draw_cursor)
     elif speak_style and speak_style.draw_cursor:
         cursor = speak_style.draw_cursor
     else:
-        cursor = True
+        cursor = default_speak_style.draw_cursor
 
     if message_tail:
         tail = message_tail
     elif speak_style and speak_style.message_tail:
         tail = speak_style.message_tail
     else:
-        tail = "message_bg_tail"
+        tail = default_speak_style.message_tail
+
+    if name_tag_bg:
+        nametag = name_tag_bg
+    elif speak_style and speak_style.name_tag_bg:
+        nametag = speak_style.name_tag_bg
+    else:
+        nametag = default_speak_style.name_tag_bg
 
     if speak_style and speak_style.flags:
         flags = speak_style.flags.union(flags)
@@ -395,7 +406,7 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
         dialog.Dialog(text, portrait, bg, position, box_width, speaker=speaker,
                       style_nid=style_nid, autosize=autosize, speed=speed,
                       font_color=fcolor, font_type=ftype, num_lines=lines,
-                      draw_cursor=cursor, message_tail=tail)
+                      draw_cursor=cursor, message_tail=tail, name_tag_bg=nametag)
     new_dialog.hold = 'hold' in flags
     if 'no_popup' in flags:
         new_dialog.last_update = engine.get_time() - 10000
@@ -596,7 +607,7 @@ def set_next_chapter(self: Event, chapter, flags=None):
 
 def enable_supports(self: Event, activated: str, flags=None):
     state = activated.lower() in self.true_vals
-    action.do(action.SetGameVar("_supports", activated))
+    action.do(action.SetGameVar("_supports", state))
 
 def set_fog_of_war(self: Event, fog_of_war_type, radius, ai_radius=None, other_radius=None, flags=None):
     fowt = fog_of_war_type.lower()
@@ -1804,6 +1815,13 @@ def change_portrait(self: Event, global_unit, portrait_nid, flags=None):
         return
     action.do(action.ChangePortrait(unit, portrait_nid))
 
+def change_unit_desc(self: Event, global_unit, string, flags=None):
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("change_unit_desc: Couldn't find unit %s" % global_unit)
+        return
+    action.do(action.ChangeUnitDesc(unit, string))
+
 def change_stats(self: Event, global_unit, stat_list, flags=None):
     flags = flags or set()
 
@@ -1871,6 +1889,16 @@ def set_growths(self: Event, global_unit, stat_list, flags=None):
             growth_changes[stat_nid] = stat_value - current
 
     self._apply_growth_changes(unit, growth_changes)
+
+def set_unit_level(self: Event, global_unit, level, flags=None):
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("set_unit_level: Couldn't find unit %s" % global_unit)
+        return
+    if int(level) < 1:
+        self.logger.error("Can't set level to less than 1")
+        return
+    action.do(action.SetLevel(unit, max(1, int(level))))
 
 def autolevel_to(self: Event, global_unit, level, growth_method=None, flags=None):
     flags = flags or set()
@@ -2588,7 +2616,102 @@ def unchoice(self: Event, flags=None):
             if unchoose_prev_state:
                 unchoose_prev_state()
     except Exception as e:
-        self.logger.error("unchoice: Unchoice failed: " + e)
+        self.logger.error("unchoice: Unchoice failed: " + str(e))
+
+def textbox(self: Event, nid: str, text: str, box_position=None,
+            width=None, num_lines=None, style_nid=None, text_speed=None,
+            font_color=None, font_type=None, bg=None, flags=None):
+    flags = flags or set()
+
+    textbox_style = None
+    if style_nid and style_nid in self.game.speak_styles:
+        textbox_style = self.game.speak_styles[style_nid]
+    default_textbox_style = self.game.speak_styles['__default_text']
+
+    if box_position:
+        try:
+            position = Alignments(box_position)
+        except:
+            position = self._parse_pos(box_position)
+    elif textbox_style and textbox_style.text_position:
+        position = textbox_style.text_position
+    else:
+        position = default_textbox_style.text_position
+
+    if width:
+        box_width = int(width)
+    elif textbox_style and textbox_style.width:
+        box_width = textbox_style.width
+    else:
+        box_width = default_textbox_style.width
+
+    if text_speed:
+        speed = float(text_speed)
+    elif textbox_style and textbox_style.text_speed:
+        speed = textbox_style.text_speed
+    else:
+        speed = default_textbox_style.text_speed
+
+    if font_color:
+        fcolor = font_color
+    elif textbox_style and textbox_style.font_color:
+        fcolor = textbox_style.font_color
+    else:
+        fcolor = default_textbox_style.font_color
+
+    if font_type:
+        ftype = font_type
+    elif textbox_style and textbox_style.font_type:
+        ftype = textbox_style.font_type
+    else:
+        ftype = default_textbox_style.font_type
+
+    if bg:
+        box_bg = bg
+    elif textbox_style and textbox_style.dialog_box:
+        box_bg = textbox_style.dialog_box
+    else:
+        box_bg = default_textbox_style.dialog_box
+
+    if num_lines:
+        lines = int(num_lines)
+    elif textbox_style and textbox_style.num_lines:
+        lines = textbox_style.num_lines
+    else:
+        lines = default_textbox_style.num_lines
+
+    if textbox_style and textbox_style.flags:
+        flags = textbox_style.flags.union(flags)
+    if 'expression' in flags:
+        expr = lambda: ""
+        try:
+            # eval once to make sure it's eval-able
+            ast.parse(text)
+            def tryexcept(callback_expr) -> str:
+                try:
+                    val = self.text_evaluator.direct_eval(self.text_evaluator._evaluate_all(callback_expr))
+                    return str(val)
+                except:
+                    self.logger.error("textbox: failed to eval %s", callback_expr)
+                    return ""
+            expr = lambda: tryexcept(text)
+        except:
+            self.logger.error('textbox: %s is not a valid python expression' % text)
+        textbox = dialog.DynamicDialogWrapper(expr, background=box_bg, position=position, width=box_width,
+                      style_nid=style_nid, speed=speed,
+                      font_color=fcolor, font_type=ftype, num_lines=lines,
+                      draw_cursor=False)
+    else:
+        text = self.text_evaluator._evaluate_all(text)
+        text = dialog.clean_newlines(text)
+        # textboxes shouldn't use {w} or |
+        text = text.replace('{w}', '').replace('|', '{br}')
+        textbox = \
+            dialog.Dialog(text, background=box_bg, position=position, width=box_width,
+                        style_nid=style_nid, speed=speed,
+                        font_color=fcolor, font_type=ftype, num_lines=lines,
+                        draw_cursor=False)
+    self.other_boxes.append((nid, textbox))
 
 def table(self: Event, nid: NID, table_data: str, title: str = None,
           dimensions: str = None, row_width: str = None, alignment: str = None,

@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from app.engine.objects.unit import UnitObject
     from app.engine.dialog_log import DialogLog
     from app.events.event_manager import EventManager
-    from app.events import speak_style
     from app.events.regions import Region
     from app.utilities.typing import NID, UID
 
@@ -32,6 +31,7 @@ from app.constants import VERSION
 from app.data.database.database import DB
 from app.data.database.difficulty_modes import GrowthOption, PermadeathOption
 from app.events.regions import RegionType
+from app.events import speak_style
 from app.engine import config as cf
 from app.engine import state_machine, static_random
 from app.data.resources.resources import RESOURCES
@@ -123,6 +123,8 @@ class GameState():
         self.current_save_slot = None
         self.current_level = None
 
+        self.speak_styles = speak_style.SpeakStyleLibrary()
+
     def load_states(self, starting_states):
         self.state.load_states(starting_states)
 
@@ -130,7 +132,6 @@ class GameState():
     # When the player clicks "New Game"
     def build_new(self):
         from app.engine import records, supports
-        from app.events import speak_style
         logging.info("Building New Game")
         self.playtime = 0
 
@@ -167,7 +168,6 @@ class GameState():
             self.overworld_registry[overworld.nid] = OverworldObject.from_prefab(overworld, self.parties, self.unit_registry)
         self.supports = supports.SupportController()
         self.records = records.Recordkeeper()
-        self.speak_styles = speak_style.SpeakStyleLibrary()
         self.market_items = {}
         self.unlocked_lore = []
         from app.engine.dialog_log import DialogLog
@@ -270,6 +270,9 @@ class GameState():
         if DB.constants.value('initiative'):
             self.initiative = InitiativeTracker()
             self.initiative.start(self.get_all_units())
+
+        from app.events import triggers
+        game.events.trigger(triggers.OnStartup()) 
 
     def full_register(self, unit):
         self.register_unit(unit)

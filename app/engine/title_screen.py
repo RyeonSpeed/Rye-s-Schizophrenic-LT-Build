@@ -62,6 +62,8 @@ class TitleStartState(State):
         else:
             game.sweep()
             game.events.trigger(triggers.OnTitleScreen())
+            # On startup occurs before on title_screen
+            game.events.trigger(triggers.OnStartup()) 
             game.memory['title_intro_already_played'] = True
 
         return 'repeat'

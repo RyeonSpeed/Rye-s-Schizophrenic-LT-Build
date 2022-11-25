@@ -1,24 +1,24 @@
-from app.engine.exp_calculator import ExpCalcType, ExpCalculator
+import logging
 import math
 from functools import partial
 
-from PyQt5.QtWidgets import QGridLayout, QLineEdit, QSpinBox, QHBoxLayout, \
-    QVBoxLayout, QGroupBox, QTreeView, QWidget, QDoubleSpinBox, QLabel, QSizePolicy, \
-    QSplitter, QFrame, QPushButton, QFormLayout
-from PyQt5.QtCore import Qt, QAbstractItemModel
+from PyQt5.QtCore import QAbstractItemModel, Qt
+from PyQt5.QtWidgets import (QDoubleSpinBox, QFormLayout, QFrame, QGridLayout,
+                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                             QPushButton, QSizePolicy, QSpinBox, QSplitter,
+                             QTreeView, QVBoxLayout, QWidget)
 
-from app.utilities.data import Data
+from app.data.database.constants import Constant, ConstantCatalog, ConstantType
 from app.data.database.database import DB
-
-from app.extensions.custom_gui import PropertyBox, ComboBox
-
 from app.editor.base_database_gui import DatabaseTab
 from app.editor.data_editor import SingleDatabaseEditor
 from app.editor.sound_editor import sound_tab
+from app.engine.exp_calculator import ExpCalcType, ExpCalculator
 from app.extensions.checkable_list_dialog import ComponentModel
+from app.extensions.custom_gui import ComboBox, PropertyBox
 from app.extensions.frame_layout import FrameLayout
+from app.utilities.data import Data
 
-import logging
 
 class BoolConstantsModel(ComponentModel):
     def __init__(self, data, parent=None):
@@ -441,7 +441,7 @@ class ConstantDatabase(DatabaseTab):
     def __init__(self, data, title, parent=None):
         QWidget.__init__(self, parent)
         self.window = parent
-        self._data = data
+        self._data: ConstantCatalog = data
         self.title = title
 
         self.setWindowTitle('%s Editor' % self.title)
@@ -452,7 +452,7 @@ class ConstantDatabase(DatabaseTab):
         self.left_frame.setLayout(self.layout)
 
         bool_section = QGroupBox(self)
-        bool_constants = Data([d for d in self._data if d.attr == bool and not d.tag == 'hidden'])
+        bool_constants = Data([d for d in self._data if d.attr == ConstantType.BOOL and not d.tag == 'hidden'])
         self.bool_model = BoolConstantsModel(bool_constants, self)
         bool_view = QTreeView()
         bool_view.setModel(self.bool_model)
@@ -529,24 +529,24 @@ class ConstantDatabase(DatabaseTab):
             if not constant:
                 logging.error("Couldn't find constant %s" % constant_nid)
                 continue
-            if constant.attr == int:
+            if constant.attr == ConstantType.INT:
                 box = PropertyBox(constant.name, QSpinBox, self)
                 box.edit.setRange(0, 10)
                 box.edit.setValue(constant.value)
                 box.edit.setAlignment(Qt.AlignRight)
                 box.edit.valueChanged.connect(constant.set_value)
-            elif constant.attr == float:
+            elif constant.attr == ConstantType.FLOAT:
                 box = PropertyBox(constant.name, QDoubleSpinBox, self)
                 box.edit.setRange(0, 10)
                 box.edit.setValue(constant.value)
                 box.edit.setDecimals(1)
                 box.edit.setAlignment(Qt.AlignRight)
                 box.edit.valueChanged.connect(constant.set_value)
-            elif constant.attr == str:
+            elif constant.attr == ConstantType.STR:
                 box = PropertyBox(constant.name, QLineEdit, self)
                 box.edit.setText(constant.value)
                 box.edit.textChanged.connect(constant.set_value)
-            elif constant.attr == 'music':
+            elif constant.attr == ConstantType.MUSIC:
                 box = PropertyBox(constant.name, QLineEdit, self)
                 box.edit.setReadOnly(True)
                 box.add_button(QPushButton('...'))
@@ -583,6 +583,7 @@ class ConstantDatabase(DatabaseTab):
 # Run "python -m app.editor.constant_tab" from main directory
 if __name__ == '__main__':
     import sys
+
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
     DB.load('default.ltproj')

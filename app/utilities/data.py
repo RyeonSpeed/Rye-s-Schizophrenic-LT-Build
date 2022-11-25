@@ -1,26 +1,34 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Generic, List, Tuple, TypeVar
+from typing import Dict, Generic, List, Optional, Tuple, Type, TypeVar
+try:
+    from typing_extensions import Protocol
+except ModuleNotFoundError:
+    Protocol = object
+    print("You are missing the `typing-extensions` module.\nTry running `pip install -r requirements_editor.txt`")
 
 from app.utilities.typing import NID
 
-T = TypeVar('T')
+class HasNid(Protocol):
+    nid: NID
+
+T = TypeVar('T', bound=HasNid)
+
 class Data(Generic[T]):
     """
     Only accepts data points that have nid attribute
     Generally behaves as a list first and a dictionary second
     """
+    datatype: Type = T
 
-    datatype = T
-
-    def __init__(self, vals: List[T] = None):
+    def __init__(self, vals: Optional[List[T]] = None):
         if vals:
             self._list: List[T] = vals
             self._dict: Dict[NID, T] = {val.nid: val for val in vals}
         else:
-            self._list = []
-            self._dict = {}
+            self._list: List[T] = []
+            self._dict: Dict[NID, T] = {}
 
     def values(self) -> List[T]:
         return self._list
@@ -31,7 +39,7 @@ class Data(Generic[T]):
     def items(self) -> List[Tuple[NID, T]]:
         return [(val.nid, val) for val in self._list]
 
-    def get(self, key: NID, fallback: T = None) -> T:
+    def get(self, key: NID, fallback: Optional[T] = None) -> Optional[T]:
         return self._dict.get(key, fallback)
 
     def update_nid(self, val: T, nid: NID, set_nid=True):
@@ -43,7 +51,7 @@ class Data(Generic[T]):
                 self._dict[nid] = val
                 break
 
-    def find_key(self, val: T) -> NID:
+    def find_key(self, val: T) -> Optional[NID]:
         for k, v in self._dict.items():
             if v == val:
                 return k
@@ -79,7 +87,7 @@ class Data(Generic[T]):
         self._list.remove(val)
         del self._dict[key]
 
-    def pop(self, idx: int = None):
+    def pop(self, idx: Optional[int] = None):
         if idx is None:
             idx = len(self._list) - 1
         r = self._list[idx]

@@ -422,7 +422,10 @@ class UnitDelegate(QItemDelegate):
         if index.column() == 0:
             editor = ComboBox(parent)
             for obj in self.data:
-                editor.addItem(obj.nid)
+                name = obj.nid
+                if hasattr(obj, 'name'):
+                    name = "%s (%s)" % (obj.name, obj.nid)
+                editor.addItem(name, obj.nid)
             return editor
         elif index.column() == 1:  # Integer value column
             if self.is_string:
@@ -436,6 +439,12 @@ class UnitDelegate(QItemDelegate):
             return editor
         else:
             return super().createEditor(parent, option, index)
+
+    def setModelData(self, editor: QWidget, model, index) -> None:
+        if index.column() == 0: # combobox
+            model.setData(index, editor.itemData(editor.currentIndex()), Qt.ItemDataRole)
+        else:
+            super().setModelData(editor, model, index)
 
 class ClassDelegate(UnitDelegate):
     data = DB.classes
@@ -464,6 +473,10 @@ class WeaponTypeDelegate(UnitDelegate):
 class SkillDelegate(UnitDelegate):
     data = DB.skills
     name = "Skill"
+
+class TerrainDelegate(UnitDelegate):
+    data = DB.terrain
+    name = "Terrain"
 
 class ListItemComponent(BoolItemComponent):
     delegate = None
@@ -576,6 +589,8 @@ def get_display_widget(component, parent):
             delegate = WeaponTypeDelegate
         elif component.expose[1] == ComponentType.Skill:
             delegate = SkillDelegate
+        elif component.expose[1] == ComponentType.Terrain:
+            delegate = TerrainDelegate
 
         if component.expose[0] == ComponentType.List:
             c = ListItemComponent(component, parent, delegate)

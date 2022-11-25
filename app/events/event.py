@@ -442,7 +442,9 @@ class Event():
         elif command.nid == 'table':
             unevaled_parameters, _ = event_commands.convert_parse(command, None)
             parameters['TableData'] = unevaled_parameters['TableData']
-
+        elif command.nid == 'textbox':
+            unevaled_parameters, _ = event_commands.convert_parse(command, None)
+            parameters['Text'] = unevaled_parameters['Text']
         if 'no_warn' in flags:
             self.logger.disabled = True
         else:

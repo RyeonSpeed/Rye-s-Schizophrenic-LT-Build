@@ -78,7 +78,7 @@ class MainEditor(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.window_title = 'LT Maker'
+        self.window_title = _('LT Maker')
         self.setWindowTitle(self.window_title)
         self.settings = MainSettingsController()
         # Will be overwritten by auto-open
@@ -122,7 +122,7 @@ class MainEditor(QMainWindow):
         self.create_actions()
         self.recreate_menus()
         # init toolbar
-        self.toolbar = Toolbar(self.addToolBar("Edit"))
+        self.toolbar = Toolbar(self.addToolBar(_("Edit")))
         self.create_toolbar()
         self.set_icons()
         self.create_statusbar()
@@ -188,17 +188,17 @@ class MainEditor(QMainWindow):
 
     # === Create Menu ===
     def create_actions(self):
-        self.new_act = QAction("&New Project...", self,
+        self.new_act = QAction(_("&New Project..."), self,
                                shortcut="Ctrl+N", triggered=self.new)
-        self.open_act = QAction("&Open Project...", self,
+        self.open_act = QAction(_("&Open Project..."), self,
                                 shortcut="Ctrl+O", triggered=self.open)
-        self.save_act = QAction("&Save Project", self,
+        self.save_act = QAction(_("&Save Project"), self,
                                 shortcut="Ctrl+S", triggered=self.save)
         self.save_as_act = QAction(
-            "Save Project As...", self, shortcut="Ctrl+Shift+S", triggered=self.save_as)
+            _("Save Project As..."), self, shortcut="Ctrl+Shift+S", triggered=self.save_as)
         # self.build_act = QAction(QIcon(), "Build Project...", self, shortcut="Ctrl+B", triggered=self.build_project)
         self.quit_act = QAction(
-            "&Quit", self, shortcut="Ctrl+Q", triggered=self.close)
+            _("&Quit"), self, shortcut="Ctrl+Q", triggered=self.close)
 
         self.dump_csv = QAction(
             "Dump CSV data", self, triggered=lambda: self.project_save_load_handler.dump_csv(DB))
@@ -206,12 +206,12 @@ class MainEditor(QMainWindow):
             "Dump script", self, triggered=lambda: self.project_save_load_handler.dump_script(DB))
 
         self.preferences_act = QAction(
-            "&Preferences...", self, triggered=self.edit_preferences)
-        self.about_act = QAction("&About", self, triggered=self.about)
+            _("&Preferences..."), self, triggered=self.edit_preferences)
+        self.about_act = QAction(_("&About"), self, triggered=self.about)
         self.remove_unused_resources_act = QAction(
-            "Remove Unused Resources", self, triggered=self.remove_unused_resources)
+            _("Remove Unused Resources"), self, triggered=self.remove_unused_resources)
         self.check_for_updates_act = QAction(
-            "Check for updates...", self, triggered=self.check_for_updates)
+            _("Check for updates..."), self, triggered=self.check_for_updates)
 
         # Test actions
         self.test_current_act = QAction(
@@ -226,26 +226,26 @@ class MainEditor(QMainWindow):
         #     "Preload Units...", self, triggered=self.edit_preload_units)
 
         # Database actions
-        database_actions = {"Units": UnitDatabase.edit,
-                            "Factions": FactionDatabase.edit,
-                            "Parties": PartyDatabase.edit,
-                            "Classes": ClassDatabase.edit,
-                            "Tags": self.edit_tags,
-                            "Game Vars": self.edit_game_vars,
-                            "Weapon Types": WeaponDatabase.edit,
-                            "Items": ItemDatabase.edit,
-                            "Skills": SkillDatabase.edit,
+        database_actions = {_("Units"): UnitDatabase.edit,
+                            _("Factions"): FactionDatabase.edit,
+                            _("Parties"): PartyDatabase.edit,
+                            _("Classes"): ClassDatabase.edit,
+                            _("Tags"): self.edit_tags,
+                            _("Game Vars"): self.edit_game_vars,
+                            _("Weapon Types"): WeaponDatabase.edit,
+                            _("Items"): ItemDatabase.edit,
+                            _("Skills"): SkillDatabase.edit,
                             "AI": AIDatabase.edit,
-                            "Terrain": TerrainDatabase.edit,
-                            "Movement Costs": self.edit_mcost,
-                            "Stats": StatTypeDatabase.edit,
-                            "Equations": self.edit_equations,
-                            "Constants": ConstantDatabase.edit,
-                            "Difficulty Modes": DifficultyModeDatabase.edit,
-                            "Supports": self.edit_supports,
-                            "Lore": LoreDatabase.edit,
-                            "Raw Data": RawDataDatabase.edit,
-                            "Translations": self.edit_translations
+                            _("Terrain"): TerrainDatabase.edit,
+                            _("Movement Costs"): self.edit_mcost,
+                            _("Stats"): StatTypeDatabase.edit,
+                            _("Equations"): self.edit_equations,
+                            _("Constants"): ConstantDatabase.edit,
+                            _("Difficulty Modes"): DifficultyModeDatabase.edit,
+                            _("Supports"): self.edit_supports,
+                            _("Lore"): LoreDatabase.edit,
+                            _("Raw Data"): RawDataDatabase.edit,
+                            _("Translations"): self.edit_translations
                             }
         self.database_actions = {}
         for name, func in database_actions.items():
@@ -283,7 +283,7 @@ class MainEditor(QMainWindow):
 
     def recreate_menus(self):
         self.menuBar().clear()
-        file_menu = QMenu("File", self)
+        file_menu = QMenu(_("File"), self)
         file_menu.addAction(self.new_act)
         file_menu.addAction(self.open_act)
         file_menu.addSeparator()
@@ -294,19 +294,19 @@ class MainEditor(QMainWindow):
         file_menu.addSeparator()
         file_menu.addAction(self.quit_act)
 
-        edit_menu = QMenu("Edit", self)
+        edit_menu = QMenu(_("Edit"), self)
         for action in self.database_actions.values():
             edit_menu.addAction(action)
         edit_menu.addSeparator()
         for action in self.resource_actions.values():
             edit_menu.addAction(action)
 
-        test_menu = QMenu("Test", self)
+        test_menu = QMenu(_("Test"), self)
         test_menu.addAction(self.test_current_act)
         test_menu.addAction(self.test_load_act)
         test_menu.addAction(self.test_full_act)
 
-        help_menu = QMenu("Extra", self)
+        help_menu = QMenu(_("Extra"), self)
         help_menu.addAction(self.about_act)
         help_menu.addAction(self.preferences_act)
         help_menu.addAction(self.remove_unused_resources_act)
@@ -326,7 +326,7 @@ class MainEditor(QMainWindow):
     def create_toolbar(self):
         self.database_button = QToolButton(self)
         self.database_button.setPopupMode(QToolButton.InstantPopup)
-        database_menu = QMenu("Database", self)
+        database_menu = QMenu(_("Database"), self)
         for action in self.database_actions.values():
             database_menu.addAction(action)
         self.database_button.setMenu(database_menu)
@@ -335,7 +335,7 @@ class MainEditor(QMainWindow):
 
         self.resource_button = QToolButton(self)
         self.resource_button.setPopupMode(QToolButton.InstantPopup)
-        resource_menu = QMenu("Resource", self)
+        resource_menu = QMenu(_("Resource"), self)
         for action in self.resource_actions.values():
             resource_menu.addAction(action)
         self.resource_button.setMenu(resource_menu)
@@ -344,7 +344,7 @@ class MainEditor(QMainWindow):
 
         self.test_button = QToolButton(self)
         self.test_button.setPopupMode(QToolButton.InstantPopup)
-        test_menu = QMenu("Test", self)
+        test_menu = QMenu(_("Test"), self)
         test_menu.addAction(self.test_current_act)
         test_menu.addAction(self.test_load_act)
         test_menu.addAction(self.test_full_act)

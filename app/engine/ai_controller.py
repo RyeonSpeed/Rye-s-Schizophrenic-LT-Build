@@ -65,14 +65,17 @@ class AIController():
     def get_behaviour(self):
         return self.behaviour
 
+    def interrupt(self):
+        self.move_ai_complete = True
+        self.attack_ai_complete = True
+        self.canto_ai_complete = True
+
     def act(self):
         logging.info("AI Act!")
 
         change = False
         if game.movement.check_region_interrupt(self.unit):
-            self.move_ai_complete = True
-            self.attack_ai_complete = True
-            self.canto_ai_complete = True
+            self.interrupt()
 
         if not self.move_ai_complete:
             if self.think():

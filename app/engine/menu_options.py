@@ -7,7 +7,8 @@ from app.engine.fonts import FONT
 from app.engine import engine, image_mods, icons, help_menu, text_funcs, item_system, item_funcs
 from app.engine.game_state import game
 
-from app.engine.graphics.text.text_renderer import render_text, text_width
+from app.engine.graphics.text.text_renderer import render_text, text_width, rendered_text_width
+from app.utilities.enums import Alignments
 
 class EmptyOption():
     def __init__(self, idx):
@@ -196,14 +197,14 @@ class TitleOption():
         t = math.sin(math.radians((engine.get_time()//10) % 180))
         color_transition = image_mods.blend_colors((192, 248, 248), (56, 48, 40), t)
         outline_surf = engine.create_surface((text_size[0] + 4, text_size[1] + 2), transparent=True)
-        font.blit(text, outline_surf, (1, 0), self.color)
-        font.blit(text, outline_surf, (0, 1), self.color)
-        font.blit(text, outline_surf, (1, 2), self.color)
-        font.blit(text, outline_surf, (2, 1), self.color)
+        render_text(outline_surf, [self.font], [text], [self.color], (1, 0))
+        render_text(outline_surf, [self.font], [text], [self.color], (0, 1))
+        render_text(outline_surf, [self.font], [text], [self.color], (1, 2))
+        render_text(outline_surf, [self.font], [text], [self.color], (2, 1))
         outline_surf = image_mods.change_color(outline_surf, color_transition)
 
         surf.blit(outline_surf, (position[0] - 1, position[1] - 1))
-        font.blit(text, surf, position, self.color)
+        render_text(surf, [self.font], [text], [self.color], position)
 
     def draw(self, surf, x, y):
         left = x - self.width()//2
@@ -263,7 +264,7 @@ class ModeOption(TitleOption):
         position = (x - text_size[0]//2, y - text_size[1]//2)
 
         # Handle outline
-        font.blit(text, surf, position, color)
+        render_text(surf, [self.font], [text], [color], position)
 
 class ItemOption(BasicOption):
     def __init__(self, idx, item):
@@ -325,7 +326,7 @@ class ItemOption(BasicOption):
         if text_width(main_font, self.item.name) > 60:
             main_font = 'narrow'
         uses_font = 'text'
-        FONT[main_font].blit(self.item.name, surf, (x + 20, y), main_color)
+        render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
         uses_string = '--'
         if self.item.uses:
             uses_string = str(self.item.data['uses'])
@@ -338,7 +339,7 @@ class ItemOption(BasicOption):
         elif self.item.cooldown:
             uses_string = str(self.item.data['cooldown'])
         left = x + 99
-        FONT[uses_font].blit_right(uses_string, surf, (left, y), uses_color)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (left, y), Alignments.RIGHT)
 
 class ConvoyItemOption(ItemOption):
     def __init__(self, idx, item, owner):
@@ -375,7 +376,7 @@ class FullItemOption(ItemOption):
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
-        FONT[main_font].blit(self.item.name, surf, (x + 20, y), main_color)
+        render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
 
         uses_string_a = '--'
         uses_string_b = '--'
@@ -394,9 +395,9 @@ class FullItemOption(ItemOption):
         elif self.item.data.get('cooldown') is not None:
             uses_string_a = str(self.item.data['cooldown'])
             uses_string_b = str(self.item.data['starting_cooldown'])
-        FONT[uses_font].blit_right(uses_string_a, surf, (x + 96, y), uses_color)
-        FONT[uses_font].blit("/", surf, (x + 98, y))
-        FONT[uses_font].blit_right(uses_string_b, surf, (x + 120, y), uses_color)
+        render_text(surf, [uses_font], [uses_string_a], [uses_color], (x + 96, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], ["/"], [], (x + 98, y))
+        render_text(surf, [uses_font], [uses_string_b], [uses_color], (x + 120, y), Alignments.RIGHT)
 
 class ValueItemOption(ItemOption):
     def __init__(self, idx, item, disp_value):
@@ -416,7 +417,7 @@ class ValueItemOption(ItemOption):
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
-        FONT[main_font].blit(self.item.name, surf, (x + 20, y), main_color)
+        render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
 
         uses_string = '--'
         if self.item.data.get('uses') is not None:
@@ -429,7 +430,7 @@ class ValueItemOption(ItemOption):
             uses_string = str(self.item.parent_item.data['c_uses'])
         elif self.item.cooldown is not None:
             uses_string = str(self.item.data['cooldown'])
-        FONT[uses_font].blit_right(uses_string, surf, (x + 100, y), uses_color)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), Alignments.RIGHT)
 
         value_color = 'grey'
         value_string = '--'
@@ -449,7 +450,7 @@ class ValueItemOption(ItemOption):
                 value_color = 'blue'
             else:
                 value_string = '--'
-        FONT[uses_font].blit_right(value_string, surf, (x + self.width() - 6, y), value_color)
+        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), Alignments.RIGHT)
 
 class RepairValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
@@ -462,12 +463,12 @@ class RepairValueItemOption(ValueItemOption):
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
-        FONT[main_font].blit(self.item.name, surf, (x + 20, y), main_color)
+        render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
 
         uses_string = '--'
         if self.item.data.get('uses') is not None:
             uses_string = str(self.item.data['uses'])
-        FONT[uses_font].blit_right(uses_string, surf, (x + 100, y), uses_color)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), Alignments.RIGHT)
 
         value_color = 'grey'
         value_string = '--'
@@ -477,7 +478,7 @@ class RepairValueItemOption(ValueItemOption):
             value_string = str(value)
             if value < game.get_money():
                 value_color = 'blue'
-        FONT[uses_font].blit_right(value_string, surf, (x + self.width() - 10, y), value_color)
+        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 10, y), Alignments.RIGHT)
 
 class StockValueItemOption(ValueItemOption):
     def __init__(self, idx, item, disp_value, stock):
@@ -496,7 +497,7 @@ class StockValueItemOption(ValueItemOption):
         stock_string = '--'
         if self.stock >= 0:
             stock_string = str(self.stock)
-        FONT[main_font].blit_right(stock_string, surf, (x + 128, y), main_color)
+        render_text(surf, [main_font], [stock_string], [main_color], (x + 128, y), Alignments.RIGHT)
 
 class UnitOption(BasicOption):
     def __init__(self, idx, unit):
@@ -562,7 +563,7 @@ class UnitOption(BasicOption):
         font = self.font
         if text_width(font, self.unit.name) > 44:
             font = 'narrow'
-        FONT[font].blit(self.unit.name, surf, (x + 20, y), color)
+        render_text(surf, [font], [self.unit.name], [color], (x + 20, y))
 
     def draw(self, surf, x, y):
         self.draw_map_sprite(surf, x, y)
@@ -623,5 +624,4 @@ class LoreOption(BasicOption):
         width = text_width(main_font, s)
         if width > 78:
             main_font = 'narrow'
-        font = FONT[main_font]
-        font.blit(s, surf, (x + 6, y), main_color)
+        render_text(surf, [main_font], s, [main_color], (x + 6, y))

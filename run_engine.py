@@ -1,3 +1,4 @@
+import gettext
 import os, sys
 
 from app.constants import VERSION
@@ -8,6 +9,17 @@ from app.engine import config as cf
 from app.engine import driver
 from app.engine import game_state
 from app.engine.component_system_compiler import source_generator
+
+
+current_locale = 'en_US'
+locale_path = 'locale/'
+translation_module = gettext.translation(
+    domain='messages',
+    localedir=locale_path,
+    languages=[current_locale]
+)
+translation_module.install()  # Magically make the _ function globally available
+
 
 def main(name: str = 'testing_proj'):
     if not os.path.exists(name + '.ltproj'):

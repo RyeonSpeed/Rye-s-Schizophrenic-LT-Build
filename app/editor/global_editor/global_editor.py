@@ -129,7 +129,7 @@ class GlobalEditor(QMainWindow):
         toolbar.addAction(self.modify_level_act, 0)
 
     def create_menus(self, app_menu_bar):
-        edit_menu = app_menu_bar.getMenu('Edit')
+        edit_menu = app_menu_bar.getMenu(_('Edit'))
         edit_menu.addSeparator()
         edit_menu.addAction(self.zoom_in_act)
         edit_menu.addAction(self.zoom_out_act)

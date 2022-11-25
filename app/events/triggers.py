@@ -296,6 +296,13 @@ class OnTitleScreen(EventTrigger):
     nid: ClassVar[NID] = 'on_title_screen'
 
 @dataclass(init=True)
+class OnStartup(EventTrigger):
+    """
+    Occurs whenever the engine starts.
+    """
+    nid: ClassVar[NID] = 'on_startup'
+
+@dataclass(init=True)
 class TimeRegionComplete(EventTrigger):
     """
     Occurs when a time region runs out of time and would be removed.

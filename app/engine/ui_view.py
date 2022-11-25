@@ -388,8 +388,8 @@ class UIView():
 
             if not defender.traveler and a_assist:
 
-                width = FONT['text'].width(a_assist.name)
-                FONT['text'].blit(a_assist.name, surf, (90 - width//2, 19))
+                width = text_width('text', a_assist.name)
+                render_text(surf, ['text'], [a_assist.name], ['white'], (90 - width//2, 19))
                 mt = combat_calcs.compute_assist_damage(a_assist, defender, a_assist.get_weapon(), defender.get_weapon(), 'attack', (0, 0))
                 if grandmaster:
                     hit = combat_calcs.compute_hit(a_assist, defender, a_assist.get_weapon(), defender.get_weapon(), 'attack', (0, 0))
@@ -406,8 +406,8 @@ class UIView():
             if not attacker.traveler and d_assist and defender.get_weapon() and \
                     combat_calcs.can_counterattack(attacker, weapon, defender, defender.get_weapon()):
 
-                width = FONT['text'].width(d_assist.name)
-                FONT['text'].blit(d_assist.name, surf, (90 - width//2, 81))
+                width = text_width('text', d_assist.name)
+                render_text(surf, ['text'], [d_assist.name], ['white'], (90 - width//2, 81))
                 mt = combat_calcs.compute_assist_damage(d_assist, attacker, d_assist.get_weapon(), weapon, 'defense', (0, 0))
                 if grandmaster:
                     hit = combat_calcs.compute_hit(d_assist, attacker, d_assist.get_weapon(), weapon, 'defense', (0, 0))
@@ -422,26 +422,26 @@ class UIView():
                         blit_num(surf, c, 87, 66)
 
         # Name
-        width = FONT['text'].width(attacker.name)
-        FONT['text'].blit(attacker.name, surf, (43 - width//2, 3))
+        width = text_width('text', attacker.name)
+        render_text(surf, ['text'], [attacker.name], ['white'], (43 - width//2, 3))
         # Enemy name
         y_pos = 84
         if not crit_flag:
             y_pos -= 16
         if grandmaster:
             y_pos -= 16
-        position = 26 - FONT['text'].width(defender.name)//2, y_pos
-        FONT['text'].blit(defender.name, surf, position)
+        position = 26 - text_width('text', defender.name)//2, y_pos
+        render_text(surf, ['text'], [defender.name], ['white'], position)
         # Enemy Weapon
         if defender.get_weapon():
-            width = FONT['text'].width(defender.get_weapon().name)
+            width = text_width('text', defender.get_weapon().name)
             y_pos = 100
             if not crit_flag:
                 y_pos -= 16
             if grandmaster:
                 y_pos -= 16
             position = 32 - width//2, y_pos
-            FONT['text'].blit(defender.get_weapon().name, surf, position)
+            render_text(surf, ['text'], [defender.get_weapon().name], ['white'], position)
         # Self HP
         blit_num(surf, attacker.get_hp(), 64, 19)
         # Enemy HP
@@ -656,8 +656,8 @@ class UIView():
 
             # Blit name
             running_height += 16
-            name_width = FONT['text'].width(spell.name)
-            FONT['text'].blit(spell.name, bg_surf, (52 - name_width//2, running_height))
+            name_width = text_width('text', spell.name)
+            render_text(bg_surf, ['text'], [spell.name], ['white'], (52 - name_width//2, running_height))
 
             return bg_surf
 
@@ -686,8 +686,8 @@ class UIView():
             # Blit name
             running_height += 16
             icons.draw(bg_surf, spell, (4, running_height))
-            name_width = FONT['text'].width(spell.name)
-            FONT['text'].blit(spell.name, bg_surf, (52 - name_width//2, running_height))
+            name_width = text_width('text', spell.name)
+            render_text(bg_surf, ['text'], [spell.name], ['white'], (52 - name_width//2, running_height))
 
             return bg_surf
 

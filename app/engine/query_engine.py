@@ -1,6 +1,6 @@
 from __future__ import annotations
 import logging
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from app.engine.game_state import GameState
 from app.engine.objects.item import ItemObject
@@ -16,6 +16,7 @@ class QueryType():
     ITEM = 'Items'
     MAP = 'Map Functions'
     ACHIEVEMENT = 'Achievements'
+    VARIABLES = 'VARIABLES'
 
 def categorize(tag):
     def deco(func):
@@ -323,6 +324,31 @@ Example usage:
         """
         unit = self._resolve_to_unit(unit)
         return self.game.check_dead(unit.nid)
+
+    @categorize(QueryType.UNIT)
+    def u(self, unit) -> UnitObject:
+        """Shorthand for game.get_unit. Fetches the unit object.
+
+        Args:
+            unit: unit nid
+
+        Returns:
+            UnitObject: the actual unit object
+        """
+        return self._resolve_to_unit(unit)
+
+    @categorize(QueryType.VARIABLES)
+    def v(self, varname, fallback=None) -> Any:
+        """shorthand for game.game_vars.get. Fetches the variable
+
+        Args:
+            varname: name of the variable
+            fallback: fallback value, if any. Defaults to None
+
+        Returns:
+            Any: the value of the variable
+        """
+        return self.game.game_vars.get(varname, fallback)
 
     @categorize(QueryType.ACHIEVEMENT)
     def has_achievement(self, nid) -> bool:

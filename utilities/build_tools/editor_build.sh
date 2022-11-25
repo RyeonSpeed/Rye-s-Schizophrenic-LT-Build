@@ -17,8 +17,6 @@ cp dist/autoupdater.exe ../lt_editor/lt_editor
 cp autoupdater.py ../lt_editor/lt_editor
 echo "Copying default lt project..."
 cp -r default.ltproj ../lt_editor/lt_editor
-echo "Copying lion throne lt project"
-cp -r lion_throne.ltproj ../lt_editor/lt_editor
 
 # Get version
 version="0.1"

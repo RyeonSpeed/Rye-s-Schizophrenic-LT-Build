@@ -1,6 +1,6 @@
 import logging
 import math, random, re
-from typing import Dict
+from typing import Any, Dict
 from app.engine.query_engine import GameQueryEngine
 
 from app.utilities import utils
@@ -28,7 +28,7 @@ def init_query_engine(game):
     QUERY_ENGINE_FUNC_DICT = {funcname: getattr(_QUERY_ENGINE, funcname) for funcname in query_funcs}
 
 def evaluate(string: str, unit1=None, unit2=None, position=None,
-             local_args: Dict = None, game=None) -> bool:
+             local_args: Dict = None, game=None) -> Any:
     if not game:
         from app.engine.game_state import game
     if not QUERY_ENGINE_FUNC_DICT:

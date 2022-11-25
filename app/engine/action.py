@@ -2291,6 +2291,17 @@ class ChangePortrait(Action):
     def reverse(self):
         self.unit.portrait_nid = self.old_portrait
 
+class ChangeUnitDesc(Action):
+    def __init__(self, unit, desc):
+        self.unit = unit
+        self.old_desc = unit.desc
+        self.new_desc = desc
+
+    def do(self):
+        self.unit.desc = self.new_desc
+
+    def reverse(self):
+        self.unit.desc = self.old_desc
 
 class AddTag(Action):
     def __init__(self, unit, tag):
