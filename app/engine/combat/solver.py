@@ -1,9 +1,9 @@
 from app.data.database.database import DB
 from app.data.database.difficulty_modes import RNGOption
-from app.engine import (combat_calcs, item_funcs, item_system, skill_system,
-                        static_random, action)
+from app.engine import action, combat_calcs, item_funcs, item_system, skill_system
 from app.engine.game_state import game
 from app.engine.combat import playback as pb
+from app.utilities import static_random
 
 import logging
 
@@ -159,8 +159,7 @@ class AttackerPartnerState(SolverState):
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.num_attacks < attacker_outspeed:
                     solver.num_subattacks = 0
                     return 'attacker'
                 # When you double but your ally doesn't and also the opponent doesn't counter you.
@@ -288,8 +287,7 @@ class DefenderPartnerState(SolverState):
                         solver.num_subdefends < self.num_multiattacks:
                     return 'defender_partner'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.num_attacks < attacker_outspeed:
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.attacker.strike_partner and \
@@ -457,7 +455,7 @@ class CombatPhaseSolver():
                 item_system.on_crit(actions, playback, attacker, item, defender, def_pos, mode, attack_info, first_item)
                 if defender:
                     playback.append(pb.MarkCrit(attacker, defender, self.attacker, item))
-            elif DB.constants.value('glancing_hit') and roll >= to_hit - 20 and not guard_hit:
+            elif roll >= to_hit - DB.constants.value('glancing_hit') and not guard_hit:
                 item_system.on_glancing_hit(actions, playback, attacker, item, defender, def_pos, mode, attack_info, first_item)
                 if defender:
                     playback.append(pb.MarkHit(attacker, defender, self.attacker, item, guard_hit))
@@ -477,6 +475,7 @@ class CombatPhaseSolver():
                 skill_system.after_take_hit(actions, playback, defender, def_item, attacker, mode, attack_info)
         else:
             item_system.on_miss(actions, playback, attacker, item, defender, def_pos, mode, attack_info, first_item)
+            skill_system.after_take_miss(actions, playback, defender, def_item, attacker, mode, attack_info)
             if defender:
                 playback.append(pb.MarkMiss(attacker, defender, self.attacker, item))
 

@@ -37,8 +37,9 @@ class IconRow(UIComponent):
         self.update_font()
 
     def set_text(self, text: str):
+        if text != self.text.text:
+            self._should_redraw = True
         self.text.set_text(text)
-        self._should_redraw = True
 
     def update_font(self):
         total_width = self.icon.width + self.text.twidth

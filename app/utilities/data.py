@@ -2,13 +2,9 @@ from __future__ import annotations
 
 import logging
 from typing import Dict, Generic, List, Optional, Tuple, Type, TypeVar
-try:
-    from typing_extensions import Protocol
-except ModuleNotFoundError:
-    Protocol = object
-    print("You are missing the `typing-extensions` module.\nTry running `pip install -r requirements_editor.txt`")
 
-from app.utilities.typing import NID
+from app.utilities.typing import NID, Protocol
+
 
 class HasNid(Protocol):
     nid: NID
@@ -41,6 +37,12 @@ class Data(Generic[T]):
 
     def get(self, key: NID, fallback: Optional[T] = None) -> Optional[T]:
         return self._dict.get(key, fallback)
+
+    def sort(self, sort_func=None):
+        self._list = sorted(self._list, key=sort_func)
+        self._dict.clear()
+        for val in self._list:
+            self._dict[val.nid] = val
 
     def update_nid(self, val: T, nid: NID, set_nid=True):
         for k, v in self._dict.items():

@@ -14,7 +14,6 @@ from app.engine.gui import ScrollBar
 from app.engine.base_surf import create_base_surf
 from app.engine.objects.item import ItemObject
 from app.engine.objects.unit import UnitObject
-from app.engine.objects.skill import SkillObject
 from app.engine.game_state import game
 from app.engine.achievements import Achievement
 
@@ -43,9 +42,9 @@ def draw_unit_face(surf, topleft, unit, right):
     face_image = face_image.convert_alpha()
     face_image = engine.subsurface(face_image, (0, max(0, offset - 4), 96, 76))
     face_image = image_mods.make_translucent(face_image, 0.5)
-    left = x + 104//2 + 1
-    top = y + (16 * DB.constants.total_items() + 8)//2 - 1 + 2
-    engine.blit_center(surf, face_image, (left, top))
+    left = x + 4 + 1
+    top = y + (16 * DB.constants.total_items() + 8) - 4 - 76
+    engine.blit(surf, face_image, (left, top))
 
 def draw_unit_items(surf, topleft, unit, include_top=False, include_bottom=True, include_face=False, right=True, shimmer=0):
     x, y = topleft
@@ -62,10 +61,10 @@ def draw_unit_items(surf, topleft, unit, include_top=False, include_bottom=True,
         # Blit items
         for idx, item in enumerate(unit.nonaccessories):
             item_option = menu_options.ItemOption(idx, item)
-            item_option.draw(surf, topleft[0] + 2, topleft[1] + idx * 16 + 4)
+            item_option.draw(surf, topleft[0] + 1, topleft[1] + idx * 16 + 4)
         for idx, item in enumerate(unit.accessories):
             item_option = menu_options.ItemOption(idx, item)
-            item_option.draw(surf, topleft[0] + 2, topleft[1] + item_funcs.get_num_items(unit) * 16 + idx * 16 + 4)
+            item_option.draw(surf, topleft[0] + 1, topleft[1] + item_funcs.get_num_items(unit) * 16 + idx * 16 + 4)
 
 
 def draw_unit_bexp(surf, topleft, unit, new_exp, new_bexp, current_bexp, include_top=False, include_bottom=True,
@@ -421,12 +420,12 @@ class Choice(Simple):
                             option.help_box = help_menu.HelpDialog(desc)
                     self.options.append(option)
 
-            if self.hard_limit:
-                for num in range(self.limit - len(options)):
-                    option = menu_options.EmptyOption(len(options) + num)
-                    if self.is_convoy:
-                        option._width = 112
-                    self.options.append(option)
+        if self.hard_limit:
+            for num in range(self.limit - len(options)):
+                option = menu_options.EmptyOption(len(options) + num)
+                if self.is_convoy:
+                    option._width = 112
+                self.options.append(option)
 
     def move_down(self, first_push=True):
         if all(option.ignore for option in self.options):
@@ -1659,7 +1658,6 @@ class Market(Convoy):
             value.sort(key=lambda item: item.name)
             value.sort(key=lambda item: item_system.sell_price(self.unit, item) or 0)
             value.sort(key=lambda item: item_system.full_price(self.unit, item) or 0)
-            value.sort(key=lambda item: [item.nid for item in DB.items].index(item.nid) or 0)
             value.sort(key=lambda item: bool(item.owner_nid))
 
         return sorted_dict

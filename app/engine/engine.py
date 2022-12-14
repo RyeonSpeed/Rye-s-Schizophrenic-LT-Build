@@ -257,8 +257,8 @@ MOUSEMOTION = pygame.MOUSEMOTION
 def get_pressed():
     return pygame.key.get_pressed()
 
-def joystick_avail():
-    return pygame.joystick.get_count()
+def joystick_avail() -> bool:
+    return pygame.joystick.get_init() and pygame.joystick.get_count()
 
 def get_joystick():
     return pygame.joystick.Joystick(0)

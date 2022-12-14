@@ -834,7 +834,7 @@ class CombatAnimProperties(QWidget):
 
         # Store all of this in anim_nid.ltanim folder
         # Gather reference to images for this effect
-        RESOURCES.combat_anims.save_image(path, self.current)
+        RESOURCES.combat_anims.save_image(path, self.current, temp=True)
         # Serialize into json form
         serialized_data = self.current.save()
         serialized_path = os.path.join(path, '%s_anim.json' % self.current.nid)

@@ -13,6 +13,8 @@ class Uses(ItemComponent):
     expose = ComponentType.Int
     value = 1
 
+    _did_something = False
+
     def init(self, item):
         item.data['uses'] = self.value
         item.data['starting_uses'] = self.value
@@ -24,13 +26,19 @@ class Uses(ItemComponent):
         return item.data['uses'] <= 0
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
-        actions.append(action.SetObjData(item, 'uses', item.data['uses'] - 1))
-        actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
+        if item.uses_options.one_loss_per_combat():
+            self._did_something = True
+        else:
+            actions.append(action.SetObjData(item, 'uses', item.data['uses'] - 1))
+            actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
     def on_miss(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         if item.uses_options.lose_uses_on_miss():
-            actions.append(action.SetObjData(item, 'uses', item.data['uses'] - 1))
-            actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
+            if item.uses_options.one_loss_per_combat():
+                self._did_something = True
+            else:
+                actions.append(action.SetObjData(item, 'uses', item.data['uses'] - 1))
+                actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
     def on_broken(self, unit, item):
         from app.engine.game_state import game
@@ -45,6 +53,12 @@ class Uses(ItemComponent):
                         action.do(action.RemoveItem(other_unit, item))
             return True
         return False
+
+    def end_combat(self, playback, unit, item, target, mode):
+        if self._did_something:
+            action.do(action.SetObjData(item, 'uses', item.data['uses'] - 1))
+            action.do(action.UpdateRecords('item_use', (unit.nid, item.nid)))
+        self._did_something = False
 
     def reverse_use(self, unit, item):
         if self.is_broken(unit, item):
@@ -67,6 +81,8 @@ class ChapterUses(ItemComponent):
     expose = ComponentType.Int
     value = 1
 
+    _did_something = False
+
     def init(self, item):
         item.data['c_uses'] = self.value
         item.data['starting_c_uses'] = self.value
@@ -78,13 +94,19 @@ class ChapterUses(ItemComponent):
         return item.data['c_uses'] <= 0
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
-        actions.append(action.SetObjData(item, 'c_uses', item.data['c_uses'] - 1))
-        actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
+        if item.uses_options.one_loss_per_combat():
+            self._did_something = True
+        else:
+            actions.append(action.SetObjData(item, 'c_uses', item.data['c_uses'] - 1))
+            actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
     def on_miss(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         if item.uses_options.lose_uses_on_miss():
-            actions.append(action.SetObjData(item, 'c_uses', item.data['c_uses'] - 1))
-            actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
+            if item.uses_options.one_loss_per_combat():
+                self._did_something = True
+            else:
+                actions.append(action.SetObjData(item, 'c_uses', item.data['c_uses'] - 1))
+                actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
     def on_broken(self, unit, item):
         if self.is_broken(unit, item):
@@ -92,6 +114,12 @@ class ChapterUses(ItemComponent):
                 action.do(action.UnequipItem(unit, item))
             return True
         return False
+
+    def end_combat(self, playback, unit, item, target, mode):
+        if self._did_something:
+            action.do(action.SetObjData(item, 'c_uses', item.data['c_uses'] - 1))
+            action.do(action.UpdateRecords('item_use', (unit.nid, item.nid)))
+        self._did_something = False
 
     def on_end_chapter(self, unit, item):
         # Don't need to use action here because it will be end of chapter
@@ -112,17 +140,23 @@ class UsesOptions(ItemComponent):
     expose = (ComponentType.MultipleOptions)
 
     value = [
-        ['LoseUsesOnMiss (T/F)', 'F', 'Lose uses even on miss']
+        ['LoseUsesOnMiss (T/F)', 'F', 'Lose uses even on miss'],
+        ['OneLossPerCombat (T/F)', 'F', "Doubling doesn't cost extra uses"]
     ]
 
     @property
     def values(self) -> Dict[str, str]:
         return {value[0]: value[1] for value in self.value}
 
-    def lose_uses_on_miss(self):
+    def lose_uses_on_miss(self) -> bool:
         if self.values['LoseUsesOnMiss (T/F)'] == 'F':
             return False
         return True
+
+    def one_loss_per_combat(self) -> bool:
+        if self.values.get('OneLossPerCombat (T/F)', 'F') == 'T':
+            return True
+        return False
 
 class HPCost(ItemComponent):
     nid = 'hp_cost'
@@ -175,6 +209,32 @@ class ManaCost(ItemComponent):
 
     def reverse_use(self, unit, item):
         action.do(action.ChangeMana(unit, self.value))
+
+class EvalManaCost(ItemComponent):
+    nid = 'eval_mana_cost'
+    desc = "Item costs mana to use, the amount is eval'd at runtime"
+    tag = ItemTags.USES
+
+    expose = ComponentType.String
+
+    def _check_value(self, unit, item) -> int:
+        from app.engine import evaluate
+        try:
+            return int(evaluate.evaluate(self.value, unit, item=item))
+        except:
+            print("Couldn't evaluate %s conditional" % self.value)
+        return 0
+
+    def available(self, unit, item) -> bool:
+        return unit.get_mana() >= self._check_value(unit, item)
+
+    def start_combat(self, playback, unit, item, target, mode):
+        value = self._check_value(unit, item)
+        action.do(action.ChangeMana(unit, -value))
+
+    def reverse_use(self, unit, item):
+        value = self._check_value(unit, item)
+        action.do(action.ChangeMana(unit, value))
 
 class Cooldown(ItemComponent):
     nid = 'cooldown'

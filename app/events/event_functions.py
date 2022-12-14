@@ -30,6 +30,7 @@ from app.engine.graphics.ui_framework.ui_framework_layout import (HAlignment,
 from app.engine.objects.item import ItemObject
 from app.engine.objects.tilemap import TileMapObject
 from app.engine.objects.unit import UnitObject
+from app.engine.objects.region import RegionObject
 from app.engine.persistent_records import RECORDS
 from app.engine.sound import get_sound_thread
 from app.events import event_commands, regions, triggers
@@ -264,8 +265,8 @@ def expression(self: Event, portrait, expression_list, flags=None):
     _portrait.set_expression(expression_list)
 
 def speak_style(self: Event, style, speaker=None, text_position=None, width=None, text_speed=None,
-                font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None, message_tail=None,
-                name_tag_bg=None, flags=None):
+                font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None, 
+                message_tail=None, transparency=None, name_tag_bg=None, flags=None):
     flags = flags or set()
     style_nid = style
     if style_nid in self.game.speak_styles:
@@ -298,6 +299,8 @@ def speak_style(self: Event, style, speaker=None, text_position=None, width=None
         style.draw_cursor = bool(draw_cursor)
     if message_tail:
         style.message_tail = message_tail
+    if transparency is not None:
+        style.transparency = transparency
     if name_tag_bg:
         style.name_tag_bg = name_tag_bg
     if flags:
@@ -306,7 +309,7 @@ def speak_style(self: Event, style, speaker=None, text_position=None, width=None
 
 def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=None, text_speed=None,
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
-          message_tail=None, name_tag_bg=None, flags=None):
+          message_tail=None, transparency=None, name_tag_bg=None, flags=None):
     flags = flags or set()
     text = dialog.clean_newlines(text)
 
@@ -391,6 +394,13 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
     else:
         tail = default_speak_style.message_tail
 
+    if transparency:
+        transparency = float(transparency)
+    elif speak_style and speak_style.transparency is not None:
+        transparency = speak_style.transparency
+    else:
+        transparency = 0.05
+
     if name_tag_bg:
         nametag = name_tag_bg
     elif speak_style and speak_style.name_tag_bg:
@@ -406,7 +416,8 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
         dialog.Dialog(text, portrait, bg, position, box_width, speaker=speaker,
                       style_nid=style_nid, autosize=autosize, speed=speed,
                       font_color=fcolor, font_type=ftype, num_lines=lines,
-                      draw_cursor=cursor, message_tail=tail, name_tag_bg=nametag)
+                      draw_cursor=cursor, message_tail=tail, transparency=transparency, 
+                      name_tag_bg=nametag)
     new_dialog.hold = 'hold' in flags
     if 'no_popup' in flags:
         new_dialog.last_update = engine.get_time() - 10000
@@ -635,6 +646,9 @@ def lose_game(self: Event, flags=None):
 
 def main_menu(self: Event, flags=None):
     self.game.level_vars['_main_menu'] = True
+
+def force_chapter_clean_up(self: Event, flags=None):
+    self.game.clean_up(full=False)
 
 def skip_save(self: Event, true_or_false: str, flags=None):
     state = true_or_false.lower() in self.true_vals
@@ -2187,7 +2201,7 @@ def add_region(self: Event, region, position, size, region_type, string=None, fl
     flags = flags or set()
 
     if region in self.game.level.regions.keys():
-        self.logger.error("add_region: Region nid %s already present!" % region)
+        self.logger.error("add_region: RegionObject nid %s already present!" % region)
         return
     position = self._parse_pos(position)
     size = self._parse_pos(size)
@@ -2196,8 +2210,7 @@ def add_region(self: Event, region, position, size, region_type, string=None, fl
     region_type = region_type.lower()
     sub_region_type = string
 
-    new_region = regions.Region(region)
-    new_region.region_type = regions.RegionType(region_type)
+    new_region = RegionObject(region, regions.RegionType(region_type))
     new_region.position = position
     new_region.size = size
     new_region.sub_nid = sub_region_type
@@ -2215,14 +2228,24 @@ def region_condition(self: Event, region, expression, flags=None):
         region = self.game.level.regions.get(region)
         action.do(action.ChangeRegionCondition(region, expression))
     else:
-        self.logger.error("region_condition: Couldn't find Region %s" % region)
+        self.logger.error("region_condition: Couldn't find RegionObject %s" % region)
 
 def remove_region(self: Event, region, flags=None):
     if region in self.game.level.regions.keys():
         region = self.game.level.regions.get(region)
         action.do(action.RemoveRegion(region))
     else:
-        self.logger.error("remove_region: Couldn't find Region %s" % region)
+        self.logger.error("remove_region: Couldn't find RegionObject %s" % region)
+
+def remove_generics_from_region(self: Event, nid, flags=None):
+    if nid in self.game.level.regions.keys():
+        region = self.game.level.regions.get(nid)
+        for position in region.get_all_positions():
+            unit = self.game.get_unit(position)
+            if unit and unit.generic:
+                action.execute(action.LeaveMap(unit))
+    else:
+        self.logger.error("remove_generics_from_region: Couldn't find RegionObject %s" % nid)
 
 def show_layer(self: Event, layer, layer_transition=None, flags=None):
     if layer not in self.game.level.tilemap.layers.keys():
@@ -2284,8 +2307,8 @@ def map_anim(self: Event, map_anim, float_position, speed=None, flags=None):
     if map_anim not in RESOURCES.animations.keys():
         self.logger.error("map_anim: Could not find map animation %s" % map_anim)
         return
-    pos = self._parse_pos(float_position, True)
-    assert(pos is not None)
+    pos = tuple(self._parse_pos(float_position, True))
+    assert pos is not None, float_position
     if speed:
         speed_mult = float(speed)
     else:
@@ -3214,6 +3237,13 @@ def update_record(self: Event, nid: str, expression: str, flags=None):
         RECORDS.update(nid, val)
     except Exception as e:
         self.logger.error("update_record: Could not evaluate %s (%s)" % (expression, e))
+
+def replace_record(self: Event, nid: str, expression: str, flags=None):
+    try:
+        val = self.text_evaluator.direct_eval(expression)
+        RECORDS.replace(nid, val)
+    except Exception as e:
+        self.logger.error("replace_record: Could not evaluate %s (%s)" % (expression, e))
 
 def delete_record(self: Event, nid: str, flags=None):
     RECORDS.delete(nid)

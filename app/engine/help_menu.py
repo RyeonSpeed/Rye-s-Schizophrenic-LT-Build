@@ -50,9 +50,8 @@ class HelpDialog():
         from app.engine import dialog
         desc = desc.replace('\n', '{br}')
         self.dlg = \
-            dialog.Dialog(desc, num_lines=8, width=self.greatest_line_len + 16, 
-                          font_type=self.font, font_color='black',
-                          draw_cursor=False, speed=0.5)
+            dialog.Dialog.from_style(game.speak_styles.get('__default_help'), desc, 
+                                     width=self.greatest_line_len + 16)
         self.dlg.position = (0, (16 if self.name else 0))
 
     def get_width(self):
@@ -144,7 +143,7 @@ class HelpDialog():
 
         help_surf = engine.copy_surface(self.help_surf)
         if self.name:
-            render_text(help_surf, [self.font], [self.name], [], (8, 8))
+            render_text(help_surf, [self.font], [self.name], [game.speak_styles.get('__default_help').font_color], (8, 8))
 
         self.dlg.update()
         self.dlg.draw(help_surf)
@@ -179,9 +178,8 @@ class StatDialog(HelpDialog):
         from app.engine import dialog
         desc = desc.replace('\n', '{br}')
         self.dlg = \
-            dialog.Dialog(desc, num_lines=8, width=160, 
-                          font_type=self.font, font_color='black',
-                          draw_cursor=False, speed=0.5)
+            dialog.Dialog.from_style(game.speak_styles.get('__default_help'), desc, 
+                                     width=160)
         self.dlg.position = (0, 0)
 
     def draw(self, surf, pos, right=False):
@@ -201,23 +199,23 @@ class StatDialog(HelpDialog):
 
         for idx, line in enumerate(self.lines):
             if num_characters > 0:
-                # render_text(help_surf, [self.font], [line[:num_characters]], [], (8, font_height(self.font) * idx + 6))
                 num_characters -= len(line)
 
         y_height = len(self.lines) * 16
         bonuses = sorted(self.bonuses.items(), key=lambda x: x[0] != 'Base Value')
+        color = game.speak_styles.get('__default_help').font_color
         for idx, (bonus, val) in enumerate(bonuses):
             if num_characters > 0:
                 top = font_height(self.font) * idx + 8 + y_height
                 if idx == 0:
-                    render_text(help_surf, [self.text_font], [str(val)], [], (8, top))
+                    render_text(help_surf, [self.text_font], [str(val)], [color], (8, top))
                 elif val > 0:
                     render_text(help_surf, [self.text_font], ['+' + str(val)], ['green'], (8, top))
                 elif val < 0:
                     render_text(help_surf, [self.text_font], [str(val)], ['red'], (8, top))
                 else:
-                    render_text(help_surf, [self.font], [str(val)], [], (8, top))
-                render_text(help_surf, [self.font], [bonus[:num_characters]], [], (32, top))
+                    render_text(help_surf, [self.font], [str(val)], [color], (8, top))
+                render_text(help_surf, [self.font], [bonus[:num_characters]], [color], (32, top))
                 num_characters -= len(bonus)
 
         if self.dlg:
@@ -290,9 +288,8 @@ class ItemHelpDialog(HelpDialog):
             from app.engine import dialog
             desc = desc.replace('\n', '{br}')
             self.dlg = \
-                dialog.Dialog(desc, font_type=self.font,
-                              width=self.box_width, font_color='black',
-                              num_lines=8, draw_cursor=False, speed=0.5)
+                dialog.Dialog.from_style(game.speak_styles.get('__default_help'), desc,
+                                         width=self.box_width)
             y_height = 32 if self.num_present > 3 else 16
             self.dlg.position = (0, y_height)
         else:

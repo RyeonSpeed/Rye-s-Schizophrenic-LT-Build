@@ -22,9 +22,9 @@ if TYPE_CHECKING:
     from app.engine.objects.party import PartyObject
     from app.engine.objects.skill import SkillObject
     from app.engine.objects.unit import UnitObject
+    from app.engine.objects.region import RegionObject
     from app.engine.dialog_log import DialogLog
     from app.events.event_manager import EventManager
-    from app.events.regions import Region
     from app.utilities.typing import NID, UID
 
 from app.constants import VERSION
@@ -33,7 +33,8 @@ from app.data.database.difficulty_modes import GrowthOption, PermadeathOption
 from app.events.regions import RegionType
 from app.events import speak_style
 from app.engine import config as cf
-from app.engine import state_machine, static_random
+from app.engine import state_machine
+from app.utilities import static_random
 from app.data.resources.resources import RESOURCES
 
 import logging
@@ -60,7 +61,7 @@ class GameState():
         self.item_registry: Dict[UID, ItemObject] = {}
         self.skill_registry: Dict[UID, SkillObject] = {}
         self.terrain_status_registry: Dict[NID, NID] = {}
-        self.region_registry: Dict[NID, Region] = {}
+        self.region_registry: Dict[NID, RegionObject] = {}
         self.overworld_registry: Dict[NID, OverworldObject] = {}
         self.parties: Dict[NID, PartyObject] = {}
         self.unlocked_lore: List[NID] = []
@@ -183,7 +184,7 @@ class GameState():
         from app.engine import turnwheel
         from app.events import event_manager
         from app.engine.dialog_log import DialogLog
-
+        
         self.level_vars = Counter()
         self.turncount = 0
         self.talk_options = []
@@ -219,34 +220,10 @@ class GameState():
         # Build registries
         self.map_sprite_registry = {}
 
-        # caches
         self.get_region_under_pos.cache_clear()
 
-    def start_level(self, level_nid, with_party=None):
-        """
-        Done at the beginning of a new level to start the level up
-        """
-        self.boundary = None
-        self.generic()
-        logging.debug("Starting Level %s", level_nid)
-
+    def level_setup(self):
         from app.engine.initiative import InitiativeTracker
-        from app.engine.level_cursor import LevelCursor
-        from app.engine.objects.level import LevelObject
-        from app.engine.objects.tilemap import TileMapObject
-
-        level_nid = str(level_nid)
-        level_prefab = DB.levels.get(level_nid)
-        tilemap_nid = level_prefab.tilemap
-        tilemap_prefab = RESOURCES.tilemaps.get(tilemap_nid)
-        tilemap = TileMapObject.from_prefab(tilemap_prefab)
-        bg_tilemap = TileMapObject.from_prefab(RESOURCES.tilemaps.get(level_prefab.bg_tilemap)) if level_prefab.bg_tilemap else None
-        self.cursor = LevelCursor(self)
-        self.current_level = LevelObject.from_prefab(level_prefab, tilemap, bg_tilemap, self.unit_registry, self.current_mode)
-        if with_party:
-            self.current_party = with_party
-        else:
-            self.current_party = self.current_level.party
 
         # Build party object for new parties
         if self.current_party not in self.parties:
@@ -273,6 +250,51 @@ class GameState():
 
         from app.events import triggers
         game.events.trigger(triggers.OnStartup()) 
+
+    def start_level(self, level_nid, with_party=None):
+        """
+        Done at the beginning of a new level to start the level up
+        """
+        self.boundary = None
+        self.generic()
+        logging.debug("Starting Level %s", level_nid)
+
+        from app.engine.level_cursor import LevelCursor
+        from app.engine.objects.level import LevelObject
+        from app.engine.objects.tilemap import TileMapObject
+
+        level_nid = str(level_nid)
+        level_prefab = DB.levels.get(level_nid)
+        tilemap_nid = level_prefab.tilemap
+        tilemap_prefab = RESOURCES.tilemaps.get(tilemap_nid)
+        tilemap = TileMapObject.from_prefab(tilemap_prefab)
+        bg_tilemap = TileMapObject.from_prefab(RESOURCES.tilemaps.get(level_prefab.bg_tilemap)) if level_prefab.bg_tilemap else None
+        self.cursor = LevelCursor(self)
+        self.current_level = LevelObject.from_prefab(level_prefab, tilemap, bg_tilemap, self.unit_registry, self.current_mode)
+        if with_party:
+            self.current_party = with_party
+        else:
+            self.current_party = self.current_level.party
+
+        self.level_setup()
+
+    def build_level_from_scratch(self, level_nid, tilemap):
+        """
+        Using the tilemap: TileMapObject to build a level
+        """
+        self.boundary = None
+        self.generic()
+        logging.debug("Building Level %s", level_nid)
+
+        from app.engine.level_cursor import LevelCursor
+        from app.engine.objects.level import LevelObject
+
+        self.cursor = LevelCursor(self)
+        party = DB.parties.keys()[0]
+        self.current_level = LevelObject.from_scratch(level_nid, tilemap, None, party, self.unit_registry, self.current_mode)
+        self.current_party = self.current_level.party
+
+        self.level_setup()
 
     def full_register(self, unit):
         self.register_unit(unit)
@@ -349,8 +371,8 @@ class GameState():
         from app.engine.objects.party import PartyObject
         from app.engine.objects.skill import SkillObject
         from app.engine.objects.unit import UnitObject
+        from app.engine.objects.region import RegionObject
         from app.events import event_manager, speak_style
-        from app.events.regions import Region
 
         logging.info("Loading Game...")
         self.game_vars = Counter(s_dict.get('game_vars', {}))
@@ -371,8 +393,8 @@ class GameState():
         self.skill_registry = {skill['uid']: SkillObject.restore(skill) for skill in s_dict['skills']}
         save.set_next_uids(self)
         self.terrain_status_registry = s_dict.get('terrain_status_registry', {})
-        self.region_registry = {region['nid']: Region.restore(region) for region in s_dict.get('regions', [])}
         self.unit_registry = {unit['nid']: UnitObject.restore(unit, self) for unit in s_dict['units']}
+        self.region_registry = {region['nid']: RegionObject.restore(region) for region in s_dict.get('regions', [])}
 
         # Handle subitems
         for item in self.item_registry.values():
@@ -447,28 +469,48 @@ class GameState():
 
         self.events = event_manager.EventManager.restore(s_dict.get('events'))
 
-    def clean_up(self):
+    def clean_up(self, full: bool = True):
+        '''
+        A `full` cleanup does everything associated with cleaning up
+        a chapter in preparation for the next.
+        A non-full cleanup does not
+            - Remove any units from the field
+            - Remove all generic units from memory
+            - Remove all now unused items and skills from memory
+            - Remove any regions or terrain statuses
+            - Reset level vars
+            - Reset talk options or base convos
+            - Actually remove the level
+        '''
+
         from app.engine import (action, item_funcs, item_system, skill_system,
-                                supports)
+                                supports, target_system)
 
         supports.increment_end_chapter_supports()
 
         self.game_vars['_current_turnwheel_uses'] = \
             self.game_vars.get('_max_turnwheel_uses', -1)
 
-        for unit in self.unit_registry.values():
-            self.leave(unit)
+        if full:
+            for unit in self.unit_registry.values():
+                self.leave(unit)
         for unit in self.unit_registry.values():
             # Unit cleanup
             unit.is_dying = False
             if unit.traveler:
-                unit.traveler = None
-                action.execute(action.RemoveSkill(unit, 'Rescue'))
+                if full:
+                    unit.traveler = None
+                    action.RemoveSkill(unit, 'Rescue').execute()
+                else:
+                    droppee = self.get_unit(unit.traveler)
+                    pos = target_system.get_nearest_open_tile(droppee, unit.position)
+                    action.Drop(unit, droppee, pos).execute()
             unit.set_hp(1000)  # Set to full health
             unit.set_guard_gauge(0) # Remove all guard gauge
             if DB.constants.value('reset_mana'):
                 unit.set_mana(1000)  # Set to full mana
-            unit.position = None
+            if full:
+                unit.position = None
             unit.sprite.change_state('normal')
             unit.reset()
 
@@ -487,37 +529,39 @@ class GameState():
                 else:
                     logging.error("Unable to find owner %s in unit_registry", skill.owner_nid)
 
-        self.terrain_status_registry.clear()
-        self.region_registry.clear()
+        if full:
+            self.terrain_status_registry.clear()
+            self.region_registry.clear()
 
-        # Remove all generics
-        self.unit_registry = {k: v for (k, v) in self.unit_registry.items() if v.persistent}
+            # Remove all generics
+            self.unit_registry = {k: v for (k, v) in self.unit_registry.items() if v.persistent}
 
-        # Remove any skill that's not on a unit and does not have a parent_skill
-        for k, v in list(self.skill_registry.items()):
-            if v.parent_skill:
-                if v.parent_skill.owner_nid:
-                    if v.parent_skill.owner_nid not in self.unit_registry:
+            # Remove any skill that's not on a unit and does not have a parent_skill
+            for k, v in list(self.skill_registry.items()):
+                if v.parent_skill:
+                    if v.parent_skill.owner_nid:
+                        if v.parent_skill.owner_nid not in self.unit_registry:
+                            del self.skill_registry[k]
+                    else:
+                        del self.skill_registry[k]
+                elif v.owner_nid:  # Remove skills from units that no longer exist
+                    if v.owner_nid not in self.unit_registry:
                         del self.skill_registry[k]
                 else:
                     del self.skill_registry[k]
-            elif v.owner_nid:  # Remove skills from units that no longer exist
-                if v.owner_nid not in self.unit_registry:
-                    del self.skill_registry[k]
-            else:
-                del self.skill_registry[k]
 
-        # Remove any item that's not on a unit or in the convoy
-        for k, v in list(self.item_registry.items()):
-            if v.owner_nid:  # Remove items from units that no longer exist
-                if v.owner_nid not in self.unit_registry:
-                    del self.item_registry[k]
-            else:
-                for party in self.parties.values():
-                    if v in party.convoy or (v.parent_item and v.parent_item in party.convoy):
-                        break
-                else:  # No party ever found
-                    del self.item_registry[k]
+            # Remove any item that's not on a unit or in the convoy
+            for k, v in list(self.item_registry.items()):
+                if v.owner_nid:  # Remove items from units that no longer exist
+                    if v.owner_nid not in self.unit_registry:
+                        del self.item_registry[k]
+                else:
+                    for party in self.parties.values():
+                        if v in party.convoy or (v.parent_item and v.parent_item in party.convoy):
+                            break
+                    else:  # No party ever found
+                        del self.item_registry[k]
+        # End If
 
         # Handle player death
         for unit in self.unit_registry.values():
@@ -533,8 +577,12 @@ class GameState():
                         self.parties[unit.party].convoy.append(item)
 
         # Remove unnecessary information between levels
-        self.sweep()
-        self.current_level = None
+        if full:
+            self.sweep()
+            self.current_level = None
+        else:
+            self.turncount = 1
+            self.action_log.set_first_free_action()
 
     @property
     def level(self):
@@ -616,7 +664,7 @@ class GameState():
 
     @property
     def regions(self):
-        return list(self.level.regions.values())
+        return list(self.region_registry.values())
 
     def register_unit(self, unit):
         logging.debug("Registering unit %s as %s", unit, unit.nid)
@@ -658,7 +706,7 @@ class GameState():
         logging.debug("Registering terrain status %s", skill_uid)
         self.terrain_status_registry[key] = skill_uid
 
-    def register_region(self, region):
+    def register_region(self, region: RegionObject):
         logging.debug("Registering region %s", region.nid)
         self.region_registry[region.nid] = region
 
@@ -705,7 +753,7 @@ class GameState():
         return region
 
     @lru_cache(128)
-    def get_region_under_pos(self, pos: Tuple[int, int]) -> Region:
+    def get_region_under_pos(self, pos: Tuple[int, int]) -> RegionObject:
         if pos:
             for region in self.level.regions.values():
                 if region.contains(pos):
@@ -738,7 +786,10 @@ class GameState():
     def get_units_in_party(self, party=None) -> List[UnitObject]:
         if party is None:
             party = self.current_party
-        return [unit for unit in self.get_all_units_in_party() if not unit.dead]
+        party_order = self.parties[party].party_prep_manage_sort_order
+        party_units = [unit for unit in game.get_all_units_in_party(party) if not unit.dead]
+        party_units = sorted(party_units, key=lambda unit: party_order.index(unit.nid) if unit.nid in party_order else 999999)
+        return party_units
 
     def check_dead(self, nid):
         unit = self.get_unit(nid)
@@ -877,7 +928,7 @@ class GameState():
                     act = action.AddSkill(unit, skill_obj)
                     action.do(act)
 
-    def add_region_status(self, unit, region, test):
+    def add_region_status(self, unit: UnitObject, region: RegionObject, test: bool):
         from app.engine import action, item_funcs
         skill_uid = self.get_terrain_status(region.nid)
         skill_obj = self.get_skill(skill_uid)

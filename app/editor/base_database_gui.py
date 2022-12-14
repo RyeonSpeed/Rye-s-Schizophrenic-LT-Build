@@ -56,20 +56,20 @@ class Collection(QWidget):
         grid.addWidget(self.button, 2, 0, 1, 2)
 
         if self.window.allow_import_from_lt:
-            self.import_button = QPushButton("Import Legacy data file...")
+            self.import_button = QPushButton(_("Import Legacy data file..."))
             self.import_button.clicked.connect(self.window.import_data)
             grid.addWidget(self.import_button, 3, 0, 1, 2)
 
         if self.window.allow_import_from_csv:
-            self.csv_import = QPushButton("Import from csv data file...")
+            self.csv_import = QPushButton(_("Import from csv data file..."))
             self.csv_import.clicked.connect(self.window.import_csv)
             grid.addWidget(self.csv_import, 4, 0, 1, 2)
 
         if self.window.allow_copy_and_paste:
-            self.copy_button = QPushButton("Copy to clipboard")
+            self.copy_button = QPushButton(_("Copy to clipboard"))
             self.copy_button.clicked.connect(self.window.copy_data)
             grid.addWidget(self.copy_button, 5, 0)
-            self.paste_button = QPushButton("Paste from clipboard")
+            self.paste_button = QPushButton(_("Paste from clipboard"))
             self.paste_button.clicked.connect(self.window.paste_data)
             grid.addWidget(self.paste_button, 5, 1)
 
@@ -156,7 +156,7 @@ class DatabaseTab(QWidget):
         self._data = data
         self.title = title
 
-        self.setWindowTitle('%s Editor' % self.title)
+        self.setWindowTitle(_('%s Editor') % self.title)
         self.setStyleSheet("font: 10pt;")
         self.left_frame = collection_type(
             deletion_criteria, collection_model, self, button_text=button_text, view_type=view_type)

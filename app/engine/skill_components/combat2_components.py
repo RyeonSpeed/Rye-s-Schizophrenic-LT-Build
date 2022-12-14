@@ -6,6 +6,8 @@ from app.engine import action, skill_system, target_system
 from app.engine.game_state import game
 from app.engine.combat import playback as pb
 
+import logging
+
 class Miracle(SkillComponent):
     nid = 'miracle'
     desc = "Unit cannot be reduced below 1 HP"
@@ -179,7 +181,7 @@ class EvalMaximumRange(SkillComponent):
         try:
             return int(evaluate.evaluate(self.value, unit, local_args={'item': item}))
         except:
-            print("Couldn't evaluate %s conditional" % self.value)
+            logging.error("Couldn't evaluate %s conditional" % self.value)
         return 0
 
     def has_dynamic_range(sellf, unit):
@@ -322,6 +324,17 @@ class GainSkillAfterKill(SkillComponent):
             action.do(action.AddSkill(unit, self.value))
             action.do(action.TriggerCharge(unit, self.skill))
 
+class GainSkillAfterCombat(SkillComponent):
+    nid = 'gain_skill_after_combat'
+    desc = "Gives a skill to user after any combat"
+    tag = SkillTags.COMBAT2
+
+    expose = ComponentType.Skill
+
+    def end_combat(self, playback, unit, item, target, mode):
+        action.do(action.AddSkill(unit, self.value))
+        action.do(action.TriggerCharge(unit, self.skill))
+
 class GainSkillAfterAttacking(SkillComponent):
     nid = 'gain_skill_after_attack'
     desc = "Gives a skill to user after an attack"
@@ -347,6 +360,31 @@ class GainSkillAfterActiveKill(SkillComponent):
         if target and target.get_hp() <= 0 and any(p.main_attacker is unit for p in mark_playbacks):  # Unit is overall attacker
             action.do(action.AddSkill(unit, self.value))
             action.do(action.TriggerCharge(unit, self.skill))
+
+class GainSkillAfterTakeMiss(SkillComponent):
+    nid = 'gain_skill_after_take_miss'
+    desc = "Gain a skill immediately after an enemy misses you"
+    tag = SkillTags.COMBAT2
+
+    expose = ComponentType.Skill
+
+    def after_take_miss(self, actions, playback, unit, item, target, mode, attack_info):
+        actions.append(action.AddSkill(unit, self.value, unit))
+        actions.append(action.TriggerCharge(unit, self.skill))
+
+class GainSkillAfterTakeDamage(SkillComponent):
+    nid = 'gain_skill_after_take_damage'
+    desc = "Gain a skill immediately after an enemy damages you"
+    tag = SkillTags.COMBAT2
+
+    expose = ComponentType.Skill
+
+    def after_take_hit(self, actions, playback, unit, item, target, mode, attack_info):
+        for act in actions:
+            if isinstance(act, action.ChangeHP) and act.num < 0 and act.unit == unit:
+                actions.append(action.AddSkill(unit, self.value, unit))
+                actions.append(action.TriggerCharge(unit, self.skill))
+                return
 
 class DelayInitiativeOrder(SkillComponent):
     nid = 'delay_initiative_order'

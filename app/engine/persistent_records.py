@@ -37,6 +37,14 @@ class PersistentRecordManager(Data):
         else:
             logging.info("Record with nid of %s doesn't exist")
 
+    def replace(self, nid, value):
+        if nid in self.keys():
+            record = super().get(nid)
+            record.value = value
+        else:
+            self.append(PersistentRecord(nid, value))
+        persistent_data.serialize(self.location, self.save())
+
     def delete(self, nid):
         if nid in self.keys():
             self.remove_key(nid)

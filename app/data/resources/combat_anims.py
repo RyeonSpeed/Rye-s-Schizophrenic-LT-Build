@@ -145,16 +145,22 @@ class CombatCatalog(ManifestCatalog):
                 weapon_anim.set_full_path(os.path.join(loc, short_path))
             self.append(new_combat_anim)
 
-    def save_image(self, loc, combat_anim):
+    def save_image(self, loc, combat_anim, temp=False):
         for weapon_anim in combat_anim.weapon_anims:
             short_path = "%s-%s.png" % (combat_anim.nid, weapon_anim.nid)
             new_full_path = os.path.join(loc, short_path)
             if not weapon_anim.full_path:
                 weapon_anim.pixmap.save(new_full_path, "PNG")
-                weapon_anim.set_full_path(new_full_path)
+                if temp:
+                    pass
+                else:
+                    weapon_anim.set_full_path(new_full_path)
             elif os.path.abspath(weapon_anim.full_path) != os.path.abspath(new_full_path):
                 self.make_copy(weapon_anim.full_path, new_full_path)
-                weapon_anim.set_full_path(new_full_path)
+                if temp:
+                    pass
+                else:
+                    weapon_anim.set_full_path(new_full_path)
 
     def save(self, loc):
         for combat_anim in self:
@@ -182,14 +188,20 @@ class CombatEffectCatalog(ManifestCatalog):
             new_effect_anim.set_full_path(full_path)
             self.append(new_effect_anim)
 
-    def save_image(self, loc, effect_anim):
+    def save_image(self, loc, effect_anim, temp=False):
         new_full_path = os.path.join(loc, '%s.png' % effect_anim.nid)
         if not effect_anim.full_path:
             effect_anim.pixmap.save(new_full_path, "PNG")
-            effect_anim.set_full_path(new_full_path)
+            if temp:
+                pass
+            else:
+                effect_anim.set_full_path(new_full_path)
         elif os.path.abspath(effect_anim.full_path) != os.path.abspath(new_full_path):
             self.make_copy(effect_anim.full_path, new_full_path)
-            effect_anim.set_full_path(new_full_path)
+            if temp:
+                pass
+            else:            
+                effect_anim.set_full_path(new_full_path)
 
     def save(self, loc):
         for effect_anim in self:

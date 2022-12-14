@@ -6,12 +6,14 @@ import os
 import re
 import shutil
 from typing import Any, Dict, List
+from app.data.category import Categories, CategorizedCatalog
 
 from app.data.database import (ai, constants, difficulty_modes, equations, factions,
                       items, klass, levels, lore, mcost, minimap, overworld,
                       overworld_node, parties, raw_data, skills, stats, varslot,
                       supports, tags, terrain, translations, units, weapons)
 from app.events import event_prefab
+from app.utilities.typing import NID
 
 
 class Database(object):
@@ -70,14 +72,18 @@ class Database(object):
             json.dump(value, serialize_file, indent=4)
         os.replace(temp_save_loc, save_loc)
 
-    def jsonsort(self, jsonobj):
-        try:
-            if isinstance(jsonobj, list):
-                if all(['_orderkey' in obj.keys() for obj in jsonobj]):
-                    return sorted(jsonobj, key=lambda obj: obj['_orderkey'])
-            return jsonobj
-        except:
-            return jsonobj
+    def load_categories(self, data_dir: str, key: str) -> Dict[NID, List[str]]:
+        full_data_dir = os.path.join(data_dir, key)
+        categories = Categories()
+        if os.path.exists(full_data_dir):
+            category_path = os.path.join(full_data_dir, '.categories')
+            try:
+                if os.path.exists(category_path):
+                    with open(category_path) as load_file:
+                        categories = Categories.load(json.load(load_file))
+            except:
+                logging.error("category file %s not found or corrupted" % category_path)
+        return categories
 
     def json_load(self, data_dir: str, key: str) -> Dict | List:
         if os.path.exists(os.path.join(data_dir, key)): # data type is a directory, browse within
@@ -97,7 +103,7 @@ class Database(object):
                     orderkeys = json.load(load_file)
                     return sorted(save_data, key=lambda data: orderkeys.get(data['fname'], 999999))
             else: # using order keys per object, or no order keys at all
-                return self.jsonsort(save_data)
+                return save_data
         else:
             save_loc = os.path.join(data_dir, key + '.json')
             if os.path.exists(save_loc):
@@ -171,6 +177,10 @@ class Database(object):
                     self.json_save(save_loc, [subvalue])
                 self.json_save(os.path.join(save_dir, '.orderkeys'), orderkeys)
 
+        for key in self.save_data_types:
+            catalog = getattr(self, key)
+            if isinstance(catalog, CategorizedCatalog):
+                self.json_save(os.path.join(data_dir, key, '.categories'), catalog.categories.save())
         end = time.perf_counter() * 1000
         logging.warning("Total Time Taken for Database: %s ms" % (end - start))
         logging.warning("Done serializing!")
@@ -188,6 +198,17 @@ class Database(object):
             save_obj[key] = self.json_load(data_dir, key)
 
         self.restore(save_obj)
+
+        # load categories
+        for key in self.save_data_types:
+            key_categories = self.load_categories(data_dir, key)
+            catalog = getattr(self, key)
+            if hasattr(catalog, 'categories'):
+                getattr(self, key).categories = key_categories
+
+        # TODO -- This is a shitty fix that will be superseded
+        from app.engine import equations
+        equations.clear()
 
         end = time.perf_counter() * 1000
 

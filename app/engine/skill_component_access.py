@@ -2,11 +2,11 @@ from functools import lru_cache
 from app.utilities.data import Data
 from app.data.database.components import ComponentType
 from app.data.database.skill_components import SkillComponent, SkillTags
-from app.data.resources.resources import RESOURCES
 
 @lru_cache(1)
 def get_cached_skill_components(proj_dir: str):
     from app.engine import skill_components
+    from app.data.resources.resources import RESOURCES
     if RESOURCES.has_loaded_custom_components():
         # Necessary for get_skill_components to find the item component subclasses
         # defined here

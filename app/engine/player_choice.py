@@ -8,6 +8,9 @@ from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
 from app.utilities.enums import Orientation
 
+from app.engine import item_funcs, help_menu, item_system
+from app.constants import WINWIDTH, WINHEIGHT
+
 class PlayerChoiceState(MapState):
     name = 'player_choice'
     transparent = True
@@ -41,6 +44,19 @@ class PlayerChoiceState(MapState):
 
         self.made_choice = False
 
+        self.info_flag = False   # For now putting info stuff here because innards of UIF are too arcane.
+        self.create_help_boxes(options_list)
+
+    def create_help_boxes(self, options_list):
+        self.help_boxes = []
+        if self.data_type == 'type_base_item':
+            items = item_funcs.create_items(None, options_list)
+            for item in items:
+                if item_system.is_weapon(None, item) or item_system.is_spell(None, item):
+                    self.help_boxes.append(help_menu.ItemHelpDialog(item))
+                else:
+                    self.help_boxes.append(help_menu.HelpDialog(item.desc))
+
     def choose(self, selection):
         action.do(action.SetGameVar(self.nid, selection))
         action.do(action.SetGameVar('_last_choice', selection))
@@ -62,6 +78,7 @@ class PlayerChoiceState(MapState):
         elif(event == 'UP' and (self.orientation == 'vertical' or self.size[1] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_up()
+
         elif event == 'BACK':
             if self.should_persist or self.backable:
                 if self.backable:
@@ -70,6 +87,7 @@ class PlayerChoiceState(MapState):
                 game.state.back()
             else:
                 get_sound_thread().play_sfx('Error')
+
         elif event == 'SELECT':
             get_sound_thread().play_sfx('Select 1')
             selection = self.menu.get_selected()
@@ -82,6 +100,15 @@ class PlayerChoiceState(MapState):
                 if not valid_events:
                     logging.error("Couldn't find any valid events matching name %s" % self.event_on_choose)
             return 'repeat'
+
+        elif event == 'INFO':
+            if self.info_flag:
+                get_sound_thread().play_sfx('Info Out')
+                self.info_flag = False
+            elif self.help_boxes:
+                get_sound_thread().play_sfx('Info In')
+                self.info_flag = True
+
         selection = self.menu.get_selected()
         game.game_vars[self.nid + '_choice_hover'] = selection
 
@@ -96,4 +123,14 @@ class PlayerChoiceState(MapState):
         if not self.no_cursor:
             focus = 1 if game.state.current_state() == self else 2
         self.menu.draw(surf, focus)
+
+        if self.info_flag:
+            idx = self.menu.table.selected_index[1]
+            help_box = self.help_boxes[idx]
+            if not help_box:
+                pass
+            else:
+                half = len(self.help_boxes) / 2
+                help_box.draw(surf, (WINWIDTH//4, int(WINHEIGHT//2 + (idx - half) * 16)))
+
         return surf

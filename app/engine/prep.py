@@ -162,8 +162,8 @@ class PrepPickUnitsState(State):
         stuck_units = [unit for unit in player_units if unit.position and not game.check_for_region(unit.position, 'formation')]
         unstuck_units = [unit for unit in player_units if unit not in stuck_units]
 
-        units = stuck_units + sorted(unstuck_units, key=lambda unit: bool(unit.position), reverse=True)
-        self.menu = menus.Table(None, units, (6, 2), (110, 24))
+        self.units = stuck_units + sorted(unstuck_units, key=lambda unit: bool(unit.position), reverse=True)
+        self.menu = menus.Table(None, self.units, (6, 2), (110, 24))
         self.menu.set_mode('position')
 
         self.bg = background.create_background('rune_background')
@@ -171,6 +171,12 @@ class PrepPickUnitsState(State):
 
         game.state.change('transition_in')
         return 'repeat'
+
+    def order_party(self):
+        '''Run on exiting the prep menu. Saves the order for future levels with the party.
+        Saved order is unique to current party - will not effect other parties'''
+        party = game.parties[game.current_party]
+        party.party_prep_manage_sort_order = [u.nid for u in sorted(self.units, key=lambda unit: bool(unit.position), reverse=True)]
 
     def take_input(self, event):
         first_push = self.fluid.update()
@@ -218,6 +224,7 @@ class PrepPickUnitsState(State):
                     get_sound_thread().play_sfx('Select 4')
 
         elif event == 'BACK':
+            self.order_party()
             get_sound_thread().play_sfx('Select 4')
             game.state.change('transition_pop')
 

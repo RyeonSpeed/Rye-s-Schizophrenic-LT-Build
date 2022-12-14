@@ -314,7 +314,7 @@ class IntegerList(Validator):
         text = text.split(',')
         for t in text:
             if not str_utils.is_int(t):
-                return None
+                return None                
         return text
 
 class WholeNumber(Validator):
@@ -440,7 +440,7 @@ class TagList(Validator):
         tex = text.split(',')
         for t in tex:
             if t not in self._db.tags.keys():
-                return None
+                return None                
         return text
 
     def valid_entries(self, level: NID = None, text: str = None) -> List[Tuple[str, NID]]:
@@ -950,7 +950,7 @@ class RegionType(OptionValidator):
     valid = ['normal', 'event', 'status', 'formation', 'time']
 
 class Weather(OptionValidator):
-    valid = ["rain", "sand", "snow", "fire", "light", "dark", "smoke", "night", "sunset", "event_tile"]
+    valid = ["rain", "sand", "snow", "fire", "light", "purple", "dark", "smoke", "night", "sunset", "event_tile", "switch_tile"]
 
 class Align(OptionValidator):
     valid = [align.value for align in Alignments]
@@ -1234,8 +1234,8 @@ class OverworldNID(Validator):
         return valids
 
 class OverworldLocation(Validator):
-    desc = "accepts the nid of an overworld location/node, or a coordinate x, y"
-    decimal_converter = re.compile(r'[^\d.]+')
+    desc = "accepts the nid of an overworld location/node, or a display coordinate x, y"
+    decimal_converter = re.compile(r'[^\d.-]+')
 
     def validate(self, text, level):
         try:

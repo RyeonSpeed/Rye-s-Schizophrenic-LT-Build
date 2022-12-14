@@ -45,17 +45,17 @@ class HealthBar():
                 self.transition_flag = False
 
 class CombatHealthBar(HealthBar):
-    full_hp_blip = SPRITES.get('full_hp_blip')
-    empty_hp_blip = SPRITES.get('empty_hp_blip')
-    overflow_hp_blip = SPRITES.get('overflow_hp_blip')
-    overflowpurple_hp_blip = SPRITES.get('overflowpurple_hp_blip')
-    end_hp_blip = engine.subsurface(full_hp_blip, (0, 0, 1, full_hp_blip.get_height()))
     colors = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
     speed = utils.frames2ms(2)
     time_for_change_min = 0
 
     def __init__(self, unit):
         super().__init__(unit)
+        self.full_hp_blip = SPRITES.get('full_hp_blip')
+        self.empty_hp_blip = SPRITES.get('empty_hp_blip')
+        self.overflow_hp_blip = SPRITES.get('overflow_hp_blip')
+        self.overflowpurple_hp_blip = SPRITES.get('overflowpurple_hp_blip')
+        self.end_hp_blip = engine.subsurface(self.full_hp_blip, (0, 0, 1, self.full_hp_blip.get_height()))
         self.color_tick = 0
         self.heal_sound_update = 0
 

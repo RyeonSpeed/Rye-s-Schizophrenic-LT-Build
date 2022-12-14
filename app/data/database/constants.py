@@ -14,7 +14,7 @@ class ConstantType(Enum):
     MUSIC = 5
 
 class Constant(object):
-    def __init__(self, nid: NID, name: str='', attr: ConstantType | List[str] = ConstantType.BOOL, default_value: Any=False, tag='other'):
+    def __init__(self, nid: NID, name: str = '', attr: ConstantType | List[str] = ConstantType.BOOL, default_value: Any=False, tag='other'):
         self.nid: NID = nid
         self.name: str = name
         self.attr: ConstantType | List[str] = attr
@@ -66,10 +66,12 @@ constants = ConstantCatalog([
     Constant('rd_bexp_lvl', "Always gain 3 stat-ups when using Bonus Exp.", ConstantType.BOOL, False, 'features'),
     Constant('support', "Supports", ConstantType.BOOL, False, 'features'),
     Constant('overworld', "Overworld", ConstantType.BOOL, False, 'features'),
+    Constant('overworld_start', "Start in Overworld", ConstantType.BOOL, False, 'features'),
     Constant('unit_notes', "Unit Notes", ConstantType.BOOL, False, 'features'),
     Constant('crit', "Allow Criticals", ConstantType.BOOL, True, 'features'),
     Constant('trade', "Can trade items on map", ConstantType.BOOL, True, 'features'),
     Constant('growth_info', "Can view unit growths in Info Menu", ConstantType.BOOL, True, 'features'),
+    Constant('glancing_hit', "Chance (%) to score a glancing hit", ConstantType.INT, 0, 'features'),
     Constant('backpropagate_difficulty_growths', "Apply difficulty bonus growths to past levels", ConstantType.BOOL, True, 'features'),
     Constant('traveler_time_decrement', "Timed skills applied to traveler units will decrease.", ConstantType.BOOL, False, 'features'),
     Constant('line_of_sight', "Force items and abilities to obey line of sight rules", ConstantType.BOOL, False, 'line_of_sight'),
@@ -80,6 +82,7 @@ constants = ConstantCatalog([
     Constant('unit_stats_as_bonus', "Add class stats to non-generic base stats", ConstantType.BOOL, False, 'leveling'),
     Constant('enemy_leveling', "Method for autoleveling generic units", [growth.value for growth in GrowthOption if growth != GrowthOption.PLAYER_CHOICE] + ["Match"], "Match", 'leveling'),
     Constant('auto_promote', "Units will promote automatically upon reaching max level", ConstantType.BOOL, False, 'leveling'),
+    Constant('promote_skill_inheritance', "Promoted units will have the skills of their previous classes", ConstantType.BOOL, True, 'leveling'),
     Constant('promote_level_reset', "Promotion resets level back to 1", ConstantType.BOOL, True, 'leveling'),
     Constant('class_change_level_reset', "Class Change resets level back to 1", ConstantType.BOOL, False, 'leveling'),
     Constant('negative_growths', "Negative growth rates will reduce stats", ConstantType.BOOL, True, 'leveling'),
@@ -131,5 +134,5 @@ constants = ConstantCatalog([
     Constant('heal_offset', "Modifies expected healing", ConstantType.INT, 11, 'exp'),
     Constant('heal_min', "Min exp gained for healing", ConstantType.INT, 11, 'exp'),
     # Hidden constants below
-    Constant('dark_sprites', "Use darker map sprites", ConstantType.BOOL, False, 'hidden'),
-    Constant('glancing_hit', "Chance to score a glancing hit", ConstantType.BOOL, False, 'hidden')])
+    Constant('dark_sprites', "Use darker map sprites", ConstantType.BOOL, False, 'hidden')
+])

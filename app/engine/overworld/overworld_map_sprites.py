@@ -53,7 +53,7 @@ class OverworldNodeSprite():
         self.load_sprites()
 
     def load_sprites(self):
-        if not self.map_icon.image:
+        if self.map_icon and not self.map_icon.image:
             self.map_icon.image = engine.image_load(self.map_icon.full_path)
 
     def set_transition(self, new_state):

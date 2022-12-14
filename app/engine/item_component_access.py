@@ -1,8 +1,10 @@
 from functools import lru_cache
-from app.utilities.data import Data
+from typing import List, Type
+
 from app.data.database.components import ComponentType
 from app.data.database.item_components import ItemComponent, ItemTags
-from app.data.resources.resources import RESOURCES
+from app.utilities.data import Data
+
 
 @lru_cache(1)
 def get_cached_item_components(proj_dir: str):
@@ -10,6 +12,7 @@ def get_cached_item_components(proj_dir: str):
     # item components defined in item_components folder
     from app.engine import item_components
 
+    from app.data.resources.resources import RESOURCES
     if RESOURCES.has_loaded_custom_components():
         # Necessary for get_item_components to find the item component subclasses
         # defined here
@@ -20,11 +23,11 @@ def get_cached_item_components(proj_dir: str):
     subclasses = sorted(subclasses, key=lambda x: list(ItemTags).index(x.tag) if x.tag in list(ItemTags) else 100)
     return Data(subclasses)
 
-def get_item_components():
+def get_item_components() -> Data[Type[ItemComponent]]:
     from app.data.database.database import DB
     return get_cached_item_components(DB.current_proj_dir)
 
-def get_item_tags():
+def get_item_tags() -> List[ItemTags]:
     return list(ItemTags)
 
 def get_component(nid):

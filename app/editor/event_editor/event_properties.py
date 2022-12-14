@@ -323,7 +323,7 @@ class CodeEditor(QPlainTextEdit):
                 arg_idx = line.count(';', 0, cursor_pos)
                 if arg_idx != len(hint_words) - 1:
                     hint_words[arg_idx] = '<b>' + hint_words[arg_idx] + '</b>'
-                    hint_desc = validator.__name__ + ' ' + validator().desc
+                    hint_desc = validator.__name__ + ' ' + str(validator().desc)
                 elif cursor_pos > 0 and command.flags:
                     hint_words[-1] = '<b>' + hint_words[-1] + '</b>'
                     hint_desc = 'Must be one of (`' + str.join('`,`', flags) + '`)'
@@ -1216,13 +1216,13 @@ class ShowCommandsDialog(QDialog):
                     else:
                         already.append(keyword)
                     validator = event_validators.get(keyword)
-                    if validator and validator.desc:
-                        text += '_%s_ %s\n\n' % (keyword, validator.desc)
+                    if validator and validator().desc:
+                        text += '_%s_ %s\n\n' % (keyword, str(validator().desc))
                     else:
                         text += '_%s_ %s\n\n' % (keyword, "")
                 if command.desc:
                     text += " --- \n\n"
-                text += command.desc
+                text += str(command.desc)
                 self.desc_box.setMarkdown(text)
             else:
                 self.desc_box.setMarkdown(command + ' Section')
@@ -1236,7 +1236,7 @@ class EventCommandModel(CollectionModel):
 
     def get_text(self, command) -> str:
         full_text = command.nid + ';'.join(command.keywords) + ';'.join(command.optional_keywords) + \
-            ';'.join(command.flags) + ':' + command.desc
+            ';'.join(command.flags) + ':' + str(command.desc)
         return full_text
 
     def data(self, index, role):

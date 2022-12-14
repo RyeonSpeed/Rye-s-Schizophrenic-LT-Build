@@ -510,6 +510,7 @@ class AnimationCombat(BaseCombat, MockCombat):
         else:
             font = FONT['text-brown']
         font.blit_center(self.left.name, self.left_name, (30, 8))
+        # Partner name tag
         if self.lp_battle_anim:
             if self.left.strike_partner:
                 ln = self.left.strike_partner.name
@@ -532,7 +533,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 font = FONT['narrow-brown']
             else:
                 font = FONT['text-brown']
-            font.blit_center(name, self.left_bar, (91, 5 + (8 if crit_flag else 0)))
+            font.blit_center(name, self.left_bar, (WINWIDTH//4 + 31, 5 + (8 if crit_flag else 0)))
 
         # Right
         right_color = utils.get_team_color(self.right.team)
@@ -565,7 +566,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 font = FONT['narrow-brown']
             else:
                 font = FONT['text-brown']
-            font.blit_center(name, self.right_bar, (47, 5 + (8 if crit_flag else 0)))
+            font.blit_center(name, self.right_bar, (WINWIDTH//4 - 13, 5 + (8 if crit_flag else 0)))
 
         # Platforms
         if self.left.position:
@@ -713,7 +714,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 ap_crit = 0
             ap_stats = ap_hit, ap_mt, ap_crit
         else:
-            ap_stats = 0, 0, 0
+            ap_stats = 0, 0, 0 
 
         if self.def_item and combat_calcs.can_counterattack(self.attacker, self.main_item, self.defender, self.def_item):
             d_hit = combat_calcs.compute_hit(self.defender, self.attacker, self.def_item, self.main_item, 'defense', self.state_machine.get_defense_info())
@@ -1001,7 +1002,7 @@ class AnimationCombat(BaseCombat, MockCombat):
             self.draw_item(right_bar, self.right_item, self.left_item, self.right, self.left, (1, 2 + crit))
         # Stats
         self.draw_stats(left_bar, self.left_stats, (42, 0))
-        self.draw_stats(right_bar, self.right_stats, (WINWIDTH // 2 - 3, 0))
+        self.draw_stats(right_bar, self.right_stats, (WINWIDTH//2 - 3, 0))
 
         bar_trans = 52
         left_pos_x = -3 + self.shake_offset[0]

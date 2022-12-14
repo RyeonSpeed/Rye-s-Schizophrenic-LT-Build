@@ -35,6 +35,7 @@ def test_play_current(level_nid):
     try:
         driver.start(title, from_editor=True)
         game = game_state.start_level(level_nid)
+        game.game_vars['_chapter_test'] = True
         driver.run(game)
     except Exception as e:
         handle_exception(e)

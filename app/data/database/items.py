@@ -1,7 +1,20 @@
-from app.utilities.data import Data, Prefab
+from dataclasses import field
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from app.data.category import Categories, CategorizedCatalog
 import app.engine.item_component_access as ICA
+from app.utilities.data import Data, Prefab
+from app.data.database.components import Component
+from app.utilities.typing import NID
+
 
 class ItemPrefab(Prefab):
+    nid: NID
+    name: str
+    desc: str
+    components: Data[Component]
+    icon_nid: Optional[NID]
+    icon_index: Tuple[int, int]
+
     def __init__(self, nid, name, desc, icon_nid=None, icon_index=(0, 0), components=None):
         self.nid = nid
         self.name = name
@@ -59,5 +72,5 @@ class ItemPrefab(Prefab):
                 all_components)
         return i
 
-class ItemCatalog(Data[ItemPrefab]):
+class ItemCatalog(CategorizedCatalog[ItemPrefab]):
     datatype = ItemPrefab

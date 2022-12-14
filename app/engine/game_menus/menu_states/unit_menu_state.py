@@ -9,7 +9,7 @@ from app.engine.objects.overworld.overworld_entity import OverworldEntityTypes
 from app.engine.objects.unit import UnitObject
 from app.engine.sound import get_sound_thread
 from app.engine.state import State
-from app.utilities.enums import Direction
+from app.utilities.direction import Direction
 
 
 class UnitMenuState(State):

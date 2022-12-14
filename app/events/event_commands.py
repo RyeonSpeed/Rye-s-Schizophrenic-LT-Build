@@ -460,8 +460,8 @@ NOTE: You can set the `__default` speak style, which will automatically apply to
 """
 
     keywords = ['Style']
-    optional_keywords = ['Speaker', 'TextPosition', 'Width', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'NameTagBg']
-    keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'Sprite', 'PositiveInteger', 'Bool', 'MessageTail', 'Sprite']
+    optional_keywords = ['Speaker', 'TextPosition', 'Width', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
+    keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'Sprite', 'PositiveInteger', 'Bool', 'MessageTail', 'Float', 'Sprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit']
 
 class Speak(EventCommand):
@@ -498,8 +498,8 @@ Extra flags:
         """
 
     keywords = ['Speaker', 'Text']
-    optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'NameTagBg']
-    keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'Sprite', 'PositiveInteger', 'Bool', 'MessageTail', 'Sprite']
+    optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
+    keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'Sprite', 'PositiveInteger', 'Bool', 'MessageTail', 'Float', 'Sprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block']
 
 class Unhold(EventCommand):
@@ -788,6 +788,30 @@ class MainMenu(EventCommand):
     desc = \
         """
 Returns the player to the main menu
+        """
+
+class ForceChapterCleanUp(EventCommand):
+    nid = 'force_chapter_clean_up'
+    tag = Tags.LEVEL_VARS
+
+    desc = \
+        """
+Cleans up the chapter as if the chapter were about to end
+What does it do?:
+    - Increments End Chapter Supports
+    - Resets all units, items, and skills
+    - Resurrects units if you are in casual mode
+    - Moves dead unit items to the convoy
+    - Resets the turnwheel
+    - Sets turncount to 1
+Unlike a true chapter clean up, it doesn't:
+    - Remove any units from the field
+    - Remove all generic units from memory
+    - Remove all now unused items and skills from memory
+    - Remove any regions or terrain statuses
+    - Reset level vars
+    - Reset talk options or base convos
+    - Actually remove the level
         """
 
 class SkipSave(EventCommand):
@@ -1544,7 +1568,7 @@ class RemoveSkill(EventCommand):
 
     desc = \
         """
-*GlobalUnit* loses *Skill*. If the *no_banner* flag is set, the player will not be informed of this.
+*GlobalUnit* loses *Skill* up to *Count* times. If *Count* is not set, all instances of skill are removed. If the *no_banner* flag is set, the player will not be informed of this.
         """
 
     keywords = ["GlobalUnit", "Skill"]
@@ -1937,6 +1961,17 @@ Removes the region specified by *Region*.
         """
 
     keywords = ["Region"]
+
+class RemoveGenericsFromRegion(EventCommand):
+    nid = 'remove_generics_from_region'
+    tag = Tags.REGION
+
+    desc = \
+        """
+Removes all generics in the given region.
+        """
+
+    keywords = ["Nid"]
 
 class ShowLayer(EventCommand):
     nid = 'show_layer'
@@ -2713,6 +2748,13 @@ class UpdateRecord(EventCommand):
     nid = 'update_record'
     tag = Tags.PERSISTENT_RECORDS
     desc = ('Updates a persistent record with a new value. Does nothing if nid is not present')
+
+    keywords = ['Nid', 'Expression']
+
+class ReplaceRecord(EventCommand):
+    nid = 'replace_record'
+    tag = Tags.PERSISTENT_RECORDS
+    desc = ("Updates a persistent record with a new value. Creates it first if it doesn't already exist")
 
     keywords = ['Nid', 'Expression']
 

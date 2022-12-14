@@ -60,12 +60,12 @@ class MainExpEquation(QWidget):
         self.window = parent
         self._data = data
 
-        label = QLabel('Combat Experience Equation:', self)
+        label = QLabel(_('Combat Experience Equation:'), self)
         label.setAlignment(Qt.AlignBottom)
         label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
         exp_calc_type = ExpCalcType(self._data.get('exp_formula').value).name
-        self.exp_calc_type_selector = PropertyBox("Exp Formula Type", ComboBox, self.window)
+        self.exp_calc_type_selector = PropertyBox(_("Exp Formula Type"), ComboBox, self.window)
         objs = [e.name for e in ExpCalcType]
         self.exp_calc_type_selector.edit.addItems(objs)
         self.exp_calc_type_selector.edit.setCurrentText(exp_calc_type)
@@ -122,7 +122,7 @@ class MainExpEquation(QWidget):
         self.exp_offset.valueChanged.connect(self.window.parameters_changed)
 
         label1 = QLabel(' * e^(', self)
-        label2 = QLabel(' * (<b>Level Difference</b> + ', self)
+        label2 = QLabel(_(' * (<b>Level Difference</b> + '), self)
         label3 = QLabel('))', self)
 
         standard_exp_frame = QFrame()
@@ -172,15 +172,15 @@ class MainExpEquation(QWidget):
         self.gexp_intercept.valueChanged.connect(self.window.parameters_changed)
 
         left_layout = QFormLayout()
-        left_layout.addRow('Minimum exp from hit: <b>(MinExp)</b>', self.gexp_min)
-        left_layout.addRow('Maximum exp from hit: <b>(MaxExp)</b>', self.gexp_max)
-        left_layout.addRow('How quickly exp rises or drops off from par: <b>(Slope)</b>', self.gexp_slope)
-        left_layout.addRow('Par exp earned in combat between same level units: <b>(Intercept)</b>', self.gexp_intercept)
+        left_layout.addRow(_('Minimum exp from hit: <b>(MinExp)</b>'), self.gexp_min)
+        left_layout.addRow(_('Maximum exp from hit: <b>(MaxExp)</b>'), self.gexp_max)
+        left_layout.addRow(_('How quickly exp rises or drops off from par: <b>(Slope)</b>'), self.gexp_slope)
+        left_layout.addRow(_('Par exp earned in combat between same level units: <b>(Intercept)</b>'), self.gexp_intercept)
 
         right_layout = QVBoxLayout()
-        magLabel = QLabel('<b>Magnitude</b> = <b>MaxExp</b> - <b>MinExp</b>', self)
-        offsetLabel = QLabel('<b>Offset</b> = log(-log((<b>Intercept</b> - <b>MinExp</b>) / <b>Magnitude</b>)) / <b>Slope</b>')
-        gompertzLabel = QLabel('<b>Exp</b> = <b>MinExp</b> + <b>Magnitude</b> * e ^ (-e ^ (<b>-Slope</b> * (<b>Level Diff</b> - <b>Offset</b>)))')
+        magLabel = QLabel(_('<b>Magnitude</b> = <b>MaxExp</b> - <b>MinExp</b>'), self)
+        offsetLabel = QLabel(_('<b>Offset</b> = log(-log((<b>Intercept</b> - <b>MinExp</b>) / <b>Magnitude</b>)) / <b>Slope</b>'))
+        gompertzLabel = QLabel(_('<b>Exp</b> = <b>MinExp</b> + <b>Magnitude</b> * e ^ (-e ^ (<b>-Slope</b> * (<b>Level Diff</b> - <b>Offset</b>)))'))
         right_layout.addWidget(magLabel)
         right_layout.addWidget(offsetLabel)
         right_layout.addWidget(gompertzLabel)
@@ -197,7 +197,7 @@ class MainExpEquation(QWidget):
 class DisplayExpResults(QWidget):
     @classmethod
     def create(cls, data, parent=None):
-        text = 'A level ', ' unit fights a level ', ' unit'
+        text = _('A level '), _(' unit fights a level '), _(' unit')
         return cls(data, text, parent)
 
     def __init__(self, data, text, parent=None):
@@ -223,7 +223,7 @@ class DisplayExpResults(QWidget):
         self.label2 = QLabel(text[1], self)
         self.label3 = QLabel(text[2], self)
 
-        self.label4 = QLabel('Experience Gained: ', self)
+        self.label4 = QLabel(_('Experience Gained: '), self)
         self.label4.setAlignment(Qt.AlignBottom)
         self.label4.setAlignment(Qt.AlignRight)
 
@@ -472,7 +472,7 @@ class ConstantDatabase(DatabaseTab):
                        "How should enemy units get their automatic level ups")
         battle_section = self.create_section(battle_constants, battle_info)
         battle_section.setTitle("Battle Constants")
-        misc_constants = ('game_nid', 'title', 'num_save_slots', 'sell_modifier')
+        misc_constants = ('game_nid', 'title', 'num_save_slots', 'sell_modifier', 'glancing_hit')
         misc_section = self.create_section(misc_constants)
         misc_section.setTitle("Miscellaneous Constants")
         music_constants = ('music_main', 'music_promotion', 'music_class_change')
@@ -531,13 +531,13 @@ class ConstantDatabase(DatabaseTab):
                 continue
             if constant.attr == ConstantType.INT:
                 box = PropertyBox(constant.name, QSpinBox, self)
-                box.edit.setRange(0, 10)
+                box.edit.setRange(0, 100)
                 box.edit.setValue(constant.value)
                 box.edit.setAlignment(Qt.AlignRight)
                 box.edit.valueChanged.connect(constant.set_value)
             elif constant.attr == ConstantType.FLOAT:
                 box = PropertyBox(constant.name, QDoubleSpinBox, self)
-                box.edit.setRange(0, 10)
+                box.edit.setRange(0, 100)
                 box.edit.setValue(constant.value)
                 box.edit.setDecimals(1)
                 box.edit.setAlignment(Qt.AlignRight)

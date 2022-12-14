@@ -1,5 +1,11 @@
 from typing import Tuple
 
+try:
+    from typing_extensions import Protocol
+except ModuleNotFoundError:
+    Protocol = object
+    print("You are missing the `typing-extensions` module.\nTry running `pip install -r requirements_editor.txt`")
+
 Point = Tuple[int, int]
 Segment = Tuple[Point, Point]
 

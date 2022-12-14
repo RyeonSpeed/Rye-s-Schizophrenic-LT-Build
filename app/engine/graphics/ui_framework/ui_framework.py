@@ -850,7 +850,7 @@ class UIComponent():
         except:
             pass
 
-        if name in CACHED_ATTRIBUTES and not name in UNSETTABLE_ATTRIBUTES:
+        if name in CACHED_ATTRIBUTES and name not in UNSETTABLE_ATTRIBUTES:
             self.props.__setattr__(name, value)
         elif name in UNSETTABLE_ATTRIBUTES:
             return

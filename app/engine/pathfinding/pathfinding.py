@@ -1,14 +1,12 @@
 import heapq
-from typing import Tuple
-
-from app.utilities import utils
+from typing import Tuple, Callable
 
 class Djikstra():
     __slots__ = ['open', 'closed', 'cells', 'bounds', 'height', 'start_pos',
-                 'start_cell', 'unit_team', 'pass_through', 'ai_fog_of_war', 'diagonal']
+                 'start_cell', 'unit_team', 'diagonal']
 
     def __init__(self, start_pos: tuple, grid: list, bounds: Tuple[int, int, int, int],
-                 height: int, unit_team: str, pass_through: bool, ai_fog_of_war: bool, diagonal: bool = False):
+                 height: int, unit_team: str, diagonal: bool = False):
         self.open = []
         heapq.heapify(self.open)
         self.closed = set()
@@ -20,8 +18,6 @@ class Djikstra():
         self.start_pos = start_pos
         self.start_cell = self.get_cell(start_pos[0], start_pos[1])
         self.unit_team = unit_team
-        self.pass_through = pass_through
-        self.ai_fog_of_war = ai_fog_of_war
 
     def reset_grid(self):
         for cell in self.cells:
@@ -52,10 +48,10 @@ class Djikstra():
         y = cell.y
         cells = []
         for i in range(-1, 2):
-          for j in range(-1, 2):
-            nx, ny = (x + i, y + j)
-            if self.bounds[0] <= nx <= self.bounds[2] and self.bounds[1] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
-                cells.append(self.get_cell(nx, ny))
+            for j in range(-1, 2):
+                nx, ny = (x + i, y + j)
+                if self.bounds[0] <= nx <= self.bounds[2] and self.bounds[1] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
+                    cells.append(self.get_cell(nx, ny))
         return cells
 
     def update_cell(self, adj, cell):
@@ -63,18 +59,7 @@ class Djikstra():
         adj.g = cell.g + adj.cost
         adj.parent = cell
 
-    def _can_move_through(self, game_board, adj) -> bool:
-        if self.pass_through:
-            return True
-        unit_team = next(iter(game_board.team_grid[adj.x * self.height + adj.y]), None)
-        if not unit_team or utils.compare_teams(self.unit_team, unit_team):
-            return True
-        if self.unit_team == 'player' or self.ai_fog_of_war:
-            if not game_board.in_vision((adj.x, adj.y), self.unit_team):
-                return True  # Can always move through what you can't see
-        return False
-
-    def process(self, game_board: list, movement_left: float) -> set:
+    def process(self, can_move_through: Callable, movement_left: float) -> set:
         # add starting cell to open heap queue
         heapq.heappush(self.open, (self.start_cell.g, self.start_cell))
         while self.open:
@@ -90,7 +75,7 @@ class Djikstra():
             adj_cells = self.get_adjacent_cells(cell)
             for adj in adj_cells:
                 if adj.reachable and adj not in self.closed:
-                    if self._can_move_through(game_board, adj):
+                    if can_move_through(self.unit_team, adj):
                         if (adj.g, adj) in self.open:
                             # if adj cell in open list, check if current path
                             # is better than the one previously found for this adj cell
@@ -108,7 +93,7 @@ class Djikstra():
 class AStar():
     def __init__(self, start_pos: tuple, goal_pos: tuple, grid: list,
                  bounds: Tuple[int, int, int, int], height: int, unit_team: str,
-                 pass_through: bool = False, ai_fog_of_war: bool = False, diagonal: bool = False):
+                 diagonal: bool = False):
         self.cells = grid
         self.bounds = bounds
         self.height = height
@@ -121,8 +106,6 @@ class AStar():
         self.adj_end = self.get_adjacent_cells(self.end_cell) if self.end_cell else None
 
         self.unit_team = unit_team
-        self.pass_through = pass_through
-        self.ai_fog_of_war = ai_fog_of_war
 
         self.reset()
 
@@ -191,13 +174,13 @@ class AStar():
         x, y = cell.x, cell.y
         cells = []
         for i in range(-1, 2):
-          for j in range(-1, 2):
-            nx, ny = (x + i, y + j)
-            if self.bounds[0] <= nx <= self.bounds[2] and self.bounds[1] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
-                if (j != 0 and i != 0):
-                    self.get_single_diagonal((x, ny), (nx, y), (nx, ny), cells)
-                else:
-                    cells.append(self.get_cell(nx, ny))
+            for j in range(-1, 2):
+                nx, ny = (x + i, y + j)
+                if self.bounds[0] <= nx <= self.bounds[2] and self.bounds[1] <= ny <= self.bounds[3] and not (nx, ny) == (x, y):
+                    if (j != 0 and i != 0):
+                        self.get_single_diagonal((x, ny), (nx, y), (nx, ny), cells)
+                    else:
+                        cells.append(self.get_cell(nx, ny))
         return cells
 
     def get_single_diagonal(self, vadj: tuple, hadj: tuple, diagonal: tuple, cells):
@@ -221,21 +204,8 @@ class AStar():
             cell = cell.parent
         return path
 
-    def _can_move_through(self, game_board, adj, ally_block) -> bool:
-        if self.pass_through:
-            return True
-        unit_team = next(iter(game_board.team_grid[adj.x * self.height + adj.y]), None)
-        if not unit_team:
-            return True
-        if not ally_block and utils.compare_teams(self.unit_team, unit_team):
-            return True
-        if self.unit_team == 'player' or self.ai_fog_of_war:
-            if not game_board.in_vision((adj.x, adj.y), self.unit_team):
-                return True
-        return False
-
-    def process(self, game_board, adj_good_enough: bool = False,
-                ally_block: bool = False, limit: float = None) -> list:
+    def process(self, can_move_through: Callable, adj_good_enough: bool = False,
+                limit: float = None) -> list:
         # Add starting cell to open queue
         heapq.heappush(self.open, (self.start_cell.f, self.start_cell))
         while self.open:
@@ -254,7 +224,7 @@ class AStar():
             adj_cells = self.get_adjacent_cells(cell)
             for adj in adj_cells:
                 if adj.reachable and adj not in self.closed:
-                    if self._can_move_through(game_board, adj, ally_block):
+                    if can_move_through(self.unit_team, adj):
                         if (adj.f, adj) in self.open:
                             # if adj cell in open list, check if current path
                             # is better than the one previously found for this adj cell

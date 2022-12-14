@@ -14,6 +14,7 @@ from app.engine import engine, config
 
 class DebugState(MapState):
     num_back = 4
+    backspace_time = 80 # ms
     commands = config.get_debug_commands()
     bg = SPRITES.get('debug_bg').convert_alpha()
     quit_commands = ['q', 'exit', '']
@@ -22,10 +23,12 @@ class DebugState(MapState):
         game.cursor.show()
         self.current_command = ''
         self.buffer_count = 0
+        self.backspace_down = 0
 
         self.quit_commands += engine.get_key_name(get_input_manager().key_map['BACK'])
 
     def take_input(self, event):
+        current_time = engine.get_time()
         game.cursor.take_input()
 
         for event in engine.events:
@@ -38,6 +41,7 @@ class DebugState(MapState):
                     self.buffer_count = 0
                 elif event.key == engine.key_map['backspace']:
                     self.current_command = self.current_command[:-1]
+                    self.backspace_down = current_time
                 elif event.key == engine.key_map['pageup'] and self.commands:
                     self.buffer_count += 1
                     if self.buffer_count >= len(self.commands):
@@ -45,6 +49,14 @@ class DebugState(MapState):
                     self.current_command = self.commands[-self.buffer_count]
                 else:
                     self.current_command += event.unicode
+                    
+            elif event.type == engine.KEYUP:
+                if event.key == engine.key_map['backspace']:
+                    self.backspace_down = 0
+
+        if self.backspace_down and current_time - self.backspace_down > self.backspace_time:
+            self.current_command = self.current_command[:-1]
+            self.backspace_down = current_time
 
     def parse_command(self, command):
         if command in self.quit_commands:

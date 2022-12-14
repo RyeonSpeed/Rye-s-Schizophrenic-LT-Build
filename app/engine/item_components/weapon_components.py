@@ -140,6 +140,8 @@ class Damage(ItemComponent):
         playback.append(pb.DamageHit(unit, item, target, damage, true_damage))
         if damage == 0:
             playback.append(pb.HitAnim('MapNoDamage', target))
+        else:
+            playback.append(pb.HitAnim('MapGlancingHit', target))
 
     def on_crit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         playback_nids = [brush.nid for brush in playback]

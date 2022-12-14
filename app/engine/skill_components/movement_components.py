@@ -6,6 +6,8 @@ from app.engine import equations, target_system, action
 from app.engine.game_state import game
 from app.engine.objects.unit import UnitObject
 
+import logging
+
 class Canto(SkillComponent):
     nid = 'canto'
     desc = "Unit can move again after certain actions"
@@ -122,6 +124,27 @@ class SpecificWitchWarp(SkillComponent):
                 continue
             if partner_pos:
                 positions += [pos for pos in target_system.get_adjacent_positions(partner_pos) if game.movement.check_weakly_traversable(unit, pos) and not game.board.get_unit(pos)]
+        return positions
+
+class WitchWarpExpression(SkillComponent):
+    nid = 'witch_warp_expression'
+    desc = "Allows unit to witch warp to the units that satisfy the expression"
+    tag = SkillTags.MOVEMENT
+
+    expose = ComponentType.String
+    value = 'True'
+
+    def witch_warp(self, unit) -> list:
+        from app.engine import evaluate
+        positions = []
+        for target in game.units:
+            if target.position:
+                try:
+                    if evaluate.evaluate(self.value, target, position=target.position):
+                        positions += target_system.get_adjacent_positions(target.position)
+                except Exception as e:
+                    logging.error("Could not evaluate %s (%s)", self.value, e)
+                    return positions
         return positions
 
 class Galeforce(SkillComponent):

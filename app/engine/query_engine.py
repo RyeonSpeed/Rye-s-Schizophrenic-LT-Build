@@ -6,7 +6,7 @@ from app.engine.game_state import GameState
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
 from app.engine.objects.unit import UnitObject
-from app.events.regions import Region
+from app.engine.objects.region import RegionObject
 from app.utilities import utils
 from app.utilities.typing import NID
 
@@ -42,7 +42,7 @@ class GameQueryEngine():
         nid = self._resolve_to_nid(unit_or_nid)
         return self.game.get_unit(nid)
 
-    def _resolve_to_region(self, region_or_nid) -> Region:
+    def _resolve_to_region(self, region_or_nid) -> RegionObject:
         nid = self._resolve_to_nid(region_or_nid)
         return self.game.get_region(nid)
 

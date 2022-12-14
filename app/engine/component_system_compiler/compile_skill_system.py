@@ -33,7 +33,7 @@ simple_event_hooks = ('on_death',)
 # Takes in playback, unit, item, target, mode
 combat_event_hooks = ('start_combat', 'cleanup_combat', 'end_combat', 'pre_combat', 'post_combat', 'test_on', 'test_off')
 # Takes in actions, playback, unit, item, target, mode, attack_info
-subcombat_event_hooks = ('after_hit', 'after_take_hit', 'start_sub_combat', 'end_sub_combat')
+subcombat_event_hooks = ('after_hit', 'after_take_hit', 'after_take_miss', 'start_sub_combat', 'end_sub_combat')
 # Takes in unit, item
 item_event_hooks = ('on_add_item', 'on_remove_item', 'on_equip_item', 'on_unequip_item')
 

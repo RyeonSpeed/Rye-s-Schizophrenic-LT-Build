@@ -1,11 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 from app.data.database.components import ComponentType
 from app.data.database.skill_components import SkillComponent, SkillTags
-from app.engine import (action, equations, item_funcs, skill_system,
-                        static_random)
+from app.engine import action, equations, item_funcs, skill_system
 from app.engine.game_state import game
 import app.engine.combat.playback as pb
+from app.utilities import static_random
 
 if TYPE_CHECKING:
     from app.engine.objects.item import ItemObject
@@ -175,6 +176,7 @@ class AttackProc(SkillComponent):
     def end_sub_combat(self, actions, playback, unit, item, target, mode, attack_info):
         if self._did_action:
             action.do(action.RemoveSkill(unit, self.value))
+        self._did_action = False
 
 class DefenseProc(SkillComponent):
     nid = 'defense_proc'
@@ -198,6 +200,7 @@ class DefenseProc(SkillComponent):
     def end_sub_combat(self, actions, playback, unit, item, target, mode, attack_info):
         if self._did_action:
             action.do(action.RemoveSkill(unit, self.value))
+        self._did_action = False
 
 class AttackPreProc(SkillComponent):
     nid = 'attack_pre_proc'

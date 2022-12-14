@@ -1,7 +1,21 @@
-from app.utilities.data import Data, Prefab
+from dataclasses import field
+from typing import Optional, Tuple
+
 import app.engine.skill_component_access as SCA
+from app.data.category import Categories, CategorizedCatalog
+from app.data.database.components import Component
+from app.utilities.data import Data, Prefab
+from app.utilities.typing import NID
+
 
 class SkillPrefab(Prefab):
+    nid: str
+    name: str
+    desc: str
+    components: Data[Component]
+    icon_nid: Optional[NID]
+    icon_index: Tuple[int, int]
+
     def __init__(self, nid, name, desc, icon_nid=None, icon_index=(0, 0), components=None):
         self.nid = nid
         self.name = name
@@ -48,7 +62,7 @@ class SkillPrefab(Prefab):
                 skill_components)
         return i
 
-class SkillCatalog(Data[SkillPrefab]):
+class SkillCatalog(CategorizedCatalog[SkillPrefab]):
     datatype = SkillPrefab
 
     def get_feats(self) -> list:

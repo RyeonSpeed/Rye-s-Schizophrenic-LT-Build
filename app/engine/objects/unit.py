@@ -160,7 +160,7 @@ class UnitObject(Prefab):
             growths = prefab.growths
             self.stats = {stat_nid: bases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
             self.growths = {stat_nid: growths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
-            if DB.constants.value('unit_stats_as_bonus'):
+            if DB.constants.value('unit_stats_as_bonus'): 
                 klass_obj = DB.classes.get(self.klass)
                 self.stats = {stat_nid: self.stats[stat_nid] + klass_obj.bases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
                 self.growths = {stat_nid: self.growths[stat_nid] + klass_obj.growths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
@@ -182,7 +182,7 @@ class UnitObject(Prefab):
 
         self.has_run_ai = False
         self.ai_group_active = False
-
+        
         self._sprite = None
         self._sound = None
         self._battle_anim = None
@@ -240,7 +240,8 @@ class UnitObject(Prefab):
         if current_mode:
             mode = DB.difficulty_modes.get(current_mode.nid)
             if klass.tier >= 2:
-                num_levels = int(num_levels * mode.promoted_autolevels_fraction)
+                prev_levels = num_levels - (self.level - 1)
+                num_levels = self.level + int(prev_levels * mode.promoted_autolevels_fraction)
             stat_bonus = mode.get_base_bonus(self)
             bonus = {nid: 0 for nid in DB.stats.keys()}
             for nid in DB.stats.keys():
@@ -326,7 +327,7 @@ class UnitObject(Prefab):
     def get_gauge_inc(self):
         return equations.parser.get_gauge_inc(self)
 
-    def get_field(self, key: str, default:str = None) -> str:
+    def get_field(self, key: str, default: str = None) -> str:
         if key in self._fields:
             return self._fields[key]
         my_klass = DB.classes.get(self.klass, None)

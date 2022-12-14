@@ -13,14 +13,14 @@ from app.events.regions import RegionType
 from app.events import triggers
 from app.data.resources.resources import RESOURCES
 from app.engine import (aura_funcs, banner, equations, item_funcs, item_system,
-                        particles, skill_system, static_random, unit_funcs, animations)
+                        particles, skill_system, unit_funcs, animations)
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
 from app.engine.objects.unit import UnitObject
+from app.engine.objects.region import RegionObject
 from app.engine import engine
-from app.events.regions import Region
-from app.utilities import utils
+from app.utilities import utils, static_random
 
 
 class Action():
@@ -55,7 +55,7 @@ class Action():
             value = ('item', value.uid)
         elif isinstance(value, SkillObject):
             value = ('skill', value.uid)
-        elif isinstance(value, Region):
+        elif isinstance(value, RegionObject):
             value = ('region', value.nid)
         elif isinstance(value, list):
             value = ('list', [Action.save_obj(v) for v in value])
@@ -1318,6 +1318,8 @@ class TradeItem(Action):
         self.item_index1 = unit1.items.index(item1) if item1 else DB.constants.total_items() - 1
         self.item_index2 = unit2.items.index(item2) if item2 else DB.constants.total_items() - 1
 
+        self.subactions = []
+
     def swap(self, unit1, unit2, item1, item2, item_index1, item_index2):
         # Do the swap
         if item1:
@@ -1327,13 +1329,35 @@ class TradeItem(Action):
             unit2.remove_item(item2)
             unit1.insert_item(item_index1, item2)
 
+    def equip_items(self, unit):
+        for item in unit.nonaccessories:
+            available = item_system.available(unit, item)
+            equippable = item_system.equippable(unit, item)
+            if available and equippable:
+                self.subactions.append(EquipItem(unit, item))
+                break
+        for item in unit.accessories:
+            available = item_system.available(unit, item)
+            equippable = item_system.equippable(unit, item)
+            if available and equippable:
+                self.subactions.append(EquipItem(unit, item))
+                break
+
     def do(self):
+        self.subactions.clear()
+
         self.swap(self.unit1, self.unit2, self.item1, self.item2, self.item_index1, self.item_index2)
+
+        self.equip_items(self.unit1)
+        self.equip_items(self.unit2)
 
         if self.unit1.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit1)
         if self.unit2.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit2)
+
+        for act in self.subactions:
+            act.do()
 
     def reverse(self):
         self.swap(self.unit1, self.unit2, self.item2, self.item1, self.item_index2, self.item_index1)
@@ -1342,6 +1366,9 @@ class TradeItem(Action):
             game.boundary.recalculate_unit(self.unit1)
         if self.unit2.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit2)
+
+        for act in self.subactions:
+            act.reverse()
 
 
 class RepairItem(Action):
@@ -2419,7 +2446,7 @@ class AddRegion(Action):
     def do(self):
         self.subactions.clear()
         if self.region.nid in game.level.regions:
-            logging.warning("AddRegion Action: Region with nid %s already in level", self.region.nid)
+            logging.warning("AddRegion Action: RegionObject with nid %s already in level", self.region.nid)
         else:
             game.get_region_under_pos.cache_clear()
             game.level.regions.append(self.region)
@@ -2806,10 +2833,12 @@ class RemoveInitiative(Action):
         self.initiative = game.initiative.get_initiative(self.unit)
 
     def do(self):
+        game.initiative.next()
         game.initiative.remove_unit(self.unit)
 
     def reverse(self):
         game.initiative.insert_at(self.unit, self.old_idx, self.initiative)
+        game.initiative.back()
 
 class MoveInInitiative(Action):
     def __init__(self, unit, offset):

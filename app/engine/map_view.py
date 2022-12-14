@@ -8,8 +8,6 @@ from app.engine import engine
 from app.engine.fonts import FONT
 from app.engine.game_state import game
 
-import time
-
 from app.utilities.utils import magnitude, tmult, tuple_add, tuple_sub
 
 class MapView():
@@ -18,8 +16,29 @@ class MapView():
         self._line_surf = engine.copy_surface(self._unit_surf)
         self._line_surf.fill((0, 0, 0, 0))
 
+    def save_screenshot(self):
+        import os
+        from datetime import datetime
+
+        if not os.path.isdir('screenshots'):
+            os.mkdir('screenshots')
+        current_time = str(datetime.now()).replace(' ', '_').replace(':', '.')
+
+        cull_rect = (0, 0, game.tilemap.width * TILEWIDTH, game.tilemap.height * TILEWIDTH)
+        surf = engine.create_surface(cull_rect[2:])
+        map_image = game.tilemap.get_full_image(cull_rect)
+        surf.blit(map_image, (0, 0))
+        surf = surf.convert_alpha()
+
+        # Draw units
+        draw_units = [unit for unit in game.units if (unit.position or unit.sprite.fake_position)]
+        draw_units = sorted(draw_units, key=lambda unit: unit.position[1] if unit.position else unit.sprite.fake_position[1])
+        for unit in draw_units:
+            unit.sprite.draw(surf, (0, 0))
+
+        engine.save_surface(surf, 'screenshots/LT_%s_map_view.png' % current_time)
+
     def draw_units(self, surf, cull_rect, subsurface_rect=None):
-        # Surf is always 240x160 WxH
         unit_surf = engine.copy_surface(self._unit_surf)
         cull_rect_in_tiles = cull_rect[0] / TILEWIDTH, cull_rect[1] / TILEHEIGHT, cull_rect[2] / TILEWIDTH, cull_rect[3] / TILEHEIGHT
         cull_rect_center_in_tiles = tuple_add(cull_rect_in_tiles[:2], tmult(cull_rect_in_tiles[2:], 0.5))
@@ -43,7 +62,7 @@ class MapView():
                         (cull_rect[0] - TILEWIDTH*2 < (unit.position or unit.sprite.fake_position)[0] * TILEWIDTH < cull_rect[0] + cull_rect[2] + TILEWIDTH*2 and
                          cull_rect[1] - TILEHEIGHT*2 < (unit.position or unit.sprite.fake_position)[1] * TILEHEIGHT < cull_rect[1] + cull_rect[3] + TILEHEIGHT*2)]
         if game.level_vars.get('_fog_of_war'):
-            culled_units = [unit for unit in culled_units if game.board.in_vision(unit.position or unit.sprite.get_round_fake_pos())]
+            culled_units = [unit for unit in culled_units if game.board.in_vision(unit.position or unit.sprite.fake_position)]
         draw_units = sorted(culled_units, key=lambda unit: unit.position[1] if unit.position else unit.sprite.fake_position[1])
 
         topleft = cull_rect[0], cull_rect[1]

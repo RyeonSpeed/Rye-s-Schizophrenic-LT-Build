@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import re
 from typing import Dict, Tuple
 from functools import lru_cache
 

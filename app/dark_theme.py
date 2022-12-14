@@ -30,6 +30,16 @@ BLUESECONDARY = QColor(69, 66, 89, 232)
 BLUETERTIARY = QColor(128, 143, 137, 232)
 BLUEHIGHLIGHT = QColor(248, 248, 240, 232)
 
+SKYPRIMARY = QColor(50, 150, 200, 232)
+SKYSECONDARY = QColor(75, 125, 200, 232)
+SKYTERTIARY = QColor(25, 25, 100, 245)
+SKYHIGHLIGHT = QColor(100, 175, 255, 232)
+
+PURPLEPRIMARY = QColor(50, 50, 100, 232)
+PURPLESECONDARY = QColor(100, 100, 125, 232)
+PURPLETERTIARY = QColor(28, 12, 28, 245)
+PURPLEHIGHLIGHT = QColor(175, 175, 200, 232)
+
 base_palette = QPalette()
 
 def css_rgb(color, a=False):
@@ -204,6 +214,66 @@ class QBlueBGPalette(QDarkPalette):
         self.setColor(QPalette.Disabled, QPalette.Text, DISABLED)
         self.setColor(QPalette.Disabled, QPalette.ButtonText, DISABLED)
 
+class QSkyBGPalette(QLightPalette):
+    def __init__(self, *__args):
+        super().__init__(*__args)
+        self.highlight_color = SKYHIGHLIGHT
+
+        # Set all the colors based on the constants in globals
+        self.setColor(QPalette.Window, SKYSECONDARY)
+        self.setColor(QPalette.WindowText, WHITE)
+        self.setColor(QPalette.Base, SKYTERTIARY)
+        self.setColor(QPalette.AlternateBase, SKYPRIMARY)
+        self.setColor(QPalette.ToolTipBase, WHITE)
+        self.setColor(QPalette.ToolTipText, WHITE)
+        self.setColor(QPalette.Text, WHITE)
+        self.setColor(QPalette.Button, SKYSECONDARY)
+        self.setColor(QPalette.ButtonText, WHITE)
+        self.setColor(QPalette.BrightText, RED)
+        self.setColor(QPalette.Link, TERTIARY)
+        self.setColor(QPalette.Highlight, SKYHIGHLIGHT)
+        self.setColor(QPalette.HighlightedText, WHITE)
+
+        self.setColor(QPalette.Disabled, QPalette.WindowText, DISABLED)
+        self.setColor(QPalette.Disabled, QPalette.Text, DISABLED)
+        self.setColor(QPalette.Disabled, QPalette.ButtonText, DISABLED)
+
+    def set_app(self, app):
+        """Set the Fusion theme and this palette to a `QtWidgets.QApplication`."""
+        app.setStyle("Fusion")
+        app.setPalette(self)
+        self.set_stylesheet(app)
+
+class QPurpleBGPalette(QLightPalette):
+    def __init__(self, *__args):
+        super().__init__(*__args)
+        self.highlight_color = PURPLEHIGHLIGHT
+
+        # Set all the colors based on the constants in globals
+        self.setColor(QPalette.Window, PURPLESECONDARY)
+        self.setColor(QPalette.WindowText, WHITE)
+        self.setColor(QPalette.Base, PURPLETERTIARY)
+        self.setColor(QPalette.AlternateBase, PURPLESECONDARY)
+        self.setColor(QPalette.ToolTipBase, WHITE)
+        self.setColor(QPalette.ToolTipText, WHITE)
+        self.setColor(QPalette.Text, WHITE)
+        self.setColor(QPalette.Button, PURPLEPRIMARY)
+        self.setColor(QPalette.ButtonText, WHITE)
+        self.setColor(QPalette.BrightText, RED)
+        self.setColor(QPalette.Link, TERTIARY)
+        self.setColor(QPalette.Highlight, PURPLEHIGHLIGHT)
+        self.setColor(QPalette.HighlightedText, WHITE)
+
+        self.setColor(QPalette.Disabled, QPalette.WindowText, DISABLED)
+        self.setColor(QPalette.Disabled, QPalette.Text, DISABLED)
+        self.setColor(QPalette.Disabled, QPalette.ButtonText, DISABLED)
+
+    def set_app(self, app):
+        """Set the Fusion theme and this palette to a `QtWidgets.QApplication`."""
+        app.setStyle("Fusion")
+        app.setPalette(self)
+        self.set_stylesheet(app)
+
 def set(app, theme_idx):
     """
     Unfortunately for now, icon colors don't change until restart
@@ -223,11 +293,21 @@ def set(app, theme_idx):
     elif theme_idx == 4:
         d = QBlueBGPalette()
         d.set_app(app)
+    elif theme_idx == 5:
+        d = QSkyBGPalette()
+        d.set_app(app)
+    elif theme_idx == 6:
+        d = QPurpleBGPalette()
+        d.set_app(app)
 
     if theme_idx == 3:
         app.custom_style_sheet += "QDialog {background-image: url(icons/bg.png)};"
     elif theme_idx == 4:
         app.custom_style_sheet += "QDialog {background-image: url(icons/bg2.png)};"
+    elif theme_idx == 5:
+        app.custom_style_sheet += "QDialog {background-image: url(icons/bg3.png)};"
+    elif theme_idx == 6:
+        app.custom_style_sheet += "QDialog {background-image: url(icons/bg4.png)};"
     else:
         app.custom_style_sheet += "QDialog {background-image: none;"
 

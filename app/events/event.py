@@ -10,18 +10,18 @@ import app.engine.graphics.ui_framework as uif
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
 from app.engine import (action, dialog, engine, evaluate,
-                        static_random, target_system, item_funcs)
+                        target_system, item_funcs)
 from app.engine.game_state import GameState
 from app.engine.objects.overworld import OverworldNodeObject
 from app.engine.objects.unit import UnitObject
 from app.engine.sound import get_sound_thread
 from app.events import event_commands, triggers
 from app.events.event_portrait import EventPortrait
-from app.utilities import str_utils, utils
+from app.utilities import str_utils, utils, static_random
 from app.utilities.typing import NID
 
 class Event():
-    true_vals = ('t', 'true', '1', 'y', 'yes')
+    true_vals = ('t', 'true', 'True', '1', 'y', 'yes')
 
     skippable = {"speak", "wait", "bop_portrait",
                  "sound", "location_card", "credits", "ending"}
@@ -635,7 +635,7 @@ class Event():
     def _parse_pos(self, text: str, is_float=False):
         position = None
         if ',' in text:
-            text = text.replace(')', '').replace('(', '')
+            text = text.replace(')', '').replace('(', '').replace('[', '').replace(']', '')
             if is_float:
                 position = tuple(float(_) for _ in text.split(','))
             else:

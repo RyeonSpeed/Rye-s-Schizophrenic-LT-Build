@@ -115,7 +115,7 @@ class LayerObject():
 class TileMapObject(Prefab):
     def __init__(self):
         super().__init__()
-        self.weather: List[particles.ParticleSystem] = []
+        self.weather: List[particles.SimpleParticleSystem] = []
         self.animations: List[animations.MapAnimation] = []
         self.high_animations: List[animations.MapAnimation] = []
         self.width: int = 0
@@ -225,6 +225,17 @@ class TileMapObject(Prefab):
                 if autotile_image:
                     image.blit(autotile_image, (0, 0))
         return image
+
+    def save_screenshot(self):
+        import os
+        from datetime import datetime
+
+        if not os.path.isdir('screenshots'):
+            os.mkdir('screenshots')
+        current_time = str(datetime.now()).replace(' ', '_').replace(':', '.')
+
+        image = self.get_full_image((0, 0, self.width * TILEWIDTH, self.height * TILEHEIGHT))
+        engine.save_surface(image, 'screenshots/LT_%s_tilemap.png' % current_time)
 
     def update(self):
         for layer in self.layers:

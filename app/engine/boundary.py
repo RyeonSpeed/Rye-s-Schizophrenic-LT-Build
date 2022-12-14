@@ -275,6 +275,10 @@ class BoundaryInterface():
 
                 for y in range(self.height):
                     for x in range(self.width):
+                        # Only make boundaries within game board bounds
+                        if not game.board.check_bounds((x, y)):
+                            continue
+                        
                         cell = new_grid[x * self.height + y]
                         if cell:
                             # Determine whether this tile should have a red display

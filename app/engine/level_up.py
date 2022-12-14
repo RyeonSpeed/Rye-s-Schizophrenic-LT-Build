@@ -112,7 +112,7 @@ class ExpState(State):
             self.exp_bar = ExpBar(self.old_exp, center=not self.combat_object)
             self.start_time = current_time
 
-            if self.mana_to_gain or (self.unit.get_max_mana() > 0 and self.unit.get_mana() != self.unit.get_max_mana()):
+            if self.mana_to_gain:
                 self.mana_bar = ManaBar(self.old_mana, center=not self.combat_object)
                 self.mana_bar.bar_max = self.unit.get_max_mana()
 

@@ -3,8 +3,9 @@ import math
 
 from app.data.database.database import DB
 from app.engine import (action, combat_calcs, engine, equations, evaluate,
-                        item_funcs, item_system, line_of_sight, pathfinding,
+                        item_funcs, item_system, line_of_sight,
                         skill_system, target_system)
+from app.engine.pathfinding import pathfinding
 from app.engine.combat import interaction
 from app.engine.game_state import game
 from app.engine.movement import MovementManager
@@ -94,8 +95,9 @@ class AIController():
 
     def move(self):
         if self.goal_position and self.goal_position != self.unit.position:
+            normal_moves = target_system.get_valid_moves(self.unit, witch_warp=False)
             witch_warp = set(skill_system.witch_warp(self.unit))
-            if self.goal_position in witch_warp:
+            if self.goal_position in witch_warp and self.goal_position not in normal_moves:
                 action.do(action.Warp(self.unit, self.goal_position))
             else:
                 path = target_system.get_path(self.unit, self.goal_position)
@@ -678,8 +680,7 @@ class SecondaryAI():
         self.pathfinder = \
             pathfinding.AStar(self.unit.position, None, self.grid,
                               game.board.bounds, game.tilemap.height,
-                              self.unit.team, skill_system.pass_through(self.unit),
-                              DB.constants.value('ai_fog_of_war'))
+                              self.unit.team)
 
         self.widen_flag = False  # Determines if we've widened our search
         self.reset()
@@ -754,7 +755,11 @@ class SecondaryAI():
             adj_good_enough = True
 
         limit = self.get_limit()
-        path = self.pathfinder.process(game.board, adj_good_enough=adj_good_enough, ally_block=False, limit=limit)
+        if skill_system.pass_through(self.unit):
+            can_move_through = lambda team, adj: True
+        else:
+            can_move_through = game.board.can_move_through
+        path = self.pathfinder.process(can_move_through, adj_good_enough=adj_good_enough, limit=limit)
         self.pathfinder.reset()
         return path
 

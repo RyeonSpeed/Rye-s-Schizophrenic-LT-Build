@@ -480,6 +480,7 @@ class BattleAnimation():
             self.processing = False
             self.owner.shake()
             self.owner.spell_hit()
+            self.owner.hit_modifiers()
 
         elif command.nid == 'effect':
             effect = values[0]

@@ -17,7 +17,7 @@ from app.engine.graphics.ui_framework.ui_framework_styling import UIMetric
 from app.engine.gui import ScrollArrow, ScrollBar
 from app.engine.objects.unit import UnitObject
 from app.sprites import SPRITES
-from app.utilities.enums import Direction
+from app.utilities.direction import Direction
 from app.utilities.utils import tclamp, tuple_add
 from app.engine import skill_system
 

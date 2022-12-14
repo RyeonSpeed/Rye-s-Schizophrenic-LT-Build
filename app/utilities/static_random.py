@@ -64,6 +64,9 @@ def get_levelup(u_id, lvl):
     # since seed only goes from 0 - 1023
     return LCG(utils.strhash(u_id) + lvl * 1024 + r.seed)
 
+def get_generator_from_pos(pos: tuple, offset: int):
+    return LCG(pos[0] * 1024**3 + pos[1] * 1024**2 + offset * 1024 + r.seed)
+
 def get_combat_random_state():
     return r.combat_random.state
 

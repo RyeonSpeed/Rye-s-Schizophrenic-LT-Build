@@ -130,13 +130,14 @@ class TurnChangeState(MapState):
                 game.state.change('status_upkeep')
                 game.state.change('phase_change')
                 # EVENTS TRIGGER HERE
-                # Update time regions
-                for region in game.level.regions.values()[:]:
-                    if region.region_type == RegionType.TIME:
-                        action.do(action.DecrementTimeRegion(region))
-                        if region.sub_nid <= 0:
-                            action.do(action.RemoveRegion(region))
-                            game.events.trigger(triggers.TimeRegionComplete(region))
+                # Update time regions after the first turn
+                if game.turncount > 1:
+                    for region in game.level.regions.values()[:]:
+                        if region.region_type == RegionType.TIME:
+                            action.do(action.DecrementTimeRegion(region))
+                            if region.sub_nid <= 0:
+                                action.do(action.RemoveRegion(region))
+                                game.events.trigger(triggers.TimeRegionComplete(region.position, region))
                 game.events.trigger(triggers.TurnChange())
                 if game.turncount - 1 <= 0:  # Beginning of the level
                     for unit in game.get_all_units_in_party():
@@ -629,14 +630,15 @@ class MoveState(MapState):
                 if game.board.in_vision(game.cursor.position) and game.board.get_unit(game.cursor.position):
                     get_sound_thread().play_sfx('Error')
                 else:
+                    normal_moves = target_system.get_valid_moves(cur_unit, witch_warp=False)
                     witch_warp = set(skill_system.witch_warp(cur_unit))
                     if cur_unit.has_attacked or cur_unit.has_traded:
-                        if game.cursor.position in witch_warp:
+                        if game.cursor.position in witch_warp and game.cursor.position not in normal_moves:
                             cur_unit.current_move = action.Warp(cur_unit, game.cursor.position)
                         else:
                             cur_unit.current_move = action.CantoMove(cur_unit, game.cursor.position)
                         game.state.change('canto_wait')
-                    elif game.cursor.position in witch_warp:
+                    elif game.cursor.position in witch_warp and game.cursor.position not in normal_moves:
                         cur_unit.current_move = action.Warp(cur_unit, game.cursor.position)
                         game.state.change('menu')
                     else:
@@ -2287,10 +2289,10 @@ class AIState(MapState):
 
             if not change and game.ai.is_done():
                 logging.info("Current AI %s is done with turn.", self.cur_unit.nid)
+                self.cur_unit.has_run_ai = True
                 if did_something:  # Don't turn grey if didn't actually do anything
                     self.cur_unit.wait()
                 game.ai.reset()
-                self.cur_unit.has_run_ai = True
                 self.cur_unit = None
         else:
             logging.info("AI Phase complete")

@@ -31,12 +31,10 @@ class EffectiveMultiplier(ItemComponent):
     def init(self, item):
         item.data['effective_multiplier'] = self.value
 
-class EffectiveTag(ItemComponent):
-    nid = 'effective_tag'
-    desc = "Item will be considered effective if the targeted enemy has any of the tags listed in this component."
-    # requires = ['damage']
-    paired_with = ('effective_multiplier',)
-    tag = ItemTags.EXTRA
+class EffectiveIcon(ItemComponent):
+    nid = 'effective_icon'
+    desc = "Shows the effective icon when appropriate."
+    tag = ItemTags.CUSTOM
 
     expose = (ComponentType.List, ComponentType.Tag)
     value = []
@@ -54,18 +52,6 @@ class EffectiveTag(ItemComponent):
         # No negation, so proceed with effective damage
         return False
 
-    def dynamic_damage(self, unit, item, target, mode, attack_info, base_value) -> int:
-        if any(tag in target.tags for tag in self.value):
-            if self._check_negate(target):
-                return 0
-            if item.data.get('effective_multiplier') is not None:
-                might = item_system.damage(unit, item)
-                if might is None:
-                    return 0
-                return int((item.data.get('effective_multiplier') - 1) * might)
-            return item.data.get('effective', 0)
-        return 0
-
     def item_icon_mod(self, unit, item, target, sprite):
         if any(tag in target.tags for tag in self.value):
             if self._check_negate(target):
@@ -81,6 +67,28 @@ class EffectiveTag(ItemComponent):
         if any(tag in target.tags for tag in self.value):
             return 'danger'
         return None
+
+class EffectiveTag(EffectiveIcon, ItemComponent):
+    nid = 'effective_tag'
+    desc = "Item will be considered effective if the targeted enemy has any of the tags listed in this component."
+    # requires = ['damage']
+    paired_with = ('effective_multiplier',)
+    tag = ItemTags.EXTRA
+
+    expose = (ComponentType.List, ComponentType.Tag)
+    value = []
+
+    def dynamic_damage(self, unit, item, target, mode, attack_info, base_value) -> int:
+        if any(tag in target.tags for tag in self.value):
+            if self._check_negate(target):
+                return 0
+            if item.data.get('effective_multiplier') is not None:
+                might = item_system.damage(unit, item)
+                if might is None:
+                    return 0
+                return int((item.data.get('effective_multiplier') - 1) * might)
+            return item.data.get('effective', 0)
+        return 0
 
 class Brave(ItemComponent):
     nid = 'brave'
@@ -258,6 +266,22 @@ class StatusOnHold(ItemComponent):
 
     def on_remove_item(self, unit, item):
         action.do(action.RemoveSkill(unit, self.value))
+
+class MultiStatusOnHold(ItemComponent):
+    nid = 'multi_status_on_hold'
+    desc = "Item gives these statuses while in unit's inventory"
+    tag = ItemTags.EXTRA
+
+    expose = (ComponentType.List, ComponentType.Skill)  # Nid
+
+    def on_add_item(self, unit, item):
+        for skl in self.value:
+            act = action.AddSkill(unit, skl)
+            action.do(act)
+
+    def on_remove_item(self, unit, item):
+        for skl in self.value:
+            action.do(action.RemoveSkill(unit, skl))
 
 class GainManaAfterCombat(ItemComponent):
     nid = 'gain_mana_after_combat'

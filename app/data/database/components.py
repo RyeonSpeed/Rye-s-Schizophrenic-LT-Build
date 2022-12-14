@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 from app.utilities import str_utils
 from app.utilities.data import Data
@@ -44,12 +44,12 @@ def convert_type_from_string(tstr: str, ttype: ComponentType):
         return tstr
 
 class Component():
-    nid: str = None
-    desc: str = None
+    nid: str
+    desc: str
     author: str = 'rainlash'
     expose = None  # Attribute
     paired_with: list = []
-    tag = 'extra'
+    tag: Enum
     value = None
 
     def __init__(self, value=None):

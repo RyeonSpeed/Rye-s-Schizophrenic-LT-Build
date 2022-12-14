@@ -364,7 +364,7 @@ class ConvoyItemOption(ItemOption):
 
 class FullItemOption(ItemOption):
     def width(self):
-        return 120
+        return 108
 
     def draw(self, surf, x, y):
         icon = icons.get_icon(self.item)
@@ -541,7 +541,7 @@ class UnitOption(BasicOption):
                 color = 'red'
             elif not self.unit.position:
                 color = 'grey'
-            elif self.unit.position and not game.check_for_region(self.unit.position, 'formation'):
+            elif self.unit.position and (not game.check_for_region(self.unit.position, 'formation') or 'Required' in self.unit.tags):
                 color = 'green'
             else:
                 color = None

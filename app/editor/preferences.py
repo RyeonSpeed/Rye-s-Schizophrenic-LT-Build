@@ -18,7 +18,7 @@ key_to_button = {'Tab': Qt.Key_Tab,
 button_to_key = {v: k for k, v in key_to_button.items()}
 
 class PreferencesDialog(Dialog):
-    theme_options = ['Light', 'Dark', 'Discord', 'Sidereal', 'Mist']
+    theme_options = ['Light', 'Dark', 'Discord', 'Sidereal', 'Mist', 'Sky', 'Purple']
 
     def __init__(self, parent):
         super().__init__(parent)

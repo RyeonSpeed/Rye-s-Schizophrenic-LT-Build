@@ -305,7 +305,7 @@ class CombatEffectProperties(CombatAnimProperties):
                 continue
             # Store all of this in effect_nid.lteffect folder
             # Gather reference to images for this effect
-            RESOURCES.combat_effects.save_image(path, effect)
+            RESOURCES.combat_effects.save_image(path, effect, temp=True)
             # Serialize into json form
             serialized_data = effect.save()
             serialized_path = os.path.join(path, '%s_effect.json' % effect_nid)
