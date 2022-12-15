@@ -76,7 +76,7 @@ class PlainTextLine(UIComponent):
 
     def _reset(self, reason: str):
         """Pre-draw, basically; take all known props, and recalculate one last time."""
-        text_size = (self.props.font.width(self.text)+1, self.props.font.height)
+        text_size = (self.props.font.width(self.text) + 1, self.props.font.height)
         self.size = text_size
         text_surf = engine.create_surface(text_size, True)
         if self.props.bg_color:

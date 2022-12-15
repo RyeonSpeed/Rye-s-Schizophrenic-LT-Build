@@ -36,6 +36,8 @@ def test_play_current(level_nid):
         driver.start(title, from_editor=True)
         game = game_state.start_level(level_nid)
         game.game_vars['_chapter_test'] = True
+        from app.events import triggers
+        game.events.trigger(triggers.OnStartup()) 
         driver.run(game)
     except Exception as e:
         handle_exception(e)
@@ -52,6 +54,8 @@ def test_play_load(level_nid, save_loc=None):
             game = game_state.load_level(level_nid, save_loc)
         else:
             game = game_state.start_level(level_nid)
+        from app.events import triggers
+        game.events.trigger(triggers.OnStartup()) 
         driver.run(game)
     except Exception as e:
         handle_exception(e)

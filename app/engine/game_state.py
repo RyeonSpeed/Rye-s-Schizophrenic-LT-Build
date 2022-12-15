@@ -248,9 +248,6 @@ class GameState():
             self.initiative = InitiativeTracker()
             self.initiative.start(self.get_all_units())
 
-        from app.events import triggers
-        game.events.trigger(triggers.OnStartup()) 
-
     def start_level(self, level_nid, with_party=None):
         """
         Done at the beginning of a new level to start the level up
