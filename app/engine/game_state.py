@@ -6,6 +6,8 @@ import time
 from collections import Counter
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
+from app.engine.query_engine import GameQueryEngine
+
 if TYPE_CHECKING:
     from app.engine import (ai_controller, death,
         game_board, highlight, map_view, movement, phase,
@@ -73,6 +75,7 @@ class GameState():
         self.supports: supports.SupportController = None
         self.records: records.Recordkeeper = None
         self.speak_styles: speak_style.SpeakStyleLibrary = None
+        self.query_engine: GameQueryEngine = GameQueryEngine(logging.Logger('query_engine'), self)
 
         # 'current' state information, typically varies by level
         self.current_level: LevelObject = None
@@ -184,7 +187,7 @@ class GameState():
         from app.engine import turnwheel
         from app.events import event_manager
         from app.engine.dialog_log import DialogLog
-        
+
         self.level_vars = Counter()
         self.turncount = 0
         self.talk_options = []

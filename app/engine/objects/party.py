@@ -1,3 +1,4 @@
+from app.engine.objects.item import ItemObject
 from app.utilities.data import Prefab
 
 from app.engine.game_state import game
@@ -12,12 +13,11 @@ class PartyObject(Prefab):
         self.leader_nid = leader_nid
         self.party_prep_manage_sort_order = party_prep_manage_sort_order or []  # Unit nids (The order is used for the prep and manage screen and NOTHING ELSE)
         self.money = money
+        self.convoy: List[ItemObject] = []
         if convoy:
             # Actually the item, not just a uid reference
-            self.convoy = [game.get_item(item_uid) for item_uid in convoy]
-            self.convoy = [i for i in self.convoy if i]
-        else:
-            self.convoy = []
+            items = [game.get_item(item_uid) for item_uid in convoy]
+            self.convoy = [i for i in items if i]
         self.bexp: int = bexp
 
     @property

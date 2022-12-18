@@ -398,6 +398,7 @@ def compute_crit(unit, target, item, def_item, mode, attack_info):
     crit -= skill_system.dynamic_crit_avoid(target, item, unit, mode, attack_info, crit)
 
     crit *= skill_system.crit_multiplier(unit, item, target, mode, attack_info, crit)
+    crit = int(crit)
 
     return utils.clamp(crit, 0, 100)
 

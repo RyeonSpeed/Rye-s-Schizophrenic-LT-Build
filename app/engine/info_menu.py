@@ -984,11 +984,22 @@ class InfoMenuState(State):
         surf = engine.create_surface((WINWIDTH - 96, 24), transparent=True)
         class_skills = [skill for skill in self.unit.skills if skill.class_skill and not skill_system.hidden(skill, self.unit)][:6]
 
-        for idx, skill in enumerate(class_skills):
+        # stacked skills appear multiple times, but should be drawn only once
+        skill_counter = {}
+        unique_skills = list()
+        for skill in class_skills:
+            if skill.nid not in skill_counter:
+                skill_counter[skill.nid] = 1
+                unique_skills.append(skill)
+            else:
+                skill_counter[skill.nid] += 1
+        for idx, skill in enumerate(unique_skills[:6]):
             left_pos = idx * 24
-            icons.draw_skill(surf, skill, (left_pos + 8, 4), grey=skill_system.is_grey(skill, self.unit))
+            icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False, grey=skill_system.is_grey(skill, self.unit))
+            if skill_counter[skill.nid] > 1:
+                render_text(surf, ['small'], [str(skill_counter[skill.nid])], ['white'], (left_pos + 20 - 4 * len(str(skill_counter[skill.nid])), 6))
             if skill.data.get('total_charge'):
-                charge = ' (%d/%d)' % (skill.data['charge'], skill.data['total_charge'])
+                charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
             self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 32, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'personal_data')

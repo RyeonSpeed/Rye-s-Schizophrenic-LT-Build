@@ -10,17 +10,17 @@ class Achievement(Prefab):
         self.nid = nid
         self.name = name
         self.desc = desc
-        self.complete = complete
-        self.hidden = hidden
+        self.complete = bool(complete)
+        self.hidden = bool(hidden)
 
     def set_complete(self, complete: bool):
-        self.complete = complete
+        self.complete = bool(complete)
 
     def get_complete(self) -> bool:
-        return bool(self.complete)
+        return self.complete
 
     def get_hidden(self) -> bool:
-        return bool(self.hidden) and not self.get_complete()
+        return self.hidden and not self.get_complete()
 
 class AchievementManager(Data):
     datatype = Achievement
@@ -66,6 +66,10 @@ class AchievementManager(Data):
             return False
         persistent_data.serialize(self.location, self.save())
         return complete
+
+    def clear_achievements(self):
+        self.clear()
+        persistent_data.serialize(self.location, self.save())
 
 # Make sure to reload all achievements whenever we start the engine
 game_id = str(DB.constants.value('game_nid'))

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 from functools import lru_cache
 
 from app.engine import engine
@@ -92,7 +92,7 @@ class BmpFont():
         lowsurf = engine.subsurface(base_surf, (cx, cy + self.height, self._width, self.height))
         return (high_surf, lowsurf, cwidth)
 
-    def blit(self, string, surf, pos=(0, 0), color: str = None, no_process=False):
+    def blit(self, string, surf, pos=(0, 0), color: Optional[str] = None, no_process=False):
         if not color:
             color = self.default_color
 
