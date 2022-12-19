@@ -19,9 +19,11 @@ from app.engine.objects.item import ItemObject
 from app.engine.objects.unit import UnitObject
 from app.engine.sound import get_sound_thread
 from app.engine.sprites import SPRITES
+from app.engine.graphics.text.text_renderer import render_text, text_width, rendered_text_width
 from app.events import triggers
 from app.data.resources.resources import RESOURCES
 from app.utilities import utils
+from app.utilities.enums import Alignments
 
 
 class AnimationCombat(BaseCombat, MockCombat):
@@ -505,11 +507,11 @@ class AnimationCombat(BaseCombat, MockCombat):
         left_color = utils.get_team_color(self.left.team)
         # Name tag
         self.left_name = SPRITES.get('combat_name_left_' + left_color).copy()
-        if FONT['text-brown'].width(self.left.name) > 52:
-            font = FONT['narrow-brown']
+        if text_width('text', self.left.name) > 52:
+            font = 'narrow'
         else:
-            font = FONT['text-brown']
-        font.blit_center(self.left.name, self.left_name, (30, 8))
+            font = 'text'
+        render_text(self.left_name, [font], [self.left.name], ['brown'], (30, 8), Alignments.CENTER)
         # Partner name tag
         if self.lp_battle_anim:
             if self.left.strike_partner:
@@ -517,11 +519,11 @@ class AnimationCombat(BaseCombat, MockCombat):
             else:
                 ln = game.get_unit(self.left.traveler).name
             self.lp_name = SPRITES.get('combat_name_left_' + left_color).copy()
-            if FONT['text-brown'].width(ln) > 52:
-                font = FONT['narrow-brown']
+            if text_width('text', ln) > 52:
+                font = 'narrow'
             else:
-                font = FONT['text-brown']
-            font.blit_center(ln, self.lp_name, (30, 8))
+                font = 'text'
+            render_text(self.lp_name, [font], [ln], ['brown'], (30, 8), Alignments.CENTER)
         # Bar
         if crit_flag:
             self.left_bar = SPRITES.get('combat_main_crit_left_' + left_color).copy()
@@ -529,32 +531,32 @@ class AnimationCombat(BaseCombat, MockCombat):
             self.left_bar = SPRITES.get('combat_main_left_' + left_color).copy()
         if self.left_item:
             name = self.left_item.name
-            if FONT['text-brown'].width(name) > 56:
-                font = FONT['narrow-brown']
+            if text_width('text', name) > 56:
+                font = 'narrow'
             else:
-                font = FONT['text-brown']
-            font.blit_center(name, self.left_bar, (WINWIDTH//4 + 31, 5 + (8 if crit_flag else 0)))
+                font = 'text'
+            render_text(self.left_bar, [font], [name], ['brown'], (WINWIDTH//4 + 31, 5 + (8 if crit_flag else 0)), Alignments.CENTER)
 
         # Right
         right_color = utils.get_team_color(self.right.team)
         # Name tag
         self.right_name = SPRITES.get('combat_name_right_' + right_color).copy()
-        if FONT['text-brown'].width(self.right.name) > 52:
-            font = FONT['narrow-brown']
+        if text_width('text', self.right.name) > 52:
+            font = 'narrow'
         else:
-            font = FONT['text-brown']
-        font.blit_center(self.right.name, self.right_name, (36, 8))
+            font = 'text'
+        render_text(self.right_name, [font], [self.right.name], ['brown'], (36, 8), Alignments.CENTER)
         if self.rp_battle_anim:
             if self.right.strike_partner:
                 rn = self.right.strike_partner.name
             else:
                 rn = game.get_unit(self.right.traveler).name
             self.rp_name = SPRITES.get('combat_name_right_' + right_color).copy()
-            if FONT['text-brown'].width(rn) > 52:
-                font = FONT['narrow-brown']
+            if text_width('text', rn) > 52:
+                font = 'narrow'
             else:
-                font = FONT['text-brown']
-            font.blit_center(rn, self.rp_name, (36, 8))
+                font = 'text'
+            render_text(self.rp_name, [font], [rn], ['brown'], (36, 8), Alignments.CENTER)
         # Bar
         if crit_flag:
             self.right_bar = SPRITES.get('combat_main_crit_right_' + right_color).copy()
@@ -562,11 +564,11 @@ class AnimationCombat(BaseCombat, MockCombat):
             self.right_bar = SPRITES.get('combat_main_right_' + right_color).copy()
         if self.right_item:
             name = self.right_item.name
-            if FONT['text-brown'].width(name) > 56:
-                font = FONT['narrow-brown']
+            if text_width('text', name) > 56:
+                font = 'narrow'
             else:
-                font = FONT['text-brown']
-            font.blit_center(name, self.right_bar, (WINWIDTH//4 - 13, 5 + (8 if crit_flag else 0)))
+                font = 'text'
+            render_text(self.right_bar, [font], [name], ['brown'], (WINWIDTH//4 - 13, 5 + (8 if crit_flag else 0)), Alignments.CENTER)                
 
         # Platforms
         if self.left.position:

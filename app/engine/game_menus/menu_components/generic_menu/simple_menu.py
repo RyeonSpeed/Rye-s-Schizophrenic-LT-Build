@@ -233,7 +233,6 @@ class ChoiceTable(SimpleIconTable):
         self.rscroll_arrow = ScrollArrow('right', rscroll_topleft)
 
         self.scroll_bar = ScrollBar()
-        self.scroll_bar_topright = tuple_add((self.width + 4, self.header_height-4), self.overflow[::2])
 
         self.cursor_loc: Tuple[int, int] = None
 
@@ -241,6 +240,10 @@ class ChoiceTable(SimpleIconTable):
         self._highlight_surf = None
         self._highlight_surf_width = 0
         self._highlight_surf_loc = (-1, -1)
+
+    @property
+    def scroll_bar_topright(self) -> Tuple[int, int]:
+        return tuple_add((self.width + 4, self.header_height-4), self.overflow[::2])
 
     def update_cursor_and_highlight(self):
         x, y = self.selected_index
