@@ -38,7 +38,7 @@ class PrepMainState(MapState):
         # initialize custom options and events
         events = [None for option in options]
         additional_options = game.game_vars.get('_prep_additional_options')
-        additional_ignore = game.game_vars.get('_prep_options_enabled')
+        additional_ignore = [not enabled for enabled in game.game_vars.get('_prep_options_enabled')]
         additional_events = game.game_vars.get('_prep_options_events')
 
         options = options + additional_options if additional_options else options
