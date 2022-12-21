@@ -1484,6 +1484,8 @@ class AddItemComponent(Action):
         self.item.__dict__[self.component_nid] = self.component
         # Assign parent to component
         self.component.item = self.item
+        if self.component.defines('init'):
+            self.component.init(self.item)
         self._did_add = True
 
     def reverse(self):
