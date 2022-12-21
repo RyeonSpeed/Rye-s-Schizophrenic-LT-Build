@@ -205,7 +205,7 @@ class OverworldUnitSprite():
     def load_sprites(self):
         klass: Klass = DB.classes.get(self.unit.klass)
         nid = klass.map_sprite_nid
-        variant = self.unit.variant or (skill_system.change_variant(self.unit) if isinstance(self.unit, UnitObject) else None)
+        variant = skill_system.change_variant(self.unit) if isinstance(self.unit, UnitObject) else None
         if variant:
             nid += variant
         res = RESOURCES.map_sprites.get(nid)

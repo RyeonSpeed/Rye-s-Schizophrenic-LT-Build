@@ -72,7 +72,7 @@ class TargetsSpecificTiles(ItemComponent):
     value = ''
 
     def ai_targets(self, unit, item) -> set:
-        return set(self.resolve_targets())
+        return set(self.resolve_targets(unit, item))
 
     def valid_targets(self, unit, item) -> set:
         rng = item_funcs.get_range(unit, item)
@@ -132,7 +132,7 @@ class EvalTargetRestrict2(ItemComponent):
     nid = 'eval_target_restrict_2'
     desc = \
 """
-Restricts which units can be targeted. These properties are accessible in the eval body:
+Restricts which units or spaces can be targeted. These properties are accessible in the eval body:
 
 - `unit`: the unit using the item
 - `target`: the target of the item
@@ -151,7 +151,7 @@ Restricts which units can be targeted. These properties are accessible in the ev
             target = game.board.get_unit(def_pos)
             unit_pos = unit.position
             target_pos = def_pos
-            if target and evaluate.evaluate(self.value, unit, target, unit_pos, local_args={'target_pos': target_pos, 'item': item}):
+            if evaluate.evaluate(self.value, unit, target, unit_pos, local_args={'target_pos': target_pos, 'item': item}):
                 return True
             for s_pos in splash:
                 target = game.board.get_unit(s_pos)

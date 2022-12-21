@@ -209,6 +209,7 @@ class LTNestedList(QWidget):
                 row = self._determine_insertion_row(index, item)
                 closest_category.insertChild(row, new_item)
                 self.select_item(new_item)
+                self.data_changed(new_item)
 
     def rename_category(self, item: QTreeWidgetItem):
         self.tree_widget.editItem(item)
@@ -389,7 +390,7 @@ class LTNestedList(QWidget):
         then uses that structure to recursively populate the parent
         """
         list_entries = list_entries or []
-        list_categories = list_categories or {}
+        list_categories = list_categories or Categories()
         def _treeify(list_entries: List[NID], list_categories: Categories) -> LTNestedList.ListNode:
             root = LTNestedList.ListNode('root', True)
             for nid in list_entries:

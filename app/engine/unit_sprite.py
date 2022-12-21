@@ -84,7 +84,7 @@ class MapSprite():
 def load_map_sprite(unit: UnitObject | UnitPrefab, team='player'):
     klass = DB.classes.get(unit.klass)
     nid = klass.map_sprite_nid
-    variant =  unit.variant or (isinstance(unit, UnitObject) and skill_system.change_variant(unit))
+    variant = skill_system.change_variant(unit) if isinstance(unit, UnitObject) else unit.variant
     if variant:
         nid += variant
     res = RESOURCES.map_sprites.get(nid)

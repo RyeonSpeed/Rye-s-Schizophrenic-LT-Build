@@ -160,7 +160,7 @@ class UnitObject(Prefab):
             growths = prefab.growths
             self.stats = {stat_nid: bases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
             self.growths = {stat_nid: growths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
-            if DB.constants.value('unit_stats_as_bonus'): 
+            if DB.constants.value('unit_stats_as_bonus'):
                 klass_obj = DB.classes.get(self.klass)
                 self.stats = {stat_nid: self.stats[stat_nid] + klass_obj.bases.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
                 self.growths = {stat_nid: self.growths[stat_nid] + klass_obj.growths.get(stat_nid, 0) for stat_nid in DB.stats.keys()}
@@ -182,7 +182,7 @@ class UnitObject(Prefab):
 
         self.has_run_ai = False
         self.ai_group_active = False
-        
+
         self._sprite = None
         self._sound = None
         self._battle_anim = None

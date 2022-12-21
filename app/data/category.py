@@ -24,5 +24,11 @@ class Categories(Dict[NID, List[str]]):
             s_dict[nid] = '/'.join(cats)
         return s_dict
 
+    def __str__(self) -> str:
+        return super().__str__()
+
+    def __repr__(self) -> str:
+        return super().__repr__()
+
 class CategorizedCatalog(Data[T], Generic[T]):
     categories: Categories = field(default_factory=Categories)

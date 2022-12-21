@@ -583,9 +583,9 @@ class MoveState(MapState):
             game.highlight.display_moves(self.valid_moves, light=False)
         else:
             self.valid_moves = game.highlight.display_highlights(cur_unit)
-        
+
         # Fade in phase music if the unit has canto
-        if cur_unit.has_attacked or cur_unit.has_traded:  
+        if cur_unit.has_attacked or cur_unit.has_traded:
             phase.fade_in_phase_music()
 
         game.highlight.display_aura_highlights(cur_unit)
@@ -984,7 +984,11 @@ class MenuState(MapState):
                     else:
                         interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
                 else:
+                    # equip if possible
+                    if item_system.equippable(self.cur_unit, selection):
+                        action.do(action.EquipItem(self.cur_unit, item))
                     game.state.change('combat_targeting')
+
             # A combat art
             elif selection in self.combat_arts:
                 skill = self.combat_arts[selection][0]
@@ -1441,9 +1445,8 @@ class WeaponChoiceState(MapState):
                 get_sound_thread().play_sfx('Error')
                 return
             get_sound_thread().play_sfx('Select 1')
-            # Only bother to equip if it's a weapon
-            # We don't equip spells
-            if item_system.is_weapon(self.cur_unit, selection):
+            # equip if we can
+            if item_system.equippable(self.cur_unit, selection):
                 equip_action = action.EquipItem(self.cur_unit, selection)
                 # game.memory['equip_action'] = equip_action
                 action.do(equip_action)

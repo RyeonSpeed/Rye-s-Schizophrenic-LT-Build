@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from app.engine.objects.region import RegionObject
     from app.engine.objects.skill import SkillObject
     from app.engine.objects.unit import UnitObject
-    from app.utilities import utils
     from app.utilities.typing import NID
 
+from app.utilities import utils
 
 class QueryType():
     UNIT = 'Units'

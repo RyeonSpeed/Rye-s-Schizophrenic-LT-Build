@@ -370,7 +370,8 @@ class RoamMovementHandler():
             pause_time = 20
             if current_time - self.last_move > pause_time:
                 self.last_move = current_time
-                self.handle_direction(self.unit.position, self.path[-1], rationalizing=True)
+                if len(self.path) > 0:
+                    self.handle_direction(self.unit.position, self.path[-1], rationalizing=True)
         else:
             self.stop_unit()
 

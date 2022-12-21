@@ -88,6 +88,8 @@ class ComponentObjectEditor(QWidget, Generic[T]):
         self.tree_list.reset(self.data.keys(), self.categories)
 
     def attempt_change_nid(self, old_nid: NID, new_nid: NID) -> bool:
+        if not new_nid:
+            return False
         if old_nid == new_nid:
             return True
         if self.data.get(new_nid):
