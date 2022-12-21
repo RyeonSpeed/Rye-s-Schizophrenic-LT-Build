@@ -985,7 +985,7 @@ class MenuState(MapState):
                         interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
                 else:
                     # equip if possible
-                    if item_system.equippable(self.cur_unit, selection):
+                    if item_system.equippable(self.cur_unit, item):
                         action.do(action.EquipItem(self.cur_unit, item))
                     game.state.change('combat_targeting')
 
