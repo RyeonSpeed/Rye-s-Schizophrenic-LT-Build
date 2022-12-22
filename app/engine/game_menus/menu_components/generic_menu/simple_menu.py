@@ -137,6 +137,8 @@ class SimpleIconTable(UIComponent):
         if len(data) == len(self._data):
             self._update_data_instead(data)
             return
+        original_x_scroll = self.table_container.scroll[1]
+        original_y_scoll = self.column_components[0].scrollable_list.scroll[1] if self.column_components else 0
         self._data = data
         num_columns = self.calculate_num_cols(self.num_rows, self.num_display_columns, len(data), self.orientation)
         self._reconstruct_table_cols(num_columns)
@@ -148,6 +150,8 @@ class SimpleIconTable(UIComponent):
         self._reset('set_data')
         for idx, col in enumerate(self.column_components):
             col.set_data_rows(self.column_data[idx])
+            col.scrollable_list.scroll = (0, original_y_scoll)
+        self.table_container.scroll = (original_x_scroll, 0)
 
     def _reset(self, reason: str):
         """Pre-draw, basically; take all known props, and recalculate one last time."""

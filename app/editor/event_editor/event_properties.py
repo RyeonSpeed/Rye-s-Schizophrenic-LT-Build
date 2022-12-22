@@ -336,7 +336,7 @@ class CodeEditor(QPlainTextEdit):
         # style both components
         hint_cmd = '<div class="command_text">' + hint_cmd + '</div>'
         hint_desc = '<div class="desc_text">' + hint_desc + '</div>'
-        hint_command_desc = '<div class="desc_text">' + self.markdown_converter.convert(command.desc) + '</div>'
+        hint_command_desc = '<div class="desc_text">' + self.markdown_converter.convert('\n'.join(command.desc.split('\n')[:3])) + '</div>'
 
         style = """
             <style>
