@@ -123,13 +123,14 @@ class IconTab(QWidget):
             self.toggle_icon_sort()
 
     def toggle_icon_sort(self):
-        self.widget_state['sort_horizontally'] = self.icons_sort_order_checkbox.isChecked()
-        self.save_state()
-        if self.icons_sort_order_checkbox.isChecked():
-            self.full_model.rearrange_data(True)
-        else:
-            self.full_model.rearrange_data(False)
-        self.full_model.layoutChanged.emit()
+        pass
+        # self.widget_state['sort_horizontally'] = self.icons_sort_order_checkbox.isChecked()
+        # self.save_state()
+        # if self.icons_sort_order_checkbox.isChecked():
+        #     self.full_model.rearrange_data(True)
+        # else:
+        #     self.full_model.rearrange_data(False)
+        # self.full_model.layoutChanged.emit()
 
     def update_list(self):
         # self.model.dataChanged.emit(self.model.index(0), self.model.index(self.model.rowCount()))

@@ -167,7 +167,7 @@ get_max_mana() -> int
 get_fatigue() -> int
 get_exp() -> int
 get_stat(str) -> int  # Takes in the stat nid as the only argument
-get_weapon() -> ItemObject
+get_weapon() -> Optional[ItemObject]
 get_internal_level() -> int
 ```
 

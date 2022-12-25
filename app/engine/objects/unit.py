@@ -1,15 +1,15 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, List, Tuple
 
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from app.data.database.database import DB
 from app.data.database.difficulty_modes import GrowthOption
 from app.data.database.level_units import GenericUnit, UniqueUnit
 from app.data.database.units import UnitPrefab
 from app.data.database.weapons import WexpGain
-from app.engine import (combat_calcs, equations, item_funcs,
-                        item_system, skill_system, unit_funcs)
+from app.engine import (combat_calcs, equations, item_funcs, item_system,
+                        skill_system, unit_funcs)
 from app.engine.objects.difficulty_mode import DifficultyModeObject
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
@@ -279,8 +279,7 @@ class UnitObject(Prefab):
             skill_system.on_add(self, skill)
 
         # -- Equipped Items
-        self.equipped_weapon = self.get_weapon()
-        self.equipped_accessory = self.get_accessory()
+        self.autoequip()
 
         # Reset these so max hp can be changed by skills and items
         self.current_hp = self.get_max_hp()
@@ -451,42 +450,28 @@ class UnitObject(Prefab):
             return skills[0]
         return None
 
-    def get_weapon(self):
-        _weapon = None
-        if self.equipped_weapon:
-            _weapon = self.equipped_weapon
-        else:
-            for item in item_funcs.get_all_items(self):
-                weapon = item_system.is_weapon(self, item)
-                available = item_funcs.available(self, item)
-                equippable = item_system.equippable(self, item)
-                if weapon and available and equippable:
-                    # Don't think I need to wrap this in an action thing
-                    # Since it's more of an attribute that will be
-                    # rediscovered each time if necessary
-                    self.equip(item)
-                    _weapon = item
-                    break
-        return _weapon
+    def get_weapon(self) -> Optional[ItemObject]:
+        return self.equipped_weapon
 
-    def get_spell(self):
-        for item in item_funcs.get_all_items(self):
-            if item_system.is_spell(self, item) and item_funcs.available(self, item):
-                return item
-        return None
+    def get_accessory(self) -> Optional[ItemObject]:
+        return self.equipped_accessory
 
-    def get_accessory(self):
-        if self.equipped_accessory:
-            return self.equipped_accessory
-        else:
-            for item in item_funcs.get_all_items(self):
-                if item_system.is_accessory(self, item) and \
-                        item_funcs.available(self, item) and \
-                        item_system.equippable(self, item):
-                    # Rediscovered each time if necessary
-                    self.equip(item)
-                    return item
-        return None
+    def autoequip(self):
+        all_items = item_funcs.get_all_items(self)
+        if not self.equipped_weapon:
+            for item in all_items:
+                if not item_system.is_accessory(self, item):
+                    if item_system.equippable(self, item) and item_funcs.available(self, item):
+                        self.equip(item)
+                        break
+        if not self.equipped_accessory:
+            for item in all_items:
+                if item_system.is_accessory(self, item):
+                    if item_system.equippable(self, item) and item_funcs.available(self, item):
+                        self.equip(item)
+                        break
+        # keep accessories sorted after items
+        self.items = sorted(self.items, key=lambda item: item_system.is_accessory(self, item))
 
     def equip(self, item):
         if item_system.is_accessory(self, item) and item is self.equipped_accessory:
@@ -506,12 +491,12 @@ class UnitObject(Prefab):
             skill_system.on_equip_item(self, item)
 
     def unequip(self, item):
+        skill_system.on_unequip_item(self, item)
+        item_system.on_unequip_item(self, item)
         if item_system.is_accessory(self, item):
             self.equipped_accessory = None
         else:
             self.equipped_weapon = None
-        skill_system.on_unequip_item(self, item)
-        item_system.on_unequip_item(self, item)
 
     def add_item(self, item):
         index = len(self.items)
@@ -537,11 +522,13 @@ class UnitObject(Prefab):
             skill_system.on_add_item(self, item)
 
     def remove_item(self, item):
-        if self.equipped_weapon is item or \
-                self.equipped_accessory is item or \
-                item.multi_item and self.equipped_weapon in item_funcs.get_all_items_from_multi_item(self, item) or \
-                item.multi_item and self.equipped_accessory in item_funcs.get_all_items_from_multi_item(self, item):
+        if self.equipped_weapon is item or self.equipped_accessory is item:
             self.unequip(item)
+        if item.multi_item:
+            if self.equipped_weapon in item_funcs.get_all_items_from_multi_item(self, item):
+                self.unequip(self.equipped_weapon)
+            elif self.equipped_accessory in item_funcs.get_all_items_from_multi_item(self, item):
+                self.unequip(self.equipped_accessory)
         self.items.remove(item)
         item.change_owner(None)
         # Status effects

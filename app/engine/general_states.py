@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 from app.constants import TILEWIDTH, TILEHEIGHT, WINWIDTH, WINHEIGHT, TILEX
 from app.data.database.database import DB
+from app.engine.objects.unit import UnitObject
 from app.events.regions import RegionType
 from app.events import triggers, event_commands
 from app.engine.objects.item import ItemObject
@@ -1197,7 +1198,7 @@ class ItemChildState(MapState):
 
         self.item = self.parent_menu.get_current()
         item = self.item
-        self.cur_unit = game.cursor.cur_unit
+        self.cur_unit: UnitObject = game.cursor.cur_unit
 
         options = []
         if not game.memory['is_subitem_child_menu']:
@@ -1264,7 +1265,7 @@ class ItemChildState(MapState):
                 if not game.memory['is_subitem_child_menu']:
                     if item in self.cur_unit.items:
                         action.do(action.BringToTopItem(self.cur_unit, item))
-                        self.parent_menu.current_index = 0  # Reset selection
+                        self.parent_menu.current_index = self.cur_unit.items.index(item)  # Reset selection
                     game.state.back()
                 else:
                     # find ultimate parent item

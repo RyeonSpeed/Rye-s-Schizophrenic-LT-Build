@@ -153,3 +153,14 @@ class MapCastAnim(SkillComponent):
 
     def start_combat(self, playback, unit, item, target, mode):
         playback.append(pb.CastAnim(self.value))
+
+class BattleAnimMusic(SkillComponent):
+    nid = 'battle_animation_music'
+    desc = "Uses custom battle music"
+    tag = SkillTags.AESTHETIC
+
+    expose = ComponentType.Music
+    value = None
+
+    def battle_music(self, playback, unit, item, target, mode):
+        return self.value

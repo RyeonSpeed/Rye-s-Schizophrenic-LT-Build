@@ -568,7 +568,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 font = 'narrow'
             else:
                 font = 'text'
-            render_text(self.right_bar, [font], [name], ['brown'], (WINWIDTH//4 - 13, 5 + (8 if crit_flag else 0)), Alignments.CENTER)                
+            render_text(self.right_bar, [font], [name], ['brown'], (WINWIDTH//4 - 13, 5 + (8 if crit_flag else 0)), Alignments.CENTER)
 
         # Platforms
         if self.left.position:
@@ -677,11 +677,15 @@ class AnimationCombat(BaseCombat, MockCombat):
         self.viewbox = (vb_x, vb_y, vb_width, vb_height)
 
     def start_battle_music(self):
-        attacker_battle = item_system.battle_music(self.attacker, self.main_item, self.defender, 'attack')
-        if self.def_item:
-            defender_battle = item_system.battle_music(self.defender, self.def_item, self.attacker, 'defense')
-        else:
-            defender_battle = None
+        attacker_battle = item_system.battle_music(self.attacker, self.main_item, self.defender, 'attack') \
+            or skill_system.battle_music(self.playback, self.attacker, self.main_item, self.defender, 'attack')
+        defender_battle = None
+        if self.defender:
+            if self.def_item:
+                defender_battle = item_system.battle_music(self.defender, self.def_item, self.attacker, 'defense') \
+                or skill_system.battle_music(self.playback, self.defender, self.def_item, self.attacker, 'defense')
+            else:
+                defender_battle = skill_system.battle_music(self.playback, self.defender, self.def_item, self.attacker, 'defense')
         battle_music = game.level.music['%s_battle' % self.attacker.team]
         from_start = DB.constants.value('restart_battle_music')
         if attacker_battle:
@@ -716,7 +720,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 ap_crit = 0
             ap_stats = ap_hit, ap_mt, ap_crit
         else:
-            ap_stats = 0, 0, 0 
+            ap_stats = 0, 0, 0
 
         if self.def_item and combat_calcs.can_counterattack(self.attacker, self.main_item, self.defender, self.def_item):
             d_hit = combat_calcs.compute_hit(self.defender, self.attacker, self.def_item, self.main_item, 'defense', self.state_machine.get_defense_info())

@@ -124,7 +124,7 @@ def create_items(unit, item_nid_list: list) -> list:
             logging.error("Cannot find item with nid %s" % item_nid)
     return items
 
-def get_all_items(unit) -> list:
+def get_all_items(unit) -> List[ItemObject]:
     """
     Use this to get all weapons if you want to be able to handle multi_items
     """

@@ -105,6 +105,7 @@ def recalculate_unit(func):
         func(*args, **kwargs)
         self = args[0]
         if self.unit.position and game.tilemap and game.boundary:
+            self.unit.autoequip()
             game.boundary.recalculate_unit(self.unit)
     return wrapper
 
@@ -1330,18 +1331,19 @@ class TradeItem(Action):
             unit1.insert_item(item_index1, item2)
 
     def equip_items(self, unit):
-        for item in unit.nonaccessories:
-            available = item_system.available(unit, item)
-            equippable = item_system.equippable(unit, item)
-            if available and equippable:
-                self.subactions.append(EquipItem(unit, item))
-                break
-        for item in unit.accessories:
-            available = item_system.available(unit, item)
-            equippable = item_system.equippable(unit, item)
-            if available and equippable:
-                self.subactions.append(EquipItem(unit, item))
-                break
+        all_items = item_funcs.get_all_items(unit)
+        for item in all_items:
+            if not item_system.is_accessory(unit, item):
+                if item_system.equippable(unit, item) and item_funcs.available(unit, item):
+                    self.subactions.append(EquipItem(unit, item))
+                    break
+        for item in all_items:
+            if item_system.is_accessory(unit, item):
+                if item_system.equippable(unit, item) and item_funcs.available(unit, item):
+                    self.subactions.append(EquipItem(unit, item))
+                    break
+        # keep accessories sorted after items
+        self.items = sorted(unit.items, key=lambda item: item_system.is_accessory(unit, item))
 
     def do(self):
         self.subactions.clear()

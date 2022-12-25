@@ -32,6 +32,7 @@ multiply_hooks = ('damage_multiplier', 'resist_multiplier', 'crit_multiplier')
 simple_event_hooks = ('on_death',)
 # Takes in playback, unit, item, target, mode
 combat_event_hooks = ('start_combat', 'cleanup_combat', 'end_combat', 'pre_combat', 'post_combat', 'test_on', 'test_off')
+aesthetic_combat_hooks = ('battle_music', )
 # Takes in actions, playback, unit, item, target, mode, attack_info
 subcombat_event_hooks = ('after_hit', 'after_take_hit', 'after_take_miss', 'start_sub_combat', 'end_sub_combat')
 # Takes in unit, item
@@ -168,6 +169,18 @@ def %s(playback, unit, item, target, mode):
             if component.defines('%s'):
                 if component.ignore_conditional or condition(skill, unit):
                     component.%s(playback, unit, item, target, mode)""" \
+            % (hook, hook, hook)
+        compiled_skill_system.write(func)
+        compiled_skill_system.write('\n')
+
+    for hook in aesthetic_combat_hooks:
+        func = """
+def %s(playback, unit, item, target, mode):
+    for skill in unit.skills:
+        for component in skill.components:
+            if component.defines('%s'):
+                if component.ignore_conditional or condition(skill, unit):
+                    return component.%s(playback, unit, item, target, mode)""" \
             % (hook, hook, hook)
         compiled_skill_system.write(func)
         compiled_skill_system.write('\n')
