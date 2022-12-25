@@ -2900,7 +2900,8 @@ class AddSkill(Action):
         self.unit.skills.append(self.skill_obj)
         skill_system.on_add(self.unit, self.skill_obj)
 
-        if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:
+        if self.skill_obj.aura and self.skill_obj in self.unit.skills and \
+                self.unit.position and game.board and game.tilemap:
             aura_funcs.propagate_aura(self.unit, self.skill_obj, game)
             game.boundary.register_unit_auras(self.unit)
 
@@ -2927,7 +2928,7 @@ class AddSkill(Action):
 
 
 class RemoveSkill(Action):
-    def __init__(self, unit, skill, count = -1):
+    def __init__(self, unit, skill, count=-1):
         self.unit = unit
         self.skill = skill  # Skill obj or skill nid str
         self.removed_skills = []
