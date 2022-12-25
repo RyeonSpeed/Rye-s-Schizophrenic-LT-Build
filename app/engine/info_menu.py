@@ -822,13 +822,13 @@ class InfoMenuState(State):
             and not skill_system.wexp_unusable_skill(self.unit, weapon):
                 wexp_to_draw.append((weapon, wexp))
         width = (WINWIDTH - 102) // 2
-        height = 16 * 2 + 4
+        height = 16 * 3 + 4
 
         surf = engine.create_surface((WINWIDTH - 96, height), transparent=True)
         if not wexp_to_draw:
             return surf
         counter = 0
-        for y in range(0, 32, 16):
+        for y in range(0, 48, 16):
             for x in range(0, 2):
                 weapon, value = wexp_to_draw[counter]
                 weapon_rank = DB.weapon_ranks.get_rank_from_wexp(value)
