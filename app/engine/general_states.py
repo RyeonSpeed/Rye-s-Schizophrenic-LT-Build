@@ -389,7 +389,8 @@ class OptionMenuState(MapState):
             options.insert(2, 'Guide')
             info_desc.insert(2, 'Guide_desc')
             ignore.insert(2, False)
-        if DB.constants.get('turnwheel').value and (not game.level or not game.level.roam):
+        if DB.constants.get('turnwheel').value and game.game_vars.get('_turnwheel') and \
+                (not game.level or not game.level.roam):
             options.insert(1, 'Turnwheel')
             info_desc.insert(1, 'Turnwheel_desc')
             ignore.insert(1, False)
@@ -544,12 +545,8 @@ class OptionChildState(State):
                         elif self.menu.owner == 'Storage':
                             action.do(action.StoreItem(cur_unit, item))
                     if item_funcs.too_much_in_inventory(cur_unit):
-                        game.state.back()
-                    elif cur_unit.items:
-                        game.state.back()
-                        game.state.back()
-                    else:  # If the unit has no more items, head all the way back to menu
-                        game.state.back()
+                        game.state.back()  # You need to pick another item to discard
+                    else:
                         game.state.back()
                         game.state.back()
             else:

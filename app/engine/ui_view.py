@@ -447,7 +447,7 @@ class UIView():
 
                 mt = combat_calcs.compute_assist_damage(a_assist, defender, a_assist.get_weapon(), defender.get_weapon(), 'attack', (0, 0))
                 if grandmaster:
-                    hit = combat_calcs.compute_hit(a_assist, defender, a_assist.get_weapon(), defender.get_weapon(), 'attack', (0, 0))
+                    hit = utils.clamp(combat_calcs.compute_hit(a_assist, defender, a_assist.get_weapon(), defender.get_weapon(), 'attack', (0, 0)), 0, 100)
                     blit_num(surf, int(mt * float(hit) / 100), 112, 35)
                 else:
                     blit_num(surf, mt, 112, 35)
@@ -474,7 +474,7 @@ class UIView():
 
                 mt = combat_calcs.compute_assist_damage(d_assist, attacker, d_assist.get_weapon(), weapon, 'defense', (0, 0))
                 if grandmaster:
-                    hit = combat_calcs.compute_hit(d_assist, attacker, d_assist.get_weapon(), weapon, 'defense', (0, 0))
+                    hit = utils.clamp(combat_calcs.compute_hit(d_assist, attacker, d_assist.get_weapon(), weapon, 'defense', (0, 0)), 0, 100)
                     blit_num(surf, int(mt * float(hit) / 100), 21, 35)
                 else:
                     blit_num(surf, mt, 21, 35)
@@ -513,7 +513,7 @@ class UIView():
         # Self MT
         mt = combat_calcs.compute_damage(attacker, defender, weapon, defender.get_weapon(), 'attack', (0, 0))
         if grandmaster:
-            hit = combat_calcs.compute_hit(attacker, defender, weapon, defender.get_weapon(), 'attack', (0, 0))
+            hit = utils.clamp(combat_calcs.compute_hit(attacker, defender, weapon, defender.get_weapon(), 'attack', (0, 0)), 0, 100)
             blit_num(surf, int(mt * float(hit) / 100), 88, 35)
         else:
             blit_num(surf, mt, 88, 35)

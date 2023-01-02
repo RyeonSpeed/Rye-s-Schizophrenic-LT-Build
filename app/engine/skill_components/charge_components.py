@@ -17,7 +17,7 @@ class BuildCharge(SkillComponent):
         self.skill.data['charge'] = 0
         self.skill.data['total_charge'] = self.value
 
-    def condition(self, unit):
+    def condition(self, unit, item):
         return self.skill.data['charge'] >= self.skill.data['total_charge']
 
     def on_end_chapter(self, unit, skill):
@@ -49,7 +49,7 @@ class DrainCharge(SkillComponent):
         self.skill.data['charge'] = self.value
         self.skill.data['total_charge'] = self.value
 
-    def condition(self, unit):
+    def condition(self, unit, item):
         return self.skill.data['charge'] > 0
 
     def on_end_chapter(self, unit, skill):
@@ -151,7 +151,7 @@ class CostMana(SkillComponent):
 
     ignore_conditional = True
 
-    def condition(self, unit):
+    def condition(self, unit, item):
         return unit.current_mana >= self.value
 
     def start_combat(self, playback, unit, item, target, mode):
@@ -169,5 +169,5 @@ class CheckMana(SkillComponent):
 
     ignore_conditional = True
 
-    def condition(self, unit):
+    def condition(self, unit, item):
         return unit.current_mana >= self.value

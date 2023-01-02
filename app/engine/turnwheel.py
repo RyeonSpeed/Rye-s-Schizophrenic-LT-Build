@@ -6,6 +6,7 @@ from app.constants import WINHEIGHT, WINWIDTH
 from app.engine import base_surf, engine, gui, image_mods
 from app.engine.background import SpriteBackground
 from app.engine.fonts import FONT
+from app.engine.graphics.text.text_renderer import render_text
 from app.engine.game_state import game
 from app.engine.input_manager import get_input_manager
 from app.engine.sound import get_sound_thread
@@ -394,11 +395,10 @@ class TurnwheelDisplay():
 
         # Turnwheel message
         if self.desc:
-            font = FONT['text']
             num_lines = len(self.desc)
-            bg = base_surf.create_base_surf(WINWIDTH, 8 + font.height * num_lines, 'menu_bg_clear')
+            bg = base_surf.create_base_surf(WINWIDTH, 8 + 16 * num_lines, 'menu_bg_clear')
             for idx, line in enumerate(self.desc):
-                font.blit(line, bg, (4, 4 + font.height * idx))
+                render_text(bg, ['text'], [line], [None], (4, 4 + 16 * idx))
             if self.transition != 0:
                 bg = image_mods.make_translucent(bg, -self.transition/24.)
             surf.blit(bg, (0, 0))

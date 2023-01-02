@@ -26,6 +26,8 @@ These variables are saved for the entirety of a given game.
 
 `_convoy` **bool** Set to True to give the player access to the convoy.
 
+`_turnwheel` **bool** Set to True to give the player access to the turnwheel.
+
 `_supports` **bool** Set to True to give the player access to support conversations and have characters gain support points.
 
 `_fatigue` **int** Set to 0 to turn off fatigue. Set to 1 to have fatigue prevent unit from participating in a chapter. Set to 2 to have fatigue apply a Fatigued status when fatigue >= max fatigue and Rested when fatigue < max fatigue. Set to 3 to have the engine track fatigue but not do anything with it by default.

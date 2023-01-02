@@ -114,7 +114,7 @@ class Move(Action):
     A basic, user-directed move
     """
 
-    def __init__(self, unit, new_pos, path=None, event=False, follow=True, speed=cf.SETTINGS['unit_speed']):
+    def __init__(self, unit, new_pos, path=None, event=False, follow=True, speed=0):
         self.unit = unit
         self.old_pos = self.unit.position
         self.new_pos = new_pos
@@ -126,7 +126,7 @@ class Move(Action):
         self.has_moved = self.unit.has_moved
         self.event = event
         self.follow = follow
-        self.speed = speed
+        self.speed = speed or cf.SETTINGS['unit_speed']
 
     def do(self):
         if self.path is None:

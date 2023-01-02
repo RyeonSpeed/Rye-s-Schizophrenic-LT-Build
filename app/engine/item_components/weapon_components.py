@@ -1,5 +1,6 @@
 from app.utilities import utils
 from app.data.database.database import DB
+from app.data.database.difficulty_modes import RNGOption
 
 from app.data.database.item_components import ItemComponent, ItemTags
 from app.data.database.components import ComponentType
@@ -116,6 +117,11 @@ class Damage(ItemComponent):
         else:
             damage = combat_calcs.compute_damage(unit, target, item, target.get_weapon(), mode, attack_info)
 
+        # Reduce damage if in Grandmaster Mode
+        if game.mode.rng_choice == RNGOption.GRANDMASTER:
+            hit = utils.clamp(combat_calcs.compute_hit(unit, target, item, target.get_weapon(), mode, attack_info), 0, 100)
+            damage = int(damage * float(hit) / 100)
+
         true_damage = min(damage, target.get_hp())
         actions.append(action.ChangeHP(target, -damage))
 
@@ -131,6 +137,12 @@ class Damage(ItemComponent):
             damage = combat_calcs.compute_assist_damage(unit, target, item, target.get_weapon(), mode, attack_info)
         else:
             damage = combat_calcs.compute_damage(unit, target, item, target.get_weapon(), mode, attack_info)
+
+        # Reduce damage if in Grandmaster Mode
+        if game.mode.rng_choice == RNGOption.GRANDMASTER:
+            hit = utils.clamp(combat_calcs.compute_hit(unit, target, item, target.get_weapon(), mode, attack_info), 0, 100)
+            damage = int(damage * float(hit) / 100)
+
         damage //= 2  # Because glancing hit
 
         true_damage = min(damage, target.get_hp())
@@ -149,6 +161,11 @@ class Damage(ItemComponent):
             damage = combat_calcs.compute_assist_damage(unit, target, item, target.get_weapon(), mode, attack_info, crit=True)
         else:
             damage = combat_calcs.compute_damage(unit, target, item, target.get_weapon(), mode, attack_info, crit=True)
+ 
+        # Reduce damage if in Grandmaster Mode (although crit doesn't make much sense with Grandmaster mode)
+        if game.mode.rng_choice == RNGOption.GRANDMASTER:
+            hit = utils.clamp(combat_calcs.compute_hit(unit, target, item, target.get_weapon(), mode, attack_info), 0, 100)
+            damage = int(damage * float(hit) / 100)
 
         true_damage = min(damage, target.get_hp())
         actions.append(action.ChangeHP(target, -damage))

@@ -1,4 +1,9 @@
-from app.engine.objects.item import ItemObject
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.engine.objects.item import ItemObject
+    from app.engine.objects.unit import UnitObject
 
 class Defaults():
     @staticmethod
@@ -26,7 +31,7 @@ class Defaults():
     @staticmethod
     def can_trade(unit1, unit2) -> bool:
         return unit1.team == unit2.team and check_ally(unit1, unit2) and not no_trade(unit1) and not no_trade(unit2)
-        
+
     @staticmethod
     def no_trade(unit) -> bool:
         return False
@@ -167,10 +172,12 @@ class Defaults():
     def thracia_critical_multiplier_formula(unit) -> str:
         return 'THRACIA_CRIT'
 
-def condition(skill, unit) -> bool:
+def condition(skill, unit: UnitObject, item=None) -> bool:
+    if not item:
+        item = unit.equipped_weapon
     for component in skill.components:
         if component.defines('condition'):
-            if not component.condition(unit):
+            if not component.condition(unit, item):
                 return False
     return True
 
@@ -414,7 +421,7 @@ def get_combat_arts(unit):
                     if item_range:
                         max_range = max(item_range)
                         weapon._force_max_range = max(0, max_range + combat_art_modify_max_range)
-                
+
                 # activate_combat_art(unit, skill)
                 act = action.AddSkill(unit, skill.combat_art.value)
                 act.do()

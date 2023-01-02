@@ -100,7 +100,7 @@ def %s(unit, item):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     return component.%s(unit, item)
     return Defaults.%s(unit, item)""" \
             % (behaviour, behaviour, behaviour, behaviour)
@@ -114,7 +114,7 @@ def %s(unit, item):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     val += component.%s(unit, item)
     return val""" \
             % (hook, hook, hook)
@@ -128,7 +128,7 @@ def %s(unit, item, target, mode, attack_info, base_value):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     val += component.%s(unit, item, target, mode, attack_info, base_value)
     return val""" \
             % (hook, hook, hook)
@@ -142,7 +142,7 @@ def %s(unit, item, target, mode, attack_info, base_value):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     val *= component.%s(unit, item, target, mode, attack_info, base_value)
     return val""" \
             % (hook, hook, hook)
@@ -167,7 +167,7 @@ def %s(playback, unit, item, target, mode):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     component.%s(playback, unit, item, target, mode)""" \
             % (hook, hook, hook)
         compiled_skill_system.write(func)
@@ -191,7 +191,7 @@ def %s(actions, playback, unit, item, target, mode, attack_info):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     component.%s(actions, playback, unit, item, target, mode, attack_info)""" \
             % (hook, hook, hook)
         compiled_skill_system.write(func)
@@ -203,7 +203,7 @@ def %s(unit, item):
     for skill in unit.skills:
         for component in skill.components:
             if component.defines('%s'):
-                if component.ignore_conditional or condition(skill, unit):
+                if component.ignore_conditional or condition(skill, unit, item):
                     component.%s(unit, item)""" \
             % (hook, hook, hook)
         compiled_skill_system.write(func)

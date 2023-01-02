@@ -9,13 +9,13 @@ from app.utilities import utils
 
 
 class MovementData():
-    def __init__(self, path, event, follow, muted=False, speed=cf.SETTINGS['unit_speed']):
+    def __init__(self, path, event, follow, muted=False, speed=0):
         self.path = path
         self.last_update = 0
         self.event = event
         self.follow = follow
         self.muted = muted
-        self.speed = speed
+        self.speed = speed or cf.SETTINGS['unit_speed']
 
 class MovementManager():
     def __init__(self):
@@ -24,10 +24,10 @@ class MovementManager():
 
         self.surprised = False
 
-    def add(self, unit, path, event=False, follow=True, speed=cf.SETTINGS['unit_speed']):
+    def add(self, unit, path, event=False, follow=True, speed=0):
         self.moving_units[unit.nid] = MovementData(path, event, follow, speed=speed)
 
-    def begin_move(self, unit, path, event=False, follow=True, speed=cf.SETTINGS['unit_speed']):
+    def begin_move(self, unit, path, event=False, follow=True, speed=0):
         logging.info("Unit %s begin move: %s", unit.nid, path)
         self.add(unit, path, event, follow, speed=speed)
         unit.sprite.set_speed(int(speed))
