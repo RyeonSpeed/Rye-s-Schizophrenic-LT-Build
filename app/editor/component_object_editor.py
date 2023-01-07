@@ -137,7 +137,7 @@ class ComponentObjectEditor(QWidget, Generic[T]):
         return True
 
     def copy_to_clipboard(self):
-        selected_nid = self.tree_list.get_selected_item()
+        selected_nid = self.tree_list.get_selected_nid()
         if selected_nid:
             clipboard = QApplication.clipboard()
             prefab = self.data.get(selected_nid)

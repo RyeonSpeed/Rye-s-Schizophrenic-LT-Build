@@ -44,7 +44,7 @@ def repull_aura(unit, old_skill, game):
     for aura_data in game.board.get_auras(unit.position):
         child_aura_uid, target = aura_data
         child_skill = game.get_skill(child_aura_uid)
-        if old_skill.nid == child_skill.nid:
+        if old_skill.nid == child_skill.nid and not old_skill.stack:
             owner_nid = child_skill.parent_skill.owner_nid
             owner = game.get_unit(owner_nid)
             if owner is not unit:
@@ -102,6 +102,7 @@ def repopulate_aura(unit, skill, game):
         game.board.add_aura(pos, unit, skill.subskill, skill.aura_target.value)
 
 def release_aura(unit, skill, game):
+    logging.debug("Releasing Aura %s (owned by %s)", skill, unit)
     for pos in list(game.board.get_aura_positions(skill.subskill)):
         game.board.remove_aura(pos, skill.subskill)
         # Release aura from others

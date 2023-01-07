@@ -892,7 +892,7 @@ class MenuState(MapState):
                         game.cursor.cur_unit = u
                     if self.cur_unit.current_move:
                         logging.info("Reversing " + self.cur_unit.nid + "'s move")
-                        game.leave(self.cur_unit)
+                        # game.leave(self.cur_unit)
                         action.reverse(self.cur_unit.current_move)
                         self.cur_unit.current_move = None
                     game.state.change('move')

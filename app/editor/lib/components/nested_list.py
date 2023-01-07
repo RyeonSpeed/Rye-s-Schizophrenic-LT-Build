@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, QItemSelection
 from PyQt5.QtGui import QFont, QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtWidgets import (QAction, QMenu, QPushButton, QStyledItemDelegate,
                              QTreeWidget, QTreeWidgetItem, QVBoxLayout,
@@ -114,7 +114,8 @@ class LTNestedList(QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
-            self.delete(self.tree_widget.selectedIndexes()[0], self.tree_widget.selectedItems()[0])
+            if self.tree_widget.selectedIndexes():
+                self.delete(self.tree_widget.selectedIndexes()[0], self.tree_widget.selectedItems()[0])
 
     def customMenuRequested(self, pos):
         item = self.tree_widget.itemAt(pos)
@@ -138,13 +139,16 @@ class LTNestedList(QWidget):
         menu.popup(self.tree_widget.viewport().mapToGlobal(pos))
 
     def reset(self, list_entries: Optional[List[NID]], list_categories: Optional[Categories]):
-        previous_selected_item_nid = self.get_selected_item()
+        previous_selected_item_nid = self.get_selected_nid()
+        # don't want to trigger on_select and such when rebuilding
+        self.tree_widget.selectionModel().blockSignals(True)
         self.tree_widget.clear()
         self._build_tree_widget_in_place(list_entries, list_categories, self.tree_widget.invisibleRootItem())
         self.regenerate_icons(initial_generation=True)
         should_select = self.find_item_by_nid(previous_selected_item_nid)
         if should_select:
             self.select_item(should_select)
+        self.tree_widget.selectionModel().blockSignals(False)
 
     def build_tree_widget(self, tree_widget: QTreeWidget, list_entries: Optional[List[NID]], list_categories: Optional[Categories]):
         self._build_tree_widget_in_place(list_entries, list_categories, tree_widget.invisibleRootItem())
@@ -182,6 +186,7 @@ class LTNestedList(QWidget):
             row = self._determine_insertion_row(index, item)
             closest_category.insertChild(row, new_item)
             self.select_item(new_item)
+            self.data_changed(new_item)
 
     def new_category(self, index, item: Optional[QTreeWidgetItem]):
         existing_categories = set()
@@ -235,10 +240,10 @@ class LTNestedList(QWidget):
         if actually_delete:
             parent = item.parent() or self.tree_widget.invisibleRootItem()
             parent.removeChild(item)
-            index_of_item_before = min(index.row(), parent.childCount())
+            index_of_item_before = min(index.row(), parent.childCount() - 1)
             self.select_item(parent.child(index_of_item_before))
 
-    def get_selected_item(self) -> Optional[NID]:
+    def get_selected_nid(self) -> Optional[NID]:
         if not self.tree_widget.selectedItems():
             return None
         selected_item = self.tree_widget.selectedItems()[0]
@@ -250,13 +255,14 @@ class LTNestedList(QWidget):
         if isinstance(item, NID):
             item = self.find_item_by_nid(item)
         if item:
+            self.tree_widget.selectionModel().blockSignals(True)
             self.tree_widget.selectionModel().clearSelection()
             item.setSelected(True)
+            self.tree_widget.selectionModel().blockSignals(False)
             self.tree_widget.scrollToItem(item)
-        else:
-            self.on_select(None, None)
+        self.on_select(self.tree_widget.selectionModel().selection(), None)
 
-    def on_select(self, selected, desel):
+    def on_select(self, selected: Optional[QItemSelection], desel: Optional[QItemSelection]):
         if not selected:
             if self.on_click_item:
                 self.on_click_item(None)

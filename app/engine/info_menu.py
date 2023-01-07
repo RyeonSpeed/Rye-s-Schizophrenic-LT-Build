@@ -752,13 +752,13 @@ class InfoMenuState(State):
                     render_text(surf, ['text'], [trav.name], ['blue'], (96, 16 * true_idx + 24))
                 else:
                     render_text(surf, ['text'], ['--'], ['blue'], (96, 16 * true_idx + 24))
-                render_text(surf, ['text'], ['Trv'], ['yellow'], (72, 16 * true_idx + 24))
+                render_text(surf, ['text'], [text_funcs.translate('Trv')], ['yellow'], (72, 16 * true_idx + 24))
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'Trv_desc', state)
 
             elif stat == 'AID':
                 if growths:
                     icons.draw_growth(surf, 'HP', self.unit, (111, 16 * true_idx + 24))
-                    render_text(surf, ['text'], ['HP'], ['yellow'], (72, 16 * true_idx + 24))
+                    render_text(surf, ['text'], [text_funcs.translate('HP')], ['yellow'], (72, 16 * true_idx + 24))
                     self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'HP_desc', state)
                 else:
                     aid = equations.parser.rescue_aid(self.unit)
@@ -774,13 +774,13 @@ class InfoMenuState(State):
                     else:
                         aid_surf = engine.subsurface(SPRITES.get('aid_icons'), (0, 0, 16, 16))
                     surf.blit(aid_surf, (112, 16 * true_idx + 24))
-                    render_text(surf, ['text'], ['Aid'], ['yellow'], (72, 16 * true_idx + 24))
+                    render_text(surf, ['text'], [text_funcs.translate('Aid')], ['yellow'], (72, 16 * true_idx + 24))
                     self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'Aid_desc', state)
 
             elif stat == 'RAT':
                 rat = str(equations.parser.rating(self.unit))
                 render_text(surf, ['text'], [rat], ['blue'], (111, 16 * true_idx + 24), Alignments.RIGHT)
-                render_text(surf, ['text'], ['Rat'], ['yellow'], (72, 16 * true_idx + 24))
+                render_text(surf, ['text'], [text_funcs.translate('Rat')], ['yellow'], (72, 16 * true_idx + 24))
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'Rating_desc', state)
 
             elif stat == 'MANA':
@@ -796,7 +796,7 @@ class InfoMenuState(State):
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'GAUGE_desc', state)
 
             if DB.constants.value('lead'):
-                render_text(surf, ['text'], ['Lead'], ['yellow'], (72, 120))
+                render_text(surf, ['text'], [text_funcs.translate('Lead')], ['yellow'], (72, 120))
                 self.info_graph.register((96 + 72, 120, 64, 16), 'Lead_desc', state)
 
                 if growths:
@@ -909,19 +909,19 @@ class InfoMenuState(State):
         surf.blit(battle_surf, (left, top))
         # Populate battle info
         surf.blit(SPRITES.get('equipment_logo'), (14, top + 4))
-        render_text(surf, ['text'], ['Rng'], ['yellow'], (78, top))
+        render_text(surf, ['text'], [text_funcs.translate('Rng')], ['yellow'], (78, top))
         self.info_graph.register((96 + 78, top, 56, 16), 'Rng_desc', 'equipment')
-        render_text(surf, ['text'], ['Atk'], ['yellow'], (22, top + 16))
+        render_text(surf, ['text'], [text_funcs.translate('Atk')], ['yellow'], (22, top + 16))
         self.info_graph.register((96 + 14, top + 16, 64, 16), 'Atk_desc', 'equipment')
-        render_text(surf, ['text'], ['Hit'], ['yellow'], (22, top + 32))
+        render_text(surf, ['text'], [text_funcs.translate('Hit')], ['yellow'], (22, top + 32))
         self.info_graph.register((96 + 14, top + 32, 64, 16), 'Hit_desc', 'equipment')
         if DB.constants.value('crit'):
-            render_text(surf, ['text'], ['Crit'], ['yellow'], (78, top + 16))
+            render_text(surf, ['text'], [text_funcs.translate('Crit')], ['yellow'], (78, top + 16))
             self.info_graph.register((96 + 78, top + 16, 56, 16), 'Crit_desc', 'equipment')
         else:
-            render_text(surf, ['text'], ['AS'], ['yellow'], (78, top + 16))
+            render_text(surf, ['text'], [text_funcs.translate('AS')], ['yellow'], (78, top + 16))
             self.info_graph.register((96 + 78, top + 16, 56, 16), 'AS_desc', 'equipment')
-        render_text(surf, ['text'], ['Avoid'], ['yellow'], (78, top + 32))
+        render_text(surf, ['text'], [text_funcs.translate('Avoid')], ['yellow'], (78, top + 32))
         self.info_graph.register((96 + 78, top + 32, 56, 16), 'Avoid_desc', 'equipment')
 
         if weapon:

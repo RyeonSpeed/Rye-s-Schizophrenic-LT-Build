@@ -1,23 +1,16 @@
-import gettext
 import os, sys
 
 from app.editor.settings import MainSettingsController
+from app.editor.editor_locale import init_locale
 from app.engine.component_system_compiler import source_generator
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QLockFile, QDir, Qt
 from PyQt5.QtGui import QIcon
 
-current_locale = 'en_US'
-locale_path = 'locale/'
-translation_module = gettext.translation(
-    domain='messages',
-    localedir=locale_path,
-    languages=[current_locale]
-)
-translation_module.install()  # Magically make the _ function globally available
 
 if __name__ == '__main__':
+    init_locale()
     # Hack to get a Windows icon to show up
     try:
         import ctypes
