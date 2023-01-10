@@ -279,6 +279,7 @@ class InfoMenuState(State):
         self.support_surf: engine.Surface = None
         self.skill_surf: engine.Surface = None
         self.class_skill_surf: engine.Surface = None
+        self.learned_skill_surf: engine.Surface = None
         self.fatigue_surf: engine.Surface = None
         self.notes_surf: engine.Surface = None
 
@@ -669,6 +670,9 @@ class InfoMenuState(State):
             if not self.skill_surf:
                 self.skill_surf = self.create_skill_surf()
             self.draw_skill_surf(main_surf)
+            if not self.learned_skill_surf:
+                self.learned_skill_surf = self.create_learned_skill_surf()
+            self.draw_learned_skill_surf(main_surf)
 
         # Now put it in the right place
         offset_x = max(96, 96 - self.scroll_offset_x)
@@ -954,7 +958,7 @@ class InfoMenuState(State):
 
     def create_skill_surf(self):
         surf = engine.create_surface((WINWIDTH - 96, 24), transparent=True)
-        skills = [skill for skill in self.unit.skills if not (skill.class_skill or skill_system.hidden(skill, self.unit))]
+        skills = [skill for skill in self.unit.skills if not (skill.class_skill or skill.learned_skill or skill_system.hidden(skill, self.unit))]
         # stacked skills appear multiple times, but should be drawn only once
         skill_counter = {}
         unique_skills = list()
@@ -1008,6 +1012,35 @@ class InfoMenuState(State):
 
     def draw_class_skill_surf(self, surf):
         surf.blit(self.class_skill_surf, (96, 36))
+        
+    def create_learned_skill_surf(self):
+        surf = engine.create_surface((WINWIDTH - 96, 24), transparent=True)
+        learned_skills = [skill for skill in self.unit.skills if skill.learned_skill and not skill_system.hidden(skill, self.unit)][:6]
+
+        # stacked skills appear multiple times, but should be drawn only once
+        skill_counter = {}
+        unique_skills = list()
+        for skill in learned_skills:
+            if skill.nid not in skill_counter:
+                skill_counter[skill.nid] = 1
+                unique_skills.append(skill)
+            else:
+                skill_counter[skill.nid] += 1
+        for idx, skill in enumerate(unique_skills[:6]):
+            left_pos = idx * 24
+            icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False, grey=skill_system.is_grey(skill, self.unit))
+            if skill_counter[skill.nid] > 1:
+                render_text(surf, ['small'], [str(skill_counter[skill.nid])], ['white'], (left_pos + 20 - 4 * len(str(skill_counter[skill.nid])), 6))
+            if skill.data.get('total_charge'):
+                charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
+            else:
+                charge = ''
+            self.info_graph.register((96 + left_pos + 8, 72, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+
+        return surf
+
+    def draw_learned_skill_surf(self, surf):
+        surf.blit(self.learned_skill_surf, (96, 72))
 
     def create_support_surf(self):
         surf = engine.create_surface((WINWIDTH - 96, WINHEIGHT), transparent=True)
