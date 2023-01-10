@@ -639,9 +639,6 @@ class InfoMenuState(State):
                 if not self.personal_data_surf:
                     self.personal_data_surf = self.create_personal_data_surf()
                 self.draw_personal_data_surf(main_surf)
-            if not self.class_skill_surf:
-                self.class_skill_surf = self.create_class_skill_surf()
-            self.draw_class_skill_surf(main_surf)
             if DB.constants.value('fatigue') and self.unit.team == 'player' and \
                     game.game_vars.get('_fatigue'):
                 if not self.fatigue_surf:
@@ -654,21 +651,24 @@ class InfoMenuState(State):
             self.draw_equipment_surf(main_surf)
 
         elif self.state == 'support_skills':
-            main_surf.blit(SPRITES.get('status_logo'), (100, WINHEIGHT - 42))
-            if not self.skill_surf:
-                self.skill_surf = self.create_skill_surf()
-            self.draw_skill_surf(main_surf)
             if not self.wexp_surf:
                 self.wexp_surf = self.create_wexp_surf()
             self.draw_wexp_surf(main_surf)
             if not self.support_surf:
                 self.support_surf = self.create_support_surf()
             self.draw_support_surf(main_surf)
-
-        elif self.state == 'notes':
             if not self.notes_surf:
                 self.notes_surf = self.create_notes_surf()
             self.draw_notes_surf(main_surf)
+
+        elif self.state == 'notes':
+            main_surf.blit(SPRITES.get('status_logo'), (100, WINHEIGHT - 42))
+            if not self.class_skill_surf:
+                self.class_skill_surf = self.create_class_skill_surf()
+            self.draw_class_skill_surf(main_surf)
+            if not self.skill_surf:
+                self.skill_surf = self.create_skill_surf()
+            self.draw_skill_surf(main_surf)
 
         # Now put it in the right place
         offset_x = max(96, 96 - self.scroll_offset_x)
@@ -973,7 +973,7 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 28, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'support_skills')
+            self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 32, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
 
         return surf
 
@@ -1002,13 +1002,12 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 32, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'personal_data')
-            self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 32, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'growths')
+            self.info_graph.register((96 + left_pos + 8, 36, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
 
         return surf
 
     def draw_class_skill_surf(self, surf):
-        surf.blit(self.class_skill_surf, (96, WINHEIGHT - 36))
+        surf.blit(self.class_skill_surf, (96, 36))
 
     def create_support_surf(self):
         surf = engine.create_surface((WINWIDTH - 96, WINHEIGHT), transparent=True)
@@ -1080,10 +1079,10 @@ class InfoMenuState(State):
                     left_pos = 64 if category_length <= 64 else (category_length + 8)
                     render_text(menu_surf, ['text'], [entry], [], (left_pos, total_height))
                     total_height += 16
-                self.info_graph.register((96, 16 * help_offset + 24, 64, 16), '%s_desc' % category, 'notes', first=(idx == 0))
+                self.info_graph.register((96, 16 * help_offset + WINHEIGHT -36, 64, 16), '%s_desc' % category, 'support_skills', first=(idx == 0))
                 help_offset += len(entries)
 
         return menu_surf
 
     def draw_notes_surf(self, surf):
-        surf.blit(self.notes_surf, (96, 0))
+        surf.blit(self.notes_surf, (96, WINHEIGHT - 60))
