@@ -237,8 +237,6 @@ class Endf(EventCommand):
 Ends a for block. Refer to the **for** command for more information.
         """
 
-
-
 class Finish(EventCommand):
     nid = "finish"
     nickname = "break"
@@ -338,7 +336,8 @@ Extra flags:
         """
 
     keywords = ['Portrait', 'ScreenPosition']
-    optional_keywords = ['Slide', 'ExpressionList']
+    optional_keywords = ['Slide', 'ExpressionList', 'SpeedMult']
+    keyword_types = ['Portrait', 'ScreenPosition', 'Slide', 'ExpressionList', 'Float']
     _flags = ["mirror", "low_priority", "immediate", "no_block"]
 
 class MultiAddPortrait(EventCommand):
@@ -371,6 +370,8 @@ Extra flags:
         """
 
     keywords = ['Portrait']
+    optional_keywords = ['SpeedMult']
+    keyword_types = ['Portrait', 'Float']
     _flags = ["immediate", "no_block"]
 
 class MultiRemovePortrait(EventCommand):
@@ -393,7 +394,7 @@ class MovePortrait(EventCommand):
 
     desc = \
         """
-Causes a portrait to "walk" from one screen position to another.
+Causes a portrait to "walk" from one screen position to another. Default *SpeedMult* is 1. Higher speeds are faster.
 
 Extra flags:
 
@@ -402,6 +403,8 @@ Extra flags:
         """
 
     keywords = ['Portrait', 'ScreenPosition']
+    optional_keywords = ['SpeedMult']
+    keyword_types = ['Portrait', 'ScreenPosition', 'Float']
     _flags = ["immediate", "no_block"]
 
 class BopPortrait(EventCommand):
@@ -510,6 +513,18 @@ class Unhold(EventCommand):
 Remove a speak command from the screen. This is useful if you used the `hold` flag on a speak command earlier.
 
 This will 'unhold' the speak command with the specified NID.
+    """
+
+    keywords = ['Nid']
+
+class Unpause(EventCommand):
+    nid = "unpause"
+    tag = Tags.DIALOGUE_TEXT
+
+    desc = """
+Unpauses a previously paused text box. Has no effect if text box was not paused using `{p}` before.
+
+This will 'unpause' the text box with the specified speaker NID.
     """
 
     keywords = ['Nid']
@@ -1588,6 +1603,26 @@ class RemoveSkill(EventCommand):
     optional_keywords = ['Count']
     keyword_types = ['GlobalUnit', 'Skill', 'Integer']
     _flags = ['no_banner']
+
+class SetSkillData(EventCommand):
+    nid = 'set_skill_data'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Finds the first matching *Skill* of *GlobalUnit*.
+Then, it sets the data field *Nid* of the *Skill* to *Expression*.
+
+
+As an example, you could change the number of charges a skill has using this.
+
+`set_skill_data;Eirika;Luna;charge;5`
+
+In general, you need to know how the innards of a given skill component
+interacts with the data of the skill to use this command.
+        """
+
+    keywords = ["GlobalUnit", "Skill", "Nid", "Expression"]
 
 class ChangeAI(EventCommand):
     nid = 'change_ai'
@@ -2816,13 +2851,35 @@ def restore_command(dat) -> EventCommand:
 
 evaluables = ('Expression', 'String', 'StringList', 'PointList', 'DashList', 'Nid')
 
+def get_command_arguments(text: str) -> List[str]:
+    # Replacement for text.split(';') 
+    # that ignores any semicolons
+    # found within '{}' brackets
+    arguments = []
+    curr = ""
+    level = 0
+    for t in text:
+        if t == ';' and level == 0:
+            arguments.append(curr)
+            curr = ""
+        elif t == '{':
+            level += 1
+            curr += t
+        elif t == '}':
+            level -= 1
+            curr += t
+        else:
+            curr += t
+    arguments.append(curr)
+    return arguments
+
 def determine_command_type(text: str) -> EventCommand:
     text = text.lstrip()
     if text.startswith('#'):
         return Comment(display_values=[text])
     if text.startswith('comment;'):
         return Comment(display_values=[text[8:]])
-    arguments = text.split(';')
+    arguments = get_command_arguments(text)
     command_nid = arguments[0]
     subclasses = EventCommand.__subclasses__()
     for command_type in subclasses:
@@ -2842,6 +2899,7 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
 
     Returns:
         EventCommand: parsed command
+        int: Index of the character the command failed to parse at (only if strict)
     """
     def _process_arg(cmd_keyword: str, arg: str) -> str:
         # if parentheses exists, then they contain the "true" arg, with everything outside parens essentially as comments
@@ -2920,7 +2978,8 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
     if text.endswith(';'):
         text = text[:-1]
 
-    arguments = text.split(';')
+    arguments = get_command_arguments(text)
+
     command_nid = arguments[0]
     subclasses = EventCommand.__subclasses__()
     bad_idx = None

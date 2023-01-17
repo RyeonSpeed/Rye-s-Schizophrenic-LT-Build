@@ -255,6 +255,11 @@ class MapIconModel(Icon16Model):
         super().__init__(data, window)
         self.sub_data = self._data
 
+    def flags(self, index):
+        if index.isValid():
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        else:
+            return Qt.NoItemFlags
     def create_new(self):
         settings = MainSettingsController()
         starting_path = settings.get_last_open_path()

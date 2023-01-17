@@ -7,7 +7,8 @@ from app.events.regions import Region
 from app.utilities.data import Data, Prefab
 
 music_keys = ['player_phase', 'enemy_phase', 'other_phase', 'enemy2_phase',
-              'player_battle', 'enemy_battle', 'other_battle', 'enemy2_battle']
+              'player_battle', 'enemy_battle', 'other_battle', 'enemy2_battle',
+              'boss_battle']
 
 class LevelPrefab(Prefab):
     def __init__(self, nid, name):

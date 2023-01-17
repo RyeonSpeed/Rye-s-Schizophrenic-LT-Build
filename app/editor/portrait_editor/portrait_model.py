@@ -100,7 +100,7 @@ class PortraitModel(ResourceCollectionModel):
     def create_new(self):
         settings = MainSettingsController()
         starting_path = settings.get_last_open_path()
-        fns, ok = QFileDialog.getOpenFileNames(self.window, "Select Portriats", starting_path, "PNG Files (*.png);;All Files(*)")
+        fns, ok = QFileDialog.getOpenFileNames(self.window, "Select Portraits", starting_path, "PNG Files (*.png);;All Files(*)")
         new_portrait = None
         if ok:
             for fn in fns:

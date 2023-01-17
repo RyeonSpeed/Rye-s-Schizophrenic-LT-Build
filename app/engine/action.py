@@ -109,6 +109,23 @@ def recalculate_unit(func):
             game.boundary.recalculate_unit(self.unit)
     return wrapper
 
+def recalculate_unit_sprite(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        self = args[0]
+
+        old_sprite = self.unit.sprite
+        animations = list(old_sprite.animations.keys())
+        self.unit.reset_sprite()
+
+        func(*args, **kwargs)
+
+        new_sprite = self.unit.sprite
+        for anim_nid in animations:
+            new_sprite.add_animation(anim_nid)
+
+    return wrapper
+
 class Move(Action):
     """
     A basic, user-directed move
@@ -1724,12 +1741,12 @@ class Promote(Action):
     def get_data(self):
         return self.stat_changes, self.new_wexp
 
+    @recalculate_unit_sprite
     def do(self):
         self.subactions.clear()
         for act in self.subactions:
             act.do()
 
-        self.unit.reset_sprite()
         self.unit.klass = self.new_klass
         if DB.constants.value('promote_level_reset'):
             self.unit.set_exp(0)
@@ -1737,8 +1754,8 @@ class Promote(Action):
 
         unit_funcs.apply_stat_changes(self.unit, self.stat_changes)
 
+    @recalculate_unit_sprite
     def reverse(self):
-        self.unit.reset_sprite()
         self.unit.klass = self.old_klass
         self.unit.set_exp(self.old_exp)
         self.unit.level = self.old_level
@@ -1787,22 +1804,24 @@ class ClassChange(Action):
     def get_data(self):
         return self.stat_changes, self.new_wexp
 
+    @recalculate_unit_sprite
     def do(self):
         self.subactions.clear()
         for act in self.subactions:
             act.do()
 
-        self.unit.reset_sprite()
         self.unit.klass = self.new_klass
+
         if DB.constants.value('class_change_level_reset'):
             self.unit.set_exp(0)
             self.unit.level = 1
 
         unit_funcs.apply_stat_changes(self.unit, self.stat_changes)
 
+    @recalculate_unit_sprite
     def reverse(self):
-        self.unit.reset_sprite()
         self.unit.klass = self.old_klass
+
         self.unit.set_exp(self.old_exp)
         self.unit.level = self.old_level
 
@@ -2926,7 +2945,6 @@ class AddSkill(Action):
 
         if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:
             aura_funcs.release_aura(self.unit, self.skill_obj, game)
-
 
 class RemoveSkill(Action):
     def __init__(self, unit, skill, count=-1):

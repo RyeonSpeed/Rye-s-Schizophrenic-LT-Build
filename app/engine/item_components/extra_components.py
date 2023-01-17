@@ -148,7 +148,7 @@ class DamageOnMiss(ItemComponent):
             playback.append(pb.HitAnim('MapNoDamage', target))
 
 class Eclipse(ItemComponent):
-    nid = 'Eclipse'
+    nid = 'eclipse'
     desc = "Target loses half current HP on hit"
     tag = ItemTags.EXTRA
 

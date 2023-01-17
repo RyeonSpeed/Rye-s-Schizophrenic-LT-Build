@@ -260,17 +260,6 @@ class ProcRate(SkillComponent):
     def proc_rate(self, unit):
         return equations.parser.get(self.value, unit)
 
-class DeathTether(SkillComponent):
-    nid = 'death_tether'
-    desc = "Remove all skills in the game that I initiated on my death"
-    tag = SkillTags.ADVANCED
-
-    def on_death(self, unit):
-        for other_unit in game.units:
-            for skill in other_unit.skills:
-                if skill.initiator_nid == unit.nid:
-                    action.do(action.RemoveSkill(other_unit, skill))
-
 class ItemOverride(SkillComponent):
     nid = 'item_override'
     desc = 'allows overriding of item properties'

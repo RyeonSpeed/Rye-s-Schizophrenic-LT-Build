@@ -749,10 +749,21 @@ class PrepItemsState(State):
         self.state = 'free'
         self.sub_menu = None
 
+        self._proceed_with_targets_item = False
+
         game.state.change('transition_in')
         return 'repeat'
 
     def begin(self):
+        if self._proceed_with_targets_item:
+            self.state = 'free'
+            self._proceed_with_targets_item = False
+            if game.memory.get('item') and game.memory.get('item').data.get('target_item'):
+                item = game.memory.get('item')
+                action.do(action.HasTraded(self.unit))
+                interaction.start_combat(self.unit, None, item)
+                return 'repeat'
+
         self.menu.update_options()
         if self.name.startswith('base'):
             base_music = game.game_vars.get('_base_music')
@@ -857,9 +868,15 @@ class PrepItemsState(State):
                     self.menu.move_to_convoy()
                     self.menu.update_options()
                 elif current == 'Use':
-                    action.do(action.HasTraded(self.unit))
-                    interaction.start_combat(self.unit, None, item)
-                    self.state = 'free'
+                    if item_system.targets_items(self.unit, item):
+                        game.memory['target'] = self.unit
+                        game.memory['item'] = item
+                        self._proceed_with_targets_item = True
+                        game.state.change('item_targeting')
+                    else:
+                        action.do(action.HasTraded(self.unit))
+                        interaction.start_combat(self.unit, None, item)
+                        self.state = 'free'
                 elif current == 'Restock':
                     action.do(action.HasTraded(self.unit))
                     convoy_funcs.restock(item)
@@ -884,9 +901,15 @@ class PrepItemsState(State):
                     self.state = 'trade_inventory'
                     self.menu.move_to_inventory()
                 elif current == 'Use':
-                    action.do(action.HasTraded(self.unit))
-                    interaction.start_combat(self.unit, None, item)
-                    self.state = 'free'
+                    if item_system.targets_items(self.unit, item):
+                        game.memory['target'] = self.unit
+                        game.memory['item'] = item
+                        self._proceed_with_targets_item = True
+                        game.state.change('item_targeting')
+                    else:
+                        action.do(action.HasTraded(self.unit))
+                        interaction.start_combat(self.unit, None, item)
+                        self.state = 'free'
                 elif current == 'Nothing':
                     self.state = 'free'
                 self.sub_menu = None

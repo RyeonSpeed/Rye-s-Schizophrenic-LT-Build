@@ -197,7 +197,8 @@ class MovementManager():
                     if data.follow and not self.camera_follow:
                         self.camera_follow = unit_nid
                     if self.camera_follow == unit_nid:
-                        game.cursor.set_pos(unit.position)
+                        if game.board and game.board.check_bounds(unit.position):
+                            game.cursor.set_pos(unit.position)
                         if data.event:
                             game.camera.set_center(*unit.position)
 

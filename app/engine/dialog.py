@@ -3,7 +3,7 @@ from typing import Callable, List
 
 from app.constants import WINHEIGHT, WINWIDTH
 from app.engine import config as cf
-from app.events import event_portrait, screen_positions
+from app.events import event_portrait, screen_positions, event_commands
 from app.engine import engine, image_mods, text_funcs
 from app.engine.base_surf import create_base_surf
 from app.engine.fonts import FONT
@@ -16,6 +16,8 @@ from app.engine.sound import get_sound_thread
 from app.engine.sprites import SPRITES
 from app.utilities import utils
 from app.utilities.enums import Alignments
+
+import logging
 
 MATCH_DIALOG_COMMAND_RE = re.compile('(\{[^\{]*?\})')
 
@@ -252,6 +254,8 @@ class Dialog():
         elif command == '{clear}':
             self.text_lines.clear()
             self._next_line()
+        elif command == '{p}':
+            self.command_pause()
         elif command == ' ':  # Check to see if we should move to next line
             current_line = self.text_lines[-1]
             # Remove any commands from line
@@ -287,20 +291,26 @@ class Dialog():
                 word += letter
         return word
 
-    def is_complete(self):
+    def is_complete(self) -> bool:
         """
         Should no longer be drawn
         """
         return self.state == 'done' and not self.hold
 
-    def is_done(self):
+    def is_done(self) -> bool:
         """
         Can move onto processing other commands
         """
         return self.state == 'done'
 
-    def is_done_or_wait(self):
+    def is_done_or_wait(self) -> bool:
         return self.state in ('done', 'wait')
+
+    def is_paused(self) -> bool:
+        """
+        Waiting for the event to finish processing it's {p} command
+        """
+        return self.state == 'command_pause'
 
     def pause(self):
         if self.portrait:
@@ -313,6 +323,15 @@ class Dialog():
             self.portrait.stop_talking()
         self.state = 'pause_before_wait'
         self.last_update = engine.get_time()
+
+    def command_pause(self):
+        if self.portrait:
+            self.portrait.stop_talking()
+        self.state = 'command_pause'
+
+    def command_unpause(self):
+        if self.state == 'command_pause':
+            self.state = 'process'
 
     def hurry_up(self):
         if self.state == 'process':
@@ -474,7 +493,8 @@ class Dialog():
 class DynamicDialogWrapper():
     def __init__(self, text_func: Callable[[], str], portrait=None, background=None, position=None, width=None,
                  speaker=None, style_nid=None, autosize=False, speed: float=1.0, font_color='black',
-                 font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail', transparency: float=0.05, name_tag_bg='name_tag') -> None:
+                 font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail', transparency: float=0.05, 
+                 name_tag_bg='name_tag') -> None:
         # eval trick
         self.resolve_text_func: Callable[[], str] = text_func
         self.resolved_text = clean_newlines(self.resolve_text_func()).replace('{w}', '').replace('|', '{br}')
@@ -505,7 +525,8 @@ class DynamicDialogWrapper():
             self.dialog = Dialog(self.resolved_text, self.portrait, self.background,
                                  self.position, self.width, self.speaker, self.style_nid,
                                  self.autosize, self.speed, self.font_color, self.font_type,
-                                 self.num_lines, self.draw_cursor, self.message_tail, self.transparency, self.name_tag_bg)
+                                 self.num_lines, self.draw_cursor, self.message_tail, self.transparency, 
+                                 self.name_tag_bg)
             self.dialog.last_update = engine.get_time() - 10000
         return self.dialog.update()
 
@@ -727,17 +748,20 @@ class Ending():
 
         return self.bg
 
-    def is_complete(self):
+    def is_complete(self) -> bool:
         """
         Should stop being drawn
         """
         return False
 
-    def is_done(self):
+    def is_done(self) -> bool:
         return self.dialog.is_done()
 
-    def is_done_or_wait(self):
+    def is_done_or_wait(self) -> bool:
         return self.dialog.is_done_or_wait()
+
+    def is_paused(self) -> bool:
+        return self.dialog.is_paused()
 
     def hurry_up(self):
         self.dialog.hurry_up()

@@ -118,7 +118,7 @@ class EquationBlastAOE(BlastAOE, ItemComponent):
         empowered_splash = skill_system.empower_splash(unit)
         return value + 1 + empowered_splash
 
-class AllyBlastEquationAOE(AllyBlastAOE, EquationBlastAOE, ItemComponent):
+class AllyEquationBlastAOE(AllyBlastAOE, EquationBlastAOE, ItemComponent):
     nid = 'ally_equation_blast_aoe'
     desc = "Gives Equation-Sized Blast AOE that only hits allies"
     tag = ItemTags.AOE

@@ -268,40 +268,54 @@ class ChoiceTable(SimpleIconTable):
             self._highlight_surf_loc = self.selected_index
             self.column_components[x].add_surf(self._highlight_surf, (0, cy + 3), -1)
 
-    def move_down(self):
+    def move_down(self, first_push: bool = False):
         if self.any_children_animating():
             return
         x, y = self.selected_index
-        self.selected_index = (x, min(y + 1, len(self.column_data[x]) - 1))
+        if first_push:
+            new_y = y + 1 if y < len(self.column_data[x]) - 1 else 0
+        else:
+            new_y = min(y + 1, len(self.column_data[x]) - 1)
+        self.selected_index = (x, new_y)
         if self.selected_index[1] > self.column_components[x].max_visible_rows + self.column_components[x].scrolled_index - 1:
             for hl in self.column_components:
                 hl.scroll_down()
 
-    def move_up(self):
+    def move_up(self, first_push: bool = False):
         if self.any_children_animating():
             return
         x, y = self.selected_index
-        self.selected_index = (x, max(y - 1, 0))
+        if first_push:
+            new_y = y - 1 if y > 0 else len(self.column_data[x]) - 1
+        else:
+            new_y = max(y - 1, 0)
+        self.selected_index = (x, new_y)
         if self.selected_index[1] < self.column_components[x].scrolled_index:
             for hl in self.column_components:
                 hl.scroll_up()
 
-    def move_left(self):
+    def move_left(self, first_push: bool = False):
         if self.any_children_animating():
             return
         self.lscroll_arrow.pulse()
         x, y = self.selected_index
-        new_col = max(x - 1, 0)
+        if first_push:
+            new_col = x - 1 if x > 0 else len(self.column_data) - 1
+        else:
+            new_col = max(x - 1, 0)
         self.selected_index = (new_col, min(y, len(self.column_data[new_col]) - 1))
         if self.selected_index[0] < self.table_scroll():
             self.scroll_left()
 
-    def move_right(self):
+    def move_right(self, first_push: bool = False):
         if self.any_children_animating():
             return
         self.rscroll_arrow.pulse()
         x, y = self.selected_index
-        new_col = min(x + 1, len(self.column_data) - 1)
+        if first_push:
+            new_col = x + 1 if x < len(self.column_data) - 1 else 0
+        else:
+            new_col = min(x + 1, len(self.column_data) - 1)
         self.selected_index = (new_col, min(y, len(self.column_data[new_col]) - 1))
         if self.selected_index[0] > self.table_scroll() + self.num_display_columns - 1:
             self.scroll_right()

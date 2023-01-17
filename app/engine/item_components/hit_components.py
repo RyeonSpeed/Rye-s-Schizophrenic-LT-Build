@@ -260,7 +260,7 @@ class Swap(ItemComponent):
             playback.append(pb.SwapHit(unit, item, target))
 
 class SwapOnEndCombat(ItemComponent):
-    nid = 'swap'
+    nid = 'swap_on_end_combat'
     desc = "Item swaps user with target after initiated combat"
     tag = ItemTags.SPECIAL
 

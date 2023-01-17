@@ -79,6 +79,21 @@ class ChargesPerTurn(DrainCharge, SkillComponent):
         value = self.skill.data['total_charge']
         action.do(action.SetObjData(self.skill, 'charge', value))
 
+class UpkeepChargeIncrease(SkillComponent):
+    nid = 'upkeep_charge_increase'
+    desc = "Increases charge of skill each upkeep"
+    tag = SkillTags.CHARGE
+
+    expose = ComponentType.Int
+    value = 5
+
+    ignore_conditional = True
+
+    def on_upkeep(self, actions, playback, unit):
+        new_value = self.skill.data['charge'] + self.value
+        new_value = min(new_value, self.skill.data['total_charge'])
+        action.do(action.SetObjData(self.skill, 'charge', new_value))
+
 def get_marks(playback, unit, item):
     from app.data.database.database import DB
     marks = [mark for mark in playback if mark.nid == 'mark_hit']

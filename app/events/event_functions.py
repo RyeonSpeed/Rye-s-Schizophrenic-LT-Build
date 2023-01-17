@@ -85,7 +85,7 @@ def change_music(self: Event, phase, music, flags=None):
     else:
         action.do(action.ChangePhaseMusic(phase, music))
 
-def add_portrait(self: Event, portrait, screen_position, slide=None, expression_list=None, flags=None):
+def add_portrait(self: Event, portrait, screen_position, slide=None, expression_list=None, speed_mult=1, flags=None):
     flags = flags or set()
 
     name = portrait
@@ -119,7 +119,10 @@ def add_portrait(self: Event, portrait, screen_position, slide=None, expression_
     if 'immediate' in flags or self.do_skip:
         transition = False
 
-    new_portrait = EventPortrait(portrait, position, priority, transition, slide, mirror)
+    speed_mult = 1 / max(speed_mult, 0.001)
+
+    new_portrait = EventPortrait(portrait, position, priority, transition, 
+                                 slide, mirror, speed_mult=speed_mult)
     self.portraits[name] = new_portrait
 
     if expression_list:
@@ -151,7 +154,7 @@ def multi_add_portrait(self: Event, portrait1, screen_position1, portrait2, scre
         # Done backwards to preserve order upon insertion
         self.commands.insert(self.command_idx + 1, command)
 
-def remove_portrait(self: Event, portrait, flags=None):
+def remove_portrait(self: Event, portrait, speed_mult=1, flags=None):
     flags = flags or set()
 
     name = portrait
@@ -161,11 +164,13 @@ def remove_portrait(self: Event, portrait, flags=None):
     if name not in self.portraits:
         return False
 
+    speed_mult = 1 / max(speed_mult, 0.001)
+
     if 'immediate' in flags or self.do_skip:
         portrait = self.portraits.pop(name)
     else:
         portrait = self.portraits[name]
-        portrait.end()
+        portrait.end(float(speed_mult))
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
         pass
@@ -188,7 +193,7 @@ def multi_remove_portrait(self: Event, portrait1, portrait2, portrait3=None, por
         # Done backwards to preserve order upon insertion
         self.commands.insert(self.command_idx + 1, command)
 
-def move_portrait(self: Event, portrait, screen_position, flags=None):
+def move_portrait(self: Event, portrait, screen_position, speed_mult=1, flags=None):
     flags = flags or set()
 
     name = portrait
@@ -204,7 +209,7 @@ def move_portrait(self: Event, portrait, screen_position, flags=None):
     if 'immediate' in flags or self.do_skip:
         portrait.quick_move(position)
     else:
-        portrait.move(position)
+        portrait.move(position, float(speed_mult))
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
         pass
@@ -314,7 +319,7 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
     text = dialog.clean_newlines(text)
 
     if 'no_block' in flags:
-        text += '{no_wait}'
+        text += '{no_wait}'    
 
     speak_style = None
     if style_nid and style_nid in self.game.speak_styles:
@@ -327,6 +332,20 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
     if unit:
         speaker = unit.nid
     portrait = self.portraits.get(speaker)
+
+    # Process text for commands
+    blocks = str_utils.matched_block_expr(text, '{', '}')
+    for block in reversed(blocks):  # reversed to preserve order upon insertion
+        if block.startswith('{command:') and block.endswith('}'):
+            event_command_str = block[len('{command:'):-1]
+        elif block.startswith('{c:') and block.endswith('}'):
+            event_command_str = block[len('{c:'):-1]
+        else:
+            continue
+        text = text.replace(block, '{p}', 1)  # Replace first instance
+        # Done backwards to preserve order
+        self._queue_command('unpause;%s' % speaker)
+        self._queue_command(event_command_str)
 
     if text_position:
         try:
@@ -433,6 +452,15 @@ def unhold(self: Event, nid, flags=None):
     for box in self.text_boxes:
         if box.style_nid == nid:
             box.hold = False
+
+def unpause(self: Event, nid, flags=None):
+    for box in reversed(self.text_boxes):
+        if box.speaker == nid:
+            box.command_unpause()
+            break
+    else:
+        self.logger.warning("Did not find any text box with speaker: %s", nid)
+    self.state = 'dialog'
 
 def transition(self: Event, direction=None, speed=None, color3=None, flags=None):
     flags = flags or set()
@@ -1016,7 +1044,7 @@ def kill_unit(self: Event, unit, flags=None):
         unit.dead = True
     elif 'immediate' in flags:
         unit.dead = True
-        action.do(action.LeaveMap(unit))
+        action.do(action.Die(unit))
     else:
         self.game.death.should_die(unit)
         self.game.state.change('dying')
@@ -1777,6 +1805,25 @@ def remove_skill(self: Event, global_unit, skill, count='-1', flags=None):
         self.game.alerts.append(b)
         self.game.state.change('alert')
         self.state = 'paused'
+
+def set_skill_data(self: Event, global_unit, skill, nid, expression, flags=None):
+    flags = flags or set()
+
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("set_skill_data: Couldn't find unit with nid %s" % global_unit)
+        return
+    found_skill = unit.get_skill(skill)
+    if not found_skill:
+        self.logger.error("set_skill_data: Couldn't find skill with nid %s on unit selected" % skill)
+        return
+    try:
+        data_value = self.text_evaluator.direct_eval(expression)
+    except Exception as e:
+        self.logger.error("set_skill_data: %s: Could not evaluate {%s}" % (e, expression))
+        return
+
+    action.do(action.SetObjData(found_skill, nid, data_value))
 
 def change_ai(self: Event, global_unit, ai, flags=None):
     unit = self._get_unit(global_unit)
@@ -2730,10 +2777,11 @@ def textbox(self: Event, nid: str, text: str, box_position=None,
             expr = lambda: tryexcept(text)
         except:
             self.logger.error('textbox: %s is not a valid python expression' % text)
-        textbox = dialog.DynamicDialogWrapper(expr, background=box_bg, position=position, width=box_width,
-                      style_nid=style_nid, speed=speed,
-                      font_color=fcolor, font_type=ftype, num_lines=lines,
-                      draw_cursor=False, transparency=transparency)
+        textbox = dialog.DynamicDialogWrapper(
+            expr, background=box_bg, position=position, width=box_width,
+            style_nid=style_nid, speed=speed,
+            font_color=fcolor, font_type=ftype, num_lines=lines,
+            draw_cursor=False, transparency=transparency)
     else:
         text = self.text_evaluator._evaluate_all(text)
         text = dialog.clean_newlines(text)
@@ -2741,9 +2789,9 @@ def textbox(self: Event, nid: str, text: str, box_position=None,
         text = text.replace('{w}', '').replace('|', '{br}')
         textbox = \
             dialog.Dialog(text, background=box_bg, position=position, width=box_width,
-                        style_nid=style_nid, speed=speed,
-                        font_color=fcolor, font_type=ftype, num_lines=lines,
-                        draw_cursor=False, transparency=transparency)
+                          style_nid=style_nid, speed=speed,
+                          font_color=fcolor, font_type=ftype, num_lines=lines,
+                          draw_cursor=False, transparency=transparency)
     self.other_boxes.append((nid, textbox))
 
 def table(self: Event, nid: NID, table_data: str, title: str = None,

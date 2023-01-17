@@ -66,20 +66,23 @@ class PlayerChoiceState(MapState):
         self.made_choice = False
 
     def take_input(self, event):
-        if (event == 'RIGHT' and (self.orientation == 'horizontal' or self.size[0] > 1)):
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_right()
-        elif (event == 'DOWN' and (self.orientation == 'vertical' or self.size[1] > 1)):
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_down()
-        elif (event == 'LEFT' and (self.orientation == 'horizontal' or self.size[0] > 1)):
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_left()
-        elif(event == 'UP' and (self.orientation == 'vertical' or self.size[1] > 1)):
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_up()
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
 
-        elif event == 'BACK':
+        if ('RIGHT' in directions and (self.orientation == 'horizontal' or self.size[0] > 1)):
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_right(first_push)
+        elif ('DOWN' in directions and (self.orientation == 'vertical' or self.size[1] > 1)):
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_down(first_push)
+        elif ('LEFT' in directions and (self.orientation == 'horizontal' or self.size[0] > 1)):
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_left(first_push)
+        elif('UP' in directions and (self.orientation == 'vertical' or self.size[1] > 1)):
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_up(first_push)
+
+        if event == 'BACK':
             if self.should_persist or self.backable:
                 if self.backable:
                     action.do(action.SetGameVar(self.nid, "BACK"))

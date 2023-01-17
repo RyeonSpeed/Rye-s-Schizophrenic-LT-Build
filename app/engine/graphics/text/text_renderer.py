@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 from app.engine import engine
 from app.engine.fonts import FONT

@@ -285,8 +285,7 @@ def get_valid_targets(unit, item=None) -> set:
             if not valid_targets:
                 return set()
             all_targets |= valid_targets
-        # If not enough legal targets, also no legal targets
-        if not item_system.allow_same_target(unit, item) and len(all_targets) < len(item.subitems):
+        if not item_system.allow_same_target(unit, item) and len(all_targets) < sum(1 if item_system.allow_less_than_max_targets(unit, si) else item_system.num_targets(unit, si) for si in item.subitems):
             return set()
 
     # Handle regular item targeting
@@ -308,6 +307,11 @@ def get_valid_targets(unit, item=None) -> set:
             valid_targets = set(line_of_sight.line_of_sight([unit.position], valid_targets, max_item_range))
         else: # I think this is impossible to happen, as it is checked in various places above in this function
             valid_targets = set()
+    # Make sure we have enough targets to satisfy the item
+    if not item_system.allow_same_target(unit, item) and \
+            not item_system.allow_less_than_max_targets(unit, item) and \
+            len(valid_targets) < item_system.num_targets(unit, item):
+        return set()
     return valid_targets
 
 def get_valid_targets_recursive_with_availability_check(unit, item) -> set:

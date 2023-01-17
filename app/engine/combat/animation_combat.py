@@ -679,6 +679,8 @@ class AnimationCombat(BaseCombat, MockCombat):
     def start_battle_music(self):
         attacker_battle = item_system.battle_music(self.attacker, self.main_item, self.defender, 'attack') \
             or skill_system.battle_music(self.playback, self.attacker, self.main_item, self.defender, 'attack')
+        if not attacker_battle and 'Boss' in self.attacker.tags:
+            attacker_battle = game.level.music['boss_battle']
         defender_battle = None
         if self.defender:
             if self.def_item:
@@ -686,6 +688,8 @@ class AnimationCombat(BaseCombat, MockCombat):
                 or skill_system.battle_music(self.playback, self.defender, self.def_item, self.attacker, 'defense')
             else:
                 defender_battle = skill_system.battle_music(self.playback, self.defender, self.def_item, self.attacker, 'defense')
+            if not defender_battle and 'Boss' in self.defender.tags:
+                defender_battle = game.level.music['boss_battle']
         battle_music = game.level.music['%s_battle' % self.attacker.team]
         from_start = DB.constants.value('restart_battle_music')
         if attacker_battle:

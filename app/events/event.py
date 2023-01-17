@@ -174,6 +174,10 @@ class Event():
                         if dialog_log:
                             action.do(action.LogDialog(self.text_boxes[-1]))
                         self.state = 'processing'
+                        if self.text_boxes[-1].is_complete():
+                            self.text_boxes.pop()
+                    elif self.text_boxes[-1].is_paused():
+                        self.state = 'processing'
                 else:
                     self.state = 'processing'
 
@@ -464,7 +468,16 @@ class Event():
     def _evaluate_all(self, text: str) -> str:
         return self.text_evaluator._evaluate_all(text)
 
-    def _place_unit(self, unit, position, entry_type, entry_direc = None):
+    def _queue_command(self, event_command_str: str):
+        try:
+            event_command, _ = event_commands.parse_text_to_command(event_command_str, strict=True)
+            if not event_command:
+                raise SyntaxError("Unable to parse command", ("event.py", 0, 0, event_command_str))
+            self.commands.insert(self.command_idx + 1, event_command)
+        except Exception as e:
+            logging.error('_queue_command: Unable to parse command "%s". %s', event_command_str, e)
+
+    def _place_unit(self, unit, position, entry_type, entry_direc=None):
         position = tuple(position)
         if self.do_skip:
             action.do(action.ArriveOnMap(unit, position))
@@ -555,7 +568,7 @@ class Event():
         return position
 
     def _check_placement(self, unit, position, placement):
-        if not self.game.board.check_bounds(position):
+        if not self.game.tilemap.check_bounds(position):
             self.logger.error("%s: position out of bounds %s", 'check_placement', position)
             return None
         current_occupant = self.game.board.get_unit(position)

@@ -43,6 +43,14 @@ class AllowSameTarget(ItemComponent):
     def allow_same_target(self, unit, item) -> bool:
         return True
 
+class AllowLessThanMaxTargets(ItemComponent):
+    nid = 'allow_less_than_max_targets'
+    desc = "If the item is multi target this component allows the user to select less than the required number of targets with the item"
+    tag = ItemTags.ADVANCED
+
+    def allow_less_than_max_targets(self, unit, item) -> bool:
+        return True
+
 class StoreUnit(ItemComponent):
     nid = 'store_unit'
     desc = "The targeted unit is stored in the game's memory when hit. The next time the unload unit component is called the unit is placed on the targeted tile."

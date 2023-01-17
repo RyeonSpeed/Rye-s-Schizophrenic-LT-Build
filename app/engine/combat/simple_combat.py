@@ -443,11 +443,7 @@ class SimpleCombat():
         # handle exp
         if self.attacker.team == 'player' and not self.attacker.is_dying:
             exp = self.calculate_exp(self.attacker, self.main_item)
-
-            if self.defender and (skill_system.check_ally(self.attacker, self.defender) or 'Tile' in self.defender.tags):
-                exp = int(utils.clamp(exp, 0, 100))
-            else:
-                exp = int(utils.clamp(exp, DB.constants.value('min_exp'), 100))
+            exp = int(utils.clamp(exp, 0, 100))
 
             if DB.constants.value('pairup') and self.main_item:
                 self.handle_paired_exp(self.attacker, combat_object)
@@ -461,7 +457,7 @@ class SimpleCombat():
 
         elif self.defender and self.defender.team == 'player' and not self.defender.is_dying:
             exp = self.calculate_exp(self.defender, self.def_item)
-            exp = int(utils.clamp(exp, DB.constants.value('min_exp'), 100))
+            exp = int(utils.clamp(exp, 0, 100))
 
             if DB.constants.value('pairup') and self.def_item:
                 self.handle_paired_exp(self.defender, combat_object)
@@ -494,57 +490,19 @@ class SimpleCombat():
             elif not self.alerts and exp > 0:
                 action.do(action.GainExp(partner, exp))
 
-    def get_exp(self, attacker, item, defender) -> int:
-        exp = item_system.exp(self.full_playback, attacker, item, defender)
-        exp *= skill_system.exp_multiplier(attacker, defender)
-        if defender:
-            exp *= skill_system.enemy_exp_multiplier(defender, attacker)
-            if defender.is_dying:
-                exp *= float(DB.constants.value('kill_multiplier'))
-                if 'Boss' in defender.tags:
-                    exp += int(DB.constants.value('boss_bonus'))
-        return exp
-
     def calculate_exp(self, unit, item):
-        """
-        If you score a hit or a crit,
-        or deal damage to an enemy
-        get exp
-        """
-        marks = self.get_from_full_playback('mark_hit')
-        marks += self.get_from_full_playback('mark_crit')
-        marks = [mark for mark in marks if mark.attacker == unit]
-        damage_marks = self.get_from_full_playback('damage_hit')
-        damage_marks = [mark for mark in damage_marks if mark.attacker == unit and skill_system.check_enemy(unit, mark.defender)]
-        total_exp = 0
-        all_defenders = set()
-        for mark in marks:
-            if mark.defender in all_defenders:
-                continue  # Don't double count defenders
-            all_defenders.add(mark.defender)
-            exp = self.get_exp(mark.attacker, item, mark.defender)
-            total_exp += exp
-        for mark in damage_marks:
-            if mark.defender in all_defenders:
-                continue  # Don't double count defenders
-            all_defenders.add(mark.defender)
-            exp = self.get_exp(mark.attacker, item, mark.defender)
-            total_exp += exp
-
+        total_exp = item_system.exp(self.full_playback, unit, item)
         return total_exp
 
     def calculate_guard_stance_exp(self, unit, item):
         """
         If you blocked an attacker get exp
         """
-        # if not item:  #
-            # return 0
         marks = self.get_from_full_playback('mark_hit')
         marks = [mark for mark in marks if mark.guard_hit]
         total_exp = 0
         for mark in marks:
             exp = 10
-            # exp = self.get_exp(game.get_unit(defender.traveler), item, attacker)
             total_exp += exp
 
         return total_exp

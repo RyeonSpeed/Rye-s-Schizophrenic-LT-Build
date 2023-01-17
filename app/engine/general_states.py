@@ -1452,6 +1452,13 @@ class WeaponChoiceState(MapState):
             # If the item is in our inventory, bring it to the top
             if selection in self.cur_unit.items:
                 action.do(action.BringToTopItem(self.cur_unit, selection))
+            # find ultimate parent item
+            elif selection.parent_item:
+                parent_item = selection.parent_item
+                while parent_item.parent_item:
+                    parent_item = parent_item.parent_item
+                if parent_item in self.cur_unit.items:
+                    action.do(action.BringToTopItem(self.cur_unit, parent_item))
 
             game.memory['item'] = selection
             game.state.change('combat_targeting')
@@ -1539,6 +1546,13 @@ class SpellChoiceState(WeaponChoiceState):
             # If the item is in our inventory, bring it to the top
             if selection in self.cur_unit.items:
                 action.do(action.BringToTopItem(self.cur_unit, selection))
+            # find ultimate parent item
+            elif selection.parent_item:
+                parent_item = selection.parent_item
+                while parent_item.parent_item:
+                    parent_item = parent_item.parent_item
+                if parent_item in self.cur_unit.items:
+                    action.do(action.BringToTopItem(self.cur_unit, parent_item))
             game.memory['item'] = selection
             game.state.change('combat_targeting')
 
@@ -1782,6 +1796,7 @@ class TargetingState(MapState):
 
 class CombatTargetingState(MapState):
     name = 'combat_targeting'
+    pennant = None
 
     def start(self):
         self.cur_unit = game.cursor.cur_unit
@@ -1830,6 +1845,10 @@ class CombatTargetingState(MapState):
         else:
             game.ui_view.prepare_attack_info()
         self.display_single_attack()
+
+        self.pennant = None
+        if item_system.num_targets(self.cur_unit, self.item) > 1 and item_system.allow_less_than_max_targets(self.cur_unit, self.item):
+            self.pennant = banner.Pennant('Press START to confirm targets.')
 
     def begin(self):
         game.cursor.combat_show()
@@ -1912,7 +1931,11 @@ class CombatTargetingState(MapState):
 
             self.begin()
             self.display_single_attack()
-        elif self.parent_item and self.sequence_item_index < len(self.parent_item.sequence_item.value) - 1:
+        else:
+            self._proceed_to_next_item()
+
+    def _proceed_to_next_item(self):
+        if self.parent_item and self.sequence_item_index < len(self.parent_item.sequence_item.value) - 1:
             # Pass along the sequence item index to the next combat targeting state
             self.sequence_item_index += 1
             game.memory['sequence_item_index'] = self.sequence_item_index
@@ -1992,6 +2015,12 @@ class CombatTargetingState(MapState):
             else:
                 self._get_next_target()
 
+        elif event == 'START':
+            # Allows you to early leave the targeting state if you don't want to target num_targets
+            if item_system.allow_less_than_max_targets(self.cur_unit, self.item) and self.current_target_idx >= 1:
+                get_sound_thread().play_sfx('Select 1')
+                self._proceed_to_next_item()
+
         if directions or (mouse_position and mouse_position != self.previous_mouse_pos):
             if mouse_position:
                 self.previous_mouse_pos = mouse_position
@@ -2001,6 +2030,11 @@ class CombatTargetingState(MapState):
 
     def draw(self, surf):
         surf = super().draw(surf)
+
+        if self.pennant:
+            draw_on_top = game.cursor.position[1] >= game.tilemap.height - 1
+            self.pennant.draw(surf, draw_on_top)
+
         target_unit = game.board.get_unit(game.cursor.position)
         if self.cur_unit and target_unit:
             if item_system.targets_items(self.cur_unit, self.item):
@@ -2017,10 +2051,12 @@ class CombatTargetingState(MapState):
         game.highlight.remove_highlights()
         game.ui_view.reset_info()
 
-class ItemTargetingState(MapState):
+class ItemTargetingState(State):
     name = 'item_targeting'
+    transparent = True
 
     def start(self):
+        self.fluid = FluidScroll()
         self.cur_unit = game.cursor.cur_unit
         self.item = game.memory['item']
         self.target = game.memory['target']

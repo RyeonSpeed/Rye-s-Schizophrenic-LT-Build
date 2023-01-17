@@ -1,4 +1,5 @@
-from typing import Dict
+from app.engine.objects.unit import UnitObject
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.data.database.database import DB
 from app.engine import line_of_sight, target_system
@@ -9,17 +10,17 @@ from app.utilities import utils
 
 class GameBoard(object):
     def __init__(self, tilemap):
-        self.width = tilemap.width
-        self.height = tilemap.height
-        self.bounds = (0, 0, self.width - 1, self.height - 1)
+        self.width: int = tilemap.width
+        self.height: int = tilemap.height
+        self.bounds:  Tuple[int, int, int, int] = (0, 0, self.width - 1, self.height - 1)
         self.mcost_grids = {}
 
         self.reset_grid(tilemap)
 
         # Keeps track of what team occupies which tile
-        self.team_grid = self.init_unit_grid()
+        self.team_grid: List[List[str]] = self.init_unit_grid()
         # Keeps track of which unit occupies which tile
-        self.unit_grid = self.init_unit_grid()
+        self.unit_grid: List[List[UnitObject]] = self.init_unit_grid()
 
         # Fog of War -- one for each team
         self.fog_of_war_grids = {}
@@ -74,25 +75,25 @@ class GameBoard(object):
     def get_grid(self, movement_group):
         return self.mcost_grids[movement_group]
 
-    def init_unit_grid(self):
-        cells = []
+    def init_unit_grid(self) -> List[List[Any]]:
+        cells: List[List[Any]] = []
         for x in range(self.width):
             for y in range(self.height):
                 cells.append([])
         return cells
 
-    def set_unit(self, pos, unit):
+    def set_unit(self, pos: Tuple[int, int], unit: UnitObject):
         idx = pos[0] * self.height + pos[1]
         self.unit_grid[idx].append(unit)
         self.team_grid[idx].append(unit.team)
 
-    def remove_unit(self, pos, unit):
+    def remove_unit(self, pos: Tuple[int, int], unit: UnitObject):
         idx = pos[0] * self.height + pos[1]
         if unit in self.unit_grid[idx]:
             self.unit_grid[idx].remove(unit)
             self.team_grid[idx].remove(unit.team)
 
-    def get_unit(self, pos):
+    def get_unit(self, pos: Tuple[int, int]) -> Optional[UnitObject]:
         if not pos:
             return None
         idx = pos[0] * self.height + pos[1]

@@ -190,7 +190,7 @@ class EventCommandUnitTests(unittest.TestCase):
         # Test that when keyword types does not exist, it returns regular command
         command = event_commands.If()
         self.assertEqual(command.get_keyword_types(), command.keywords + command.optional_keywords)
-        command = event_commands.AddPortrait()
+        command = event_commands.Sound()
         self.assertEqual(command.get_keyword_types(), command.keywords + command.optional_keywords)
 
     def test_get_validator_from_keyword(self):

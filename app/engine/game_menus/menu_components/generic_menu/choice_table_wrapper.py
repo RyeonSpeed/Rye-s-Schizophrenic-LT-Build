@@ -35,17 +35,17 @@ class ChoiceMenuUI(SimpleMenuUI):
     def get_selected(self):
         return self.table.get_selected()
 
-    def move_up(self):
-        self.table.move_up()
+    def move_up(self, first_push: bool = False):
+        self.table.move_up(first_push)
 
-    def move_down(self):
-        self.table.move_down()
+    def move_down(self, first_push: bool = False):
+        self.table.move_down(first_push)
 
-    def move_right(self):
-        self.table.move_right()
+    def move_right(self, first_push: bool = False):
+        self.table.move_right(first_push)
 
-    def move_left(self):
-        self.table.move_left()
+    def move_left(self, first_push: bool = False):
+        self.table.move_left(first_push)
 
     def set_scrollbar(self, active: bool):
         if active:

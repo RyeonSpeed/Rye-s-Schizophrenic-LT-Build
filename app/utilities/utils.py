@@ -1,6 +1,7 @@
 import colorsys
 import hashlib
 import math
+import sys
 from collections import Counter
 from operator import add, sub
 from typing import Tuple
@@ -224,6 +225,9 @@ def flatten_list(initial_list) -> list:
 
 def rationalize(p: Tuple[float, float]) -> Tuple[int, int]:
     return (int(round(p[0])), int(round(p[1])))
+
+def is_windows() -> bool:
+    return sys.platform.startswith('win')
 
 # Testing
 if __name__ == '__main__':

@@ -88,7 +88,7 @@ class BattleAnimationMusic(ItemComponent):
     def battle_music(self, unit, item, target, mode):
         return self.value
 
-class NoMapCombatDisplay(ItemComponent):
+class NoMapHPDisplay(ItemComponent):
     nid = 'no_map_hp_display'
     desc = "Item does not show full map hp display when used"
     tag = ItemTags.BASE

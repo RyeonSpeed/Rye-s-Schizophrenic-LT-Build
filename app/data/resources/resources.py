@@ -129,7 +129,7 @@ class Resources():
             self.loaded_custom_components_path = None
 
     def save(self, proj_dir, specific=None, progress=None):
-        logging.warning("Starting Resource Serialization...")
+        logging.warning("Starting Resource Serialization for %s..." % proj_dir)
         import time
         start = time.time_ns()/1e6
         # Make the directory to save this resource pack in
@@ -140,12 +140,7 @@ class Resources():
             os.mkdir(resource_dir)
 
         should_save_loose_files = False
-        if specific == 'autosave':
-            save_data_types = list(self.save_data_types)
-            save_data_types.remove('music')
-            save_data_types.remove('sfx')
-            save_data_types = tuple(save_data_types)
-        elif specific:
+        if specific:
             save_data_types = specific
         else:
             save_data_types = self.save_data_types
@@ -173,6 +168,41 @@ class Resources():
                 if progress:
                     progress.setValue(80)
 
+        end = time.time_ns()/1e6
+        logging.warning("Total Time Taken for Resources: %s ms" % (end - start))
+        logging.warning('Done Resource Serializing!')
+
+    def autosave(self, proj_dir, autosave_dir, progress=None):
+        logging.warning("Starting Autosave Resource Serialization for %s..." % proj_dir)
+        import time
+        start = time.time_ns()/1e6
+
+        # Make the directory to save this resource pack in
+        if not os.path.exists(autosave_dir):
+            os.mkdir(autosave_dir)
+        autosave_resource_dir = os.path.join(autosave_dir, 'resources')
+        if not os.path.exists(autosave_resource_dir):
+            os.mkdir(autosave_resource_dir)
+        proj_resource_dir = os.path.join(proj_dir, 'resources')
+        # from distutils.dir_util import copy_tree
+        import filecmp
+        all_files = list(os.walk(proj_resource_dir))
+        num_files = sum(len(_[2]) for _ in all_files)
+        idx = 0
+        for (root, d, files) in all_files:
+            new_root = root.replace(proj_resource_dir, autosave_resource_dir)
+            for f in files:
+                idx += 1
+                old_path = os.path.join(root, f)
+                new_path = os.path.join(new_root, f)
+                if os.path.exists(new_path) and filecmp.cmp(old_path, new_path, shallow=False):
+                    pass
+                else:
+                    os.makedirs(os.path.dirname(new_path), exist_ok=True)
+                    shutil.copy(old_path, new_path)
+                if progress and idx % 100 == 0:
+                    perc = int((idx / num_files) * 74) + 1
+                    progress.setValue(perc)
 
         end = time.time_ns()/1e6
         logging.warning("Total Time Taken for Resources: %s ms" % (end - start))

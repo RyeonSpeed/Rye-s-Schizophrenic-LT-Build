@@ -304,8 +304,9 @@ if __name__ == '__main__':
     mountain_coords = get_mountain_coords(tileset)
 
     mountain_palettes = load_mountain_palettes(tileset, mountain_coords)
-    home_dir = os.path.expanduser('~')
-    mountain_data_dir = glob.glob(home_dir + '/Pictures/Fire Emblem/MapReferences/custom_mountain_data/*.png')
+    mountain_data_dir = glob.glob('/app/map_maker/mountain_data_generation/maps_with_mountains/*.png')
+    # home_dir = os.path.expanduser('~')
+    # mountain_data_dir = glob.glob(home_dir + '/Pictures/Fire Emblem/MapReferences/custom_mountain_data/*.png')
     # Stores rules in the palette data itself
     assign_rules(mountain_palettes, mountain_data_dir)
     # mountain_palettes = remove_adjacent_palettes(mountain_palettes)
@@ -330,6 +331,6 @@ if __name__ == '__main__':
     print("Number of Coordinates:", len(final_rules))
     print("Number of Rules: ", sum(sum(len(mountain_palette[direction]) for direction in DIRECTIONS) for mountain_palette in final_rules.values()))
 
-    data_loc = 'app/map_maker/mountain_data.p'
+    data_loc = 'app/map_maker/mountain_data_generation/mountain_data.p'
     with open(data_loc, 'wb') as fp:
         pickle.dump(final_rules, fp)

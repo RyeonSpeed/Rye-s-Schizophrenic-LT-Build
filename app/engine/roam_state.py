@@ -221,29 +221,27 @@ class FreeRoamState(MapState):
             action.UpdateFogOfWar(self.roam_unit).do()
             self.roam_unit.position = true_pos  # Remember to reset the position to what we want
 
-    def can_move(self, direc: str) -> bool:
+    def get_next_location(self, direc: str, pos: tuple):
         tolerance = 0.4
         if direc == 'LEFT':
-            check_x = int(round(self.roam_unit.position[0] - tolerance))
-            check_y = int(round(self.roam_unit.position[1]))
-            mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
-            return mcost < 99 and self.no_bumps(check_x, check_y)
+            check_x = int(round(pos[0] - tolerance))
+            check_y = int(round(pos[1]))
         elif direc == 'RIGHT':
-            check_x = int(round(self.roam_unit.position[0] + tolerance))
-            check_y = int(round(self.roam_unit.position[1]))
-            mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
-            return mcost < 99 and self.no_bumps(check_x, check_y)
+            check_x = int(round(pos[0] + tolerance))
+            check_y = int(round(pos[1]))
         elif direc == 'UP':
-            check_x = int(round(self.roam_unit.position[0]))
-            check_y = int(round(self.roam_unit.position[1] - tolerance))
-            mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
-            return mcost < 99 and self.no_bumps(check_x, check_y)
+            check_x = int(round(pos[0]))
+            check_y = int(round(pos[1] - tolerance))
         elif direc == 'DOWN':
-            check_x = int(round(self.roam_unit.position[0]))
-            check_y = int(round(self.roam_unit.position[1] + tolerance))
-            mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
-            return mcost < 99 and self.no_bumps(check_x, check_y)
-        return True
+            check_x = int(round(pos[0]))
+            check_y = int(round(pos[1] + tolerance))
+        return check_x, check_y
+
+    def can_move(self, direc: str) -> bool:
+        pos = (self.roam_unit.position[0] + self.hspeed, self.roam_unit.position[1])
+        check_x, check_y = self.get_next_location(direc, pos)
+        mcost = game.movement.get_mcost(self.roam_unit, (check_x, check_y))
+        return mcost < 99 and self.no_bumps(check_x, check_y)
 
     def no_bumps(self, x: int, y: int) -> bool:
         '''Used to detect if the space is occupied by an impassable unit'''

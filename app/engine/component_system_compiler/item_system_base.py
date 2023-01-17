@@ -59,7 +59,7 @@ class Defaults():
         return None
 
     @staticmethod
-    def exp(playback, unit, item, target) -> int:
+    def exp(playback, unit, item) -> int:
         return 0
 
     @staticmethod
@@ -126,6 +126,14 @@ def available(unit, item) -> bool:
                 if not component.available(unit, item.parent_item):
                     return False
     return True
+
+def exp(playback, unit, item):
+    all_components = get_all_components(unit, item)
+    val = 0
+    for component in all_components:
+        if component.defines('exp'):
+            val += component.exp(playback, unit, item)
+    return val
 
 def stat_change(unit, item, stat_nid) -> int:
     bonus = 0

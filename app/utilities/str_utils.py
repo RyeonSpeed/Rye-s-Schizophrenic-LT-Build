@@ -140,6 +140,33 @@ def matched_expr(s: str, opener: str, closer: str):
             unclosed += 1
     return all_strs
 
+def matched_block_expr(s: str, opener: str, closer: str):
+    # returns all strings bounded by balanced openers, closers 
+    # inclduding content not found within the openers and closers
+    # e.g. "Hi{bac{def}jk}Waffle{lmno}" would return "[Hi, {bac{def}jk}, Waffle, {lmno}]""
+    assert opener != closer
+    assert len(opener) == 1
+    assert len(closer) == 1
+    all_strs = []
+    curr = ""
+    unclosed = 0
+    for character in s:
+        if character == closer and unclosed > 0:
+            unclosed -= 1
+            curr += character
+            if unclosed == 0:
+                all_strs.append(curr)
+                curr = ""
+        elif character == opener:
+            if unclosed == 0:
+                all_strs.append(curr)
+                curr = ""
+            curr += character
+            unclosed += 1
+        else:
+            curr += character
+    return all_strs
+
 def remove_all_matched(s: str, opener: str, closer: str):
     """
     usage: `{d:{eval:f}.{eval:y}.` becomes `{d:..` - useful for determining which level of a nested eval we're in
