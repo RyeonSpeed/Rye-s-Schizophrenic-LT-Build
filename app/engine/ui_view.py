@@ -636,12 +636,8 @@ class UIView():
         my_num *= combat_calcs.compute_multiattacks(attacker, defender, weapon, "attack", (0, 0))
         my_num = min(my_num, weapon.data.get('uses', 100))
 
-        if my_num == 2:
-            surf.blit(SPRITES.get('x2'), x2_pos_player)
-        elif my_num == 3:
-            surf.blit(SPRITES.get('x3'), x2_pos_player)
-        elif my_num == 4:
-            surf.blit(SPRITES.get('x4'), x2_pos_player)
+        if my_num != 1:
+            surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player)
 
         if a_assist:
             if skill_system.attack_stance_double(a_assist):
@@ -657,12 +653,8 @@ class UIView():
             e_num *= combat_calcs.compute_multiattacks(defender, attacker, eweapon, 'defense', (0, 0))
             e_num = min(e_num, eweapon.data.get('uses', 100))
 
-            if e_num == 2:
-                surf.blit(SPRITES.get('x2'), x2_pos_enemy)
-            elif e_num == 3:
-                surf.blit(SPRITES.get('x3'), x2_pos_enemy)
-            elif e_num == 4:
-                surf.blit(SPRITES.get('x4'), x2_pos_enemy)
+            if e_num != 1:
+                surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy)
 
             if d_assist:
                 if skill_system.attack_stance_double(d_assist):
