@@ -208,6 +208,21 @@ def stat_change(unit, stat_nid) -> int:
                 d_bonus = d.get(stat_nid, 0)
                 if d_bonus == 0:
                     continue
+                # Why did we write the component condition check after the evaluation of the bonus?
+                # Was there a good reason?
+                if component.ignore_conditional or condition(skill, unit):
+                    bonus += d_bonus
+    return bonus
+
+def subtle_stat_change(unit, stat_nid) -> int:
+    bonus = 0
+    for skill in unit.skills:
+        for component in skill.components:
+            if component.defines('subtle_stat_change'):
+                d = component.subtle_stat_change(unit)
+                d_bonus = d.get(stat_nid, 0)
+                if d_bonus == 0:
+                    continue
                 if component.ignore_conditional or condition(skill, unit):
                     bonus += d_bonus
     return bonus
@@ -216,7 +231,7 @@ def stat_change_contribution(unit, stat_nid) -> dict:
     contribution = {}
     for skill in unit.skills:
         for component in skill.components:
-            if component.defines('stat_change'):
+            if component.defines('stat_change') and not component.defines('subtle_stat_change'):
                 if component.ignore_conditional or condition(skill, unit):
                     d = component.stat_change(unit)
                     val = d.get(stat_nid, 0)

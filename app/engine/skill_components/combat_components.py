@@ -50,6 +50,20 @@ class StatMultiplier(SkillComponent):
     def stat_change(self, unit):
         return {stat[0]: int((stat[1]-1)*unit.stats[stat[0]]) for stat in self.value}
 
+class SubtleStatChange(SkillComponent):
+    nid = 'subtle_stat_change'
+    desc = "Gives stat bonuses that appear as regular stat increases within in-game ui"
+    tag = SkillTags.COMBAT
+
+    expose = (ComponentType.Dict, ComponentType.Stat)
+    value = []
+
+    def stat_change(self, unit=None):
+        return {stat[0]: stat[1] for stat in self.value}
+
+    def subtle_stat_change(self, unit=None):
+        return {stat[0]: stat[1] for stat in self.value}
+
 class GrowthChange(SkillComponent):
     nid = 'growth_change'
     desc = "Gives growth rate % bonuses"

@@ -46,7 +46,7 @@ class SpeakStyleLibrary(Dict[NID, SpeakStyle]):
              'narration_top': SpeakStyle(dialog_box='menu_bg_base', text_position=(4, 2), width=WINWIDTH - 8, 
                                          font_color='white', message_tail='None'),
              'clear': SpeakStyle(dialog_box='None', font_color='white', draw_cursor=False, message_tail='None'),
-             'thought_bubble': SpeakStyle(message_tail='message_bg_thought_tail'),
+             'thought_bubble': SpeakStyle(message_tail='message_bg_thought_tail', flags={'no_talk'}),
              }
         )
 

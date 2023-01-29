@@ -41,6 +41,7 @@ class PreferencesDialog(Dialog):
         self.saved_preferences['crash_logs'] = self.settings.get_should_display_crash_logs()
         self.saved_preferences['save_backup'] = self.settings.get_should_make_backup_save()
         self.saved_preferences['editor_close_button'] = self.settings.get_editor_close_button(Qt.Key_Escape)
+        self.saved_preferences['save_chunks'] = self.settings.get_should_save_as_chunks()
 
         self.available_options = name_to_button.keys()
         self.autocomplete_options = key_to_button.keys()
@@ -73,6 +74,9 @@ class PreferencesDialog(Dialog):
         self.crashlog.edit.setChecked(bool(self.saved_preferences['crash_logs']))
         self.savebackup = PropertyCheckBox('Make Additional Backup Save?', QCheckBox, self)
         self.savebackup.edit.setChecked(bool(self.saved_preferences['save_backup']))
+        self.savechunks = PropertyCheckBox('Save data in chunks?', QCheckBox, self)
+        self.savechunks.setToolTip("Saving data in chunks makes it easier to collaborate with others, but also makes saving slower.")
+        self.savechunks.edit.setChecked(bool(self.saved_preferences['save_chunks']))
 
         self.autocomplete_button = PropertyBox('Autocomplete Button', ComboBox, self)
         for option in self.autocomplete_options:
@@ -112,6 +116,7 @@ class PreferencesDialog(Dialog):
         self.layout.addWidget(self.autocomplete_desc)
         self.layout.addWidget(self.crashlog)
         self.layout.addWidget(self.savebackup)
+        self.layout.addWidget(self.savechunks)
         self.layout.addWidget(self.autosave)
         self.layout.addWidget(self.buttonbox)
 
@@ -180,6 +185,8 @@ class PreferencesDialog(Dialog):
         self.settings.set_event_autocomplete_desc(autocomplete_desc)
         crash_log_setting = 1 if self.crashlog.edit.isChecked() else 0
         self.settings.set_should_display_crash_logs(crash_log_setting)
+        save_chunks_setting = 1 if self.savechunks.edit.isChecked() else 0
+        self.settings.set_should_save_as_chunks(save_chunks_setting)
         save_backup_setting = 1 if self.savebackup.edit.isChecked() else 0
         self.settings.set_should_make_backup_save(save_backup_setting)
         autosave = float(self.autosave.edit.value())

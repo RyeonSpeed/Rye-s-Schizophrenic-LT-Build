@@ -45,7 +45,8 @@ class Dialog():
     def __init__(self, text, portrait=None, background=None, position=None, width=None,
                  speaker=None, style_nid=None, autosize=False, speed: float = 1.0, font_color='black',
                  font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail',
-                 transparency=0.05, name_tag_bg='name_tag'):
+                 transparency=0.05, name_tag_bg='name_tag', flags=None):
+        flags = flags or set()
         self.plain_text = text
         self.portrait = portrait
         self.speaker = speaker
@@ -117,14 +118,20 @@ class Dialog():
         self.total_num_updates = 0
         self.y_offset = 0 # How much to move lines (for when a new line is spawned)
 
+        self.should_move_mouth = 'no_talk' not in flags
+        self.should_speak_sound = 'no_sound' not in flags
+
         # For state transitions
         self.transition_progress = 0
         self.last_update = engine.get_time()
 
-        self.hold = False
+        self.hold = 'hold' in flags
 
         # For sound
         self.last_sound_update = 0
+
+        if 'no_popup' in flags:
+            self.last_update = engine.get_time() - 10000
 
     @classmethod
     def from_style(cls, style, text, portrait=None, width=None):
@@ -132,7 +139,7 @@ class Dialog():
         self = cls(text, portrait=portrait, background=style.dialog_box, position=style.text_position, width=width,
                    speaker=style.speaker, style_nid=style.nid, autosize=False, speed=style.text_speed, font_color=style.font_color,
                    font_type=style.font_type, num_lines=style.num_lines, draw_cursor=style.draw_cursor, message_tail=style.message_tail,
-                   transparency=style.transparency, name_tag_bg=style.name_tag_bg)
+                   transparency=style.transparency, name_tag_bg=style.name_tag_bg, flags=style.flags)
         return self
 
     def format_text(self, text):
@@ -236,7 +243,10 @@ class Dialog():
         else:
             self.state = 'process'
             if self.portrait:
-                self.portrait.talk()
+                if self.should_move_mouth:
+                    self.portrait.talk()
+                else:
+                    self.portrait.stop_talking()
         self.text_lines.append("")
 
     def _add_letter(self, letter):
@@ -256,6 +266,15 @@ class Dialog():
             self._next_line()
         elif command == '{p}':
             self.command_pause()
+        elif command == '{tgm}':
+            self.should_move_mouth = not self.should_move_mouth
+            if self.portrait:
+                if self.should_move_mouth:
+                    self.portrait.talk()
+                else:
+                    self.portrait.stop_talking()
+        elif command == '{tgs}':
+            self.should_speak_sound = not self.should_speak_sound
         elif command == ' ':  # Check to see if we should move to next line
             current_line = self.text_lines[-1]
             # Remove any commands from line
@@ -346,10 +365,13 @@ class Dialog():
             else:
                 self.state = 'process'
                 if self.portrait:
-                    self.portrait.talk()
+                    if self.should_move_mouth:
+                        self.portrait.talk()
+                    else:
+                        self.portrait.stop_talking()
 
     def play_talk_boop(self):
-        if cf.SETTINGS['talk_boop'] and engine.get_true_time() - self.last_sound_update > 32:
+        if cf.SETTINGS['talk_boop'] and engine.get_true_time() - self.last_sound_update > 32 and self.should_speak_sound:
             self.last_sound_update = engine.get_true_time()
             get_sound_thread().play_sfx('Talk_Boop')
 
@@ -392,7 +414,10 @@ class Dialog():
             if self.y_offset == 0:
                 self.state = 'process'
                 if self.portrait:
-                    self.portrait.talk()
+                    if self.should_move_mouth:
+                        self.portrait.talk()
+                    else:
+                        self.portrait.stop_talking()
 
         self.cursor_offset_index = (self.cursor_offset_index + 1) % len(self.cursor_offset)
         return True
@@ -494,7 +519,7 @@ class DynamicDialogWrapper():
     def __init__(self, text_func: Callable[[], str], portrait=None, background=None, position=None, width=None,
                  speaker=None, style_nid=None, autosize=False, speed: float=1.0, font_color='black',
                  font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail', transparency: float=0.05, 
-                 name_tag_bg='name_tag') -> None:
+                 name_tag_bg='name_tag', flags=None) -> None:
         # eval trick
         self.resolve_text_func: Callable[[], str] = text_func
         self.resolved_text = clean_newlines(self.resolve_text_func()).replace('{w}', '').replace('|', '{br}')
@@ -514,9 +539,10 @@ class DynamicDialogWrapper():
         self.message_tail = message_tail
         self.transparency = transparency
         self.name_tag_bg = name_tag_bg
+        self.flags = flags
 
         self.dialog = Dialog(self.resolved_text, portrait, background, position, width, speaker, style_nid, autosize, speed, font_color,
-                             font_type, num_lines, draw_cursor, message_tail, transparency, name_tag_bg)
+                             font_type, num_lines, draw_cursor, message_tail, transparency, name_tag_bg, flags)
 
     def update(self):
         new_text = clean_newlines(self.resolve_text_func()).replace('{w}', '').replace('|', '{br}')
@@ -526,7 +552,7 @@ class DynamicDialogWrapper():
                                  self.position, self.width, self.speaker, self.style_nid,
                                  self.autosize, self.speed, self.font_color, self.font_type,
                                  self.num_lines, self.draw_cursor, self.message_tail, self.transparency, 
-                                 self.name_tag_bg)
+                                 self.name_tag_bg, self.flags)
             self.dialog.last_update = engine.get_time() - 10000
         return self.dialog.update()
 

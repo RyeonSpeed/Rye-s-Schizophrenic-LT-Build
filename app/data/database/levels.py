@@ -1,26 +1,21 @@
 from __future__ import annotations
+from app.utilities.typing import NID
 from collections import OrderedDict
-from typing import Union
+from typing import Optional, Union
 
 from app.data.database.level_units import GenericUnit, UniqueUnit, UnitGroup
 from app.events.regions import Region
 from app.utilities.data import Data, Prefab
 
-music_keys = ['player_phase', 'enemy_phase', 'other_phase', 'enemy2_phase',
-              'player_battle', 'enemy_battle', 'other_battle', 'enemy2_battle',
-              'boss_battle']
-
 class LevelPrefab(Prefab):
     def __init__(self, nid, name):
         self.nid = nid
         self.name = name
-        self.tilemap = None  # Tilemap Nid
-        self.bg_tilemap = None # bg tilemap nid
-        self.party = None  # Party Prefab Nid
+        self.tilemap: Optional[NID] = None  # Tilemap Nid
+        self.bg_tilemap: Optional[NID] = None # bg tilemap nid
+        self.party: NID = None  # Party Prefab Nid
         self.music = OrderedDict()
 
-        for key in music_keys:
-            self.music[key] = None
         self.objective = {'simple': '',
                           'win': '',
                           'loss': ''}
@@ -55,7 +50,7 @@ class LevelPrefab(Prefab):
         elif name == 'regions':
             value = Data([Region.restore(val) for val in value])
         elif name == 'music':
-            value = {k: value.get(k) for k in self.music.keys()}
+            value = {k: value.get(k) for k in value.keys()}
         else:
             value = super().restore_attr(name, value)
         return value

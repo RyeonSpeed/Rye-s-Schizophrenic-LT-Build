@@ -25,7 +25,7 @@ class MusicDialog(SimpleDialog):
         self.setLayout(layout)
 
         self.boxes = {}
-        for idx, key in enumerate(self.current.music.keys()):
+        for key in DB.music_keys:
             title = key.replace('_', ' ').title()
             box = PropertyBox(title, QLineEdit, self)
             box.edit.setReadOnly(True)

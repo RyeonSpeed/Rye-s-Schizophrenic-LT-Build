@@ -141,6 +141,7 @@ class HealExp(ItemComponent):
             exp_gained = self._calc_exp(unit, healing_done)
             total_exp += exp_gained
         total_exp = utils.clamp(int(total_exp), 0, 100)
+        return total_exp
 
 class Wexp(ItemComponent):
     nid = 'wexp'

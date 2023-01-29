@@ -197,6 +197,7 @@ def draw_stat(surf, stat_nid, unit, topright, compact=False):
     class_obj = DB.classes.get(unit.klass)
     value = unit.stats.get(stat_nid, 0)
     bonus = unit.stat_bonus(stat_nid)
+    subtle_bonus = unit.subtle_stat_bonus(stat_nid)
     if compact:
         if bonus > 0:
             typeface = FONT['text-green']
@@ -208,6 +209,9 @@ def draw_stat(surf, stat_nid, unit, topright, compact=False):
             typeface = FONT['text-blue']
         typeface.blit_right(str(value + bonus), surf, topright)
     else:
+        # Recalc these values for full display
+        value = value + subtle_bonus
+        bonus = bonus - subtle_bonus
         if value >= class_obj.max_stats.get(stat_nid, 30):
             FONT['text-yellow'].blit_right(str(value), surf, topright)
         else:

@@ -4,7 +4,7 @@ formula = ('damage_formula', 'resist_formula', 'accuracy_formula', 'avoid_formul
            'crit_accuracy_formula', 'crit_avoid_formula', 'attack_speed_formula', 'defense_speed_formula',
            'critical_multiplier_formula', 'critical_addition_formula', 'thracia_critical_multiplier_formula')
 default_behaviours = (
-    'pass_through', 'vantage', 'ignore_terrain', 'crit_anyway',
+    'pass_through', 'vantage', 'desperation', 'ignore_terrain', 'crit_anyway',
     'ignore_region_status', 'no_double', 'def_double', 'alternate_splash',
     'ignore_rescue_penalty', 'ignore_forced_movement', 'distant_counter',
     'ignore_fatigue', 'no_attack_after_move', 'has_dynamic_range', 'disvantage', 'close_counter', 'attack_stance_double')

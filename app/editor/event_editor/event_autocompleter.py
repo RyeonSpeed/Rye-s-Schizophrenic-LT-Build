@@ -94,10 +94,17 @@ def detect_type_under_cursor(line: str, cursor_pos: int, arg_under_cursor: str =
             eval_tag = arg_under_cursor[eval_bracket+1:eval_colon]
             return (event_validators.get(eval_tag), [])
 
-    arg_idx = line.count(';', 0, cursor_pos) - 1
+    args = event_commands.get_command_arguments(line)
+    arg_idx = -1
+    while cursor_pos > 0:
+        current_arg = args.pop()
+        cursor_pos -= len(current_arg) + 1
+        arg_idx += 1
+    arg_idx -= 1
+
     flags = []
     # -1 is the command itself, and 0, 1, 2, etc. are the args
-    if arg_idx == -1:
+    if arg_idx <= -1:
         return (event_validators.EventFunction, [])
     try:
         command = detect_command_under_cursor(line)

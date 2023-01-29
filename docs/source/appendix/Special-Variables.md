@@ -57,9 +57,11 @@ These variables are cleared after winning or losing the current level
 
 `_level_end_triggered` **bool** Internal to the engine; Do not modify yourself.
 
-`_fog_of_war` **int** Defaults to 0
-    0 - No fog of war.
-    1 - Entire map is revealed, but enemy positions are masked (like in the GBA)
+`_fog_of_war` **bool** Determines whether there is a base fog of war
+
+`_fog_of_war_type` **int** Defaults to 0
+    0 - Entire map is revealed, but enemy positions are masked (like in the GBA)
+    1 - Entire map is revealed, but enemy positions are masked (like in the GBA) (yes, these are identical for past compatibility reasons)
     2 - Both map and enemy positions are masked (like in Thracia)
 
 `_fog_of_war_radius` **int** The distance that player units will be able to see in the fog. Defaults to 0.

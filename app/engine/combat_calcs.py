@@ -86,13 +86,22 @@ def compute_advantage(unit1, unit2, item1, item2, advantage=True):
         bonus = DB.weapons.get(item1_weapontype).advantage
     else:
         bonus = DB.weapons.get(item1_weapontype).disadvantage
-    for adv in bonus:
+    # bonus is a CombatBonusList
+    highest_requirement_met = -1
+    new_adv = None
+    for adv in bonus:  
         if adv.weapon_type == 'All' or adv.weapon_type == item2_weapontype:
-            if adv.weapon_rank == 'All' or DB.weapon_ranks.get(adv.weapon_rank).requirement >= unit1.wexp[item1_weapontype]:
+            if adv.weapon_rank == 'All':
                 new_adv = weapons.CombatBonus.copy(adv)
                 new_adv.modify(final_w_mod)
                 return new_adv
-    return None
+            # Figure out which Weapon Rank Bonus is highest that we meet
+            requirement = DB.weapon_ranks.get(adv.weapon_rank).requirement
+            if unit1.wexp[item1_weapontype] >= requirement and requirement > highest_requirement_met:
+                highest_requirement_met = requirement
+                new_adv = weapons.CombatBonus.copy(adv)
+                new_adv.modify(final_w_mod)
+    return new_adv
 
 def can_counterattack(attacker, aweapon, defender, dweapon) -> bool:
     if dweapon and item_funcs.available(defender, dweapon):

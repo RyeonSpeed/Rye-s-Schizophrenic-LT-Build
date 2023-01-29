@@ -227,6 +227,7 @@ class GameState():
 
     def level_setup(self):
         from app.engine.initiative import InitiativeTracker
+        from app.engine import action
 
         # Build party object for new parties
         if self.current_party not in self.parties:
@@ -240,6 +241,13 @@ class GameState():
 
         for region in self.current_level.regions:
             self.register_region(region)
+
+        # The fog and vision regions affect the game board
+        for region in self.current_level.regions:
+            if region.region_type == RegionType.FOG:
+                action.AddFogRegion(region).execute()
+            elif region.region_type == RegionType.VISION:
+                action.AddVisionRegion(region).execute()
 
         for unit in self.current_level.units:
             self.full_register(unit)
@@ -454,6 +462,13 @@ class GameState():
             self.generic()
             from app.engine.level_cursor import LevelCursor
             self.cursor = LevelCursor(self)
+
+            # The fog and vision regions affect the game board
+            for region in self.current_level.regions:
+                if region.region_type == RegionType.FOG:
+                    action.AddFogRegion(region).execute()
+                elif region.region_type == RegionType.VISION:
+                    action.AddVisionRegion(region).execute()
 
             # Now have units actually arrive on map
             for unit in self.units:

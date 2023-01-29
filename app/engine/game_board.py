@@ -27,6 +27,9 @@ class GameBoard(object):
         for team in DB.teams:
             self.fog_of_war_grids[team] = self.init_aura_grid()
         self.fow_vantage_point = {}  # Unit: Position where the unit is that's looking
+        self.fog_regions = self.init_aura_grid()
+        self.fog_region_set = set()  # Set of Fog region nids so we can tell how many fog regions exist at all times
+        self.vision_regions = self.init_aura_grid()
 
         # For Auras
         self.aura_grid = self.init_aura_grid()
@@ -148,32 +151,73 @@ class GameBoard(object):
                 idx = position[0] * self.height + position[1]
                 grid[idx].add(unit.nid)
 
+    def add_fog_region(self, region):
+        if region.position:
+            self.fog_region_set.add(region.nid)
+            fog_range = int(region.sub_nid) if region.sub_nid else 0
+            positions = set()
+            for pos in region.get_all_positions():
+                positions |= target_system.find_manhattan_spheres(range(fog_range + 1), pos[0], pos[1])
+            positions = {pos for pos in positions if 0 <= pos[0] < self.width and 0 <= pos[1] < self.height}
+            for position in positions:
+                idx = position[0] * self.height + position[1]
+                self.fog_regions[idx].add(region.nid)
+
+    def remove_fog_region(self, region):
+        self.fog_region_set.discard(region.nid)
+        for cell in self.fog_regions:
+            cell.discard(region.nid)
+
+    def add_vision_region(self, region):
+        if region.position:
+            vision_range = int(region.sub_nid) if region.sub_nid else 0
+            positions = set()
+            for pos in region.get_all_positions():
+                positions |= target_system.find_manhattan_spheres(range(vision_range + 1), pos[0], pos[1])
+            positions = {pos for pos in positions if 0 <= pos[0] < self.width and 0 <= pos[1] < self.height}
+            for position in positions:
+                idx = position[0] * self.height + position[1]
+                self.vision_regions[idx].add(region.nid)
+
+    def remove_vision_region(self, region):
+        for cell in self.vision_regions:
+            cell.discard(region.nid)
+
     def in_vision(self, pos, team='player') -> bool:
-        if not game.level_vars.get('_fog_of_war'):
-            return True  # Always in vision if not in fog of war
         idx = pos[0] * self.height + pos[1]
-        if team == 'player':
-            if DB.constants.value('fog_los'):
-                fog_of_war_radius = game.level_vars.get('_fog_of_war_radius', 0)
-                valid = line_of_sight.simple_check(pos, 'player', fog_of_war_radius) or line_of_sight.simple_check(pos, 'other', fog_of_war_radius)
-                if not valid:
-                    return False
-            player_grid = self.fog_of_war_grids['player']
-            if player_grid[idx]:
-                return True
-            other_grid = self.fog_of_war_grids['other']
-            if other_grid[idx]:
-                return True
+
+        # Anybody can see things in vision regions no matter what
+        # So don't use vision regions with fog line of sight
+        if self.vision_regions[idx]:
+            return True
+
+        if game.level_vars.get('_fog_of_war') or self.fog_regions[idx]:
+            if team == 'player':
+                # Right now, line of sight doesn't interact at all with vision regions
+                # Since I'm not sure how we'd handle cases where a vision region is obscured by an opaque tile
+                if DB.constants.value('fog_los'):
+                    fog_of_war_radius = game.level_vars.get('_fog_of_war_radius', 0)
+                    valid = line_of_sight.simple_check(pos, 'player', fog_of_war_radius) or line_of_sight.simple_check(pos, 'other', fog_of_war_radius)
+                    if not valid:
+                        return False
+                player_grid = self.fog_of_war_grids['player']
+                if player_grid[idx]:
+                    return True
+                other_grid = self.fog_of_war_grids['other']
+                if other_grid[idx]:
+                    return True
+            else:
+                if DB.constants.value('fog_los'):
+                    fog_of_war_radius = self.get_fog_of_war_radius(team)
+                    valid = line_of_sight.simple_check(pos, team, fog_of_war_radius)
+                    if not valid:
+                        return False
+                grid = self.fog_of_war_grids[team]
+                if grid[idx]:
+                    return True
+            return False
         else:
-            if DB.constants.value('fog_los'):
-                fog_of_war_radius = self.get_fog_of_war_radius(team)
-                valid = line_of_sight.simple_check(pos, team, fog_of_war_radius)
-                if not valid:
-                    return False
-            grid = self.fog_of_war_grids[team]
-            if grid[idx]:
-                return True
-        return False
+            return True
 
     def get_fog_of_war_radius(self, team: str) -> int:
         ai_fog_of_war_radius = game.level_vars.get('_ai_fog_of_war_radius', game.level_vars.get('_fog_of_war_radius', 0))

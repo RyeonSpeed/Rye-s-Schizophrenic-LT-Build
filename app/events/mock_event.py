@@ -29,7 +29,7 @@ class MockEvent(Event):
                  "transition", "change_background", "table", 
                  "remove_table", "draw_overlay_sprite", 
                  "remove_overlay_sprite", "location_card", "credits", 
-                 "ending", "pop_dialog"}
+                 "ending", "pop_dialog", "unpause"}
 
     loop_commands = {'for', 'endf'}
 

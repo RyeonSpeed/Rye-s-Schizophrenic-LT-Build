@@ -211,6 +211,14 @@ class Vantage(SkillComponent):
     def vantage(self, unit):
         return True
 
+class Desperation(SkillComponent):
+    nid = 'desperation'
+    desc = "Unit will attack as much as possible when given the opportunity"
+    tag = SkillTags.COMBAT2
+
+    def desperation(self, unit):
+        return True
+
 class GuaranteedCrit(SkillComponent):
     nid = 'guaranteed_crit'
     desc = "Unit will always crit even if crit constant is turned off"

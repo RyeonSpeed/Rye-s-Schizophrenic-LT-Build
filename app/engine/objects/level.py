@@ -6,7 +6,6 @@ from app.engine.objects.region import RegionObject
 from app.engine.objects.tilemap import TileMapObject
 
 from app.data.database.level_units import UnitGroup
-from app.data.database.levels import music_keys
 from app.utilities.typing import NID
 
 # Main Level Object used by engine
@@ -72,7 +71,7 @@ class LevelObject():
         level.roam = False
         level.roam_unit = None
 
-        level.music = {k: None for k in music_keys}
+        level.music = {}
         level.objective = {
             'simple': "",
             'win': "",

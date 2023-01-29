@@ -718,6 +718,8 @@ class InfoMenuState(State):
             name = curr_stat.name
             render_text(surf, ['text'], [name], ['yellow'], (8, 16 * idx + 24))
             base_value = self.unit.stats.get(stat_nid, 0)
+            subtle_stat_bonus = self.unit.subtle_stat_bonus(stat_nid)
+            base_value += subtle_stat_bonus
             contribution = self.unit.stat_contribution(stat_nid)
             contribution['Base Value'] = base_value
             desc_text = curr_stat.desc

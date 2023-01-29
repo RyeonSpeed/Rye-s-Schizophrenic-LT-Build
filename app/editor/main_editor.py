@@ -595,25 +595,18 @@ class MainEditor(QMainWindow):
 
     def check_for_updates(self):
         # Only check for updates in frozen version
-        if hasattr(sys, 'frozen'):
+        if hasattr(sys, 'frozen') or True:
             if autoupdate.check_for_update():
-                ret = QMessageBox.information(self, "Update Available", "A new update to LT-maker is available!\n"
-                                              "Do you want to download and install now?",
-                                              QMessageBox.Yes | QMessageBox.No)
-                if ret == QMessageBox.Yes:
-                    if self.project_save_load_handler.maybe_save():
-                        updating = autoupdate.update()
-                        if updating:
-                            # Force quit!!!
-                            sys.exit()
-                        else:
-                            QMessageBox.critical(
-                                self, "Error", "Failed to update?")
+                link = r"https://gitlab.com/rainlash/lt-maker/-/releases/permalink/latest/downloads/lex_talionis_maker"
+                QMessageBox.information(self, "Update Available", "A new update to LT-maker is available!\n"
+                                        "Copy this link to your browser to download it:\n"
+                                        f"{link}",
+                                        )
             else:
                 QMessageBox.information(
                     self, "Update not found", "No updates found.")
         else:
-            QMessageBox.warning(self, "Update unavailable", "<p>LT-maker can only automatically update the executable version.</p>"
+            QMessageBox.warning(self, "Update unavailable", "<p>This is a standard python version of LT-maker.</p>"
                                       "<p>Use <b>git fetch</b> and <b>git pull</b> to download the latest git repo updates instead.</p>")
 
 

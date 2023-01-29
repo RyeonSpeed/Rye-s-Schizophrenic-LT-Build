@@ -41,7 +41,7 @@ class SupportConstantDatabase(DatabaseTab):
         self.setLayout(self.layout)
 
         # main_constants = ('combat_convos', 'base_convos', 'battle_buddy_system', 'bonus_method')
-        main_constants = ('combat_convos', 'base_convos', 'bonus_method')
+        main_constants = ('combat_convos', 'base_convos', 'break_supports_on_death', 'bonus_method')
         main_section = self.create_section(main_constants)
         main_section.setTitle("Main Constants")
         points_constants = ('bonus_range', 'growth_range', 'chapter_points', 'end_turn_points', 'combat_points', 'interact_points', 'pairup_points')

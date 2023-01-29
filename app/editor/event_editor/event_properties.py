@@ -134,7 +134,7 @@ class Highlighter(QSyntaxHighlighter):
             if not line:
                 continue
             sections = event_commands.get_command_arguments(line)
-            # handle eval and vars
+            # handle eval, vars, commands, etc.
             for idx, section in enumerate(sections):
                 start = num_tabs * 4 + len(';'.join(sections[:idx])) + 1
                 if '{' in section and '}' in section:
@@ -206,6 +206,7 @@ class LineNumberArea(QWidget):
 
 class CodeEditor(QPlainTextEdit):
     clicked = pyqtSignal()
+    
     def mouseReleaseEvent(self, event):
         self.clicked.emit()
         return super().mouseReleaseEvent(event)

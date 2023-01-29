@@ -676,7 +676,7 @@ class Chapter(Validator):
         return valids
 
 class FogOfWarType(OptionValidator):
-    valid = ['clear', 'gba', 'thracia']
+    valid = ['gba', 'thracia']
 
 class ShakeType(OptionValidator):
     valid = ['default', 'combat', 'kill', 'random', 'celeste']
@@ -947,7 +947,7 @@ class RemoveType(OptionValidator):
     valid = ['fade', 'immediate', 'warp', 'swoosh']
 
 class RegionType(OptionValidator):
-    valid = ['normal', 'event', 'status', 'formation', 'time']
+    valid = ['normal', 'event', 'status', 'formation', 'time', 'fog', 'vision']
 
 class Weather(OptionValidator):
     valid = ["rain", "sand", "snow", "fire", "light", "purple", "dark", "smoke", "night", "sunset", "event_tile", "switch_tile"]

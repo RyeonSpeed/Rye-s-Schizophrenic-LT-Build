@@ -65,6 +65,16 @@ class Database(object):
 
         self.raw_data = raw_data.RawDataCatalog()
 
+    @property
+    def music_keys(self):
+        keys = []
+        for team in self.teams:
+            keys.append("%s_phase" % team)
+        for team in self.teams:
+            keys.append("%s_battle" % team)
+        keys.append("boss_battle")
+        return keys
+
     # Disk Interaction Functions
     def json_save(self, save_loc: str, value: Any):
         temp_save_loc = save_loc + ".tmp"
@@ -74,6 +84,7 @@ class Database(object):
 
     def load_categories(self, data_dir: str, key: str) -> Dict[NID, List[str]]:
         full_data_dir = os.path.join(data_dir, key)
+        single_data_file_loc = os.path.join(data_dir, '.%s_categories' % key)
         categories = Categories()
         if os.path.exists(full_data_dir):
             category_path = os.path.join(full_data_dir, '.categories')
@@ -83,6 +94,9 @@ class Database(object):
                         categories = Categories.load(json.load(load_file))
             except:
                 logging.error("category file %s not found or corrupted" % category_path)
+        elif os.path.exists(single_data_file_loc):
+            with open(single_data_file_loc) as load_file:
+                categories = Categories.load(json.load(load_file))
         return categories
 
     def json_load(self, data_dir: str, key: str) -> Dict | List:
@@ -136,6 +150,9 @@ class Database(object):
         return to_save
 
     def serialize(self, proj_dir):
+        from app.editor.settings import MainSettingsController
+        main_settings = MainSettingsController()
+
         data_dir = os.path.join(proj_dir, 'game_data')
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
@@ -147,11 +164,8 @@ class Database(object):
         to_save = self.save()
         # This section is what takes so long!
         for key, value in to_save.items():
-            if key not in self.save_as_chunks:
-                save_loc = os.path.join(data_dir, key + '.json')
-                logging.info("Serializing %s to %s" % (key, save_loc))
-                self.json_save(save_loc, value)
-            else: # divide save data into chunks based on key value
+            # divide save data into chunks based on key value
+            if key in self.save_as_chunks and main_settings.get_should_save_as_chunks():
                 save_dir = os.path.join(data_dir, key)
                 if os.path.exists(save_dir):
                     shutil.rmtree(save_dir)
@@ -176,11 +190,22 @@ class Database(object):
                     logging.info("Serializing %s to %s" % ('%s/%s.json' % (key, name), save_loc))
                     self.json_save(save_loc, [subvalue])
                 self.json_save(os.path.join(save_dir, '.orderkeys'), orderkeys)
+            else:  # Save as a single file
+                # Which means deleting the old directory
+                save_dir = os.path.join(data_dir, key)
+                if os.path.exists(save_dir):
+                    shutil.rmtree(save_dir)
+                save_loc = os.path.join(data_dir, key + '.json')
+                logging.info("Serializing %s to %s" % (key, save_loc))
+                self.json_save(save_loc, value)
 
         for key in self.save_data_types:
             catalog = getattr(self, key)
             if isinstance(catalog, CategorizedCatalog):
-                self.json_save(os.path.join(data_dir, key, '.categories'), catalog.categories.save())
+                if key in self.save_as_chunks and main_settings.get_should_save_as_chunks():
+                    self.json_save(os.path.join(data_dir, key, '.categories'), catalog.categories.save())
+                else:
+                    self.json_save(os.path.join(data_dir, '.%s_categories' % key), catalog.categories.save())
         end = time.perf_counter() * 1000
         logging.warning("Total Time Taken for Database: %s ms" % (end - start))
         logging.warning("Done serializing!")

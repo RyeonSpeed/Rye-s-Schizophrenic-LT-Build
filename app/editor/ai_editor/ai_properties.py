@@ -52,7 +52,7 @@ class UnitSpecification(QWidget):
         name_box.activated.connect(self.sub_spec_changed)
         self.box2.addWidget(name_box)
         team_box = ComboBox(self)
-        team_box.addItems(['player', 'enemy', 'enemy2', 'other'])
+        team_box.addItems(DB.teams)
         team_box.activated.connect(self.sub_spec_changed)
         self.box2.addWidget(team_box)
         faction_box = FactionBox(self)
@@ -300,10 +300,19 @@ class BehaviourBox(QGroupBox):
         self.proximity_box.edit.setAlignment(Qt.AlignRight)
         self.proximity_box.edit.valueChanged.connect(self.set_desired_proximity)
 
+        self.condition_box = PropertyBox("Condition", QLineEdit, self)
+        self.condition_box.setToolTip("If Condition is false, behaviour is skipped.")
+        self.condition_box.edit.setMaximumWidth(200)
+        self.condition_box.edit.textChanged.connect(self.set_condition)
+
         self.within_label = QLabel(" within ")
 
-        self.layout.addWidget(self.action)
-        self.layout.addWidget(self.target)
+        left_layout = QGridLayout()
+        left_layout.addWidget(self.action, 0, 0)
+        left_layout.addWidget(self.target, 0, 1)
+        left_layout.addWidget(self.condition_box, 1, 0, 1, 2)
+
+        self.layout.addLayout(left_layout)
         self.layout.addWidget(self.target_spec)
         self.layout.addWidget(self.speed_box)
         self.layout.addWidget(self.proximity_box)
@@ -333,6 +342,9 @@ class BehaviourBox(QGroupBox):
 
     def set_desired_proximity(self, val):
         self.current.desired_proximity = int(val)
+
+    def set_condition(self, val: str):
+        self.current.condition = val
 
     def show_roam_info(self, enable: bool):
         if enable and self.target_spec and not isinstance(self.target_spec.currentWidget(), WaitSpecification):
@@ -413,6 +425,11 @@ class BehaviourBox(QGroupBox):
         else:
             self.custom_view_range.setValue(int(behaviour.view_range))
             self.view_range.setCurrentIndex(4)
+
+        if behaviour.condition:
+            self.condition_box.edit.setText(behaviour.condition)
+        else:
+            self.condition_box.edit.setText("")
 
 class AIProperties(QWidget):
     def __init__(self, parent, current=None):

@@ -266,7 +266,7 @@ class BoundaryInterface():
 
                 # Remove all units that we shouldn't be able to see from the boundary
                 # Fog of War application
-                if game.level_vars.get('_fog_of_war'):
+                if game.level_vars.get('_fog_of_war') or game.board.fog_region_set:
                     new_grid = []
                     for cell in grid:
                         new_grid.append({nid for nid in cell if game.board.in_vision(game.get_unit(nid).position)})
@@ -334,13 +334,13 @@ class BoundaryInterface():
         return engine.subsurface(self.modes[grid_name], (idx * TILEWIDTH, 0, TILEWIDTH, TILEHEIGHT))
 
     def draw_fog_of_war(self, surf, full_size, cull_rect):
-        if game.level_vars['_fog_of_war']:
+        if game.level_vars.get('_fog_of_war', False) or game.board.fog_region_set:
             if not self.fog_of_war_surf:
                 self.fog_of_war_surf = engine.create_surface(full_size, transparent=True)
                 for y in range(self.height):
                     for x in range(self.width):
                         if not game.board.in_vision((x, y)):
-                            if game.level_vars['_fog_of_war'] == 2:
+                            if game.level_vars.get('_fog_of_war_type', 0) == 2:
                                 image = self.fog_of_war_tile2
                             else:
                                 image = self.fog_of_war_tile1

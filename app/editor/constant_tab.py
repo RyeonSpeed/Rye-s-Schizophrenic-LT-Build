@@ -32,6 +32,8 @@ class BoolConstantsModel(ComponentModel):
         data = self._data[index.row()]
         if role == Qt.DisplayRole:
             return data.name
+        elif role == Qt.ToolTipRole:
+            return data.name
         elif role == Qt.CheckStateRole:
             value = Qt.Checked if data.value else Qt.Unchecked
             return value
