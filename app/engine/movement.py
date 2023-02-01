@@ -67,7 +67,7 @@ class MovementManager():
 
     def get_mcost(self, unit_to_move, pos) -> int:
         if DB.terrain:
-            terrain_nid = game.tilemap.get_terrain(pos)
+            terrain_nid = game.get_terrain_nid(game.tilemap, pos)
             terrain = DB.terrain.get(terrain_nid)
             if not terrain:
                 terrain = DB.terrain[0]

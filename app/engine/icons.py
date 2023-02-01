@@ -75,7 +75,7 @@ def draw_skill(surf, skill, topleft, compact=True, simple=False, grey=False):
         cooldown_surf = SPRITES.get('icon_cooldown')
         index = utils.clamp(int(8 * frac), 0, 7)
         c = engine.subsurface(cooldown_surf, (16 * index, 0, 16, 16))
-        surf.blit(c, topleft)
+        surf.blit(c, topleft, None, engine.BLEND_RGB_MULT)
 
     if compact:
         pass

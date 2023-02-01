@@ -127,3 +127,10 @@ class EventBox(ObjBox):
             database = Data([d for d in DB.events if d is not exclude])
         super().__init__("Event", EventModel, database, parent, button)
 
+class TerrainBox(ObjBox):
+    def __init__(self, parent=None, button=False, exclude=None):
+        from app.editor.terrain_editor.terrain_model import TerrainModel
+        database = DB.terrain
+        if exclude:
+            database = Data([d for d in DB.terrain if d is not exclude])
+        super().__init__("Terrain Type", TerrainModel, database, parent, button)

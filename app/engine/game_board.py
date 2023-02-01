@@ -12,7 +12,7 @@ class GameBoard(object):
     def __init__(self, tilemap):
         self.width: int = tilemap.width
         self.height: int = tilemap.height
-        self.bounds:  Tuple[int, int, int, int] = (0, 0, self.width - 1, self.height - 1)
+        self.bounds: Tuple[int, int, int, int] = (0, 0, self.width - 1, self.height - 1)
         self.mcost_grids = {}
 
         self.reset_grid(tilemap)
@@ -51,7 +51,8 @@ class GameBoard(object):
         for x in range(self.width):
             for y in range(self.height):
                 if DB.terrain:
-                    terrain_type = DB.terrain.get(tilemap.get_terrain((x, y)))
+                    terrain_nid = game.get_terrain_nid(tilemap, (x, y))
+                    terrain_type = DB.terrain.get(terrain_nid)
                     if not terrain_type:
                         terrain_type = DB.terrain[0]
                     mtype_grid[x][y] = terrain_type.mtype
@@ -234,8 +235,8 @@ class GameBoard(object):
         cells = []
         for x in range(self.width):
             for y in range(self.height):
-                terrain = tilemap.get_terrain((x, y))
-                t = DB.terrain.get(terrain)
+                terrain_nid = game.get_terrain_nid(tilemap, (x, y))
+                t = DB.terrain.get(terrain_nid)
                 if t:
                     cells.append(t.opaque)
                 else:

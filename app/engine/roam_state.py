@@ -186,6 +186,8 @@ class FreeRoamState(MapState):
 
         elif event == 'AUX':
             game.state.change('option_menu')
+            self.rationalize()  # Forced rationalization when pressing AUX
+            # so this if you win_game or something your position is valid int
 
         elif event == 'INFO':
             get_sound_thread().play_sfx('Error')

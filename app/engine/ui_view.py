@@ -335,7 +335,7 @@ class UIView():
         return surf
 
     def create_tile_info(self, coord):
-        terrain_nid = game.tilemap.get_terrain(coord)
+        terrain_nid = game.get_terrain_nid(game.tilemap, coord)
         terrain = DB.terrain.get(terrain_nid)
         current_unit = game.board.get_unit(coord)
         if current_unit and 'Tile' in current_unit.tags:

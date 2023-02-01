@@ -721,6 +721,7 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
         reload_map_nid = tilemap_nid
 
     reload_map = 'reload' in flags
+    # For Overworld
     if reload_map and self.game.is_displaying_overworld(): # just go back to the level
         from app.engine import level_cursor, map_view, movement
         self.game.cursor = level_cursor.LevelCursor(self.game)
@@ -752,6 +753,16 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
     current_tilemap_nid = self.game.level.tilemap.nid
     self.game.level_vars['_prev_pos_%s' % current_tilemap_nid] = previous_unit_pos
 
+    # Remove all regions from the map
+    # But remember their original positions for later
+    previous_region_pos = {}
+    for region in self.game.level.regions:
+        if region.position:
+            previous_region_pos[region.nid] = region.position
+            act = action.RemoveRegion(region)
+            act.execute()
+    self.game.level_vars['_prev_region_%s' % current_tilemap_nid] = previous_region_pos
+
     tilemap = TileMapObject.from_prefab(tilemap_prefab)
     self.game.level.tilemap = tilemap
     if self.game.is_displaying_overworld():
@@ -771,6 +782,12 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
                 unit = self.game.get_unit(unit_nid)
                 act = action.ArriveOnMap(unit, final_pos)
                 act.execute()
+
+        for region_nid, pos in self.game.level_vars['_prev_region_%s' % reload_map_nid].items():
+            region = self.game.get_unit(region_nid)
+            region.position = pos[0] + position_offset[0], pos[1] + position_offset[1]
+            act = action.AddRegion(region)
+            act.execute()
 
     # Can't use turnwheel to go any further back
     self.game.action_log.set_first_free_action()

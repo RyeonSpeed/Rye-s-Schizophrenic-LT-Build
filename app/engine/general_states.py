@@ -1070,11 +1070,13 @@ class ItemState(MapState):
         elif event == 'SELECT':
             if self.menu.info_flag:
                 pass
-            else:
+            elif self.menu.get_current():  # Need to have an item
                 get_sound_thread().play_sfx('Select 1')
                 game.memory['is_subitem_child_menu'] = False
                 game.memory['parent_menu'] = self.menu
                 game.state.change('item_child')
+            else:
+                get_sound_thread().play_sfx('Error')
 
         elif event == 'INFO':
             self.menu.toggle_info()

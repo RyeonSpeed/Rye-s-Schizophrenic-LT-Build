@@ -9,6 +9,7 @@ class RegionType(str, Enum):
     TIME = 'time'
     FOG = 'fog'
     VISION = 'vision'
+    TERRAIN = 'terrain'
 
 class Region(Prefab):
     def __init__(self, nid):
