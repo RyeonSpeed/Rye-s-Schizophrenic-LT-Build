@@ -45,14 +45,12 @@ class Uses(ItemComponent):
         if self.is_broken(unit, item):
             if item in unit.items:
                 action.do(action.RemoveItem(unit, item))
-                unit.autoequip()
             elif item in game.party.convoy:
                 action.do(action.RemoveItemFromConvoy(item))
             else:
                 for other_unit in game.get_units_in_party():
                     if item in other_unit.items:
                         action.do(action.RemoveItem(other_unit, item))
-                        other_unit.autoequip()
             return True
         return False
 
@@ -114,7 +112,6 @@ class ChapterUses(ItemComponent):
         if self.is_broken(unit, item):
             if unit.equipped_weapon is item:
                 action.do(action.UnequipItem(unit, item))
-                unit.autoequip()
             return True
         return False
 
@@ -207,7 +204,6 @@ class ManaCost(ItemComponent):
     def on_broken(self, unit, item) -> bool:
         if unit.equipped_weapon is item:
             action.do(action.UnequipItem(unit, item))
-            unit.autoequip()
         return False
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
@@ -286,7 +282,6 @@ class Cooldown(ItemComponent):
     def on_broken(self, unit, item):
         if unit.equipped_weapon is item:
             action.do(action.UnequipItem(unit, item))
-            unit.autoequip()
         return False
 
     def on_upkeep(self, actions, playback, unit, item):
