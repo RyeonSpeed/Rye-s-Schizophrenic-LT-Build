@@ -238,7 +238,7 @@ class InfoMenuState(State):
         game.memory['scroll_units'] = None
 
         self.state = game.memory.get('info_menu_state', info_states[0])
-        if self.state == 'notes' and not (DB.constants.value('unit_notes') and self.unit.notes):
+        if self.state == 'notes' and not (DB.constants.value('unit_notes')):
             self.state = 'personal_data'
         self.growth_flag = False
 
@@ -382,7 +382,7 @@ class InfoMenuState(State):
         index = info_states.index(self.state)
         new_index = (index - 1) % len(info_states)
         self.next_state = info_states[new_index]
-        if self.next_state == 'notes' and not (DB.constants.value('unit_notes') and self.unit.notes):
+        if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
             new_index = (new_index - 1) % len(info_states)
             self.next_state = info_states[new_index]
         self.transition = 'LEFT'
@@ -394,7 +394,7 @@ class InfoMenuState(State):
         index = info_states.index(self.state)
         new_index = (index + 1) % len(info_states)
         self.next_state = info_states[new_index]
-        if self.next_state == 'notes' and not (DB.constants.value('unit_notes') and self.unit.notes):
+        if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
             new_index = (new_index + 1) % len(info_states)
             self.next_state = info_states[new_index]
         self.transition = 'RIGHT'
@@ -411,7 +411,7 @@ class InfoMenuState(State):
                 index = self.scroll_units.index(self.unit)
                 new_index = (index + 1) % len(self.scroll_units)
             self.next_unit = self.scroll_units[new_index]
-            if self.state == 'notes' and not (DB.constants.value('unit_notes') and self.next_unit.notes):
+            if self.state == 'notes' and not (DB.constants.value('unit_notes')):
                 self.state = 'personal_data'
                 self.switch_logo('personal_data')
             self.transition = 'DOWN'
@@ -426,7 +426,7 @@ class InfoMenuState(State):
                 index = self.scroll_units.index(self.unit)
                 new_index = (index - 1) % len(self.scroll_units)
             self.next_unit = self.scroll_units[new_index]
-            if self.state == 'notes' and not (DB.constants.value('unit_notes') and self.next_unit.notes):
+            if self.state == 'notes' and not (DB.constants.value('unit_notes')):
                 self.state = 'personal_data'
                 self.switch_logo('personal_data')
             self.transition = 'UP'
@@ -435,7 +435,7 @@ class InfoMenuState(State):
         get_sound_thread().play_sfx('Status_Character')
         self.rescuer = self.unit
         self.next_unit = game.get_unit(self.unit.traveler)
-        if self.state == 'notes' and not (DB.constants.value('unit_notes') and self.next_unit.notes):
+        if self.state == 'notes' and not (DB.constants.value('unit_notes')):
             self.state = 'personal_data'
             self.switch_logo('personal_data')
         self.transition = 'DOWN'
@@ -622,7 +622,7 @@ class InfoMenuState(State):
             self.logo.update()
             self.logo.draw(top_surf)
         # Blit page numbers
-        if DB.constants.value('unit_notes') and self.unit.notes:
+        if DB.constants.value('unit_notes'):
             num_states = len(info_states)
         else:
             num_states = len(info_states) - 1
