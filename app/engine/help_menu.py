@@ -260,9 +260,16 @@ class ItemHelpDialog(HelpDialog):
         self.vals = [weapon_rank, rng, weight, might, hit, crit]
 
         if self.item.desc:
-            self.build_lines(self.item.desc, 144)
+            self.lines = self.build_lines(self.item.desc)
         else:
             self.lines = []
+            
+        if len(self.lines) > 0:
+            self.greatest_line_len = text_funcs.get_max_width(self.font, self.lines)
+        else:
+            self.greatest_line_len = 144
+        
+        self.box_width = max(160, self.greatest_line_len + 16)
 
         self.num_present = len([v for v in self.vals if v is not None])
 
@@ -273,8 +280,8 @@ class ItemHelpDialog(HelpDialog):
 
         self.create_dialog(self.item.desc)
 
-        self.help_surf = base_surf.create_base_surf(160, height, 'help_bg_base')
-        self.h_surf = engine.create_surface((160, height + 3), transparent=True)
+        self.help_surf = base_surf.create_base_surf(self.box_width + 8, height, 'help_bg_base')
+        self.h_surf = engine.create_surface((self.box_width + 8, height + 3), transparent=True)
 
     def create_dialog(self, desc):
         if desc:
@@ -282,26 +289,26 @@ class ItemHelpDialog(HelpDialog):
             desc = desc.replace('\n', '{br}')
             self.dlg = \
                 dialog.Dialog.from_style(game.speak_styles.get('__default_help'), desc,
-                                         width=160)
+                                         width=self.box_width)
             y_height = 32 if self.num_present > 3 else 16
             self.dlg.position = (0, y_height)
         else:
             self.dlg = None
 
-    def build_lines(self, desc, width):
-        if not desc:
-            desc = ''
-        desc = text_funcs.translate(desc)
+    def build_lines(self, desc: str) -> List[str]:
         # Hard set num lines if desc is very short
         if '\n' in desc:
-            lines = desc.splitlines()
-            self.lines = []
-            for line in lines:
-                line = text_funcs.line_wrap(self.font, line, width)
-                self.lines.extend(line)
+            desc_lines = desc.splitlines()
+            lines = []
+            for line in desc_lines:
+                num = self.find_num_lines(line)
+                line = text_funcs.split(self.font, line, num, MAX_TEXT_WIDTH)
+                lines.extend(line)
         else:
-            self.lines = text_funcs.line_wrap(self.font, desc, width)
-        self.lines = fix_tags(self.lines)
+            num = self.find_num_lines(desc)
+            lines = text_funcs.split(self.font, desc, num, MAX_TEXT_WIDTH)
+        lines = fix_tags(lines)
+        return lines
 
     def draw(self, surf, pos, right=False):
         time = engine.get_time()

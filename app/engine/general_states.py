@@ -2595,6 +2595,173 @@ class ShopState(State):
 
         return surf
 
+# literally just the prep market
+class BigShopState(State):
+    name = 'big_shop'
+
+    def start(self):
+        self.fluid = FluidScroll()
+
+        self.bg = background.create_background('rune_background')
+        self.unit = game.memory['current_unit']
+
+        self.sell_menu = menus.Market(self.unit, None, (WINWIDTH - 164, 40), disp_value='sell')
+        market_items = game.market_items.keys()
+        market_items = item_funcs.create_items(self.unit, market_items)
+        show_stock = any(stock >= 0 for stock in game.market_items.values())
+        self.buy_menu = menus.Market(self.unit, market_items, (WINWIDTH - 164, 40), disp_value='buy', show_stock=show_stock)
+        self.display_menu = self.buy_menu
+        self.sell_menu.set_takes_input(False)
+        self.buy_menu.set_takes_input(False)
+
+        self.state = 'free'
+        options = ["Buy", "Sell"]
+        self.choice_menu = menus.Choice(self.unit, options, (20, 24), 'menu_bg_brown')
+        self.choice_menu.gem = False
+        self.menu = self.choice_menu
+
+        self.money_counter_disp = gui.PopUpDisplay((66, WINHEIGHT - 40))
+
+        game.state.change('transition_in')
+        return 'repeat'
+
+    def update_options(self):
+        self.buy_menu.update_options()
+        self.sell_menu.update_options()
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        self.menu.handle_mouse()
+        if 'DOWN' in directions:
+            if self.menu.move_down(first_push):
+                get_sound_thread().play_sfx('Select 6')
+            if self.state == 'free':
+                current = self.menu.get_current()
+                if current == 'Buy':
+                    self.display_menu = self.buy_menu
+                else:
+                    self.display_menu = self.sell_menu
+        elif 'UP' in directions:
+            if self.menu.move_up(first_push):
+                get_sound_thread().play_sfx('Select 6')
+            if self.state == 'free':
+                current = self.menu.get_current()
+                if current == 'Buy':
+                    self.display_menu = self.buy_menu
+                else:
+                    self.display_menu = self.sell_menu
+        elif 'LEFT' in directions:
+            get_sound_thread().play_sfx('TradeRight')
+            self.display_menu.move_left(first_push)
+        elif 'RIGHT' in directions:
+            get_sound_thread().play_sfx('TradeRight')
+            self.display_menu.move_right(first_push)
+
+        if event == 'SELECT':
+            if self.state == 'buy':
+                item = self.menu.get_current()
+                if item:
+                    value = item_funcs.buy_price(self.unit, item)
+                    if game.get_money() - value >= 0 and self.menu.get_stock() != 0:
+                        get_sound_thread().play_sfx('GoldExchange')
+                        game.set_money(game.get_money() - value)
+                        self.money_counter_disp.start(-value)
+                        self.menu.decrement_stock()
+                        game.market_items[item.nid] -= 1
+                        new_item = item_funcs.create_item(self.unit, item.nid)
+                        game.register_item(new_item)
+                        if not item_funcs.inventory_full(self.unit, new_item):
+                            self.unit.add_item(new_item)
+                        else:
+                            new_item.change_owner(None)
+                            game.party.convoy.append(new_item)
+                        self.update_options()
+                    elif self.menu.get_stock() == 0:
+                        # Market is out of stock
+                        get_sound_thread().play_sfx('Select 4')
+                    else:
+                        # You don't have enough money
+                        get_sound_thread().play_sfx('Select 4')
+                else:
+                    # You didn't choose anything to buy
+                    get_sound_thread().play_sfx('Select 4')
+
+            elif self.state == 'sell':
+                item = self.menu.get_current()
+                if item:
+                    value = item_funcs.sell_price(self.unit, item)
+                    if value:
+                        get_sound_thread().play_sfx('GoldExchange')
+                        game.set_money(game.get_money() + value)
+                        self.money_counter_disp.start(value)
+                        if item.owner_nid:
+                            owner = game.get_unit(item.owner_nid)
+                            owner.remove_item(item)
+                        else:
+                            game.party.convoy.remove(item)
+                        self.update_options()
+                    else:
+                        # No value, can't be sold
+                        get_sound_thread().play_sfx('Select 4')
+                else:
+                    # You didn't choose anything to sell
+                    get_sound_thread().play_sfx('Select 4')
+
+            elif self.state == 'free':
+                current = self.menu.get_current()
+                if current == 'Buy':
+                    self.menu = self.buy_menu
+                    self.state = 'buy'
+                    self.display_menu = self.buy_menu
+                else:
+                    self.menu = self.sell_menu
+                    self.state = 'sell'
+                    self.display_menu = self.sell_menu
+                self.menu.set_takes_input(True)
+
+        elif event == 'BACK':
+            if self.state == 'buy' or self.state == 'sell':
+                if self.menu.info_flag:
+                    self.menu.toggle_info()
+                    get_sound_thread().play_sfx('Info Out')
+                else:
+                    get_sound_thread().play_sfx('Select 4')
+                    self.state = 'free'
+                    self.menu.set_takes_input(False)
+                    self.menu = self.choice_menu
+            else:
+                get_sound_thread().play_sfx('Select 4')
+                game.state.change('transition_pop')
+
+        elif event == 'INFO':
+            if self.state == 'buy' or self.state == 'sell':
+                self.menu.toggle_info()
+                if self.menu.info_flag:
+                    get_sound_thread().play_sfx('Info In')
+                else:
+                    get_sound_thread().play_sfx('Info Out')
+
+    def update(self):
+        self.menu.update()
+
+    def draw(self, surf):
+        if self.bg:
+            self.bg.draw(surf)
+        self.choice_menu.draw(surf)
+        self.display_menu.draw(surf)
+        # Money
+        surf.blit(SPRITES.get('funds_display'), (10, WINHEIGHT - 24))
+        money = str(game.get_money())
+        FONT['text-blue'].blit_right(money, surf, (61, WINHEIGHT - 20))
+        self.money_counter_disp.draw(surf)
+
+        if self.display_menu.info_flag:
+            self.display_menu.draw_info(surf)
+
+        return surf
+
 class RepairShopState(ShopState):
     name = 'repair_shop'
 
