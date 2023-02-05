@@ -2586,29 +2586,34 @@ def shop(self: Event, unit, item_list, shop_flavor=None, stock_list=None, flags=
     shop_id = self.nid
     self.game.memory['shop_id'] = shop_id
     self.game.memory['current_unit'] = unit
-    item_list = item_list.split(',') if item_list else []
-    item_list = [item_nid.strip() for item_nid in item_list]
-    shop_items = item_funcs.create_items(unit, item_list)
-    self.game.memory['shop_items'] = shop_items
+    if shop_flavor == 'market':
+        self.game.state.change('big_shop')
+        self.state = 'paused'
 
-    if shop_flavor:
-        self.game.memory['shop_flavor'] = shop_flavor.lower()
     else:
-        self.game.memory['shop_flavor'] = 'armory'
+        item_list = item_list.split(',') if item_list else []
+        item_list = [item_nid.strip() for item_nid in item_list]
+        shop_items = item_funcs.create_items(unit, item_list)
+        self.game.memory['shop_items'] = shop_items
 
-    if stock_list:
-        stock_list = str_utils.intify(stock_list)
-        # Remember which items have already been bought for this shop...
-        for idx, item in enumerate(item_list):
-            item_history = '__shop_%s_%s' % (shop_id, item)
-            if item_history in self.game.level_vars:
-                stock_list[idx] -= self.game.level_vars[item_history]
-        self.game.memory['shop_stock'] = stock_list
-    else:
-        self.game.memory['shop_stock'] = None
+        if shop_flavor:
+            self.game.memory['shop_flavor'] = shop_flavor.lower()
+        else:
+            self.game.memory['shop_flavor'] = 'armory'
 
-    self.game.state.change('shop')
-    self.state = 'paused'
+        if stock_list:
+            stock_list = str_utils.intify(stock_list)
+            # Remember which items have already been bought for this shop...
+            for idx, item in enumerate(item_list):
+                item_history = '__shop_%s_%s' % (shop_id, item)
+                if item_history in self.game.level_vars:
+                    stock_list[idx] -= self.game.level_vars[item_history]
+            self.game.memory['shop_stock'] = stock_list
+        else:
+            self.game.memory['shop_stock'] = None
+
+        self.game.state.change('shop')
+        self.state = 'paused'
 
 def choice(self: Event, nid: NID, title: str, choices: str, row_width: str = None, orientation: str = None,
            alignment: str = None, bg: str = None, event_nid: str = None, entry_type: str = None,

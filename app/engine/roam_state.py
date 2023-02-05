@@ -173,7 +173,6 @@ class FreeRoamState(MapState):
                 get_sound_thread().play_sfx('Select 2')
                 did_trigger = game.events.trigger(triggers.OnTalk(self.roam_unit, other_unit, None))
                 if did_trigger:
-                    action.do(action.RemoveTalk(self.roam_unit.nid, other_unit.nid))
                     self.rationalize()
             elif region:
                 get_sound_thread().play_sfx('Select 2')
@@ -191,12 +190,7 @@ class FreeRoamState(MapState):
             # so this if you win_game or something your position is valid int
 
         elif event == 'INFO':
-            other_unit = self.can_talk()
-            did_trigger = game.events.trigger(triggers.RoamPressInfo(self.roam_unit, other_unit))
-            if did_trigger:
-                self.rationalize()
-            else:
-                info_menu.handle_info()
+            get_sound_thread().play_sfx('Error')
 
         elif event == 'START':
             did_trigger = game.events.trigger(triggers.RoamPressStart(self.roam_unit))

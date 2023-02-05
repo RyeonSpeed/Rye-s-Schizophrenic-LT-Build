@@ -1364,10 +1364,7 @@ class Convoy():
                 sorted_dict[w_type] = [item for item in all_items if item_system.weapon_type(self.unit, item) == w_type]
         sorted_dict['Default'] = [item for item in all_items if item_system.weapon_type(self.unit, item) is None]
         for key, value in sorted_dict.items():
-            value.sort(key=lambda item: item_system.special_sort(self.unit, item) or 0)
-            value.sort(key=lambda item: item.name)
-            value.sort(key=lambda item: item_system.sell_price(self.unit, item) or 0)
-            value.sort(key=lambda item: item_system.full_price(self.unit, item) or 0)
+            value.sort(key=lambda item: [item.nid for item in DB.items].index(item.nid) or 0)
             value.sort(key=lambda item: bool(item.owner_nid))
 
         return sorted_dict
@@ -1654,10 +1651,7 @@ class Market(Convoy):
             sorted_dict[w_type] = [item for item in all_items if item_system.weapon_type(self.unit, item) == w_type]
         sorted_dict['Default'] = [item for item in all_items if item_system.weapon_type(self.unit, item) is None]
         for key, value in sorted_dict.items():
-            value.sort(key=lambda item: item_system.special_sort(self.unit, item) or 0)
-            value.sort(key=lambda item: item.name)
-            value.sort(key=lambda item: item_system.sell_price(self.unit, item) or 0)
-            value.sort(key=lambda item: item_system.full_price(self.unit, item) or 0)
+            value.sort(key=lambda item: [item.nid for item in DB.items].index(item.nid) or 0)
             value.sort(key=lambda item: bool(item.owner_nid))
 
         return sorted_dict
