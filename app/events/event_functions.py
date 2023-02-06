@@ -1571,6 +1571,32 @@ def set_item_data(self: Event, global_unit_or_convoy, item, nid, expression, fla
         return
 
     action.do(action.SetObjData(item, nid, data_value))
+    
+def break_item(self: Event, global_unit_or_convoy, item, flags=None):
+    flags = flags or set()
+    global_unit = global_unit_or_convoy
+    
+    banner_flag = 'no_banner' not in flags
+
+    unit, item = self._get_item_in_inventory(global_unit, item)
+    if not unit or not item:
+        self.logger.error("break_item: Either unit or item was invalid, see above")
+        return
+
+    if 'starting_uses' in item.data:
+        action.do(action.SetObjData(item, 'uses', 0))
+    elif 'starting_c_uses' in item.data:
+        action.do(action.SetObjData(item, 'c_uses', 0))
+    else:
+        self.logger.error("break_item: Item %s does not have uses!" % item.nid)
+        return
+        
+    alert = item_system.on_broken(unit, item)
+    if alert and unit.team == 'player' and banner_flag:
+        self.game.alerts.append(banner.BrokenItem(unit, item))
+        self.game.state.change('alert')
+        self.state = 'paused'
+
 
 def change_item_name(self: Event, global_unit_or_convoy, item, string, flags=None):
     unit, item = self._get_item_in_inventory(global_unit_or_convoy, item)

@@ -1427,6 +1427,22 @@ Sets the uses of an *Item* to *Uses* in the inventory of *GlobalUnitOrConvoy*.
     keyword_types = ["GlobalUnitOrConvoy", "Item", "Integer"]
 
     _flags = ["additive"]
+    
+class BreakItem(EventCommand):
+    nid = 'break_item'
+    tag = Tags.MODIFY_ITEM_PROPERTIES
+    
+    desc = \
+        """
+Breaks *Item* in inventory of *GlobalUnitOrConvoy*, setting uses to 0.
+Will behave as if the item had been broken in combat,
+including notifying the player.
+If the *no_banner* flag is set, there will not be a banner announcing that the item has been broken.
+        """
+        
+    keywords = ["GlobalUnitOrConvoy", "Item"]
+    _flags = ['no_banner']
+
 
 class SetItemData(EventCommand):
     nid = 'set_item_data'
