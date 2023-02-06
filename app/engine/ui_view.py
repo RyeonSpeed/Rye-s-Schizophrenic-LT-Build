@@ -560,7 +560,10 @@ class UIView():
 
         my_num = combat_calcs.outspeed(attacker, defender, weapon, defender.get_weapon(), "attack", (0, 0))
         my_num *= combat_calcs.compute_multiattacks(attacker, defender, weapon, "attack", (0, 0))
-        my_num = min(my_num, weapon.data.get('uses', 100))
+        if weapon.uses_options and weapon.uses_options.one_loss_per_combat():
+            pass  # If you can only lose one use at a time, no need to min this
+        else:
+            my_num = min(my_num, weapon.data.get('uses', 100), weapon.data.get('c_uses', 100))
 
         if my_num != 1:
             surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player)

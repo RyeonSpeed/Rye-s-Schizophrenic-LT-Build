@@ -170,8 +170,8 @@ class MapView():
         font = FONT['text-yellow']
         current_time = engine.get_time()
         for region in game.level.regions:
-            if region.region_type == RegionType.TIME and region.position:
-                text = str(region.sub_nid)
+            if region.time_left is not None and region.position:
+                text = str(region.time_left)
                 w = font.width(text)
                 pos = (region.center[0] * TILEWIDTH - cull_rect[0], region.center[1] * TILEHEIGHT - cull_rect[1])
                 pos = (pos[0] + TILEWIDTH//2 - w//2, pos[1] - TILEHEIGHT//2 - 1 + 2 * math.sin(current_time//500))

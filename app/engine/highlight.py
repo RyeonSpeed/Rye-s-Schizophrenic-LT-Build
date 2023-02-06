@@ -129,7 +129,7 @@ class HighlightController():
         rect = (self.update_idx//4 * TILEWIDTH, 0, TILEWIDTH, TILEHEIGHT)
         escape_image = engine.subsurface(escape_image, rect)
         for region in game.level.regions:
-            if (region.region_type == RegionType.EVENT and region.sub_nid in ('Escape', 'Arrive')) or (region.region_type == RegionType.TIME):
+            if (region.region_type == RegionType.EVENT and region.sub_nid in ('Escape', 'Arrive')):
                 for position in region.get_all_positions():
                     surf.blit(escape_image, (position[0] * TILEWIDTH - cull_rect[0], position[1] * TILEHEIGHT - cull_rect[1]))
 
