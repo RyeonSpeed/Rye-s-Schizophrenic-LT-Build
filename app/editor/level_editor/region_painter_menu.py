@@ -134,7 +134,7 @@ class RegionModel(DragDropCollectionModel):
         if role == Qt.DisplayRole:
             reg = self._data[index.row()]
             text = reg.nid + ': ' + reg.region_type
-            if reg.region_type in (RegionType.STATUS, RegionType.TIME, RegionType.FOG, RegionType.VISION, RegionType.TERRAIN):
+            if reg.region_type in (RegionType.STATUS, RegionType.FOG, RegionType.VISION, RegionType.TERRAIN):
                 if reg.sub_nid:
                     text += ' ' + reg.sub_nid
             elif reg.region_type == RegionType.EVENT:
@@ -204,6 +204,10 @@ class ModifyRegionWidget(QWidget):
         self.condition_box.edit.textChanged.connect(self.condition_changed)
         layout.addWidget(self.condition_box)
 
+        self.time_left_box = PropertyBox("Num Turns", QLineEdit, self)
+        self.time_left_box.edit.textChanged.connect(self.time_left_changed)
+        layout.addWidget(self.time_left_box)
+
         self.only_once_box = PropertyCheckBox("Only once?", QCheckBox, self)
         self.only_once_box.edit.stateChanged.connect(self.only_once_changed)
         layout.addWidget(self.only_once_box)
@@ -269,9 +273,6 @@ class ModifyRegionWidget(QWidget):
             self.condition_box.show()
             self.only_once_box.show()
             self.interrupt_move_box.show()
-        elif self.current.region_type == RegionType.TIME:
-            self.sub_nid_box.label.setText("Num Turns")
-            self.sub_nid_box.show()
         elif self.current.region_type in (RegionType.VISION, RegionType.FOG):
             self.sub_nid_box.label.setText("Range")
             self.sub_nid_box.show()
@@ -283,6 +284,12 @@ class ModifyRegionWidget(QWidget):
     def condition_changed(self, text):
         self.current.condition = text
         self.window.update_list()
+
+    def time_left_changed(self, text):
+        if text and str_utils.is_int(text):
+            self.current.time_left = int(text)
+        else:
+            self.current.time_left = None
 
     def only_once_changed(self, state):
         self.current.only_once = bool(state)
@@ -304,13 +311,14 @@ class ModifyRegionWidget(QWidget):
         self.nid_box.edit.setText(current.nid)
         self.region_type_box.edit.setValue(current.region_type)
         self.condition_box.edit.setText(current.condition)
+        self.time_left_box.edit.setText(str(current.time_left) if current.time_left is not None else '')
         self.only_once_box.edit.setChecked(bool(current.only_once))
         self.interrupt_move_box.edit.setChecked(bool(current.interrupt_move))
         if current.region_type == RegionType.STATUS:
             self.status_box.edit.setValue(str(current.sub_nid))
         elif current.region_type == RegionType.TERRAIN:
             self.terrain_box.edit.setValue(str(current.sub_nid))
-        elif current.region_type in (RegionType.EVENT, RegionType.TIME, RegionType.FOG, RegionType.VISION):
+        elif current.region_type in (RegionType.EVENT, RegionType.FOG, RegionType.VISION):
             self.sub_nid_box.edit.setText(str(current.sub_nid))
         else:
             self.sub_nid_box.edit.setText('')

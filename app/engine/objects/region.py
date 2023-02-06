@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 from app.utilities.typing import NID
 
 from app.events.regions import RegionType, Region
@@ -11,7 +11,7 @@ class RegionObject(Region):
 
     def __init__(self, nid: NID, region_type: RegionType, 
                  position: Tuple[int, int] = None, size: Tuple[int, int] = [1, 1], 
-                 sub_nid: str = None, condition: str = 'True', 
+                 sub_nid: str = None, condition: str = 'True', time_left: Optional[int] = None,
                  only_once: bool = False, interrupt_move: bool = False):
         self.nid = nid
         self.region_type = region_type
@@ -19,16 +19,18 @@ class RegionObject(Region):
         self.size = size
 
         self.sub_nid = sub_nid
-        self.condition = condition
-        self.only_once = only_once
-        self.interrupt_move = interrupt_move
+        self.condition: str = condition
+        self.time_left: Optional[int] = time_left
+        self.only_once: bool = only_once
+        self.interrupt_move: bool = interrupt_move
 
         self.data = {}
 
     @classmethod
     def from_prefab(cls, prefab):
         return cls(prefab.nid, prefab.region_type, prefab.position, prefab.size,
-                   prefab.sub_nid, prefab.condition, prefab.only_once, prefab.interrupt_move)
+                   prefab.sub_nid, prefab.condition, prefab.time_left,
+                   prefab.only_once, prefab.interrupt_move)
 
     def save(self) -> dict:
         serial_dict = {}
@@ -38,6 +40,7 @@ class RegionObject(Region):
         serial_dict['size'] = self.size
         serial_dict['sub_nid'] = self.sub_nid
         serial_dict['condition'] = self.condition
+        serial_dict['time_left'] = self.time_left
         serial_dict['only_once'] = self.only_once
         serial_dict['interrupt_move'] = self.interrupt_move
 
@@ -47,6 +50,7 @@ class RegionObject(Region):
     @classmethod
     def restore(cls, dat: dict):
         self = cls(dat['nid'], dat['region_type'], dat['position'], dat['size'],
-                   dat['sub_nid'], dat['condition'], dat['only_once'], dat['interrupt_move'])
+                   dat['sub_nid'], dat['condition'], dat['time_left'],
+                   dat['only_once'], dat['interrupt_move'])
         self.data = dat['data']
         return self

@@ -120,7 +120,8 @@ class AIController():
             if not item_funcs.available(self.unit, self.goal_item):
                 return False
             if self.goal_item in item_funcs.get_all_items(self.unit):
-                action.do(action.EquipItem(self.unit, self.goal_item))
+                if self.unit.can_equip(self.goal_item):
+                    action.do(action.EquipItem(self.unit, self.goal_item))
             # Highlights
             if item_system.is_weapon(self.unit, self.goal_item):
                 game.highlight.remove_highlights()
@@ -362,8 +363,10 @@ class PrimaryAI():
 
     def item_setup(self):
         if self.item_index < len(self.items):
-            logging.info("Testing %s" % self.items[self.item_index])
-            self.unit.equip(self.items[self.item_index])
+            item = self.items[self.item_index]
+            logging.info("Testing %s" % item)
+            if self.unit.can_equip(item):
+                self.unit.equip(item)
             self.get_all_valid_targets()
             self.possible_moves = self.get_possible_moves()
             logging.info(self.possible_moves)
@@ -414,7 +417,7 @@ class PrimaryAI():
     def run(self):
         if self.item_index >= len(self.items):
             self.quick_move(self.orig_pos)
-            if self.orig_item:
+            if self.orig_item and self.unit.can_equip(self.orig_item):
                 self.unit.equip(self.orig_item)
             return (True, self.best_target, self.best_position, self.best_item)
 
