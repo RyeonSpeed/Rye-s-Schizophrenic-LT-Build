@@ -54,6 +54,13 @@ class OverworldFreeState(MapState):
 
     def start(self):
         OverworldFreeState.set_up_overworld_game_state()
+        logging.info('Fade in Overworld Music')
+        song = game.overworld_controller.music
+        fade = game.game_vars.get('_phase_music_fade_ms', 400)
+        if song:
+            get_sound_thread().fade_in(song.nid, fade_in=fade, from_start=True)
+        else:
+            get_sound_thread().fade_to_pause(fade_out=fade)
         self.begin_time = engine.get_time()
 
         if not game.overworld_controller.selected_party_node():
@@ -120,7 +127,7 @@ class OverworldFreeState(MapState):
                         game.camera.do_slow_pan(1000)
                         game.camera.set_center(party_node.position[0], party_node.position[1])
                         game.state.change('overworld_movement')
-                        movement.queue(game.movement) 
+                        movement.queue(game.movement)
 
             else:   # clicked on empty space, trigger the general menu
                 get_sound_thread().play_sfx('Select 5')

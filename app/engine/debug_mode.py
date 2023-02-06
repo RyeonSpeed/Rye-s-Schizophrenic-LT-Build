@@ -90,6 +90,8 @@ class DebugState(MapState):
         surf.blit(self.bg, (0, WINHEIGHT - (5 * 16)))
 
     def draw_hover_info(self, surf):
+        if game.is_displaying_overworld():
+            return
         unit: UnitObject = game.cursor.get_hover()
         unit_position_info = [""]
         colors: List[NID | None] = []
