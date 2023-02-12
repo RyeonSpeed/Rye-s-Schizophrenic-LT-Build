@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Optional
 
 from app.events import event_commands
 from app.utilities.data import Data, Prefab
+from app.utilities.typing import NID
 
 class EventPrefab(Prefab):
     def __init__(self, name):
@@ -53,7 +54,7 @@ class EventCatalog(Data[EventPrefab]):
         return [event for event in self._list if event.trigger == trigger_nid and
                 (not event.level_nid or event.level_nid == level_nid)]
 
-    def get_by_level(self, level_nid: str) -> List[EventPrefab]:
+    def get_by_level(self, level_nid: Optional[NID]) -> List[EventPrefab]:
         return [event for event in self._list if (not event.level_nid or not level_nid or event.level_nid == level_nid)]
 
     def get_by_nid_or_name(self, name_or_nid: str, level_nid: None) -> List[EventPrefab]:

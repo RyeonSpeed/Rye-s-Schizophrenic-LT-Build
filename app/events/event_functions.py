@@ -121,7 +121,7 @@ def add_portrait(self: Event, portrait, screen_position, slide=None, expression_
 
     speed_mult = 1 / max(speed_mult, 0.001)
 
-    new_portrait = EventPortrait(portrait, position, priority, transition, 
+    new_portrait = EventPortrait(portrait, position, priority, transition,
                                  slide, mirror, speed_mult=speed_mult)
     self.portraits[name] = new_portrait
 
@@ -209,6 +209,8 @@ def move_portrait(self: Event, portrait, screen_position, speed_mult=1, flags=No
     if 'immediate' in flags or self.do_skip:
         portrait.quick_move(position)
     else:
+        if not speed_mult:
+            speed_mult = 1
         portrait.move(position, float(speed_mult))
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
@@ -319,7 +321,7 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
     text = dialog.clean_newlines(text)
 
     if 'no_block' in flags:
-        text += '{no_wait}'    
+        text += '{no_wait}'
 
     speak_style = None
     if style_nid and style_nid in self.game.speak_styles:
@@ -783,6 +785,7 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
                 act = action.ArriveOnMap(unit, final_pos)
                 act.execute()
 
+    if reload_map and self.game.level_vars.get('_prev_region_%s' % reload_map_nid):
         for region_nid, pos in self.game.level_vars['_prev_region_%s' % reload_map_nid].items():
             region = self.game.get_region(region_nid)
             if region:
@@ -998,7 +1001,7 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
         self.logger.error("move_unit: Couldn't get a good position %s %s %s" % (position, movement_type, placement))
         return None
 
-    if movement_type == 'immediate' or self.do_skip:
+    if movement_type == 'immediate':
         action.do(action.Teleport(unit, position))
     elif movement_type == 'warp':
         action.do(action.Warp(unit, position))
@@ -1008,10 +1011,16 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
         action.do(action.FadeMove(unit, position))
     elif movement_type == 'normal':
         path = target_system.get_path(unit, position)
-        if speed:
-            action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed))
+        if path:
+            if self.do_skip:
+                action.do(action.Teleport(unit, position))
+            elif speed:
+                action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed))
+            else:
+                action.do(action.Move(unit, position, path, event=True, follow=follow))
         else:
-            action.do(action.Move(unit, position, path, event=True, follow=follow))
+            self.logger.error("move_unit: no valid path for %s from %s to %s" % (unit, unit.position, position))
+            return None
 
     if 'no_block' in flags or self.do_skip:
         pass
@@ -1571,11 +1580,11 @@ def set_item_data(self: Event, global_unit_or_convoy, item, nid, expression, fla
         return
 
     action.do(action.SetObjData(item, nid, data_value))
-    
+
 def break_item(self: Event, global_unit_or_convoy, item, flags=None):
     flags = flags or set()
     global_unit = global_unit_or_convoy
-    
+
     banner_flag = 'no_banner' not in flags
 
     unit, item = self._get_item_in_inventory(global_unit, item)
@@ -1590,7 +1599,7 @@ def break_item(self: Event, global_unit_or_convoy, item, flags=None):
     else:
         self.logger.error("break_item: Item %s does not have uses!" % item.nid)
         return
-        
+
     alert = item_system.on_broken(unit, item)
     if alert and unit.team == 'player' and banner_flag:
         self.game.alerts.append(banner.BrokenItem(unit, item))
@@ -1829,7 +1838,7 @@ def give_skill(self: Event, global_unit, skill, initiator=None, flags=None):
 
 def remove_skill(self: Event, global_unit, skill, count='-1', flags=None):
     flags = flags or set()
-    count = int(count)
+    count = int(count) if count else -1
 
     unit = self._get_unit(global_unit)
     if not unit:

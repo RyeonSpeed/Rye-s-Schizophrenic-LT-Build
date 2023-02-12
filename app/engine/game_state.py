@@ -4,7 +4,7 @@ from functools import lru_cache
 import random
 import time
 from collections import Counter
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from app.engine.query_engine import GameQueryEngine
 
@@ -768,11 +768,11 @@ class GameState():
         return region
 
     @lru_cache(128)
-    def get_region_under_pos(self, pos: Tuple[int, int], region_type: RegionType = None) -> RegionObject:
+    def get_region_under_pos(self, pos: Tuple[int, int], region_type: RegionType = None) -> Optional[RegionObject]:
         """
         if region_type arguments is None, all region types are accepted and available to be returned
         """
-        if pos:
+        if pos and self.level:
             for region in self.level.regions.values():
                 if (not region_type or region.region_type == region_type) and region.contains(pos):
                     return region
@@ -865,7 +865,7 @@ class GameState():
             terrain_nid = self.get_terrain_nid(self.tilemap, unit.position)
             terrain = DB.terrain.get(terrain_nid)
             terrain_key = (*unit.position, terrain.status)
-            
+
             skill_uid = self.get_terrain_status(terrain_key)
             skill_obj = self.get_skill(skill_uid)
             if skill_obj and skill_obj in unit.skills:

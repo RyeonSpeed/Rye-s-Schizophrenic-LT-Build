@@ -126,7 +126,7 @@ class SimpleCombat():
         self.turnwheel_death_messages(all_units)
 
         self.handle_state_stack()
-        game.events.trigger(triggers.CombatEnd(self.attacker, self.defender, self.attacker.position, self.main_item))
+        game.events.trigger(triggers.CombatEnd(self.attacker, self.defender, self.attacker.position, self.main_item, self.full_playback))
         self.handle_item_gain(all_units)
 
         pairs = self.handle_supports(all_units)

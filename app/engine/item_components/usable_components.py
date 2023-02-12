@@ -360,3 +360,18 @@ class Unstealable(ItemComponent):
 
     def unstealable(self, unit, item) -> bool:
         return True
+
+class EvalAvailable(ItemComponent):
+    nid = 'eval_available'
+    desc = 'Item is only available while condition is true'
+    tag = ItemTags.USES
+
+    expose = ComponentType.String
+
+    def available(self, unit, item) -> bool:
+        from app.engine import evaluate
+        try:
+            return int(evaluate.evaluate(self.value, unit, local_args={'item': item}))
+        except:
+            logging.error("EvalAvailable: Couldn't evaluate %s conditional" % self.value)
+        return False

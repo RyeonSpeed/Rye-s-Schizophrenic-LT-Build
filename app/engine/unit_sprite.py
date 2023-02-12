@@ -23,6 +23,8 @@ from app.engine.animations import Animation
 from app.engine.game_state import game
 from app.utilities.typing import NID
 
+import logging
+
 class MapSprite():
     def __init__(self, map_sprite, team):
         self.nid = map_sprite.nid
@@ -189,8 +191,15 @@ class UnitSprite():
     def add_warp_flowers(self, reverse=False):
         ps = particles.SimpleParticleSystem('warp_flower', particles.WarpFlower, self.unit.position, (-1, -1, -1, -1), 0)
         angle_frac = math.pi / 8
-        true_pos_x = self.unit.position[0] * TILEWIDTH + TILEWIDTH//2
-        true_pos_y = self.unit.position[1] * TILEHEIGHT + TILEHEIGHT//2
+        if self.unit.position:
+            pos = self.unit.position
+        elif self.fake_position:
+            pos = self.fake_position
+        else:
+            logging.error("No position for sprite found during add warp flowers!")
+            return
+        true_pos_x = pos[0] * TILEWIDTH + TILEWIDTH//2
+        true_pos_y = pos[1] * TILEHEIGHT + TILEHEIGHT//2
         for idx, speed in enumerate((4.5, )):
             for num in range(0, 16):
                 angle = num * angle_frac + (angle_frac / 2 if idx == 0 else 0)

@@ -2570,10 +2570,10 @@ class DecrementTimeRegion(Action):
         self.region = region
 
     def do(self):
-        self.region.time_left = self.region.time_left - 1
+        self.region.time_left = int(self.region.time_left) - 1
 
     def reverse(self):
-        self.region.time_left = self.region.time_left + 1
+        self.region.time_left = int(self.region.time_left) + 1
 
 class RemoveRegion(Action):
     def __init__(self, region):

@@ -38,13 +38,13 @@ def determine_all_damaged_defenders(playback: list, attacker) -> set:
 
 def determine_all_healed_defenders(playback: list, attacker) -> set:
     healing_marks = [mark for mark in playback if mark.nid == 'heal_hit' and mark.attacker == attacker]
-    healing_marks = [mark for mark in playback if 
+    healing_marks = [mark for mark in healing_marks if 
                      skill_system.check_ally(attacker, mark.defender) and
                      mark.true_damage > 0]
     all_defenders = set()
     for mark in healing_marks:
         if 'Tile' in mark.defender.tags:
-            continue  # Don't count defenders
+            continue  # Don't count tiles
         all_defenders.add(mark.defender)
     return all_defenders
 
@@ -130,7 +130,7 @@ class HealExp(ItemComponent):
 
     def exp(self, playback, unit, item) -> int:
         total_exp = 0
-        defenders = determine_all_damaged_defenders(playback, unit)
+        defenders = determine_all_healed_defenders(playback, unit)
         for defender in defenders:
             healing_done = 0
             for brush in playback:

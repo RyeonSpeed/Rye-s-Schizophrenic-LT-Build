@@ -119,37 +119,39 @@ class FreeRoamAIController(ai_controller.AIController):
             self.movement_manager.move()
 
     def get_targets(self):
-        all_targets = []
+        all_units = []
+        all_positions = []
         if self.behaviour.target == 'Unit':
-            all_targets = [u for u in game.units if u.position]
+            all_units = [u for u in game.units if u.position]
         elif self.behaviour.target == 'Enemy':
-            all_targets = [u for u in game.units if u.position and skill_system.check_enemy(self.unit, u)]
+            all_units = [u for u in game.units if u.position and skill_system.check_enemy(self.unit, u)]
         elif self.behaviour.target == 'Ally':
-            all_targets = [u for u in game.units if u.position and skill_system.check_ally(self.unit, u)]
+            all_units = [u for u in game.units if u.position and skill_system.check_ally(self.unit, u)]
         elif self.behaviour.target == 'Event':
             target_spec = self.behaviour.target_spec
-            all_targets = []
             for region in game.level.regions:
                 try:
                     if region.region_type == RegionType.EVENT and region.sub_nid == target_spec and (not region.condition or evaluate.evaluate(region.condition, self.unit, local_args={'region': region})):
-                        all_targets += region.get_all_positions()
+                        all_positions += region.get_all_positions()
                 except:
                     logging.warning("Region Condition: Could not parse %s" % region.condition)
-            all_targets = list(set(all_targets))  # Remove duplicates
+            all_positions = list(set(all_positions))  # Remove duplicates
         elif self.behaviour.target == 'Position':
             if self.behaviour.target_spec == "Starting":
                 if self.unit.starting_position:
-                    all_targets = [self.unit.starting_position]
-                else:
-                    all_targets = []
+                    all_positions = [self.unit.starting_position]
             else:
-                all_targets = [tuple(self.behaviour.target_spec)]
-        if self.behaviour.target in ('Unit', 'Enemy', 'Ally'):
-            all_targets = self.handle_roam_unit_spec(all_targets, self.behaviour)
+                all_positions = [tuple(self.behaviour.target_spec)]
 
-        if self.behaviour.target != 'Position':
+        if self.behaviour.target in ('Unit', 'Enemy', 'Ally'):
+            all_units = self.handle_roam_unit_spec(all_units, self.behaviour)
             if DB.constants.value('ai_fog_of_war'):
-                all_targets = [pos for pos in all_targets if game.board.in_vision(pos, self.unit.team)]
+                all_targets = [unit.position for unit in all_targets if game.board.in_vision(unit.position, self.unit.team)]
+            else:
+                all_targets = [unit.position for unit in all_targets]
+        else:
+            all_targets = all_positions
+        
         return all_targets
 
     def handle_roam_unit_spec(self, all_targets, behaviour):

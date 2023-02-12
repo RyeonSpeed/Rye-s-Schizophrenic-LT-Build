@@ -913,21 +913,22 @@ class ChangeTilemap(EventCommand):
         """
 Changes the current map to a different layout (*Tilemap*).
 If the *reload* flag is set, the currently deployed units
-will be placed at their same positions on the new tilemap.
-If a *PositionOffset* is given, the units will be reloaded but shifted by +x,+y.
+and currently extant regions will be placed at their same positions
+on the new tilemap.
+If a *PositionOffset* is given, the units and regions will be reloaded but shifted by +x,+y.
 
-Instead of reloading the units from their current positions,
+Instead of reloading the units/regions from their current positions,
 a second *Tilemap* optional keyword can be specified.
-In this case, unit deployment will be loaded from that tilemap's data instead of from the current map.
+In this case, unit deployment will be loaded from that tilemap's previous data instead of from the current map.
 
 Note that this command cannot be turnwheel'ed.
 Players attempting to use the turnwheel will find that
 they cannot turn time back past the point when this command was executed.
         """
 
-    # How much to offset placed units by
     # Which tilemap to load the unit positions from
     keywords = ["Tilemap"]
+    # How much to offset placed units by
     optional_keywords = ["PositionOffset", "LoadTilemap"]
     keyword_types = ["Tilemap", "PositionOffset", "Tilemap"]
     _flags = ["reload"]  # Should place units in previously recorded positions
