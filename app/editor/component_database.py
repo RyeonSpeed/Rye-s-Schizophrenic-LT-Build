@@ -1,8 +1,26 @@
+from __future__ import annotations
 from functools import partial
+from typing import Any, Dict
 
-from app.utilities import utils
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QColor, QIcon, QPalette
+from PyQt5.QtWidgets import (QApplication, QDoubleSpinBox, QHBoxLayout,
+                             QItemDelegate, QLabel, QLineEdit, QListWidgetItem,
+                             QSpinBox, QToolButton, QVBoxLayout, QWidget)
+
 from app.data.database.components import ComponentType
 from app.data.database.database import DB
+from app.data.resources.resources import RESOURCES
+from app.editor.component_editor_delegates import (AffinityDelegate,
+                                                   ClassDelegate, ItemDelegate,
+                                                   SkillDelegate, StatDelegate,
+                                                   TagDelegate,
+                                                   TerrainDelegate,
+                                                   UnitDelegate,
+                                                   WeaponTypeDelegate)
+from app.editor.component_subcomponent_editors import get_editor_widget
+from app.editor.editor_constants import (DROP_DOWN_BUFFER, MAX_DROP_DOWN_WIDTH,
+                                         MIN_DROP_DOWN_WIDTH)
 from app.extensions import list_models
 from app.extensions.color_icon import AlphaColorIcon, ColorIcon
 from app.extensions.custom_gui import ComboBox
@@ -11,25 +29,29 @@ from app.extensions.key_value_delegate import (FixedKeyMutableValueDelegate,
 from app.extensions.list_widgets import (AppendMultiListWidget,
                                          AppendSingleListWidget,
                                          BasicMultiListWidget)
+from app.extensions.frame_layout import FrameLayout
 from app.extensions.widget_list import WidgetList
-from app.data.resources.resources import RESOURCES
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
-                             QItemDelegate, QLabel, QLineEdit, QListWidgetItem,
-                             QSpinBox, QToolButton, QWidget)
+from app.utilities import utils
 
-MIN_DROP_DOWN_WIDTH = 120
-MAX_DROP_DOWN_WIDTH = 640
-DROP_DOWN_BUFFER = 24
 
 class ComponentList(WidgetList):
-    def add_component(self, component):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.order_swapped.connect(self.rerender)
+        palette = QApplication.palette()
+        self.bg_color = palette.color(QPalette.Base)
+        self.highlight_color = palette.color(QPalette.AlternateBase)
+
+    def add_component(self, component: BoolItemComponent):
         item = QListWidgetItem()
         item.setSizeHint(component.sizeHint())
         self.addItem(item)
         self.setItemWidget(item, component)
         self.index_list.append(component.data.nid)
+        if len(self.index_list) % 2 == 0:
+            item.setBackground(self.highlight_color)
+        else:
+            item.setBackground(self.bg_color)
         return item
 
     def remove_component(self, component):
@@ -38,6 +60,21 @@ class ComponentList(WidgetList):
             self.index_list.remove(component.data.nid)
             return self.takeItem(idx)
         return None
+
+    def updateGeometry(self):
+        for idx in range(self.count()):
+            item = self.item(idx)
+            component = self.itemWidget(item)
+            item.setSizeHint(component.sizeHint())
+        super().updateGeometry()
+
+    def rerender(self, start, row):
+        for idx in range(self.count()):
+            item = self.item(idx)
+            if idx % 2 == 0:
+                item.setBackground(self.highlight_color)
+            else:
+                item.setBackground(self.bg_color)
 
 class BoolItemComponent(QWidget):
     delegate = None
@@ -149,7 +186,7 @@ class DropDownItemComponent(BoolItemComponent):
     def on_value_changed(self, val):
         self._data.value = self.options[val]
 
-class OptionsItemComponent(BoolItemComponent):
+class DeprecatedOptionsItemComponent(BoolItemComponent):
     def create_editor(self, hbox):
         if not self._data.value:
             self._data.value = []
@@ -171,6 +208,37 @@ class OptionsItemComponent(BoolItemComponent):
                 return editor
             else:
                 return super().createEditor(parent, option, index)
+
+class BetterOptionsItemComponent(BoolItemComponent):
+    def create_editor(self, hbox):
+        options: Dict[str, ComponentType] = self._data.options
+        self.collapsible_frame_layout = FrameLayout(self, "Component Options")
+        self.editors_widget = QWidget(self)
+        vbox = QVBoxLayout(self.editors_widget)
+        # backwards compatability update
+        value = self._data.__class__.value.copy()
+        value.update(self._data.value)
+        self._data.value = value
+        for field_name, component_type in options.items():
+            editor = get_editor_widget(field_name, component_type, self._data.value)
+            vbox.addWidget(editor)
+        self.collapsible_frame_layout.addWidget(self.editors_widget)
+        self.collapsible_frame_layout.clicked.connect(self.updateGeometry)
+        self.orig_height = self.height()
+        hbox.addWidget(self.collapsible_frame_layout)
+
+    def sizeHint(self):
+        if self.collapsible_frame_layout.enabled():
+            h = self.editors_widget.sizeHint().height()
+            return QSize(self.width(), h)
+        else:
+            return QSize(self.width(), self.orig_height)
+
+    def updateGeometry(self):
+        size = self.sizeHint()
+        self.setFixedSize(size)
+        super().updateGeometry()
+        self.window.component_list.updateGeometry()
 
 class WeaponTypeItemComponent(BoolItemComponent):
     def create_editor(self, hbox):
@@ -411,72 +479,6 @@ class EventItemComponent(BoolItemComponent):
         self.editor.currentTextChanged.connect(self.on_value_changed)
         hbox.addWidget(self.editor)
 
-# Delegates
-class UnitDelegate(QItemDelegate):
-    data = DB.units
-    name = "Unit"
-    is_float = False
-    is_string = False
-
-    def createEditor(self, parent, option, index):
-        if index.column() == 0:
-            editor = ComboBox(parent)
-            for obj in self.data:
-                name = obj.nid
-                if hasattr(obj, 'name'):
-                    name = "%s (%s)" % (obj.name, obj.nid)
-                editor.addItem(name, obj.nid)
-            return editor
-        elif index.column() == 1:  # Integer value column
-            if self.is_string:
-                editor = QLineEdit(parent)
-            elif self.is_float:
-                editor = QDoubleSpinBox(parent)
-                editor.setRange(0, 10)
-            else:
-                editor = QSpinBox(parent)
-                editor.setRange(-1000, 1000)
-            return editor
-        else:
-            return super().createEditor(parent, option, index)
-
-    def setModelData(self, editor: QWidget, model, index) -> None:
-        if index.column() == 0: # combobox
-            model.setData(index, editor.itemData(editor.currentIndex()), Qt.ItemDataRole)
-        else:
-            super().setModelData(editor, model, index)
-
-class ClassDelegate(UnitDelegate):
-    data = DB.classes
-    name = "Class"
-
-class AffinityDelegate(UnitDelegate):
-    data = DB.affinities
-    name = "Affinity"
-
-class TagDelegate(UnitDelegate):
-    data = DB.tags
-    name = "Tag"
-
-class ItemDelegate(UnitDelegate):
-    data = DB.items
-    name = "Item"
-
-class StatDelegate(UnitDelegate):
-    data = DB.stats
-    name = "Stat"
-
-class WeaponTypeDelegate(UnitDelegate):
-    data = DB.weapons
-    name = "Weapon Type"
-
-class SkillDelegate(UnitDelegate):
-    data = DB.skills
-    name = "Skill"
-
-class TerrainDelegate(UnitDelegate):
-    data = DB.terrain
-    name = "Terrain"
 
 class ListItemComponent(BoolItemComponent):
     delegate = None
@@ -490,7 +492,6 @@ class ListItemComponent(BoolItemComponent):
         self.editor.model.nid_column = 0
 
         hbox.addWidget(self.editor)
-
 class DictItemComponent(BoolItemComponent):
     delegate = None
 
@@ -569,7 +570,9 @@ def get_display_widget(component, parent):
     elif component.expose == ComponentType.MovementType:
         c = MovementTypeItemComponent(component, parent)
     elif component.expose == ComponentType.MultipleOptions:
-        c = OptionsItemComponent(component, parent)
+        c = DeprecatedOptionsItemComponent(component, parent)
+    elif component.expose == ComponentType.NewMultipleOptions:
+        c = BetterOptionsItemComponent(component, parent)
 
     elif isinstance(component.expose, tuple):
         delegate = None

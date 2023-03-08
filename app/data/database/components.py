@@ -4,6 +4,7 @@ from app.utilities import str_utils
 from app.utilities.data import Data
 
 class ComponentType(IntEnum):
+    Bool = 0
     Int = 1
     Float = 2
     String = 3
@@ -34,6 +35,8 @@ class ComponentType(IntEnum):
     MultipleChoice = 103 # item is a string value from a number of choices
     MultipleOptions = 104 # item is a dict of string options with types that can be individually configured
     StringDict = 105  # Item followed by string
+    NewMultipleOptions = 106 # item is a dict of string options with types that can be individually configured
+
 
 def convert_type_from_string(tstr: str, ttype: ComponentType):
     if ttype == ComponentType.Int:
@@ -59,12 +62,12 @@ class Component():
     @property
     def name(self):
         name = self.__class__.__name__
-        return str_utils.camel_case(name)
+        return str_utils.ignore_numbers(str_utils.camel_case(name))
 
     @classmethod
     def class_name(cls):
         name = cls.__name__
-        return str_utils.camel_case(name)
+        return str_utils.ignore_numbers(str_utils.camel_case(name))
 
     def defines(self, function_name):
         return hasattr(self, function_name)

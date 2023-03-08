@@ -51,7 +51,7 @@ class PromotionChoiceState(State):
         self.animations = []
         self.weapon_icons = []
         for option in self.class_options:
-            anim = battle_animation.get_battle_anim(self.unit, None, klass=option, default_variant=True)
+            anim = battle_animation.get_battle_anim(self.unit, None, klass=option)
             if anim:
                 anim.pair(self, None, True, 0)
             self.animations.append(anim)
@@ -248,7 +248,7 @@ class PromotionState(State, MockCombat):
         self.right_battle_anim = battle_animation.get_battle_anim(self.unit, None)
         # New Left Animation
         next_class = game.memory['next_class']
-        self.left_battle_anim = battle_animation.get_battle_anim(self.unit, None, klass=next_class, default_variant=True)
+        self.left_battle_anim = battle_animation.get_battle_anim(self.unit, None, klass=next_class)
         self.current_battle_anim = self.right_battle_anim
 
         platform_type = 'Floor'

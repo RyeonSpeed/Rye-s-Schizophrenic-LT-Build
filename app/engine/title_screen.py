@@ -21,6 +21,8 @@ from app.engine.state import State
 from app.events.event import Event
 from app.events import triggers
 
+from app.engine.achievements import ACHIEVEMENTS
+
 from app.data.resources.resources import RESOURCES
 from app.utilities import utils
 
@@ -711,7 +713,9 @@ class TitleExtrasState(TitleLoadState):
         self.bg = game.memory['title_bg']
         self.particles = game.memory['title_particles']
 
-        options = ['Options', 'Achievements', 'Credits', 'Sound Room']
+        options = ['Options', 'Credits', 'Sound Room']
+        if ACHIEVEMENTS:
+            options.insert(1, 'Achievements')
         if cf.SETTINGS['debug']:
             options.insert(0, 'All Saves')
         self.menu = menus.Main(options, 'title_menu_dark')

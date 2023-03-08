@@ -221,7 +221,13 @@ class TimelineMenu(QWidget):
     def create_input(self):
         self.entry = QLineEdit(self)
         self.entry.setPlaceholderText("Enter command here")
-        self.entry.returnPressed.connect(self.add_text)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Return or key == Qt.Key_Enter:
+            self.add_text()
+        else:
+            super().keyPressEvent(event)
 
     def get_current_command(self):
         if self.current_pose and self.current_pose.timeline and \

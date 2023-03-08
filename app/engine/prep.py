@@ -6,7 +6,7 @@ from app.data.database.database import DB
 from app.engine import action, background, banner, base_surf
 from app.engine import config as cf
 from app.engine import (convoy_funcs, engine, equations, gui, image_mods,
-                        info_menu, item_funcs, item_system, menus, text_funcs,
+                        item_funcs, item_system, menus, text_funcs,
                         trade)
 from app.engine.background import SpriteBackground
 from app.engine.combat import interaction
@@ -229,9 +229,10 @@ class PrepPickUnitsState(State):
             game.state.change('transition_pop')
 
         elif event == 'INFO':
+            get_sound_thread().play_sfx('Select 1')
             game.memory['scroll_units'] = game.get_units_in_party()
-            game.memory['next_state'] = 'info_menu'
             game.memory['current_unit'] = self.menu.get_current()
+            game.memory['next_state'] = 'info_menu'
             game.state.change('transition_to')
 
     def update(self):
@@ -280,6 +281,16 @@ class PrepPickUnitsState(State):
         self.menu.draw(surf)
         return surf
 
+def _handle_info():
+    if game.cursor.get_hover():
+        get_sound_thread().play_sfx('Select 1')
+        game.memory['next_state'] = 'info_menu'
+        game.memory['current_unit'] = game.cursor.get_hover()
+        game.state.change('transition_to')
+    else:
+        get_sound_thread().play_sfx('Select 3')
+        game.boundary.toggle_all_enemy_attacks()
+
 class PrepFormationState(MapState):
     name = 'prep_formation'
 
@@ -294,7 +305,7 @@ class PrepFormationState(MapState):
         game.cursor.take_input()
 
         if event == 'INFO':
-            info_menu.handle_info()
+            _handle_info()
 
         elif event == 'AUX':
             pass
@@ -381,7 +392,7 @@ class PrepFormationSelectState(MapState):
             game.cursor.set_pos(self.unit.position)
 
         elif event == 'INFO':
-            info_menu.handle_info()
+            _handle_info()
 
     def draw(self, surf):
         surf = super().draw(surf)
@@ -496,8 +507,8 @@ class PrepManageState(State):
         elif event == 'INFO':
             get_sound_thread().play_sfx('Select 1')
             game.memory['scroll_units'] = game.get_units_in_party()
-            game.memory['next_state'] = 'info_menu'
             game.memory['current_unit'] = self.menu.get_current()
+            game.memory['next_state'] = 'info_menu'
             game.state.change('transition_to')
         elif event == 'START':
             get_sound_thread().play_sfx('Select 1')
@@ -710,9 +721,10 @@ class PrepTradeSelectState(State):
             game.state.change('transition_pop')
 
         elif event == 'INFO':
+            get_sound_thread().play_sfx('Select 1')
             game.memory['scroll_units'] = game.get_units_in_party()
-            game.memory['next_state'] = 'info_menu'
             game.memory['current_unit'] = self.menu.get_current()
+            game.memory['next_state'] = 'info_menu'
             game.state.change('transition_to')
 
     def update(self):

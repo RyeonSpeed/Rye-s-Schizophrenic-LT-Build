@@ -104,8 +104,8 @@ class FeatChoiceState(MapState):
 
         elif event == 'INFO':
             get_sound_thread().play_sfx('Select 2')
-            game.memory['next_state'] = 'info_menu'
             game.memory['current_unit'] = self.unit
+            game.memory['next_state'] = 'info_menu'
             game.state.change('transition_to')
 
         elif event == 'SELECT':

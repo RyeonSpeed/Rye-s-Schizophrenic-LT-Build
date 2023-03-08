@@ -84,13 +84,13 @@ def get_formatted_stat_pages() -> List[Tuple[str, List[Column]]]:
                 font='text'
                ),
         Column('16%', 'Atk', uif.HAlignment.RIGHT, None,
-               lambda unit: str(unit.get_damage_with_current_weapon()) if unit.get_damage_with_current_weapon() > 0 else '--',
+               lambda unit: str(unit.get_damage_with_current_weapon()) if unit.get_damage_with_current_weapon() else '--',
                None),
         Column('16%', 'Hit', uif.HAlignment.RIGHT, None,
-               lambda unit: str(unit.get_accuracy_with_current_weapon()) if unit.get_accuracy_with_current_weapon() > 0 else '--',
+               lambda unit: str(unit.get_accuracy_with_current_weapon()) if unit.get_accuracy_with_current_weapon() else '--',
                None),
         Column('16%', 'Avoid', uif.HAlignment.RIGHT, None,
-               lambda unit: str(unit.get_avoid_with_current_weapon()) if unit.get_avoid_with_current_weapon() > 0 else '--',
+               lambda unit: str(unit.get_avoid_with_current_weapon()) if unit.get_avoid_with_current_weapon() else '--',
                None),
     ]
     all_pages.append(('Equipment', equipment_page))

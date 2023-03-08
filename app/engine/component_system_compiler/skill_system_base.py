@@ -390,6 +390,21 @@ def get_cooldown(skill) -> float:
             return component.cooldown()
     return None
 
+def get_hide_skill_icon(unit, skill) -> bool:
+    # Check if we should be hiding this skill
+    for component in skill.components:
+        if component.defines('hide_skill_icon') and \
+                component.hide_skill_icon(unit, skill):
+            return True
+    return False
+
+def get_show_skill_icon(unit, skill) -> bool:
+    for component in skill.components:
+        if component.defines('show_skill_icon') and \
+                component.show_skill_icon(unit):
+            return True
+    return False
+
 def trigger_charge(unit, skill):
     for component in skill.components:
         if component.defines('trigger_charge'):
@@ -415,39 +430,23 @@ def get_combat_arts(unit):
             continue
         combat_art = None
         combat_art_weapons = [item for item in item_funcs.get_all_items(unit) if item_funcs.available(unit, item)]
-        combat_art_set_max_range = None
-        combat_art_modify_max_range = None
         for component in skill.components:
             if component.defines('combat_art'):
                 combat_art = component.combat_art(unit)
             if component.defines('weapon_filter'):
                 combat_art_weapons = \
                     [item for item in combat_art_weapons if component.weapon_filter(unit, item)]
-            if component.defines('combat_art_set_max_range'):
-                combat_art_set_max_range = component.combat_art_set_max_range(unit)
-            if component.defines('combat_art_modify_max_range'):
-                combat_art_modify_max_range = component.combat_art_modify_max_range(unit)
 
         if combat_art and combat_art_weapons:
             good_weapons = []
             # Check which of the good weapons meet the range requirements
             for weapon in combat_art_weapons:
-                # Just for testing range
-                if combat_art_set_max_range:
-                    weapon._force_max_range = max(0, combat_art_set_max_range)
-                elif combat_art_modify_max_range:
-                    item_range = item_funcs.get_range(unit, weapon)
-                    if item_range:
-                        max_range = max(item_range)
-                        weapon._force_max_range = max(0, max_range + combat_art_modify_max_range)
-
                 # activate_combat_art(unit, skill)
                 act = action.AddSkill(unit, skill.combat_art.value)
                 act.do()
                 targets = target_system.get_valid_targets(unit, weapon)
                 act.reverse()
                 # deactivate_combat_art(unit, skill)
-                weapon._force_max_range = None
                 if targets:
                     good_weapons.append(weapon)
 

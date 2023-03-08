@@ -422,7 +422,8 @@ class PurpleMote(Particle):
                 self.transparency = 1.
 
     def draw(self, surf, offset_x=0, offset_y=0):
-        sprite = image_mods.make_translucent(self.sprite, self.transparency)
+        alpha = 255 * self.transparency
+        sprite = image_mods.make_translucent_blend(self.sprite, alpha)
         engine.blit(surf, sprite, (self.x - offset_x, self.y - offset_y), None, engine.BLEND_RGB_ADD)
 
 def create_system(nid, width, height, position):

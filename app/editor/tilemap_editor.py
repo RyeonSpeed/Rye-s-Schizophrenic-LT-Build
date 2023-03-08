@@ -454,7 +454,7 @@ class MapEditorView(DraggableTileImageView):
                     self.erase_tile(tile_pos)
         elif self.right_selecting:
             self.find_coords()
-        elif event.buttons() & Qt.MiddleButton:
+        elif (event.buttons() & Qt.MiddleButton) and self.old_middle_pos is not None:
             offset = self.old_middle_pos - event.pos()
             self.old_middle_pos = event.pos()
 

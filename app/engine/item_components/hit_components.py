@@ -37,13 +37,8 @@ class PermanentStatChange(ItemComponent):
         return self._target_restrict(unit)
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
-        stat_changes = {k: v for (k, v) in self.value}
-        klass = DB.classes.get(target.klass)
-        # clamp stat changes
-        stat_changes = {k: utils.clamp(v, -unit.stats[k], klass.max_stats.get(k, 30) - target.stats[k]) for k, v in stat_changes.items()}
-        actions.append(action.ApplyStatChanges(target, stat_changes))
-        playback.append(pb.StatHit(unit, item, target))
         self._hit_count += 1
+        playback.append(pb.StatHit(unit, item, target))
 
     def end_combat(self, playback, unit, item, target, mode):
         if self._hit_count > 0:
@@ -51,6 +46,7 @@ class PermanentStatChange(ItemComponent):
             klass = DB.classes.get(target.klass)
             # clamp stat changes
             stat_changes = {k: utils.clamp(v, -target.stats[k], klass.max_stats.get(k, 30) - target.stats[k]) for k, v in stat_changes.items()}
+            action.do(action.ApplyStatChanges(target, stat_changes))
             if any(v != 0 for v in stat_changes.values()):
                 game.memory['stat_changes'] = stat_changes
                 game.exp_instance.append((target, 0, None, 'stat_booster'))

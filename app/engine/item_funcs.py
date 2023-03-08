@@ -23,6 +23,11 @@ def is_ranged(unit, item) -> bool:
         return True
     return False
 
+def is_heal(unit, item) -> bool:
+    if item.heal or item.magic_heal:
+        return True
+    return False
+
 def available(unit, item) -> bool:
     return item_system.available(unit, item) and skill_system.available(unit, item)
 
@@ -206,13 +211,10 @@ def get_range(unit, item) -> set:
         if component.defines('minimum_range'):
             min_range = component.minimum_range(unit, item)
             break
-    if item._force_max_range is not None:
-        max_range = item._force_max_range
-    else:
-        for component in all_components:
-            if component.defines('maximum_range'):
-                max_range = component.maximum_range(unit, item)
-                break
+    for component in all_components:
+        if component.defines('maximum_range'):
+            max_range = component.maximum_range(unit, item)
+            break
 
     max_range = max(0, max_range)
     max_range += skill_system.modify_maximum_range(unit, item)

@@ -190,7 +190,7 @@ class MovementManager():
                             continue
 
                         mcost = self.get_mcost(unit, new_position)
-                        unit.movement_left -= mcost
+                        unit.consume_movement(mcost)
                     unit.position = new_position
                     # Handle camera following moving unit
                     # if not data.event:

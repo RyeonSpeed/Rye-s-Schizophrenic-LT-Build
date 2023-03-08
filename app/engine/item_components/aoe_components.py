@@ -234,3 +234,22 @@ class LineAOE(ItemComponent):
         splash = set(utils.raytrace(unit.position, position))
         splash.discard(unit.position)
         return splash
+
+class EnemyLineAOE(ItemComponent):
+    nid = 'enemy_line_aoe'
+    desc = "A line is drawn from the user to the target, affecting each enemy within it. Never extends past the target."
+    tag = ItemTags.AOE
+
+    def splash(self, unit, item, position) -> tuple:
+        splash = set(utils.raytrace(unit.position, position))
+        splash.discard(unit.position)
+        splash = [game.board.get_unit(s) for s in splash]
+        splash = [s.position for s in splash if s and skill_system.check_enemy(unit, s)]
+        return None, splash
+
+    def splash_positions(self, unit, item, position) -> set:
+        splash = set(utils.raytrace(unit.position, position))
+        splash.discard(unit.position)
+        # Doesn't highlight allies positions
+        splash = {pos for pos in splash if not game.board.get_unit(pos) or skill_system.check_enemy(unit, game.board.get_unit(pos))}
+        return splash

@@ -325,6 +325,8 @@ def increment_end_combat_supports(combatant, target=None) -> list:
     """
     if not game.game_vars.get('_supports'):
         return []
+    if not combatant.position:
+        return []
     inc = DB.support_constants.value('combat_points')
     pairs = []
     if inc:
@@ -339,6 +341,7 @@ def increment_end_combat_supports(combatant, target=None) -> list:
                 other_unit = game.get_unit(support_prefab.unit1)
             if not other_unit:
                 continue
+            assert other_unit.position is not None   
             if dist == 0 and target:
                 if target.position in target_system.get_attacks(other_unit, force=True):
                     action.do(action.IncrementSupportPoints(support_prefab.nid, inc))

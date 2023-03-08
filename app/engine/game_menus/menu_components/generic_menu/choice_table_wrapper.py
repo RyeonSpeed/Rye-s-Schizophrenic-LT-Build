@@ -59,7 +59,7 @@ class ChoiceMenuUI(SimpleMenuUI):
         else:
             self.table.set_arrow_mode(0)
 
-    def draw(self, surf, focus = 1): # focus allows us to stop updating the animated bits if we're not in focus
+    def draw(self, surf, focus=1): # focus allows us to stop updating the animated bits if we're not in focus
         self.base_component._should_redraw = True
         self.table.set_cursor_mode(focus)
         ui_surf = self.base_component.to_surf()

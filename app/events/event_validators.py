@@ -478,7 +478,7 @@ If the portrait is placed on the left side of the screen to start,
 it will be facing right, and vice versa.
 """
 
-    def validate(self, text, level):
+    def validate(self, text: str, level: Optional[NID]):
         if text in horizontal_screen_positions:
             return text
         elif text in vertical_screen_positions:
@@ -486,24 +486,28 @@ it will be facing right, and vice versa.
         elif str_utils.is_int(text):
             return text
         elif ',' in text and len(text.split(',')) == 2:
+            horiz_comp = False
+            vert_comp = False
             splittext = text.split(',')
-            if all(str_utils.is_int(t) for t in splittext):
-                return text
-            elif splittext[0] in horizontal_screen_positions and splittext[1] in vertical_screen_positions:
-                return text
-            elif splittext[0] in vertical_screen_positions and splittext[1] in horizontal_screen_positions:
-                return text
+            horiz_comp = splittext[0] in horizontal_screen_positions or str_utils.is_int(splittext[0])
+            vert_comp = splittext[0] in vertical_screen_positions
+            if horiz_comp and splittext[1] in horizontal_screen_positions:
+                return None
+            if vert_comp and splittext[1] in vertical_screen_positions:
+                return None
+            return text
         return None
 
     def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
         valids = [(None, option) for option in horizontal_screen_positions]
+        valids += [(None, option) for option in vertical_screen_positions]
         return valids
 
 class Slide(OptionValidator):
     valid = ["normal", "left", "right"]
 
 class Font(OptionValidator):
-    valid = FONT.keys()
+    valid = list(FONT.keys())
 
 class Direction(OptionValidator):
     valid = ["open", "close"]
@@ -1320,6 +1324,21 @@ class Sprite(Validator):
 
     def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
         valids = [(sprite_name, sprite_name) for sprite_name in SPRITES.keys()]
+        return valids
+
+class MaybeSprite(Validator):
+    desc = 'accepts the name of any sprite resource in the project, or None'
+
+    def validate(self, text: NID, level: NID):
+        if text in SPRITES.keys():
+            return text
+        if text == 'None':
+            return text
+        return None
+
+    def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
+        valids = [(sprite_name, sprite_name) for sprite_name in SPRITES.keys()]
+        valids += [(None, "None")]
         return valids
 
 validators: Dict[str, Type[Validator]]= {validator.__name__: validator for validator in Validator.__subclasses__()}

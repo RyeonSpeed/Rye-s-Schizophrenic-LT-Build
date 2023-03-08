@@ -4,12 +4,12 @@ import random
 
 from app import counters
 from app.utilities import utils
-from app.constants import COLORKEY
+from app.constants import PORTRAIT_WIDTH, PORTRAIT_HEIGHT, COLORKEY
 
 from app.engine import engine, image_mods
 
 class EventPortrait():
-    width, height = 128, 112
+    width, height = PORTRAIT_WIDTH, PORTRAIT_HEIGHT
     main_portrait_coords = (0, 0, 96, 80)
     chibi_coords = (width - 32, 16, 32, 32)
 

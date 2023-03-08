@@ -1,7 +1,6 @@
 from typing import List, Tuple
 from app.engine.graphics.text.text_renderer import render_text, text_width
 from app.engine.objects.unit import UnitObject
-from dataclasses import dataclass
 
 from app.constants import WINWIDTH, WINHEIGHT
 from app.utilities import utils
@@ -15,199 +14,12 @@ from app.engine.input_manager import get_input_manager
 from app.engine.state import State
 from app.engine import engine, background, menu_options, help_menu, gui, \
     icons, image_mods, item_funcs, equations, \
-    combat_calcs, menus, skill_system, text_funcs
+    combat_calcs, skill_system, text_funcs
+from app.engine.info_menu.info_graph import info_states, InfoGraph
 from app.engine.game_state import game
 from app.engine.fluid_scroll import FluidScroll
+from app.engine.graphics.ingame_ui.build_groove import build_groove
 from app.utilities.enums import Alignments
-
-def handle_info():
-    if game.cursor.get_hover():
-        get_sound_thread().play_sfx('Select 1')
-        game.memory['next_state'] = 'info_menu'
-        game.memory['current_unit'] = game.cursor.get_hover()
-        game.state.change('transition_to')
-    else:
-        get_sound_thread().play_sfx('Select 3')
-        game.boundary.toggle_all_enemy_attacks()
-
-def handle_aux():
-    avail_units = [
-        u for u in game.units
-        if u.team == 'player' and
-        u.position and
-        not u.finished and
-        skill_system.can_select(u) and
-        'Tile' not in u.tags]
-
-    if avail_units:
-        cur_unit = game.cursor.get_hover()
-        if not cur_unit or cur_unit not in avail_units:
-            cur_unit = game.memory.get('aux_unit')
-        if not cur_unit or cur_unit not in avail_units:
-            cur_unit = avail_units[0]
-
-        if cur_unit in avail_units:
-            idx = avail_units.index(cur_unit)
-            idx = (idx + 1) % len(avail_units)
-            new_pos = avail_units[idx].position
-            game.memory['aux_unit'] = cur_unit
-            get_sound_thread().play_sfx('Select 4')
-            game.cursor.set_pos(new_pos)
-
-@dataclass
-class BoundingBox():
-    idx: int = 0
-    aabb: tuple = None
-    help_box: help_menu.HelpDialog = None
-    state: str = None
-    first: bool = False
-
-info_states = ('personal_data', 'equipment', 'support_skills', 'notes')
-
-class InfoGraph():
-    draw_all_bbs = False
-
-    def __init__(self):
-        self.registry = {state: [] for state in info_states}
-        self.registry.update({'growths': []})
-        self.current_bb = None
-        self.last_bb = None
-        self.current_state = None
-        self.cursor = menus.Cursor()
-        self.first_bb = None
-
-    def clear(self):
-        self.registry = {state: [] for state in info_states}
-        self.registry.update({'growths': []})
-        self.current_bb = None
-        self.last_bb = None
-        self.first_bb = None
-
-    def set_current_state(self, state):
-        self.current_state = state
-
-    def register(self, aabb, help_box, state, first=False):
-        if isinstance(help_box, str):
-            help_box = help_menu.HelpDialog(help_box)
-
-        if state == 'all':
-            for s in self.registry:
-                idx = len(self.registry[s])
-                self.registry[s].append(BoundingBox(idx, aabb, help_box, s, first))
-        else:
-            idx = len(self.registry[state])
-            self.registry[state].append(BoundingBox(idx, aabb, help_box, state, first))
-
-    def set_transition_in(self):
-        if self.last_bb and self.last_bb.state == self.current_state:
-            self.current_bb = self.last_bb
-            self.current_bb.help_box.set_transition_in()
-        elif self.registry:
-            for bb in self.registry[self.current_state]:
-                if bb.first:
-                    self.current_bb = bb
-                    self.current_bb.help_box.set_transition_in()
-                    break
-            else:
-                # For now, just use first help dialog
-                self.current_bb = self.registry[self.current_state][0]
-                self.current_bb.help_box.set_transition_in()
-
-    def set_transition_out(self):
-        if self.current_bb:
-            self.current_bb.help_box.set_transition_out()
-        self.last_bb = self.current_bb
-        self.current_bb = None
-
-    def _move(self, boxes, horiz=False):
-        if not boxes:
-            return
-        if self.current_bb:
-            center_point = (self.current_bb.aabb[0] + self.current_bb.aabb[2]/2,
-                            self.current_bb.aabb[1] + self.current_bb.aabb[3]/2)
-            closest_box = None
-            max_distance = 1e6
-            # First try to find a close box by moving in the right direction
-            horiz_penalty, vert_penalty = 1, 1
-            if horiz:
-                vert_penalty = 10
-            else:
-                horiz_penalty = 10
-            for bb in boxes:
-                curr_topleft = self.current_bb.aabb[:2]
-                other_topleft = bb.aabb[:2]
-                distance = horiz_penalty * (curr_topleft[0] - other_topleft[0])**2 + vert_penalty * (curr_topleft[1] - other_topleft[1])**2
-                if distance < max_distance:
-                    max_distance = distance
-                    closest_box = bb
-            # Find the closest box from boxes by comparing center points
-            if not closest_box:
-                for bb in boxes:
-                    bb_center = (bb.aabb[0] + bb.aabb[2]/2, bb.aabb[1] + bb.aabb[3]/2)
-                    distance = (center_point[0] - bb_center[0])**2 + (center_point[1] - bb_center[1])**2
-                    if distance < max_distance:
-                        max_distance = distance
-                        closest_box = bb
-            self.current_bb = closest_box
-
-    def move_left(self):
-        boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[0] < self.current_bb.aabb[0]]
-        self._move(boxes, horiz=True)
-
-    def move_right(self):
-        boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[0] > self.current_bb.aabb[0]]
-        self._move(boxes, horiz=True)
-
-    def move_up(self):
-        boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[1] < self.current_bb.aabb[1]]
-        self._move(boxes)
-
-    def move_down(self):
-        boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[1] > self.current_bb.aabb[1]]
-        self._move(boxes)
-
-    def handle_mouse(self, mouse_position):
-        x, y = mouse_position
-        for bb in self.registry[self.current_state]:
-            if bb.aabb[0] <= x < bb.aabb[0] + bb.aabb[2] and \
-                    bb.aabb[1] <= y < bb.aabb[1] + bb.aabb[3]:
-                self.current_bb = bb
-
-    def draw(self, surf):
-        if self.draw_all_bbs:
-            for bb in self.registry[self.current_state]:
-                s = engine.create_surface((bb.aabb[2], bb.aabb[3]), transparent=True)
-                engine.fill(s, (10 * bb.idx, 10 * bb.idx, 0, 128))
-                surf.blit(s, (bb.aabb[0], bb.aabb[1]))
-        if self.current_bb:
-            # right = self.current_bb.aabb[0] >= int(0.75 * WINWIDTH)
-            right = False
-            pos = (max(0, self.current_bb.aabb[0] - 32), self.current_bb.aabb[1] + 13)
-
-            cursor_pos = (max(0, self.current_bb.aabb[0] - 4), self.current_bb.aabb[1])
-            self.cursor.update()
-            self.cursor.draw(surf, *cursor_pos)
-
-            self.current_bb.help_box.draw(surf, pos, right)
-
-def build_groove(surf, topleft, width, fill):
-    bg = SPRITES.get('groove_back')
-    start = engine.subsurface(bg, (0, 0, 2, 5))
-    mid = engine.subsurface(bg, (2, 0, 1, 5))
-    end = engine.subsurface(bg, (3, 0, 2, 5))
-    fg = SPRITES.get('groove_fill')
-
-    # Build back groove
-    surf.blit(start, topleft)
-    for idx in range(width - 2):
-        mid_pos = (topleft[0] + 2 + idx, topleft[1])
-        surf.blit(mid, mid_pos)
-    surf.blit(end, (topleft[0] + width, topleft[1]))
-
-    # Build fill groove
-    number_needed = int(fill * (width - 1))  # Width of groove minus section for start and end
-    for groove in range(number_needed):
-        surf.blit(fg, (topleft[0] + 1 + groove, topleft[1] + 1))
 
 class InfoMenuState(State):
     name = 'info_menu'
@@ -244,8 +56,7 @@ class InfoMenuState(State):
 
         self.fluid = FluidScroll(200, 1)
 
-        self.left_arrow = gui.ScrollArrow('left', (103, 3))
-        self.right_arrow = gui.ScrollArrow('right', (217, 3), 0.5)
+        self.build_arrows()
 
         self.logo = None
         self.switch_logo(self.state)
@@ -282,6 +93,10 @@ class InfoMenuState(State):
         self.learned_skill_surf: engine.Surface = None
         self.fatigue_surf: engine.Surface = None
         self.notes_surf: engine.Surface = None
+
+    def build_arrows(self):
+        self.left_arrow = gui.ScrollArrow('left', (103, 3))
+        self.right_arrow = gui.ScrollArrow('right', (217, 3), 0.5)
 
     def switch_logo(self, name):
         if name == 'personal_data':
@@ -378,6 +193,7 @@ class InfoMenuState(State):
                 self.move_up()
 
     def move_left(self):
+        if len(info_states) > 1:
         get_sound_thread().play_sfx('Status_Page_Change')
         index = info_states.index(self.state)
         new_index = (index - 1) % len(info_states)
@@ -390,6 +206,7 @@ class InfoMenuState(State):
         self.switch_logo(self.next_state)
 
     def move_right(self):
+        if len(info_states) > 1:
         get_sound_thread().play_sfx('Status_Page_Change')
         index = info_states.index(self.state)
         new_index = (index + 1) % len(info_states)
@@ -497,34 +314,20 @@ class InfoMenuState(State):
             self.transition_counter += 1
             # Transition in
             if self.next_state == self.state:
-                if self.transition_counter == 1:
-                    self.scroll_offset_x = 104 if self.transition == 'RIGHT' else -104
-                elif self.transition_counter == 2:
-                    self.scroll_offset_x = 72 if self.transition == 'RIGHT' else -72
-                elif self.transition_counter == 3:
-                    self.scroll_offset_x = 56 if self.transition == 'RIGHT' else -56
-                elif self.transition_counter == 4:
-                    self.scroll_offset_x = 40 if self.transition == 'RIGHT' else -40
-                elif self.transition_counter == 5:
-                    self.scroll_offset_x = 24 if self.transition == 'RIGHT' else -24
-                elif self.transition_counter == 6:
-                    self.scroll_offset_x = 8 if self.transition == 'RIGHT' else -8
+                idxs = (104, 72, 56, 40, 24, 8)
+                counter = self.transition_counter - 1
+                if 0 <= counter < len(idxs):
+                    self.scroll_offset_x = idxs[counter] if self.transition == 'RIGHT' else -idxs[counter]
                 else:
                     self.transition = None
                     self.scroll_offset_x = 0
                     self.next_state = None
                     self.transition_counter = 0
             else:
-                if self.transition_counter == 1:
-                    self.scroll_offset_x = -32 if self.transition == 'RIGHT' else 32
-                elif self.transition_counter == 2:
-                    self.scroll_offset_x = -56 if self.transition == 'RIGHT' else 56
-                elif self.transition_counter == 3:
-                    self.scroll_offset_x = -80 if self.transition == 'RIGHT' else 80
-                elif self.transition_counter == 4:
-                    self.scroll_offset_x = -96 if self.transition == 'RIGHT' else 96
-                elif self.transition_counter == 5:
-                    self.scroll_offset_x = -112 if self.transition == 'RIGHT' else 112
+                idxs = (-32, -56, -80, -96, -112)
+                counter = self.transition_counter - 1
+                if 0 <= counter < len(idxs):
+                    self.scroll_offset_x = idxs[counter] if self.transition == 'RIGHT' else -idxs[counter]
                 else:
                     self.scroll_offset_x = -140 if self.transition == 'RIGHT' else 140
                     self.state = self.next_state
@@ -968,7 +771,7 @@ class InfoMenuState(State):
         skills = [skill for skill in self.unit.skills if not (skill.class_skill or skill.learned_skill or skill_system.hidden(skill, self.unit))]
         # stacked skills appear multiple times, but should be drawn only once
         skill_counter = {}
-        unique_skills = list()
+        unique_skills = []
         for skill in skills:
             if skill.nid not in skill_counter:
                 skill_counter[skill.nid] = 1

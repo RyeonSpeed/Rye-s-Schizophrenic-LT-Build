@@ -2,8 +2,8 @@ import logging
 import math
 
 from app.data.database.database import DB
-from app.engine import (action, ai_controller, engine, equations, evaluate,
-                        info_menu, roam_ai, skill_system, target_system)
+from app.engine import (action, engine, evaluate,
+                        roam_ai, target_system)
 from app.engine.game_state import game
 from app.engine.input_manager import get_input_manager
 from app.engine.sound import get_sound_thread
@@ -195,6 +195,7 @@ class FreeRoamState(MapState):
             if did_trigger:
                 self.rationalize()
             else:
+
                 get_sound_thread().play_sfx('Error')
 
         elif event == 'START':
@@ -253,6 +254,8 @@ class FreeRoamState(MapState):
     def no_bumps(self, x: int, y: int) -> bool:
         '''Used to detect if the space is occupied by an impassable unit'''
         new_pos = (x, y)
+        if not game.movement.check_traversable(self.roam_unit, new_pos):
+            return False
         if game.board.get_unit(new_pos):
             other_team = game.board.get_team(new_pos)
             if not other_team or utils.compare_teams(self.roam_unit.team, other_team):

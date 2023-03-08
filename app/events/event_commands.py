@@ -463,8 +463,8 @@ NOTE: You can set the `__default` speak style, which will automatically apply to
 """
 
     keywords = ['Style']
-    optional_keywords = ['Speaker', 'TextPosition', 'Width', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
-    keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'Sprite', 'PositiveInteger', 'Bool', 'MessageTail', 'Float', 'Sprite']
+    optional_keywords = ['Speaker', 'Position', 'Width', 'Speed', 'FontColor', 'FontType', 'Background', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
+    keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'PositiveInteger', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_talk', 'no_sound']
 
 class Speak(EventCommand):
@@ -504,7 +504,7 @@ Extra flags:
 
     keywords = ['Speaker', 'Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
-    keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'Sprite', 'PositiveInteger', 'Bool', 'MessageTail', 'Float', 'Sprite']
+    keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'PositiveInteger', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound']
 
 class Unhold(EventCommand):
@@ -1204,6 +1204,7 @@ Please try to avoid using `increment_mode` with non-numerical fields. That would
 
 class Resurrect(EventCommand):
     nid = 'resurrect'
+    nickname = 'resurrect_unit'
     tag = Tags.ADD_REMOVE_INTERACT_WITH_UNITS
 
     desc = \
@@ -1215,6 +1216,7 @@ Brings a dead unit back to life. This does not place the unit on the map.
 
 class Reset(EventCommand):
     nid = 'reset'
+    nickname = 'reset_unit'
     tag = Tags.MODIFY_UNIT_PROPERTIES
 
     desc = \
@@ -1428,11 +1430,11 @@ Sets the uses of an *Item* to *Uses* in the inventory of *GlobalUnitOrConvoy*.
     keyword_types = ["GlobalUnitOrConvoy", "Item", "Integer"]
 
     _flags = ["additive"]
-    
+
 class BreakItem(EventCommand):
     nid = 'break_item'
     tag = Tags.MODIFY_ITEM_PROPERTIES
-    
+
     desc = \
         """
 Breaks *Item* in inventory of *GlobalUnitOrConvoy*, setting uses to 0.
@@ -1440,7 +1442,7 @@ Will behave as if the item had been broken in combat,
 including notifying the player.
 If the *no_banner* flag is set, there will not be a banner announcing that the item has been broken.
         """
-        
+
     keywords = ["GlobalUnitOrConvoy", "Item"]
     _flags = ['no_banner']
 
@@ -2884,7 +2886,7 @@ def restore_command(dat) -> EventCommand:
 evaluables = ('Expression', 'String', 'StringList', 'PointList', 'DashList', 'Nid')
 
 def get_command_arguments(text: str) -> List[str]:
-    # Replacement for text.split(';') 
+    # Replacement for text.split(';')
     # that ignores any semicolons
     # found within '{}' brackets
     arguments = []

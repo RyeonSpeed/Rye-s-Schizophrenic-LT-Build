@@ -37,7 +37,10 @@ import logging
 def populate_anim_pixmaps(combat_anim, force=False):
     for weapon_anim in combat_anim.weapon_anims:
         if not weapon_anim.pixmap or force:
-            weapon_anim.pixmap = QPixmap(weapon_anim.full_path)
+            if weapon_anim.full_path and os.path.exists(weapon_anim.full_path):
+                weapon_anim.pixmap = QPixmap(weapon_anim.full_path)
+            else:
+                continue
         for frame in weapon_anim.frames:
             if not frame.pixmap or force:
                 x, y, width, height = frame.rect

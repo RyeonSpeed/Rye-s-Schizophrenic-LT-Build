@@ -86,6 +86,9 @@ def is_float(s: str) -> bool:
 def camel_case(s: str) -> str:
     return functools.reduce(lambda a, b: a + ((b.upper() == b and (a and a[-1].upper() != a[-1])) and (' ' + b) or b), s, '')
 
+def ignore_numbers(s: str) -> str:
+    return ''.join([c for c in s if not c.isdigit()])
+
 def camel_to_snake(name: str) -> str:
     """
     https://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
@@ -141,7 +144,7 @@ def matched_expr(s: str, opener: str, closer: str):
     return all_strs
 
 def matched_block_expr(s: str, opener: str, closer: str):
-    # returns all strings bounded by balanced openers, closers 
+    # returns all strings bounded by balanced openers, closers
     # inclduding content not found within the openers and closers
     # e.g. "Hi{bac{def}jk}Waffle{lmno}" would return "[Hi, {bac{def}jk}, Waffle, {lmno}]""
     assert opener != closer

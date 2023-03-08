@@ -255,6 +255,7 @@ def update_weapon_anim_full_image(weapon_anim):
         painter.drawPixmap(x, y, frame.pixmap)
     painter.end()
     weapon_anim.pixmap = new_pixmap
+    weapon_anim.full_path = None  # So we can save our changes
 
 def convert_gba(pixmap: QPixmap) -> QPixmap:
     im = pixmap.toImage()

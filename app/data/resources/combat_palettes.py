@@ -66,7 +66,7 @@ class PaletteCatalog(ManifestCatalog[Palette]):
                 if not fname.endswith('.json'):
                     continue
                 save_loc = os.path.join(multi_loc, fname)
-                logging.info("Deserializing %s from %s" % ('palette data', save_loc))
+                # logging.info("Deserializing %s from %s" % ('palette data', save_loc))
                 with open(save_loc) as load_file:
                     for data in json.load(load_file):
                         save_data.append(data)

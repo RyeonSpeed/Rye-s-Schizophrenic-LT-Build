@@ -150,10 +150,10 @@ class EventCommandUnitTests(unittest.TestCase):
         self.assertEqual(parameters, command_parameters)
         self.assertEqual(flags, {"no_warn"})
         # Test with existing command and see if it runs convert using validators
-        command_parameters = {"Speaker": "Seth", "TextSpeed": "5.5"}
+        command_parameters = {"Speaker": "Seth", "Speed": "5.5"}
         command2 = event_commands.SpeakStyle(command_parameters)
         parameters, flags = event_commands.convert_parse(command2)
-        self.assertEqual(parameters, {"Speaker": "Seth", "TextSpeed": 5.5})
+        self.assertEqual(parameters, {"Speaker": "Seth", "Speed": 5.5})
         self.assertTrue(len(flags) == 0)
         # Test with flags and exising function
         command3, _ = event_commands.parse_text_to_command("give_item;Eirika;Rapier;FLAG(no_banner)", strict=True)
@@ -212,7 +212,7 @@ class EventCommandUnitTests(unittest.TestCase):
         self.assertEqual(command.get_index_from_keyword("Portrait"), 2)
 
     def test_check_event_signatures(self):
-        from app.utilities import str_utils    
+        from app.utilities import str_utils
 
         commands = event_commands.get_commands()
         for command in commands:

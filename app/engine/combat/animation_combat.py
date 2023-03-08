@@ -316,13 +316,19 @@ class AnimationCombat(BaseCombat, MockCombat):
                 self.state = 'pre_proc'
 
         elif self.state == 'pre_proc':
-            if self.left_battle_anim.done() and self.right_battle_anim.done():
+            if self.left_battle_anim.done() and self.right_battle_anim.done() and \
+                    not self.proc_icons:
                 # These would have happened from pre_combat and start_combat
                 if self.get_from_full_playback('attack_pre_proc'):
                     self.set_up_pre_proc_animation('attack_pre_proc')
                 elif self.get_from_full_playback('defense_pre_proc'):
                     self.set_up_pre_proc_animation('defense_pre_proc')
+                elif self.set_up_other_proc_icons(self.attacker):
+                    pass  # Processing is done in the if check above
+                elif self.set_up_other_proc_icons(self.defender):
+                    pass  # Processing is done in the if check above
                 else:
+                    self.set_up_other_proc_icons.memory.clear()
                     self.state = 'begin_phase'
 
         elif self.state == 'begin_phase':
@@ -423,13 +429,21 @@ class AnimationCombat(BaseCombat, MockCombat):
             # Get new battle anims
             if not self._skip:
                 if not self.left.is_dying:
-                    self.left_battle_anim = battle_animation.get_battle_anim(self.left, self.left_item, self.distance, allow_revert=True)
+                    new_left_battle_anim = battle_animation.get_battle_anim(self.left, self.left_item, self.distance, allow_revert=True)
+                    if new_left_battle_anim:  # Need to check that the new animation actually exists
+                        self.left_battle_anim = new_left_battle_anim
                 if not self.right.is_dying:
-                    self.right_battle_anim = battle_animation.get_battle_anim(self.right, self.right_item, self.distance, allow_revert=True)
+                    new_right_battle_anim = battle_animation.get_battle_anim(self.right, self.right_item, self.distance, allow_revert=True)
+                    if new_right_battle_anim:
+                        self.right_battle_anim = new_right_battle_anim
                 if self.lp_battle_anim:
-                    self.lp_battle_anim = battle_animation.get_battle_anim(self.left_partner, self.left_partner.get_weapon(), self.distance, allow_revert=True)
+                    new_lp_battle_anim = battle_animation.get_battle_anim(self.left_partner, self.left_partner.get_weapon(), self.distance, allow_revert=True)
+                    if new_lp_battle_anim:
+                        self.lp_battle_anim = new_lp_battle_anim
                 if self.rp_battle_anim:
-                    self.rp_battle_anim = battle_animation.get_battle_anim(self.right_partner, self.right_partner.get_weapon(), self.distance, allow_revert=True)
+                    new_rp_battle_anim = battle_animation.get_battle_anim(self.right_partner, self.right_partner.get_weapon(), self.distance, allow_revert=True)
+                    if new_rp_battle_anim:
+                        self.rp_battle_anim = new_rp_battle_anim
                 # re-pair
                 self.pair_battle_animations(0)
                 if self.left_battle_anim.is_transform():
@@ -781,6 +795,19 @@ class AnimationCombat(BaseCombat, MockCombat):
         self.playback.remove(mark)
         self.mark_proc(mark)
 
+    def set_up_other_proc_icons(self, unit) -> bool:
+        for skill in unit.skills:
+            if skill.nid in self.set_up_other_proc_icons.memory.get(unit.nid, []):
+                continue
+            if skill_system.get_show_skill_icon(unit, skill):
+                self.add_proc_icon(unit, skill)
+                if unit.nid not in self.set_up_other_proc_icons.memory:
+                    self.set_up_other_proc_icons.memory[unit.nid] = []
+                self.set_up_other_proc_icons.memory[unit.nid].append(skill.nid)
+                return True
+        return False
+    set_up_other_proc_icons.memory = {}  # Static memory (key: unit.nid, value: List[skill.nid])
+
     def mark_proc(self, mark):
         skill = mark.skill
         unit = mark.unit
@@ -793,7 +820,20 @@ class AnimationCombat(BaseCombat, MockCombat):
             if effect:
                 self.left_battle_anim.add_effect(effect)
 
-        self.add_proc_icon(mark)
+        self.add_proc_icon(unit, skill)
+
+    def add_proc_icon(self, unit, skill):
+        if skill_system.get_hide_skill_icon(unit, skill):
+            return
+
+        c = False
+        if (unit is self.right or unit is self.right.strike_partner) and self.rp_battle_anim:
+            c = True
+        elif (unit is self.left or unit is self.left.strike_partner) and self.lp_battle_anim:
+            c = True
+        new_icon = gui.SkillIcon(skill, unit is self.right, center=c)
+        self.proc_icons.append(new_icon)
+
         if unit == self.right:
             self.focus_right = True
         else:
@@ -855,17 +895,6 @@ class AnimationCombat(BaseCombat, MockCombat):
             for idx, num in enumerate(str_damage):
                 d = gui.DamageNumber(int(num), idx, len(str_damage), left, 'cyan')
                 self.damage_numbers.append(d)
-
-    def add_proc_icon(self, mark):
-        unit = mark.unit
-        skill = mark.skill
-        c = False
-        if (unit is self.right or unit is self.right.strike_partner) and self.rp_battle_anim:
-            c = True
-        elif (unit is self.left or unit is self.left.strike_partner) and self.lp_battle_anim:
-            c = True
-        new_icon = gui.SkillIcon(skill, unit is self.right, center=c)
-        self.proc_icons.append(new_icon)
 
     def get_damage(self) -> int:
         damage_hit_marks = self.get_from_playback('damage_hit')

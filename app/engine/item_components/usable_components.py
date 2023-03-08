@@ -233,10 +233,12 @@ class EvalManaCost(ItemComponent):
 
     expose = ComponentType.String
 
+    value = ""
+
     def _check_value(self, unit, item) -> int:
         from app.engine import evaluate
         try:
-            return int(evaluate.evaluate(self.value, unit, item=item))
+            return int(evaluate.evaluate(self.value, unit, local_args={'item': item}))
         except:
             print("Couldn't evaluate %s conditional" % self.value)
         return 0

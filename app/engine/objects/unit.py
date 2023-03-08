@@ -57,7 +57,7 @@ class UnitObject(Prefab):
     current_hp: int = 0
     current_mana: int = 0
     current_fatigue: int = 0
-    movement_left: int = 0
+    _movement_left: int = 0
     current_guard_gauge: int = 0
 
     traveler: NID = None
@@ -207,7 +207,7 @@ class UnitObject(Prefab):
         self.current_hp = self.get_max_hp()
         self.current_mana = self.get_max_mana()
         self.current_fatigue = 0
-        self.movement_left = equations.parser.movement(self)
+        self._movement_left = equations.parser.movement(self)
         self.current_guard_gauge = 0
 
         # Handle items
@@ -436,6 +436,20 @@ class UnitObject(Prefab):
     @property
     def nonaccessories(self):
         return [item for item in self.items if not item_system.is_accessory(self, item)]
+
+    @property
+    def movement_left(self):
+        if not self.has_moved:
+            return equations.parser.movement(self)
+        else:
+            return self._movement_left
+
+    @movement_left.setter
+    def movement_left(self, val):
+        self._movement_left = val
+
+    def consume_movement(self, val):
+        self._movement_left -= val
 
     def calculate_needed_wexp_from_items(self):
         for item in item_funcs.get_all_items(self):
@@ -731,7 +745,7 @@ class UnitObject(Prefab):
         self.current_hp = s_dict['current_hp']
         self.current_mana = s_dict['current_mana']
         self.current_fatigue = s_dict['current_fatigue']
-        self.movement_left = equations.parser.movement(self)
+        self._movement_left = equations.parser.movement(self)
         self.current_guard_gauge = s_dict.get('current_guard_gauge', 0)
 
         self.traveler = s_dict['traveler']

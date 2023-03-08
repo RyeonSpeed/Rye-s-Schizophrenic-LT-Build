@@ -308,15 +308,15 @@ def find_hp(actions, target):
             starting_hp += subaction.num
     return starting_hp
 
-def after_hit(actions, playback, unit, item, target, mode, attack_info):
+def after_strike(actions, playback, unit, item, target, mode, attack_info, strike):
     all_components = get_all_components(unit, item)
     for component in all_components:
-        if component.defines('after_hit'):
-            component.after_hit(actions, playback, unit, item, target, mode, attack_info)
+        if component.defines('after_strike'):
+            component.after_strike(actions, playback, unit, item, target, mode, attack_info, strike)
     if item.parent_item:
         for component in item.parent_item.components:
-            if component.defines('after_hit'):
-                component.after_hit(actions, playback, unit, item.parent_item, target, mode, attack_info)
+            if component.defines('after_strike'):
+                component.after_strike(actions, playback, unit, item.parent_item, target, mode, attack_info, strike)
 
 def on_hit(actions, playback, unit, item, target, target_pos, mode, attack_info, first_item):
     all_components = get_all_components(unit, item)

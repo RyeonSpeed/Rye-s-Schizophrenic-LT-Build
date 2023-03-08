@@ -448,7 +448,7 @@ class Choice(Simple):
         if self.horizontal:
             self.cursor.y_offset = 0
         if did_move and self.show_face():
-            self._bg_surf = None  # Unstore bg
+            self.update_bg()  # Unstore bg
         return did_move
 
     def move_up(self, first_push=True):
@@ -473,7 +473,7 @@ class Choice(Simple):
         if self.horizontal:
             self.cursor.y_offset = 0
         if did_move and self.show_face():
-            self._bg_surf = None  # Unstore bg
+            self.update_bg()  # Unstore bg
         return did_move
 
     def get_menu_width(self):
@@ -490,6 +490,9 @@ class Choice(Simple):
 
     def show_face(self):
         return self.is_convoy or self.disp_value == 'sell'
+
+    def update_bg(self):
+        self._bg_surf = None
 
     def create_bg_surf(self):
         # Handle clear background
@@ -1663,6 +1666,7 @@ class Market(Convoy):
         for name, menu in self.menus.items():
             if self.show_stock:
                 menu.stock = [game.market_items[item.nid] for item in sorted_dict[name]]
+            menu.update_bg()
             menu.update_options(sorted_dict[name])
 
     def get_stock(self):

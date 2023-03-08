@@ -678,6 +678,9 @@ class UIView():
             hit = combat_calcs.compute_hit(attacker, defender, spell, defender.get_weapon(), 'attack', (0, 0))
             if hit is not None:
                 height += 1
+            crit = combat_calcs.compute_crit(attacker, defender, spell, defender.get_weapon(), 'attack', (0, 0))
+            if DB.constants.value('crit') and crit is not None:
+                height += 1
 
             bg_surf = SPRITES.get('spell_window' + str(height))
             bg_surf = image_mods.make_translucent(bg_surf, .1)
@@ -717,7 +720,6 @@ class UIView():
                     position = width - 5 - hit_width, running_height
                     FONT['text-blue'].blit(str(hit), bg_surf, position)
 
-            crit = combat_calcs.compute_crit(attacker, defender, spell, defender.get_weapon(), 'attack', (0, 0))
             if DB.constants.value('crit') and crit is not None:
                 running_height += 16
                 FONT['text-yellow'].blit('Crit', bg_surf, (9, running_height))

@@ -25,8 +25,12 @@ from app.utilities import str_utils
 # Game interface
 import app.editor.game_actions.game_actions as GAME_ACTIONS
 
-def populate_effect_pixmaps(effect_anim):
-    effect_anim.pixmap = QPixmap(effect_anim.full_path)
+def populate_effect_pixmaps(effect_anim, force=False):
+    if not effect_anim.pixmap or force:
+        if effect_anim.full_path and os.path.exists(effect_anim.full_path):
+            effect_anim.pixmap = QPixmap(effect_anim.full_path)
+        else:
+            return
     for frame in effect_anim.frames:
         x, y, width, height = frame.rect
         frame.pixmap = effect_anim.pixmap.copy(x, y, width, height)

@@ -14,6 +14,7 @@ from app.engine.graphics.text.text_renderer import (MATCH_CAPTURE_TAG_RE,
                                                     text_width)
 from app.engine.sound import get_sound_thread
 from app.engine.sprites import SPRITES
+from app.events.speak_style import SpeakStyle
 from app.utilities import utils
 from app.utilities.enums import Alignments
 
@@ -83,7 +84,7 @@ class Dialog():
 
         # Position
         if position:
-            if position in Alignments:
+            if isinstance(position, Alignments):
                 pos_x, pos_y = calc_align((self.width, self.height), position)
             else:
                 pos_x = position[0]
@@ -107,8 +108,10 @@ class Dialog():
 
         if background and background not in ('None', 'clear'):
             self.background = self.make_background(background)
-            if message_tail and message_tail != 'None':
-                self.tail = SPRITES.get(message_tail)
+        else:
+            self.background = engine.create_surface((self.width, self.height), True)
+        if message_tail and message_tail != 'None':
+            self.tail = SPRITES.get(message_tail)
 
         self.name_tag_surf = create_base_surf(64, 16, name_tag_bg)
 
@@ -134,12 +137,11 @@ class Dialog():
             self.last_update = engine.get_time() - 10000
 
     @classmethod
-    def from_style(cls, style, text, portrait=None, width=None):
-        width = width if width is not None else style.width
-        self = cls(text, portrait=portrait, background=style.dialog_box, position=style.text_position, width=width,
-                   speaker=style.speaker, style_nid=style.nid, autosize=False, speed=style.text_speed, font_color=style.font_color,
-                   font_type=style.font_type, num_lines=style.num_lines, draw_cursor=style.draw_cursor, message_tail=style.message_tail,
-                   transparency=style.transparency, name_tag_bg=style.name_tag_bg, flags=style.flags)
+    def from_style(cls, style: SpeakStyle, text, portrait=None, width=None):
+        style_as_dict = style.as_dict()
+        if width:
+            style_as_dict['width'] = width
+        self = cls(text, portrait=portrait, autosize=False, **style_as_dict)
         return self
 
     def format_text(self, text):
@@ -454,15 +456,21 @@ class Dialog():
         surf.blit(text_surf, (self.position[0] + 8, self.position[1] + 8))
         return end_x_pos, end_y_pos
 
-    def draw_tail(self, surf, portrait):
-        portrait_pos = portrait.position[0] + portrait.get_width()//2
-        mirror = portrait_pos < WINWIDTH//2
-        if mirror:
+    def draw_tail(self, surf, portrait: event_portrait.EventPortrait):
+        portrait_x = portrait.position[0] + portrait.get_width()//2
+        portrait_y = portrait.position[1] + portrait.get_height()//2
+        mirror_x = portrait_x < WINWIDTH//2
+        mirror_y = self.position[1] > portrait_y
+        if mirror_x:
             tail_surf = engine.flip_horiz(self.tail)
         else:
             tail_surf = self.tail
-        y_pos = self.position[1] + self.background.get_height() - 2
-        x_pos = portrait_pos + 20 if mirror else portrait_pos - 36
+        if mirror_y:
+            tail_surf = engine.flip_vert(tail_surf)
+            y_pos = self.position[1] - tail_surf.get_height() + 2
+        else:
+            y_pos = self.position[1] + self.background.get_height() - 2
+        x_pos = portrait_x + 20 if mirror_x else portrait_x - 36
         # If we wouldn't actually be on the dialog box
         if x_pos > self.background.get_width() + self.position[0] - 24:
             x_pos = self.position[0] + self.background.get_width() - 24
@@ -500,7 +508,7 @@ class Dialog():
 
         if self.state != 'transition_in':
             # Draw message tail
-            if self.portrait and self.background and self.tail:
+            if self.portrait and self.tail:
                 self.draw_tail(surf, self.portrait)
             # Draw nametag
             if not self.portrait and self.speaker and self.speaker != 'Narrator':
@@ -518,7 +526,7 @@ class Dialog():
 class DynamicDialogWrapper():
     def __init__(self, text_func: Callable[[], str], portrait=None, background=None, position=None, width=None,
                  speaker=None, style_nid=None, autosize=False, speed: float=1.0, font_color='black',
-                 font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail', transparency: float=0.05, 
+                 font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail', transparency: float=0.05,
                  name_tag_bg='name_tag', flags=None) -> None:
         # eval trick
         self.resolve_text_func: Callable[[], str] = text_func
@@ -551,7 +559,7 @@ class DynamicDialogWrapper():
             self.dialog = Dialog(self.resolved_text, self.portrait, self.background,
                                  self.position, self.width, self.speaker, self.style_nid,
                                  self.autosize, self.speed, self.font_color, self.font_type,
-                                 self.num_lines, self.draw_cursor, self.message_tail, self.transparency, 
+                                 self.num_lines, self.draw_cursor, self.message_tail, self.transparency,
                                  self.name_tag_bg, self.flags)
             self.dialog.last_update = engine.get_time() - 10000
         return self.dialog.update()

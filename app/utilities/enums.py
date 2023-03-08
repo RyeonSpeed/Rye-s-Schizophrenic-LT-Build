@@ -15,3 +15,8 @@ class Alignments(Enum):
 class Orientation(Enum):
     HORIZONTAL = 'horizontal'
     VERTICAL = 'vertical'
+
+class Strike(Enum):
+    HIT = 'hit'
+    MISS = 'miss'
+    CRIT = 'crit'

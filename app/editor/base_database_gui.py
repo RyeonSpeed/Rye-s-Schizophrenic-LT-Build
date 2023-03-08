@@ -375,7 +375,7 @@ class ResourceCollectionModel(DragDropCollectionModel):
     def setData(self, index, value, role):
         if not index.isValid():
             return False
-        if role == Qt.EditRole and not self.drop_to:
+        if role == Qt.EditRole and self.drop_to is None:
             if value:
                 item = self._data[index.row()]
                 old_nid = item.nid

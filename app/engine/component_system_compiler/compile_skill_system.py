@@ -7,7 +7,9 @@ default_behaviours = (
     'pass_through', 'vantage', 'desperation', 'ignore_terrain', 'crit_anyway',
     'ignore_region_status', 'no_double', 'def_double', 'alternate_splash',
     'ignore_rescue_penalty', 'ignore_forced_movement', 'distant_counter',
-    'ignore_fatigue', 'no_attack_after_move', 'has_dynamic_range', 'disvantage', 'close_counter', 'attack_stance_double')
+    'ignore_fatigue', 'no_attack_after_move', 'has_dynamic_range', 'disvantage',
+    'close_counter', 'attack_stance_double', 'show_skill_icon', 'hide_skill_icon',
+    'ignore_dying_in_combat')
 # Takes in unit, returns default value
 exclusive_behaviours = ('can_select', 'no_trade', 'movement_type', 'sight_range', 'empower_splash', 'num_items_offset', 'num_accessories_offset', 'change_variant', 'change_animation', 'change_ai', 'change_roam_ai', 'witch_warp')
 
@@ -33,8 +35,10 @@ simple_event_hooks = ('on_death',)
 # Takes in playback, unit, item, target, mode
 combat_event_hooks = ('start_combat', 'cleanup_combat', 'end_combat', 'pre_combat', 'post_combat', 'test_on', 'test_off')
 aesthetic_combat_hooks = ('battle_music', )
+# Takes in actions, playback, unit, item, target, mode, attack_info, strike
+after_strike_event_hooks = ('after_strike', 'after_take_strike')
 # Takes in actions, playback, unit, item, target, mode, attack_info
-subcombat_event_hooks = ('after_hit', 'after_take_hit', 'after_take_miss', 'start_sub_combat', 'end_sub_combat')
+subcombat_event_hooks = ('start_sub_combat', 'end_sub_combat')
 # Takes in unit, item
 item_event_hooks = ('on_add_item', 'on_remove_item', 'on_equip_item', 'on_unequip_item')
 
@@ -181,6 +185,18 @@ def %s(playback, unit, item, target, mode):
             if component.defines('%s'):
                 if component.ignore_conditional or condition(skill, unit):
                     return component.%s(playback, unit, item, target, mode)""" \
+            % (hook, hook, hook)
+        compiled_skill_system.write(func)
+        compiled_skill_system.write('\n')
+
+    for hook in after_strike_event_hooks:
+        func = """
+def %s(actions, playback, unit, item, target, mode, attack_info, strike):
+    for skill in unit.skills[:]:
+        for component in skill.components:
+            if component.defines('%s'):
+                if component.ignore_conditional or condition(skill, unit, item):
+                    component.%s(actions, playback, unit, item, target, mode, attack_info, strike)""" \
             % (hook, hook, hook)
         compiled_skill_system.write(func)
         compiled_skill_system.write('\n')

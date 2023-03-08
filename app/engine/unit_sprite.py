@@ -614,6 +614,15 @@ class UnitSprite():
                 icon = SPRITES.get('boss_icon')
             elif 'Elite' in self.unit.tags:
                 icon = SPRITES.get('elite_icon')
+            elif 'Protect' in self.unit.tags:
+                if self.unit.team == 'other':
+                    icon = SPRITES.get('protect_green_icon')
+                elif self.unit.team == 'player':
+                    icon = SPRITES.get('protect_icon')
+                elif self.unit.team == 'enemy':
+                    icon = SPRITES.get('protect_red_icon')
+                elif self.unit.team == 'enemy2':
+                    icon = SPRITES.get('protect_purple_icon')
             if icon:
                 surf.blit(icon, (left - 8, top - 8))
 

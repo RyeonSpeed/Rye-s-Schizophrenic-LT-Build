@@ -529,7 +529,7 @@ class GameState():
             unit.sprite.change_state('normal')
             unit.reset()
 
-        for item in self.item_registry.values():
+        for item in list(self.item_registry.values()):
             unit = None
             if item.owner_nid:
                 unit = self.get_unit(item.owner_nid)
