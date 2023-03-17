@@ -75,6 +75,7 @@ class MapCombat(SimpleCombat):
                 self.set_up_pre_proc_animation('attack_pre_proc')
                 self.set_up_pre_proc_animation('defense_pre_proc')
                 self.set_up_other_proc_icons()
+                self.add_proc_icon.memory.clear()
                 self.first_phase = False
 
             # Camera
@@ -324,17 +325,6 @@ class MapCombat(SimpleCombat):
         for mark in marks:
             self.add_proc_icon(mark.unit, mark.skill)
 
-    def add_proc_icon(self, unit, skill):
-        if unit in self.health_bars:
-            # Check if we should be hiding this skill
-            if skill_system.get_hide_skill_icon(unit, skill):
-                return
-
-            health_bar = self.health_bars[unit]
-            right = health_bar.ordering == 'right' or health_bar.ordering == 'middle'
-            skill_icon = gui.SkillIcon(skill, right)
-            health_bar.add_skill_icon(skill_icon)
-
     def set_up_other_proc_icons(self):
         for skill in self.attacker.skills:
             if skill_system.get_show_skill_icon(self.attacker, skill):
@@ -343,6 +333,25 @@ class MapCombat(SimpleCombat):
             for skill in self.defender.skills:
                 if skill_system.get_show_skill_icon(self.defender, skill):
                     self.add_proc_icon(self.defender, skill)
+
+    def add_proc_icon(self, unit, skill):
+        if unit in self.health_bars:
+            # Check if we should be hiding this skill
+            if skill_system.get_hide_skill_icon(unit, skill):
+                return
+            if skill.nid in self.add_proc_icon.memory.get(unit.nid, []):
+                return
+
+            health_bar = self.health_bars[unit]
+            right = health_bar.ordering == 'right' or health_bar.ordering == 'middle'
+            skill_icon = gui.SkillIcon(skill, right)
+            health_bar.add_skill_icon(skill_icon)
+
+            # Make sure the same proc icon never shows up twice in the same phase
+            if unit.nid not in self.add_proc_icon.memory:
+                self.add_proc_icon.memory[unit.nid] = []
+            self.add_proc_icon.memory[unit.nid].append(skill.nid)
+    add_proc_icon.memory = {}
 
     def _end_phase(self):
         pass

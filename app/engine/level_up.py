@@ -49,12 +49,12 @@ class ExpState(State):
         self.max_mana = self.unit.get_max_mana()
         self.mana_to_gain = 0
         if game.mana_instance:
-            mana_instances_for_unit = [idx for idx, instance in enumerate(game.mana_instance) if instance[0].nid == self.unit.nid]
-            if mana_instances_for_unit:
-                mana_instance = game.mana_instance.pop(mana_instances_for_unit[-1])
-                self.mana_to_gain = mana_instance[1]
-                if self.mana_to_gain + self.old_mana > self.max_mana:
-                    self.mana_to_gain = self.max_mana - self.old_mana
+            mana_instances_for_unit = [instance for instance in game.mana_instance if instance[0].nid == self.unit.nid]
+            for instance in mana_instances_for_unit:
+                self.mana_to_gain += instance[1]
+                game.mana_instance.remove(instance)
+            if self.mana_to_gain + self.old_mana > self.max_mana:
+                self.mana_to_gain = self.max_mana - self.old_mana
         self.mana_bar = None
 
         self.state = SimpleStateMachine(self.starting_state)
@@ -68,12 +68,12 @@ class ExpState(State):
             max_exp = 100 * (self.unit_klass.max_level - self.old_level) - self.old_exp
             self.exp_gain = min(self.exp_gain, max_exp)
 
-        self.total_time_for_exp = utils.frames2ms(abs(self.exp_gain))  # 1 frame per exp
+        self.total_time_for_exp = max(1, utils.frames2ms(abs(self.exp_gain)))  # 1 frame per exp
 
         self.stat_changes = None
         self.new_wexp = None
 
-        if self.unit.level >= self.unit_klass.max_level and \
+        if self.unit.level >= self.unit_klass.max_level and not self.mana_to_gain and \
                 not self.auto_promote and self.starting_state not in ('promote', 'class_change', 'stat_booster'):
             # We're done here, since the unit is at max level and has no stats to gain
             game.state.back()

@@ -426,19 +426,21 @@ class SimpleCombat():
             if unit is not self.attacker:
                 total_mana += skill_system.mana(self.full_playback, self.attacker, self.main_item, unit)
         # This is being left open - if something effects mana gain it will be done here
-        if self.attacker.team == 'player':
-            game.mana_instance.append((self.attacker, total_mana))
-        else:
-            action.do(action.ChangeMana(self.attacker, total_mana))
+        if total_mana:
+            if self.attacker.team == 'player':
+                game.mana_instance.append((self.attacker, total_mana))
+            else:
+                action.do(action.ChangeMana(self.attacker, total_mana))
 
         # Defender mana
         if self.defender:
             # This is being left open - if something effects mana gain it will be done here
             mana_gain = skill_system.mana(self.full_playback, self.defender, self.def_item, self.attacker)
-            if self.defender.team == 'player':
-                game.mana_instance.append((self.defender, mana_gain))
-            else:
-                action.do(action.ChangeMana(self.defender, mana_gain))
+            if mana_gain:
+                if self.defender.team == 'player':
+                    game.mana_instance.append((self.defender, mana_gain))
+                else:
+                    action.do(action.ChangeMana(self.defender, mana_gain))
 
     def handle_exp(self, combat_object=None):
         # handle exp
@@ -449,7 +451,9 @@ class SimpleCombat():
             if DB.constants.value('pairup') and self.main_item:
                 self.handle_paired_exp(self.attacker, combat_object)
 
-            if (self.alerts and exp > 0) or exp + self.attacker.exp >= 100:
+            # Make sure to check if mana happened
+            if ((self.alerts and exp > 0) or exp + self.attacker.exp >= 100) or \
+                    any(mana_instance[0] == self.attacker for mana_instance in game.mana_instance):
                 game.exp_instance.append((self.attacker, exp, combat_object, 'init'))
                 game.state.change('exp')
                 game.ai.end_skip()
@@ -463,7 +467,8 @@ class SimpleCombat():
             if DB.constants.value('pairup') and self.def_item:
                 self.handle_paired_exp(self.defender, combat_object)
 
-            if (self.alerts and exp > 0) or exp + self.defender.exp >= 100:
+            if ((self.alerts and exp > 0) or exp + self.defender.exp >= 100) or \
+                    any(mana_instance[0] == self.defender for mana_instance in game.mana_instance):
                 game.exp_instance.append((self.defender, exp, combat_object, 'init'))
                 game.state.change('exp')
                 game.ai.end_skip()

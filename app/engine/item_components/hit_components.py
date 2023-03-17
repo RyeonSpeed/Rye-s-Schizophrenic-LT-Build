@@ -370,12 +370,14 @@ class DrawBackTargetRestrict(DrawBack, ItemComponent):
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
         defender = game.board.get_unit(def_pos)
-        positions = [result for result in self._check_draw_back(defender, unit, self.value)]
-        if defender and all(positions) and \
-                not skill_system.ignore_forced_movement(defender):
-            return True
+        if defender:
+            positions = [result for result in self._check_draw_back(defender, unit, self.value)]
+            if all(positions) and not skill_system.ignore_forced_movement(defender):
+                return True
         for s_pos in splash:
             s = game.board.get_unit(s_pos)
+            if not s:
+                continue
             splash_positions = [result for result in self._check_draw_back(s, unit, self.value)]
             if all(splash_positions) and not skill_system.ignore_forced_movement(s):
                 return True

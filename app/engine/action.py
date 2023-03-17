@@ -115,14 +115,14 @@ def recalculate_unit_sprite(func):
         self = args[0]
 
         old_sprite = self.unit.sprite
-        animations = list(old_sprite.animations.keys())
+        animations = list((k, v) for k, v in old_sprite.animations.items())
         self.unit.reset_sprite()
 
         func(*args, **kwargs)
 
         new_sprite = self.unit.sprite
-        for anim_nid in animations:
-            new_sprite.add_animation(anim_nid)
+        for anim_nid, animation in animations:
+            new_sprite.add_animation(anim_nid, contingent=animation.contingent)
 
     return wrapper
 

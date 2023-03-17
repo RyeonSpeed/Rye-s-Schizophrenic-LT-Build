@@ -328,7 +328,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 elif self.set_up_other_proc_icons(self.defender):
                     pass  # Processing is done in the if check above
                 else:
-                    self.set_up_other_proc_icons.memory.clear()
+                    self.add_proc_icon.memory.clear()
                     self.state = 'begin_phase'
 
         elif self.state == 'begin_phase':
@@ -796,17 +796,14 @@ class AnimationCombat(BaseCombat, MockCombat):
         self.mark_proc(mark)
 
     def set_up_other_proc_icons(self, unit) -> bool:
+        """
+        Returns whether it added a proc icon
+        """
         for skill in unit.skills:
-            if skill.nid in self.set_up_other_proc_icons.memory.get(unit.nid, []):
-                continue
             if skill_system.get_show_skill_icon(unit, skill):
-                self.add_proc_icon(unit, skill)
-                if unit.nid not in self.set_up_other_proc_icons.memory:
-                    self.set_up_other_proc_icons.memory[unit.nid] = []
-                self.set_up_other_proc_icons.memory[unit.nid].append(skill.nid)
-                return True
+                if self.add_proc_icon(unit, skill):
+                    return True
         return False
-    set_up_other_proc_icons.memory = {}  # Static memory (key: unit.nid, value: List[skill.nid])
 
     def mark_proc(self, mark):
         skill = mark.skill
@@ -822,9 +819,14 @@ class AnimationCombat(BaseCombat, MockCombat):
 
         self.add_proc_icon(unit, skill)
 
-    def add_proc_icon(self, unit, skill):
+    def add_proc_icon(self, unit, skill) -> bool:
+        """
+        Returns whether it successfully added the proc icon
+        """
         if skill_system.get_hide_skill_icon(unit, skill):
-            return
+            return False
+        if skill.nid in self.add_proc_icon.memory.get(unit.nid, []):
+            return False
 
         c = False
         if (unit is self.right or unit is self.right.strike_partner) and self.rp_battle_anim:
@@ -834,11 +836,18 @@ class AnimationCombat(BaseCombat, MockCombat):
         new_icon = gui.SkillIcon(skill, unit is self.right, center=c)
         self.proc_icons.append(new_icon)
 
+        # Make sure the same proc icon never shows up twice in the same phase
+        if unit.nid not in self.add_proc_icon.memory:
+            self.add_proc_icon.memory[unit.nid] = []
+        self.add_proc_icon.memory[unit.nid].append(skill.nid)
+
         if unit == self.right:
             self.focus_right = True
         else:
             self.focus_right = False
         self.move_camera()
+        return True
+    add_proc_icon.memory = {}
 
     def special_boss_crit(self, defender):
         return DB.constants.value('boss_crit') and \

@@ -122,11 +122,19 @@ class EvalSpecialRange(ItemComponent):
         return EvalSpecialRange.calculate_range_restrict(self.value, max_rng)
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
-        net_pos = (def_pos[0] - unit.position[0], def_pos[1] - unit.position[1])
-        range_restriction = self.range_restrict(unit, item)
-        if net_pos in range_restriction:
-            return True
-        return False
+        if def_pos:
+            net_pos = (def_pos[0] - unit.position[0], def_pos[1] - unit.position[1])
+            range_restriction = self.range_restrict(unit, item)
+            if net_pos in range_restriction:
+                return True
+            return False
+        else:
+            for pos in splash:
+                net_pos = (pos[0] - unit.position[0], pos[1] - unit.position[1])
+                range_restriction = self.range_restrict(unit, item)
+                if net_pos not in range_restriction:
+                    return False
+        return True
 
 class EvalTargetRestrict2(ItemComponent):
     nid = 'eval_target_restrict_2'

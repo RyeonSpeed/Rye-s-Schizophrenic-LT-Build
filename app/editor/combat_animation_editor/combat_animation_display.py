@@ -835,6 +835,7 @@ class CombatAnimProperties(QWidget):
         if not os.path.exists(path):
             os.mkdir(path)
 
+        populate_anim_pixmaps(self.current)
         # Store all of this in anim_nid.ltanim folder
         # Gather reference to images for this effect
         RESOURCES.combat_anims.save_image(path, self.current, temp=True)

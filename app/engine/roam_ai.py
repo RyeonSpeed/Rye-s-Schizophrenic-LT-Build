@@ -146,9 +146,9 @@ class FreeRoamAIController(ai_controller.AIController):
         if self.behaviour.target in ('Unit', 'Enemy', 'Ally'):
             all_units = self.handle_roam_unit_spec(all_units, self.behaviour)
             if DB.constants.value('ai_fog_of_war'):
-                all_targets = [unit.position for unit in all_targets if game.board.in_vision(unit.position, self.unit.team)]
+                all_targets = [unit.position for unit in all_units if game.board.in_vision(game.board.rationalize_pos(unit.position), self.unit.team)]
             else:
-                all_targets = [unit.position for unit in all_targets]
+                all_targets = [unit.position for unit in all_units]
         else:
             all_targets = all_positions
         

@@ -439,6 +439,8 @@ class PrimaryAI():
             if len(self.valid_targets) > 10:
                 enemy_positions = {u.position for u in game.units if u.position and skill_system.check_enemy(self.unit, u)}
                 move = utils.farthest_away_pos(self.orig_pos, self.possible_moves, enemy_positions)
+                if not move:
+                    move = self.possible_moves[self.move_index]
             else:
                 move = self.possible_moves[self.move_index]
 

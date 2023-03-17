@@ -33,6 +33,10 @@ class SpeakStyle(Prefab):
         ser = self.save()
         return {param: val for param, val in ser.items() if (param != 'nid' and val is not None)}
 
+    @classmethod
+    def default(cls):
+        return cls("")
+
 class SpeakStyleLibrary(Dict[NID, SpeakStyle]):
     def __init__(self, user_styles=None):
         # Built in speak styles for backwards compatibility

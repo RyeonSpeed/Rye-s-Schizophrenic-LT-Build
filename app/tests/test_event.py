@@ -105,7 +105,7 @@ class EventUnitTests(unittest.TestCase):
                                        None, None, speaker=None, style_nid=None,
                                        autosize=False, speed=1, font_color=None,
                                        font_type='convo', num_lines=2, draw_cursor=True,
-                                       message_tail='message_bg_tail', transparency=0.05, 
+                                       message_tail='message_bg_tail', transparency=0.05,
                                        name_tag_bg='name_tag', flags={'no_block'})
         self.assertEqual(len(event.text_boxes), 1)
         self.assertEqual(event.priority_counter, 1)
@@ -122,7 +122,7 @@ class EventUnitTests(unittest.TestCase):
                                        (1, 2), 3, speaker='Eirika', style_nid=None,
                                        autosize=False, speed=5.0, font_color=None,
                                        font_type='convo', num_lines=2, draw_cursor=True,
-                                       message_tail='message_bg_tail', transparency=0.05, 
+                                       message_tail='message_bg_tail', transparency=0.05,
                                        name_tag_bg='name_tag', flags=set())
         self.assertEqual(mock_portrait.priority, 1)
 
@@ -135,7 +135,7 @@ class EventUnitTests(unittest.TestCase):
                                        None, None, speaker='Eirika', style_nid=None,
                                        autosize=True, speed=1, font_color=None,
                                        font_type='convo', num_lines=2, draw_cursor=True,
-                                       message_tail='message_bg_tail', transparency=0.05, 
+                                       message_tail='message_bg_tail', transparency=0.05,
                                        name_tag_bg='name_tag', flags={'low_priority', 'fit'})
         self.assertEqual(mock_portrait.priority, 1)
 
@@ -161,6 +161,38 @@ class EventUnitTests(unittest.TestCase):
                                        font_type='convo', num_lines=2, draw_cursor=True,
                                        message_tail='message_bg_tail', transparency=0.05,
                                        name_tag_bg='name_tag', flags=set())
+
+        # disable intercepting calls at the end of the test
+        dialog_patch.stop()
+
+    def test_textbox_command(self):
+        from app.events import event_functions
+        # test that event correctly parses speak commands
+        self.MACRO_test_event_commands(['textbox;Eirika;textbox_text'])
+
+        # replaces the imported class so we can intercept calls
+        dialog_patch = patch('app.engine.dialog.Dialog')
+        mock_dialog = dialog_patch.start()
+
+        # Test #1:
+        #   - event replaces text correctly
+        #   - event parses no_block correctly
+        #   - Dialog object is correctly initialized
+        #   - Dialog object is added to event text boxes
+        #   - Dialog object does not increment priority with no portrait
+        #   - Dialog object uses correct default arguments
+        # initialize testing command(s)
+        # we test event command parsing in another test, so just use a dummy event
+        event = self.create_event([])
+        event_functions.speak(event, None, '\u2028SPEAK_TEXT\u2028SPEAK_TEXT', flags={'no_block'})
+        mock_dialog.assert_called_with('SPEAK_TEXT{sub_break}SPEAK_TEXT{no_wait}', None, 'message_bg_base',
+                                       None, None, speaker=None, style_nid=None,
+                                       autosize=False, speed=1, font_color=None,
+                                       font_type='convo', num_lines=2, draw_cursor=True,
+                                       message_tail='message_bg_tail', transparency=0.05,
+                                       name_tag_bg='name_tag', flags={'no_block'})
+        self.assertEqual(len(event.text_boxes), 1)
+        self.assertEqual(event.priority_counter, 1)
 
         # disable intercepting calls at the end of the test
         dialog_patch.stop()

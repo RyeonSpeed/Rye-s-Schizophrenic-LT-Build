@@ -307,6 +307,7 @@ class CombatEffectProperties(CombatAnimProperties):
             effect = RESOURCES.combat_effects.get(effect_nid)
             if not effect:
                 continue
+            populate_effect_pixmaps(effect)
             # Store all of this in effect_nid.lteffect folder
             # Gather reference to images for this effect
             RESOURCES.combat_effects.save_image(path, effect, temp=True)
