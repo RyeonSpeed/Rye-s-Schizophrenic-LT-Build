@@ -1874,7 +1874,7 @@ class CombatTargetingState(MapState):
         if self.item and item_funcs.is_heal(self.cur_unit, self.item):
             closest_pos = self.selection.get_least_hp(game.cursor.position)
         else:
-        closest_pos = self.selection.get_closest(game.cursor.position)
+            closest_pos = self.selection.get_closest(game.cursor.position)
         game.cursor.set_pos(closest_pos)
 
         # Sets dual strike variables and chooses attacker dual strike
