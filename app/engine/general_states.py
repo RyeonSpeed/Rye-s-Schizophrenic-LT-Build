@@ -393,6 +393,92 @@ def battle_save():
     game.memory['save_kind'] = 'battle'
     game.state.change('in_chapter_save')
     game.state.change('transition_out')
+
+class LoreDisplay():
+    def __init__(self):
+        self.lore = None
+        self.topleft = (84, 4)
+        self.width = WINWIDTH - 84
+        self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT - 8, 'menu_bg_brown')
+        shimmer = SPRITES.get('menu_shimmer3')
+        self.bg_surf.blit(shimmer, (
+            self.bg_surf.get_width() - shimmer.get_width() - 1, self.bg_surf.get_height() - shimmer.get_height() - 5))
+        self.bg_surf = image_mods.make_translucent(self.bg_surf, .1)
+
+        self.left_arrow = gui.ScrollArrow('left', (self.topleft[0] + 4, 8))
+        self.right_arrow = gui.ScrollArrow('right', (self.topleft[0] + self.width - 11, 8), 0.5)
+
+        self.dialogs = []
+
+    def update_entry(self, lore_nid):
+        from app.engine import dialog
+
+        if self.lore and lore_nid == self.lore.nid:
+            return  # No need to update
+
+        self.lore = DB.lore.get(lore_nid)
+        text = self.lore.text.split('\n')
+        self.page_num = 0
+        self.dialogs.clear()
+        for idx, line in enumerate(text):
+            dlg = dialog.Dialog(text[idx], num_lines=8, draw_cursor=False)
+            dlg.position = self.topleft[0], self.topleft[1] + 12
+            dlg.text_width = WINWIDTH - 100
+            dlg.font = FONT['text']
+            dlg.font_type = 'text'
+            dlg.font_color = 'white'
+            self.dialogs.append(dlg)
+        self.num_pages = len(text)
+
+    def page_right(self, first_push=False) -> bool:
+        if self.page_num < self.num_pages - 1:
+            self.page_num += 1
+            self.right_arrow.pulse()
+            return True
+        elif first_push:
+            self.page_num = (self.page_num + 1) % self.num_pages
+            self.right_arrow.pulse()
+            return True
+        return False
+
+    def page_left(self, first_push=False) -> bool:
+        if self.page_num > 0:
+            self.page_num -= 1
+            self.left_arrow.pulse()
+            return True
+        elif first_push:
+            self.page_num = (self.page_num - 1) % self.num_pages
+            self.left_arrow.pulse()
+            return True
+        return False
+
+    def draw(self, surf):
+        if self.lore:
+            image = self.bg_surf.copy()
+            if game.get_unit(self.lore.nid):
+                unit = game.get_unit(self.lore.nid)
+                icons.draw_portrait(image, unit, (self.width - 96, WINHEIGHT - 12 - 80))
+            elif self.lore.nid in DB.units.keys():
+                portrait, offset = icons.get_portrait_from_nid(DB.units.get(self.lore.nid).portrait_nid)
+                image.blit(portrait, (self.width - 96, WINHEIGHT - 12 - 80))
+
+            FONT['text-blue'].blit_center(self.lore.title, image, (self.width // 2, 4))
+
+            if self.num_pages > 1:
+                text = '%d / %d' % (self.page_num + 1, self.num_pages)
+                FONT['text-yellow'].blit_right(text, image, (self.width - 8, WINHEIGHT - 12 - 16))
+
+            surf.blit(image, self.topleft)
+
+            if self.dialogs and self.page_num < len(self.dialogs):
+                self.dialogs[self.page_num].update()
+                self.dialogs[self.page_num].draw(surf)
+
+            if self.num_pages > 1:
+                self.left_arrow.draw(surf)
+                self.right_arrow.draw(surf)
+
+        return surf
     
 class LibraryState(State):
     name = 'library'
@@ -413,7 +499,7 @@ class LibraryState(State):
             self.menu.set_ignore(ignore)
 
     def start(self):
-        self.bg = game.memory['base_bg']
+        #self.bg = game.memory['base_bg']
 
         unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore and lore.category != 'Guide']
         sorted_lore = sorted(unlocked_lore, key=lambda x: x.category)
@@ -501,8 +587,8 @@ class LibraryState(State):
             self.menu.update()
 
     def draw(self, surf):
-        if self.bg:
-            self.bg.draw(surf)
+        #if self.bg:
+        #    self.bg.draw(surf)
         if self.menu:
             self.menu.draw(surf)
         if self.display:
