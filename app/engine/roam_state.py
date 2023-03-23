@@ -185,7 +185,8 @@ class FreeRoamState(MapState):
                 get_sound_thread().play_sfx('Error')
 
         elif event == 'AUX':
-            game.state.change('option_menu')
+            game.memory['next_state'] = 'base_library'
+            game.state.change('transition_to')
             self.rationalize()  # Forced rationalization when pressing AUX
             # so this if you win_game or something your position is valid int
 

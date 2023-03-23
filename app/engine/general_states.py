@@ -393,6 +393,121 @@ def battle_save():
     game.memory['save_kind'] = 'battle'
     game.state.change('in_chapter_save')
     game.state.change('transition_out')
+    
+class LibraryState(State):
+    name = 'library'
+
+    def __init__(self, name=None):
+        super().__init__(name)
+        self.fluid = FluidScroll()
+
+    def _build_menu(self, unlocked_lore, ignore=None):
+        topleft = 4, 4
+        self.options = unlocked_lore
+        self.menu = menus.Choice(None, self.options, topleft=topleft, background='menu_bg_brown')
+        self.menu.shimmer = 3
+        self.menu.gem = 'brown'
+        self.menu.set_limit(9)
+        self.menu.set_hard_limit(True)
+        if ignore:
+            self.menu.set_ignore(ignore)
+
+    def start(self):
+        self.bg = game.memory['base_bg']
+
+        unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore and lore.category != 'Guide']
+        sorted_lore = sorted(unlocked_lore, key=lambda x: x.category)
+        self.categories = []
+        options = []
+        ignore = []
+        for lore in sorted_lore:
+            if lore.category not in self.categories:
+                self.categories.append(lore.category)
+                options.append(lore)
+                ignore.append(True)
+            options.append(lore)
+            ignore.append(False)
+
+        self._build_menu(options, ignore)
+
+        self.display = LoreDisplay()
+        self.display.update_entry(self.menu.get_current().nid)
+
+        game.state.change('transition_in')
+        return 'repeat'
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        self.menu.handle_mouse()
+        if not self.display.lore or self.display.lore.nid != self.menu.get_current().nid:
+            self.display.update_entry(self.menu.get_current().nid)
+
+        if 'DOWN' in directions:
+            if self.menu.move_down(first_push):
+                get_sound_thread().play_sfx('Select 6')
+            self.display.update_entry(self.menu.get_current().nid)
+        elif 'UP' in directions:
+            if self.menu.move_up(first_push):
+                get_sound_thread().play_sfx('Select 6')
+            self.display.update_entry(self.menu.get_current().nid)
+        elif 'RIGHT' in directions:
+            if self.display.page_right():
+                get_sound_thread().play_sfx('Status_Page_Change')
+        elif 'LEFT' in directions:
+            if self.display.page_left():
+                get_sound_thread().play_sfx('Status_Page_Change')
+
+        if event == 'BACK':
+            get_sound_thread().play_sfx('Select 4')
+            game.state.change('transition_pop')
+
+        elif event == 'SELECT':
+            if self.display.page_right(True):
+                get_sound_thread().play_sfx('Status_Page_Change')
+
+        elif event == 'AUX':
+            get_sound_thread().play_sfx('Info')
+            lore = self.menu.get_current()
+            # Go to previous category
+            cidx = self.categories.index(lore.category)
+            new_category = self.categories[(cidx + 1) % len(self.categories)]
+            if new_category in self.options:
+                idx = self.options.index(new_category)
+                if len(self.option) > idx + 1:
+                    get_sound_thread().play_sfx('Info')
+                    option = self.options[idx + 1]
+                    self.display.update_entry(option.nid)
+            else:
+                pass  # Doesn't do anything if that category is not present
+
+        elif event == 'INFO':
+            lore = self.menu.get_current()
+            # Go to next category
+            cidx = self.categories.index(lore.category)
+            new_category = self.categories[(cidx - 1) % len(self.categories)]
+            if new_category in self.options:
+                idx = self.options.index(new_category)
+                if len(self.option) > idx + 1:
+                    get_sound_thread().play_sfx('Info')
+                    option = self.options[idx + 1]
+                    self.display.update_entry(option.nid)
+            else:
+                pass  # Doesn't do anything if that category is not present
+
+    def update(self):
+        if self.menu:
+            self.menu.update()
+
+    def draw(self, surf):
+        if self.bg:
+            self.bg.draw(surf)
+        if self.menu:
+            self.menu.draw(surf)
+        if self.display:
+            self.display.draw(surf)
+        return surf
 
 class OptionMenuState(MapState):
     name = 'option_menu'
