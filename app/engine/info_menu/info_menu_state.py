@@ -194,29 +194,29 @@ class InfoMenuState(State):
 
     def move_left(self):
         if len(info_states) > 1:
-        get_sound_thread().play_sfx('Status_Page_Change')
-        index = info_states.index(self.state)
-        new_index = (index - 1) % len(info_states)
-        self.next_state = info_states[new_index]
-        if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
-            new_index = (new_index - 1) % len(info_states)
+            get_sound_thread().play_sfx('Status_Page_Change')
+            index = info_states.index(self.state)
+            new_index = (index - 1) % len(info_states)
             self.next_state = info_states[new_index]
-        self.transition = 'LEFT'
-        self.left_arrow.pulse()
-        self.switch_logo(self.next_state)
+            if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
+                new_index = (new_index - 1) % len(info_states)
+                self.next_state = info_states[new_index]
+            self.transition = 'LEFT'
+            self.left_arrow.pulse()
+            self.switch_logo(self.next_state)
 
     def move_right(self):
         if len(info_states) > 1:
-        get_sound_thread().play_sfx('Status_Page_Change')
-        index = info_states.index(self.state)
-        new_index = (index + 1) % len(info_states)
-        self.next_state = info_states[new_index]
-        if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
-            new_index = (new_index + 1) % len(info_states)
+            get_sound_thread().play_sfx('Status_Page_Change')
+            index = info_states.index(self.state)
+            new_index = (index + 1) % len(info_states)
             self.next_state = info_states[new_index]
-        self.transition = 'RIGHT'
-        self.right_arrow.pulse()
-        self.switch_logo(self.next_state)
+            if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
+                new_index = (new_index + 1) % len(info_states)
+                self.next_state = info_states[new_index]
+            self.transition = 'RIGHT'
+            self.right_arrow.pulse()
+            self.switch_logo(self.next_state)
 
     def move_down(self):
         get_sound_thread().play_sfx('Status_Character')
