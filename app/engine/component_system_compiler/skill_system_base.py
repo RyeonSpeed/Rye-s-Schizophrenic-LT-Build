@@ -99,7 +99,7 @@ class Defaults():
     @staticmethod
     def empower_heal_received(unit2, unit1) -> int:
         return 0
-        
+
     @staticmethod
     def canto_movement(unit, unit2) -> int:
         return unit.movement_left
@@ -107,10 +107,6 @@ class Defaults():
     @staticmethod
     def limit_maximum_range(unit, item) -> int:
         return 1000
-
-    @staticmethod
-    def modify_maximum_range(unit, item) -> int:
-        return 0
 
     @staticmethod
     def movement_type(unit):

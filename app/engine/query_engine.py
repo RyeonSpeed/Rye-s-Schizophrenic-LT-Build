@@ -375,13 +375,27 @@ Example usage:
         """
         unit1 = self._resolve_to_nid(unit1)
         unit2 = self._resolve_to_nid(unit2)
-        
+
         support_pair = self.game.supports.get(unit1, unit2)
         if support_pair and support_pair.unlocked_ranks:
             most_recent_rank = support_pair.unlocked_ranks[-1]
             return most_recent_rank
         else: # no support exists, or no support is unlocked
             return None
+
+    @categorize(QueryType.MAP)
+    def get_terrain(self, pos) -> Optional[NID]:
+        """Returns the terrain at position, or, if unit is provided,
+        the terrain underneath the unit.
+
+        Args:
+            pos: Position tuple or unit
+
+        Returns:
+            Optional[NID]: the nid of the region, or None if the position is invalid
+        """
+        pos = self._resolve_pos(pos)
+        return self.game.get_terrain_nid(self.game.tilemap, pos)
 
     @categorize(QueryType.VARIABLES)
     def v(self, varname, fallback=None) -> Any:

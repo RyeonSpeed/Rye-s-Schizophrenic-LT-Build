@@ -112,6 +112,8 @@ class ComponentObjectEditor(QWidget, Generic[T]):
         self.data.sort(lambda x: entries.index(x.nid) if x.nid in entries else -1)
 
     def delete_from_db(self, nid):
+        if len(self.data) == 1:
+            return False
         self.data.remove_key(nid)
         return True
 

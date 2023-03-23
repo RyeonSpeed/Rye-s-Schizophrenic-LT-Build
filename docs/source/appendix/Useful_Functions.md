@@ -134,6 +134,23 @@ Return a list containing the closest player units and their distances.
   ---------------------
 
 
+#### Get Terrain
+
+    get_terrain(pos) 
+		-> 'Optional[NID]'
+
+Returns the terrain at position, or, if unit is provided,
+        the terrain underneath the unit.
+
+        Args:
+            pos: Position tuple or unit
+
+        Returns:
+            Optional[NID]: the nid of the region, or None if the position is invalid
+        
+  ---------------------
+
+
 #### Get Units In Area
 
     get_units_in_area(position_corner_1: 'Tuple[int, int]', position_corner_2: 'Tuple[int, int]') 
@@ -257,6 +274,24 @@ checks if unit has skill
 
 
 
+#### Get Support Rank
+
+    get_support_rank(unit1, unit2) 
+		-> 'Optional[NID]'
+
+Returns the most recently obtained support rank between two units.
+
+        Args:
+            unit1: unit in the support pair
+            unit2: the other unit in the support pair
+
+        Returns:
+            Rank nid: if the two units have achieved a support rank.
+            none: if the support pair is invalid or no rank has been obtained
+        
+  ---------------------
+
+
 #### Is Dead
 
     is_dead(unit) 
@@ -288,24 +323,6 @@ Shorthand for game.get_unit. Fetches the unit object.
         
   ---------------------
 
-  ---------------------
-
-
-#### Get Support Rank
-
-    get_support_rank(unit1, unit2) 
-		-> 'Optional[NID]'
-
-Returns the most recently unlocked support rank between unit1 and unit2.
-
-        Args:
-            unit1: unit in support pair
-			unit2: the other unit in support pair
-
-        Returns:
-            Optional[NID]: the support rank nid for the two units, if exists, else None
-        
-  ---------------------
 
 ## VARIABLES
 
@@ -316,7 +333,9 @@ Returns the most recently unlocked support rank between unit1 and unit2.
     v(varname, fallback=None) 
 		-> 'Any'
 
-shorthand for game.game_vars.get. Fetches the variable
+shorthand for game.level_vars.get and game.game_vars.get. Fetches the variable
+        if game.level_vars and game.game_vars share an identical name,
+        game.level_vars takes priority
 
         Args:
             varname: name of the variable

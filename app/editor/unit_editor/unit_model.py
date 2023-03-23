@@ -87,7 +87,7 @@ class UnitModel(DragDropCollectionModel):
                     unit.starting_traveler = None
         for party in DB.parties:
             if party.leader == old_nid:
-                party.leader == new_nid
+                party.leader = new_nid
 
     def on_nid_changed(self, old_nid, new_nid):
         for ai in DB.ai:

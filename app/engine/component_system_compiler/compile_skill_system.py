@@ -15,14 +15,14 @@ exclusive_behaviours = ('can_select', 'no_trade', 'movement_type', 'sight_range'
 
 exclusive_behaviours += formula
 # Takes in unit and item, returns default value
-item_behaviours = ('modify_buy_price', 'modify_sell_price', 'limit_maximum_range', 'modify_maximum_range', 'wexp_usable_skill', 'wexp_unusable_skill')
+item_behaviours = ('modify_buy_price', 'modify_sell_price', 'limit_maximum_range', 'wexp_usable_skill', 'wexp_unusable_skill')
 # Takes in unit and target, returns default value
 targeted_behaviours = ('check_ally', 'check_enemy', 'can_trade', 'exp_multiplier', 'enemy_exp_multiplier', 'wexp_multiplier', 'enemy_wexp_multiplier', 'has_canto', 'empower_heal', 'empower_heal_received', 'canto_movement')
 # Takes in unit, item returns bonus
 modify_hooks = (
     'modify_damage', 'modify_resist', 'modify_accuracy', 'modify_avoid',
     'modify_crit_accuracy', 'modify_crit_avoid', 'modify_attack_speed',
-    'modify_defense_speed')
+    'modify_defense_speed', 'modify_maximum_range')
 # Takes in unit, item, target, mode, attack_info, base_value, returns bonus
 dynamic_hooks = ('dynamic_damage', 'dynamic_resist', 'dynamic_accuracy', 'dynamic_avoid',
                  'dynamic_crit_accuracy', 'dynamic_crit_avoid', 'dynamic_attack_speed', 'dynamic_defense_speed',

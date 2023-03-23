@@ -50,7 +50,7 @@ Anywhere `unit1` is a supported field, you can also use `unit`. Anywhere `unit2`
 > `unit_wait`:  Occurs when any unit waits.  
 > - **unit1** (`UnitObject`):  the unit that waited.
 > - **position** (`Tuple[int, int]`):  the position they waited at.
-> - **region** (`RegionObject`):  region under the unit (can be None)
+> - **region** (`Optional[RegionObject]`):  region under the unit (can be None)
 
 ---------------------
 > `unit_select`:  Occurs when a unit is selected by the cursor.  
@@ -81,6 +81,7 @@ Anywhere `unit1` is a supported field, you can also use `unit`. Anywhere `unit2`
 > - **unit2** (`UnitObject`):  the target of the combat (can be None).
 > - **item** (`ItemObject`):  the item/ability used by unit1.
 > - **position** (`Tuple[int, int]`):  contains the position of unit1.
+> - **playback** (`List[PlaybackBrush]`):  a list of the playback brushes from the combat.
 
 ---------------------
 > `on_talk`:  This trigger fires when two units "Talk" to one another.  

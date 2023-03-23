@@ -156,7 +156,7 @@ class Database(object):
         data_dir = os.path.join(proj_dir, 'game_data')
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
-        logging.warning("Serializing data in %s..." % data_dir)
+        logging.info("Serializing data in %s..." % data_dir)
 
         import time
         start = time.perf_counter() * 1000
@@ -207,13 +207,13 @@ class Database(object):
                 else:
                     self.json_save(os.path.join(data_dir, '.%s_categories' % key), catalog.categories.save())
         end = time.perf_counter() * 1000
-        logging.warning("Total Time Taken for Database: %s ms" % (end - start))
-        logging.warning("Done serializing!")
+        logging.info("Total Time Taken for Database: %s ms" % (end - start))
+        logging.info("Done serializing!")
 
     def load(self, proj_dir):
         self.current_proj_dir = proj_dir
         data_dir = os.path.join(proj_dir, 'game_data')
-        logging.warning("Deserializing data from %s..." % data_dir)
+        logging.info("Deserializing data from %s..." % data_dir)
 
         import time
         start = time.perf_counter() * 1000
@@ -241,8 +241,8 @@ class Database(object):
 
         end = time.perf_counter() * 1000
 
-        logging.warning("Total Time Taken for Database: %s ms" % (end - start))
-        logging.warning("Done deserializing!")
+        logging.info("Total Time Taken for Database: %s ms" % (end - start))
+        logging.info("Done deserializing!")
 
 DB = Database()
 

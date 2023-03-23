@@ -410,6 +410,11 @@ class Dialog():
         elif self.state == 'pause':  # Regular pause for periods
             if current_time - self.last_update > self.pause_time:
                 self.state = 'process'
+                if self.portrait:
+                    if self.should_move_mouth:
+                        self.portrait.talk()
+                    else:
+                        self.portrait.stop_talking()
         elif self.state == 'new_line':
             # Update y_offset
             self.y_offset = max(0, self.y_offset - 2)

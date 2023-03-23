@@ -7,7 +7,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QSize, QItemSelection
 from PyQt5.QtGui import QFont, QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtWidgets import (QAction, QMenu, QPushButton, QStyledItemDelegate,
-                             QTreeWidget, QTreeWidgetItem, QVBoxLayout,
+                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem,
                              QWidget)
 
 from app.data.category import Categories
@@ -90,9 +90,19 @@ class LTNestedList(QWidget):
         self.attempt_duplicate = attempt_duplicate
 
         layout = QVBoxLayout()
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText('Filter by keyword, or by "nid"')
+        self.search_box.textChanged.connect(self.on_filter_changed)
+        layout.addWidget(self.search_box)
+
+        self.search_list = QListWidget()
+        layout.addWidget(self.search_list)
+        self.search_list.itemClicked.connect(self.on_filter_list_click)
+        self.search_list.hide()
 
         self.tree_widget = QTreeWidget()
         self.build_tree_widget(self.tree_widget, list_entries, list_categories)
+        self.tree_widget.itemClicked.connect(self.on_tree_item_click)
         layout.addWidget(self.tree_widget)
 
         self.new_item_button = QPushButton("Create New")
@@ -111,6 +121,13 @@ class LTNestedList(QWidget):
             while item.parent():
                 item = item.parent()
         self.disturbed_category = item
+
+    def on_filter_list_click(self, e):
+        if self.on_click_item:
+            self.on_click_item(e.text())
+
+    def on_tree_item_click(self, item_clicked):
+        self.select_item(item_clicked)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
@@ -140,15 +157,12 @@ class LTNestedList(QWidget):
 
     def reset(self, list_entries: Optional[List[NID]], list_categories: Optional[Categories]):
         previous_selected_item_nid = self.get_selected_nid()
-        # don't want to trigger on_select and such when rebuilding
-        self.tree_widget.selectionModel().blockSignals(True)
         self.tree_widget.clear()
         self._build_tree_widget_in_place(list_entries, list_categories, self.tree_widget.invisibleRootItem())
         self.regenerate_icons(initial_generation=True)
         should_select = self.find_item_by_nid(previous_selected_item_nid)
         if should_select:
             self.select_item(should_select)
-        self.tree_widget.selectionModel().blockSignals(False)
 
     def build_tree_widget(self, tree_widget: QTreeWidget, list_entries: Optional[List[NID]], list_categories: Optional[Categories]):
         self._build_tree_widget_in_place(list_entries, list_categories, tree_widget.invisibleRootItem())
@@ -158,7 +172,6 @@ class LTNestedList(QWidget):
         tree_widget.setDragDropMode(QTreeWidget.InternalMove)
         tree_widget.setHeaderHidden(True)
         tree_widget.setIconSize(QSize(32, 32))
-        tree_widget.selectionModel().selectionChanged.connect(self.on_select)
         tree_widget.originalDropEvent = tree_widget.dropEvent
         tree_widget.dropEvent = self.on_drag_drop
         tree_widget.originalMousePressEvent = tree_widget.mousePressEvent
@@ -166,6 +179,21 @@ class LTNestedList(QWidget):
         tree_widget.customContextMenuRequested.connect(self.customMenuRequested)
         tree_widget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         tree_widget.itemChanged.connect(self.data_changed)
+
+    def on_filter_changed(self, text: str):
+        if text:
+            filtered_items = self.tree_widget.findItems(text, QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)
+            items = set([item.text(0) for item in filtered_items if not item.data(0, IsCategoryRole)])
+            item_icons = {item.text(0): item.icon(0) for item in filtered_items}
+            self.search_list.clear()
+            for item_nid in items:
+                item_widget = QListWidgetItem(item_icons[item_nid], item_nid)
+                self.search_list.addItem(item_widget)
+            self.tree_widget.hide()
+            self.search_list.show()
+        else:
+            self.search_list.hide()
+            self.tree_widget.show()
 
     def update_nid(self, old_nid: NID, new_nid: NID):
         """Since this is a list that should reflect db changes,
@@ -255,24 +283,17 @@ class LTNestedList(QWidget):
         if isinstance(item, NID):
             item = self.find_item_by_nid(item)
         if item:
-            self.tree_widget.selectionModel().blockSignals(True)
-            self.tree_widget.selectionModel().clearSelection()
+            nid = item.text(0)
+            is_category = item.data(0, IsCategoryRole)
             item.setSelected(True)
-            self.tree_widget.selectionModel().blockSignals(False)
             self.tree_widget.scrollToItem(item)
-        self.on_select(self.tree_widget.selectionModel().selection(), None)
-
-    def on_select(self, selected: Optional[QItemSelection], desel: Optional[QItemSelection]):
-        if not selected:
+            if not is_category and self.on_click_item:
+                self.on_click_item(nid)
+            elif is_category and self.on_click_item:
+                self.on_click_item(None)
+        else:
             if self.on_click_item:
                 self.on_click_item(None)
-            return
-        nid = selected.indexes()[0].data()
-        is_category = selected.indexes()[0].data(IsCategoryRole)
-        if not is_category and self.on_click_item:
-            self.on_click_item(nid)
-        elif is_category and self.on_click_item:
-            self.on_click_item(None)
 
     def on_drag_drop(self, event):
         self.tree_widget.originalDropEvent(event)

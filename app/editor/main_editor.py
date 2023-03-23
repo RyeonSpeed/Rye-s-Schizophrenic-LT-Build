@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import functools
@@ -377,7 +378,7 @@ class MainEditor(QMainWindow):
 
     def closeEvent(self, event):
         if self.project_save_load_handler.maybe_save():
-            print("Setting current project %s" %
+            logging.info("Setting current project %s" %
                   self.settings.get_current_project())
             self.settings.set_current_project(
                 self.settings.get_current_project())
@@ -458,7 +459,7 @@ class MainEditor(QMainWindow):
         if self.project_save_load_handler.open():
             title = os.path.split(self.settings.get_current_project())[-1]
             self.set_window_title(title)
-            print("Loaded project from %s" %
+            logging.info("Loaded project from %s" %
                   self.settings.get_current_project())
             self.status_bar.showMessage(
                 "Loaded project from %s" % self.settings.get_current_project())
@@ -475,7 +476,7 @@ class MainEditor(QMainWindow):
         self.project_save_load_handler.auto_open()
         title = os.path.split(self.settings.get_current_project())[-1]
         self.set_window_title(title)
-        print("Loaded project from %s" %
+        logging.info("Loaded project from %s" %
               self.settings.get_current_project())
         self.status_bar.showMessage(
             "Loaded project from %s" % self.settings.get_current_project())

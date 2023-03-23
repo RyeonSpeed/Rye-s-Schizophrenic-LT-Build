@@ -90,7 +90,6 @@ class Resources():
         else:
             save_data_types = self.save_data_types
         for data_type in save_data_types:
-            print("Loading %s from %s..." % (data_type, self.main_folder))
             logging.info("Loading %s from %s..." % (data_type, self.main_folder))
             getattr(self, data_type).clear()  # Now always clears first
             getattr(self, data_type).load(os.path.join(self.main_folder, data_type))
@@ -129,7 +128,7 @@ class Resources():
             self.loaded_custom_components_path = None
 
     def save(self, proj_dir, specific=None, progress=None):
-        logging.warning("Starting Resource Serialization for %s..." % proj_dir)
+        logging.info("Starting Resource Serialization for %s..." % proj_dir)
         import time
         start = time.time_ns()/1e6
         # Make the directory to save this resource pack in
@@ -149,31 +148,31 @@ class Resources():
             data_dir = os.path.join(resource_dir, data_type)
             if not os.path.exists(data_dir):
                 os.mkdir(data_dir)
-            logging.warning("Saving %s..." % data_type)
+            logging.info("Saving %s..." % data_type)
             time1 = time.time_ns()/1e6
             getattr(self, data_type).save(data_dir)
             time2 = time.time_ns()/1e6 - time1
-            logging.warning("Time Taken: %s ms" % time2)
+            logging.info("Time Taken: %s ms" % time2)
             if progress:
                 progress.setValue(int(idx / len(save_data_types) * 75))
         if should_save_loose_files and self.main_folder:
             for loose_file_type in self.loose_file_types:
-                logging.warning("Saving %s..." % loose_file_type)
+                logging.info("Saving %s..." % loose_file_type)
                 time1 = time.time_ns()/1e6
                 target_dir = os.path.join(resource_dir, loose_file_type)
                 if not os.path.exists(target_dir) and os.path.exists(os.path.join(self.main_folder, loose_file_type)):
                     shutil.copytree(os.path.join(self.main_folder, loose_file_type), target_dir)
                 time2 = time.time_ns()/1e6 - time1
-                logging.warning("Time Taken: %s ms" % time2)
+                logging.info("Time Taken: %s ms" % time2)
                 if progress:
                     progress.setValue(80)
 
         end = time.time_ns()/1e6
-        logging.warning("Total Time Taken for Resources: %s ms" % (end - start))
-        logging.warning('Done Resource Serializing!')
+        logging.info("Total Time Taken for Resources: %s ms" % (end - start))
+        logging.info('Done Resource Serializing!')
 
     def autosave(self, proj_dir, autosave_dir, progress=None):
-        logging.warning("Starting Autosave Resource Serialization for %s..." % proj_dir)
+        logging.info("Starting Autosave Resource Serialization for %s..." % proj_dir)
         import time
         start = time.time_ns()/1e6
 
@@ -205,14 +204,14 @@ class Resources():
                     progress.setValue(perc)
 
         end = time.time_ns()/1e6
-        logging.warning("Total Time Taken for Resources: %s ms" % (end - start))
-        logging.warning('Done Resource Serializing!')
+        logging.info("Total Time Taken for Resources: %s ms" % (end - start))
+        logging.info('Done Resource Serializing!')
 
     def clean(self, proj_dir) -> bool:
         """
         Returns bool -> whether cleaning was successful
         """
-        logging.warning("Starting Resource Cleaning...")
+        logging.info("Starting Resource Cleaning...")
         import time
         start = time.time_ns()/1e6
 
@@ -233,8 +232,8 @@ class Resources():
                 logging.error("Could not successfully clean %s" % data_type)
 
         end = time.time_ns() / 1e6
-        logging.warning("Total Time Taken for cleaning resource directory: %s ms" % (end - start))
-        logging.warning("Done Resource Cleaning!")
+        logging.info("Total Time Taken for cleaning resource directory: %s ms" % (end - start))
+        logging.info("Done Resource Cleaning!")
         return True
 
     def has_loaded_custom_components(self):
