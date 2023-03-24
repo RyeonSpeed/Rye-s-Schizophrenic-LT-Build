@@ -136,7 +136,7 @@ class Hit(SkillComponent):
 
 class EvalHit(SkillComponent):
     nid = 'eval_hit'
-    desc = "Gives +X damage solved using evaluate"
+    desc = "Gives +X accuracy solved using evaluate"
     tag = SkillTags.COMBAT
 
     expose = ComponentType.String

@@ -1558,8 +1558,8 @@ def move_item_between_convoys(self: Event, item, party1, party2, flags=None):
 def set_item_uses(self: Event, global_unit_or_convoy, item, uses, flags=None):
     flags = flags or set()
     global_unit = global_unit_or_convoy
-
-    unit, item = self._get_item_in_inventory(global_unit, item)
+    recursive_flag = 'recursive' in flags
+    unit, item = self._get_item_in_inventory(global_unit, item, recursive=recursive_flag)
     if not unit or not item:
         self.logger.error("set_item_uses: Either unit or item was invalid, see above")
         return

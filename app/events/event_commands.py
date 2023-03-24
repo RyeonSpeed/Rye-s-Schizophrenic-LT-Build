@@ -1422,6 +1422,8 @@ class SetItemUses(EventCommand):
     desc = \
         """
 Sets the uses of an *Item* to *Uses* in the inventory of *GlobalUnitOrConvoy*.
+If the *recursive* flag is set, the event will first attempt to equip items directly
+in the unit's inventory, and then if no matching item is found, check the sub-items of multi-items.
 
 *  the *additive* flag adds the given uses instead
         """
@@ -1429,7 +1431,7 @@ Sets the uses of an *Item* to *Uses* in the inventory of *GlobalUnitOrConvoy*.
     keywords = ["GlobalUnitOrConvoy", "Item", "Uses"]
     keyword_types = ["GlobalUnitOrConvoy", "Item", "Integer"]
 
-    _flags = ["additive"]
+    _flags = ["additive", "recursive"]
 
 class BreakItem(EventCommand):
     nid = 'break_item'
