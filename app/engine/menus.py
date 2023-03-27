@@ -476,6 +476,11 @@ class Choice(Simple):
             self.update_bg()  # Unstore bg
         return did_move
 
+    def update_options(self, options=None):
+        super().update_options(options)
+        if self.show_face():
+            self.update_bg()  # Unstore bg
+
     def get_menu_width(self):
         if self.horizontal:
             return sum(option.width() + 8 for option in self.options) + 16

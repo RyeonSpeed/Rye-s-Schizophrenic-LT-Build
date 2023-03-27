@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional
 from app.engine.graphics.ui_framework.premade_components.plain_text_component import PlainTextLine
 
 from app.engine import engine
@@ -40,6 +41,9 @@ class IconRow(UIComponent):
         if text != self.text.text:
             self._should_redraw = True
         self.text.set_text(text)
+
+    def set_data(self, data: Optional[str]):
+        self.data = data
 
     def update_font(self):
         total_width = self.icon.width + self.text.twidth

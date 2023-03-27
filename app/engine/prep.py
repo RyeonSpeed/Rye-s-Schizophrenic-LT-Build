@@ -1129,6 +1129,7 @@ class PrepMarketState(State):
                     if game.get_money() - value >= 0 and self.menu.get_stock() != 0:
                         get_sound_thread().play_sfx('GoldExchange')
                         game.set_money(game.get_money() - value)
+                        action.do(action.UpdateRecords('money', (game.current_party, -value)))
                         self.money_counter_disp.start(-value)
                         self.menu.decrement_stock()
                         game.market_items[item.nid] -= 1
@@ -1157,6 +1158,7 @@ class PrepMarketState(State):
                     if value:
                         get_sound_thread().play_sfx('GoldExchange')
                         game.set_money(game.get_money() + value)
+                        action.do(action.UpdateRecords('money', (game.current_party, value)))
                         self.money_counter_disp.start(value)
                         if item.owner_nid:
                             owner = game.get_unit(item.owner_nid)

@@ -138,7 +138,7 @@ def get_portrait(unit) -> tuple:
         klass = DB.classes.get(unit.klass)
         image = RESOURCES.icons80.get(klass.icon_nid)
         if not image:
-            return None
+            return None, 0
         if not image.image:
             image.image = engine.image_load(image.full_path)
         image = engine.subsurface(image.image, (klass.icon_index[0] * 80, klass.icon_index[1] * 72, 80, 72))

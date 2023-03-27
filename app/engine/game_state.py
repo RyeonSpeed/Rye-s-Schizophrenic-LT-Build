@@ -1048,16 +1048,20 @@ class GameState():
         action.do(action.RecordOtherRandomState(old, new))
         return result
 
-    def get_random_choice(self, choices):
+    def get_random_choice(self, choices, seed=None):
         """
         Canonical method for getting a random choice from an iterable
         without screwing up the turnwheel
         """
         from app.engine import action
-        old = static_random.get_other_random_state()
-        idx = static_random.get_other(0, len(choices) - 1)
-        new = static_random.get_other_random_state()
-        action.do(action.RecordOtherRandomState(old, new))
+        if seed is not None:
+            r = static_random.get_generator(int(seed))
+            idx = r.randint(0, len(choices) - 1)
+        else:
+            old = static_random.get_other_random_state()
+            idx = static_random.get_other(0, len(choices) - 1)
+            new = static_random.get_other_random_state()
+            action.do(action.RecordOtherRandomState(old, new))
         return list(choices)[idx]
 
     def get_random_weighted_choice(self, choices: List, weights: List[float]):

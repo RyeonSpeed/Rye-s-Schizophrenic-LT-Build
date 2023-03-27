@@ -810,6 +810,9 @@ def get_palette(anim_prefab: CombatAnimation, unit) -> tuple:
     return palette_name, current_palette
 
 def get_battle_anim(unit, item, distance=1, klass=None, default_variant=False, allow_transform=False, allow_revert=False) -> BattleAnimation:
+    # Some items never want to have a battle anim
+    if item_system.force_map_anim(unit, item):
+        return False
     # Find the right combat animation
     if klass:
         class_obj = DB.classes.get(klass)

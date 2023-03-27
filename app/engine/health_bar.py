@@ -334,7 +334,7 @@ class MapCombatInfo():
                 if top_gap > bottom_gap and top_gap > middle_gap:
                     y_pos = top_gap * TILEHEIGHT - 12 - height - 13  # Stat surf
                 elif bottom_gap > top_gap and bottom_gap > middle_gap:
-                    y_pos = (bottom_gap + 1) * TILEHEIGHT + 12
+                    y_pos = (TILEY - 1 - bottom_gap//2) * TILEHEIGHT - 12
                 else:
                     y_pos = WINHEIGHT//4 - height//2 - 13//2 if rel_1 < TILEY//2 else 3*WINHEIGHT//4 - height//2 - 13//2
                     x_pos = WINWIDTH//4 - width//2 if pos1[0] - camera_pos[0] > TILEX//2 else 3*WINWIDTH//4 - width//2

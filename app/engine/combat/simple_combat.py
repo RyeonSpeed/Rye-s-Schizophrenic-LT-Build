@@ -575,19 +575,29 @@ class SimpleCombat():
         for mark in heal_marks:
             action.do(action.UpdateRecords('heal', (mark.attacker.nid, mark.defender.nid, mark.item.nid, mark.damage, mark.true_damage, 'hit')))
 
-        for mark in self.full_playback:
-            if mark.nid in ('mark_miss', 'mark_hit', 'mark_crit'):
-                if mark.defender.is_dying:
-                    act = action.UpdateRecords('kill', (mark.attacker.nid, mark.defender.nid))
+        pairs = set()
+        marks = [mark for mark in self.full_playback if mark.nid in ('mark_miss', 'mark_hit', 'mark_crit')]
+        for mark in marks:
+            if mark.defender.is_dying:
+                pair = (mark.attacker.nid, mark.defender.nid)
+                if pair not in pairs:  # no duplicates
+                    pairs.add(pair)
+
+                    act = action.UpdateRecords('kill', pair)
                     action.do(act)
                     if mark.defender.team == 'player':  # If player is dying, save this result even if we turnwheel back
-                        act = action.UpdateRecords('death', (mark.attacker.nid, mark.defender.nid))
+                        act = action.UpdateRecords('death', pair)
                         act.do()
-                if mark.attacker.is_dying:
-                    act = action.UpdateRecords('kill', (mark.defender.nid, mark.attacker.nid))
+
+            if mark.attacker.is_dying:
+                pair = (mark.defender.nid, mark.attacker.nid)
+                if pair not in pairs:  # No duplicates
+                    pairs.add(pair)
+                    
+                    act = action.UpdateRecords('kill', pair)
                     action.do(act)
                     if mark.defender.team == 'player':  # If player is dying, save this result even if we turnwheel back
-                        act = action.UpdateRecords('death', (mark.defender.nid, mark.attacker.nid))
+                        act = action.UpdateRecords('death', pair)
                         act.do()
 
     def handle_death(self, units):

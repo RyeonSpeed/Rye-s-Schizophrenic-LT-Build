@@ -129,6 +129,7 @@ class SimpleIconTable(UIComponent):
             old_entry = self.column_data[col][row]
             old_entry.set_icon(new_entry.icon)
             old_entry.set_text(new_entry.text.text)
+            old_entry.set_data(new_entry.data)
         self._reset('_update_data_instead')
 
     def set_data(self, data: List):

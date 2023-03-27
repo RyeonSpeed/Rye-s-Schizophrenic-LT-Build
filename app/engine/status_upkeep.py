@@ -147,6 +147,7 @@ class StatusUpkeepState(MapState):
             # Handle death
             game.death.should_die(self.cur_unit)
             game.state.change('dying')
+            action.UpdateRecords('death', (None, self.cur_unit.nid)).do()
             game.events.trigger(triggers.UnitDeath(self.cur_unit, None, position=self.cur_unit.position))
             skill_system.on_death(self.cur_unit)
         else:

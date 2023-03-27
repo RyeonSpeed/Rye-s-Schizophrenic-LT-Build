@@ -7,6 +7,14 @@ from app.engine import engine, image_mods, skill_system
 
 import logging
 
+class NeverUseBattleAnimation(ItemComponent):
+    nid = 'never_use_battle_animation'
+    desc = "Item will never use a battle animation even if otherwise available"
+    tag = ItemTags.AESTHETIC
+
+    def force_map_anim(self, unit, item):
+        return True
+
 class MapHitAddBlend(ItemComponent):
     nid = 'map_hit_add_blend'
     desc = "Changes the color that appears on the unit when hit -- Use to make brighter"

@@ -1,11 +1,12 @@
 from __future__ import annotations
+from app.data.database.item_components import ItemComponent
 from app.utilities.typing import NID
 
 import functools
 import logging
 import sys
 import app.engine.config as cf
-from typing import Tuple
+from typing import Any, Optional, Tuple
 
 from app.constants import TILEHEIGHT, TILEWIDTH
 from app.data.database.database import DB
@@ -1501,22 +1502,21 @@ class AddItemComponent(Action):
         self.item = item
         self.component_nid = component_nid
         self.component_value = component_value
-        self.component = None
         self._did_add = False
 
     def do(self):
         import app.engine.item_component_access as ICA
         self._did_add = False
-        self.component = ICA.restore_component((self.component_nid, self.component_value))
-        if not self.component:
+        component = ICA.restore_component((self.component_nid, self.component_value))
+        if not component:
             logging.error("AddItemComponent: Couldn't find item component with nid %s", self.component_nid)
             return
-        self.item.components.append(self.component)
-        self.item.__dict__[self.component_nid] = self.component
+        self.item.components.append(component)
+        self.item.__dict__[self.component_nid] = component
         # Assign parent to component
-        self.component.item = self.item
-        if self.component.defines('init'):
-            self.component.init(self.item)
+        component.item = self.item
+        if component.defines('init'):
+            component.init(self.item)
         self._did_add = True
 
     def reverse(self):
@@ -1525,17 +1525,54 @@ class AddItemComponent(Action):
             del self.item.__dict__[self.component_nid]
             self._did_add = False
 
+class ModifyItemComponent(Action):
+    def __init__(self, item, component_nid, new_component_value, component_property=None, additive: bool = False):
+        self.item: ItemObject = item
+        self.component_nid = component_nid
+        self.property_name: Optional[NID] = None
+        self.prev_component_value = None
+        self.component_value = None
+        if self.component_nid in self.item.components.keys():
+            component = self.item.components.get(self.component_nid)
+            # @TODO(mag): add validation for this with the cool new validators
+            if isinstance(component.value, dict):
+                self.property_name = component_property
+                self.prev_component_value = component.value[self.property_name]
+            else:
+                self.prev_component_value = component.value
+            if not additive:
+                self.component_value = new_component_value
+            else:
+                self.component_value = self.prev_component_value + new_component_value
+
+    def do(self):
+        if self.component_nid in self.item.components.keys():
+            component = self.item.components.get(self.component_nid)
+            if self.property_name and isinstance(component.value, dict):
+                component.value[self.property_name] = self.component_value
+            else:
+                component.value = self.component_value
+
+    def reverse(self):
+        if self.component_nid in self.item.components.keys():
+            component = self.item.components.get(self.component_nid)
+            if self.property_name and isinstance(self.component.value, dict):
+                component.value[self.property_name] = self.prev_component_value
+            else:
+                component.value = self.prev_component_value
+
 class RemoveItemComponent(Action):
     def __init__(self, item, component_nid):
         self.item = item
         self.component_nid = component_nid
-        self.component = None
+        self.component_value = None
         self._did_remove = False
 
     def do(self):
         self._did_remove = False
         if self.component_nid in self.item.components.keys():
-            self.component = self.item.components.get(self.component_nid)
+            component = self.item.components.get(self.component_nid)
+            self.component_value = component.value
             self.item.components.remove_key(self.component_nid)
             del self.item.__dict__[self.component_nid]
             self._did_remove = True
@@ -1543,11 +1580,13 @@ class RemoveItemComponent(Action):
             logging.warning("remove_item_component: component with nid %s not found for item %s", self.component_nid, self.item)
 
     def reverse(self):
+        import app.engine.item_component_access as ICA
         if self._did_remove:
-            self.item.components.append(self.component)
-            self.item.__dict__[self.component_nid] = self.component
+            component = ICA.restore_component((self.component_nid, self.component_value))
+            self.item.components.append(component)
+            self.item.__dict__[self.component_nid] = component
             # Assign parent to component
-            self.component.item = self.item
+            component.item = self.item
             self._did_remove = False
 
 class SetObjData(Action):
@@ -2834,27 +2873,44 @@ class AddMapAnim(Action):
                     break
 
 class RemoveMapAnim(Action):
-    def __init__(self, nid, pos):
+    def __init__(self, nid, pos, upper_layer: bool = False):
         self.nid = nid
         self.pos = pos
         self.speed_mult = 1
         self.blend = False
         self.did_remove = False
+        self.is_upper_layer = upper_layer
 
     def do(self):
-        for anim in game.tilemap.animations[:]:
-            if anim.nid == self.nid and anim.xy_pos == self.pos:
-                self.speed_mult = anim.speed_adj
-                self.blend = anim.tint
-                game.tilemap.animations.remove(anim)
-                self.did_remove = True
+        if self.is_upper_layer:
+            for anim in game.tilemap.high_animations[:]:
+                if anim.nid == self.nid and anim.xy_pos == self.pos:
+                    self.speed_mult = anim.speed_adj
+                    self.blend = anim.tint
+                    game.tilemap.high_animations.remove(anim)
+                    self.did_remove = True
+        else:
+            for anim in game.tilemap.animations[:]:
+                if anim.nid == self.nid and anim.xy_pos == self.pos:
+                    self.speed_mult = anim.speed_adj
+                    self.blend = anim.tint
+                    game.tilemap.animations.remove(anim)
+                    self.did_remove = True
+
 
     def reverse(self):
         if self.did_remove:
-            anim = RESOURCES.animations.get(self.nid)
-            anim = animations.MapAnimation(anim, self.pos, loop=True, speed_adj=self.speed_mult)
-            anim.set_tint(self.blend)
-            game.tilemap.animations.append(anim)
+            if self.is_upper_layer:
+                anim = RESOURCES.animations.get(self.nid)
+                anim = animations.MapAnimation(anim, self.pos, loop=True, speed_adj=self.speed_mult)
+                anim.set_tint(self.blend)
+                game.tilemap.high_animations.append(anim)
+
+            else:
+                anim = RESOURCES.animations.get(self.nid)
+                anim = animations.MapAnimation(anim, self.pos, loop=True, speed_adj=self.speed_mult)
+                anim.set_tint(self.blend)
+                game.tilemap.animations.append(anim)
 
 class AddAnimToUnit(Action):
     def __init__(self, nid, unit: UnitObject, speed_mult, blend):

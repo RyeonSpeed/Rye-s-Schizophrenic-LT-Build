@@ -51,11 +51,24 @@ class PersistentRecordManager(Data):
             persistent_data.serialize(self.location, self.save())
         else:
             logging.info("Record with nid of %s doesn't exist")
+    
+    def unlock_difficulty(self, difficultyMode: str):
+        if difficultyMode in self.keys():
+            logging.info("Difficulty with nid of %s already unlocked")
+            return
+        else:
+            self.append(PersistentRecord(difficultyMode, True))
+        persistent_data.serialize(self.location, self.save())
+    
+    def check_difficulty_unlocked(self, difficultyMode: str):
+        if difficultyMode in self.keys():
+            return super().get(difficultyMode).value
+        else:
+            return False
 
 def reset():
     game_id = str(DB.constants.value('game_nid'))
     location = 'saves/' + game_id + '-persistent_records.p'
-    print("reset records: %s" % location)
     RECORDS.location = location
     data = persistent_data.deserialize(location)
     if data:

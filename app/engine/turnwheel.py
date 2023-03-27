@@ -568,6 +568,10 @@ class TurnwheelState(MapState):
                     game.phase.set_player()
                 # Call turnwheel script whenever the turnwheel is used
                 if self.turnwheel_activated:
+                    # Need to clear all hanging events if we 
+                    # are going back in time
+                    # Otherwise hanging events just sit in memory
+                    game.events.clear()
                     game.events.trigger(triggers.OnTurnwheel())
 
         # Update animations

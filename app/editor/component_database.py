@@ -216,7 +216,7 @@ class BetterOptionsItemComponent(BoolItemComponent):
         self.editors_widget = QWidget(self)
         vbox = QVBoxLayout(self.editors_widget)
         # backwards compatability update
-        value = self._data.__class__.value.copy()
+        value = self._data.__class__().value.copy()
         value.update(self._data.value)
         self._data.value = value
         for field_name, component_type in options.items():

@@ -19,14 +19,16 @@ class EffectiveDamage(ItemComponent):
         'effective_bonus_damage': ComponentType.Int,
         'show_effectiveness_flash': ComponentType.Bool,
     }
-    value = {
-        'effective_tags': [],
-        'effective_multiplier': 3,
-        'effective_bonus_damage': 0,
-        'show_effectiveness_flash': True,
-    }
 
-    _did_action = False
+    def __init__(self, value=None):
+        self.value = {
+            'effective_tags': [],
+            'effective_multiplier': 3,
+            'effective_bonus_damage': 0,
+            'show_effectiveness_flash': True,
+        }
+        if value:
+            self.value.update(value)
 
     @property
     def tags(self):

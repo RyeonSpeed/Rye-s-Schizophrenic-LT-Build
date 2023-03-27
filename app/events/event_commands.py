@@ -1527,6 +1527,25 @@ Can be used to modify a specific item within your game, such as for forging.
     keywords = ["GlobalUnitOrConvoy", "Item", "ItemComponent"]
     optional_keywords = ["Expression"]
 
+class ModifyItemComponent(EventCommand):
+    nid = 'modify_item_component'
+    tag = Tags.MODIFY_ITEM_PROPERTIES
+
+    desc = \
+        """
+Sets the value of an *ItemComponent* to *Expression* for an *Item* in the inventory of *GlobalUnitOrConvoy*.
+Can be used to modify a specific item within your game, such as for forging.
+
+Use **ComponentProperty* to change a specific value if the ItemComponent has more than one option available.
+
+Use the *additive* flag to add rather than set the value.
+        """
+
+    keywords = ["UnitOrConvoy", "Item", "ItemComponent", "Expression"]
+    optional_keywords = ["ComponentProperty"]
+    keyword_types = ["GlobalUnitOrConvoy", "Item", "ItemComponent", "Expression", "String"]
+    _flags = ['additive']
+
 class RemoveItemComponent(EventCommand):
     nid = 'remove_item_component'
     tag = Tags.MODIFY_ITEM_PROPERTIES
@@ -2175,6 +2194,7 @@ class RemoveMapAnim(EventCommand):
     desc = ('Removes a map animation denoted by the nid *MapAnim* at *Position*. Only removes MapAnims that were created using'
             ' the "permanent" flag')
     keywords = ["MapAnim", "Position"]
+    _flags = ['overlay']
 
 class AddUnitMapAnim(EventCommand):
     nid = 'add_unit_map_anim'
@@ -2865,6 +2885,14 @@ class DeleteRecord(EventCommand):
     desc = ('Remove a persistent record. Does nothing if nid is not present')
 
     keywords = ['Nid']
+
+class UnlockDifficulty(EventCommand):
+    nid = 'unlock_difficulty'
+    tag = Tags.PERSISTENT_RECORDS
+    desc = ("Unlocks the specified difficulty. Locked difficulties cannot be selected by the player when creating a new game.")
+
+    keywords = ['DifficultyMode']
+    keyword_types = ['DifficultyMode']
 
 def get_commands():
     return EventCommand.__subclasses__()

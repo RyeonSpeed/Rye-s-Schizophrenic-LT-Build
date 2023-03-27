@@ -84,6 +84,10 @@ class ExpState(State):
     def begin(self):
         game.cursor.hide()
 
+    def end(self):
+        # Just in case, make sure this doesn't last forever
+        get_sound_thread().stop_sfx('Experience Gain')
+
     def create_level_up_logo(self):
         if self.combat_object:
             anim = RESOURCES.animations.get('LevelUpBattle')

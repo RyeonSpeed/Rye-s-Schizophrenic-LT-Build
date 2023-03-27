@@ -1341,6 +1341,18 @@ class MaybeSprite(Validator):
         valids += [(None, "None")]
         return valids
 
+class DifficultyMode(Validator):
+    desc = 'accepts the nid of a difficulty mode.'
+    
+    def validate(self, text, level):
+        if text in self._db.difficulty_modes.keys():
+            return text
+        return None
+
+    def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
+        valids = [(difficulty.name, difficulty.nid) for difficulty in self._db.difficulty_modes.values()]
+        return valids
+
 validators: Dict[str, Type[Validator]]= {validator.__name__: validator for validator in Validator.__subclasses__()}
 option_validators: Dict[str, Type[OptionValidator]] = {validator.__name__: validator for validator in OptionValidator.__subclasses__()}
 eval_validators: Dict[str, Type[EvalValidator]] = {}

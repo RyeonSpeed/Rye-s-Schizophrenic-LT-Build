@@ -148,14 +148,17 @@ def hsv2rgb(h: float, s: float, v: float) -> tuple:
 def rgb2hsv(r: int, g: int, b: int) -> tuple:
     return tuple(colorsys.rgb_to_hsv(r, g, b))
 
-def average_pos(pos_list: list) -> tuple:
+def average_pos(pos_list: list, as_int=False) -> tuple:
     avg_x, avg_y = 0, 0
     for x, y in pos_list:
         avg_x += x
         avg_y += y
     avg_x /= len(pos_list)
     avg_y /= len(pos_list)
-    return (avg_x, avg_y)
+    if as_int:
+        return (int(math.round(avg_x)), int(math.round(avg_y)))
+    else:
+        return (avg_x, avg_y)
 
 def farthest_away_pos(pos: tuple, valid_moves: set, enemy_pos: set):
     if valid_moves and enemy_pos:
