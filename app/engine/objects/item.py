@@ -27,7 +27,7 @@ class ItemObject():
 
         self.droppable = False
 
-        self.components = components or Data[ItemComponent]()
+        self.components: Data[ItemComponent] = components or Data()
         for component_key, component_value in self.components.items():
             self.__dict__[component_key] = component_value
             # Assign parent to component
