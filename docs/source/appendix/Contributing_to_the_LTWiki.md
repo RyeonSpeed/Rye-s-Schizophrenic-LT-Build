@@ -4,7 +4,7 @@ This page provides information and resources needed to edit the LTWiki. New cont
 
 Regardless, you'll need a [Gitlab Account](https://gitlab.com/users/sign_in) in order to make edits to the wiki.
 
-# Beginner's Guide
+## Beginner's Guide
 
 To begin with, you should be signed into your [Gitlab Account](https://gitlab.com/users/sign_in).
 
@@ -52,20 +52,20 @@ Where you can fill out some more information on what you changed. Finally, click
 
 One of the owners of the repository will approve of your new article, and after that happens, it'll be there forever!
 
-# Advanced Contributors
+## Advanced Contributors
 
 If you're already a developer, then you should be generally aware of how to [fork projects](https://docs.gitlab.com/ee/user/project/repository/forking_workflow.html), how to clone projects, and make upstream merge requests from your own repository.
 
 The LT documentation is kept within the repository, in the `docs/` folder. The following commands assumes that the cwd is inside `docs/`.
 
-## Dependencies
+### Dependencies
 
 You can install the requirements for local compilation using `pip install -r requirements.txt`.
 
-## Compilation
+### Compilation
 
 Use the commands found in `instructions.md` to compile the documentation.
 
-## Editing
+### Editing
 
 The documentation source can be found in `source/`.

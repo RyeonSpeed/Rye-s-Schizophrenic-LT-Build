@@ -141,12 +141,16 @@ class LostOnEndCombat2(SkillComponent):
         "lost_on_enemy": ComponentType.Bool,
         "lost_on_splash": ComponentType.Bool,
     }
-    value = {
-        "lost_on_self": True,
-        "lost_on_ally": True,
-        "lost_on_enemy": True,
-        "lost_on_splash": True,
-    }
+
+    def __init__(self, value=None):
+        self.value = {
+            "lost_on_self": True,
+            "lost_on_ally": True,
+            "lost_on_enemy": True,
+            "lost_on_splash": True,
+        }
+        if value:
+            self.value.update(value)
 
     def post_combat(self, playback, unit, item, target, mode):
         from app.engine import skill_system
