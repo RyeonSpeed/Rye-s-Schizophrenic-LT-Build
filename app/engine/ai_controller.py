@@ -584,9 +584,9 @@ class PrimaryAI():
         offense_term += crit_term
         defense_term -= target_damage * target_accuracy * (1 - first_strike)
         if offense_term <= 0:
-            if lethality > 0 and DB.constants.value('attack_zero_hit'):
+            if accuracy <= 0 and DB.constants.value('attack_zero_hit'):
                 logging.info("Accuracy is bad, but continuing with stupid AI")
-            elif accuracy > 0 and DB.constants.value('attack_zero_dam'):
+            elif lethality <= 0 and DB.constants.value('attack_zero_dam'):
                 logging.info("Zero Damage, but continuing with stupid AI")
             else:
                 logging.info("Offense: %.2f, Defense: %.2f", offense_term, defense_term)

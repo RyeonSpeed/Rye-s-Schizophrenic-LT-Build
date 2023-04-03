@@ -139,7 +139,7 @@ class CombatChargeIncreaseByStat(SkillComponent):
 
 class GainMana(SkillComponent):
     nid = 'gain_mana'
-    desc = "Gain X Mana on use"
+    desc = "Gain mana at the beginning of each combat with a target."
     tag = SkillTags.CHARGE
     author = 'KD'
 

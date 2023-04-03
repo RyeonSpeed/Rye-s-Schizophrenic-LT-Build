@@ -643,8 +643,8 @@ class UIView():
             surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player)
 
         if a_assist:
-            if skill_system.attack_stance_double(a_assist):
-                surf.blit(SPRITES.get('x2'), x2_pos_player_partner)
+            if my_num != 1 and not DB.constants.value('limit_attack_stance'):
+                surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player_partner)
 
         # Enemy doubling
         eweapon = defender.get_weapon()
@@ -660,8 +660,8 @@ class UIView():
                 surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy)
 
             if d_assist:
-                if skill_system.attack_stance_double(d_assist):
-                    surf.blit(SPRITES.get('x2'), x2_pos_enemy_partner)
+                if e_num != 1 and not DB.constants.value('limit_attack_stance'):
+                    surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy_partner)
 
         # Turns off combat conditionals
         skill_system.test_off([], defender, defender.get_weapon(), attacker, 'defense')

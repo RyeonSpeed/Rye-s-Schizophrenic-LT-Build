@@ -157,7 +157,7 @@ class WitchWarpExpression(SkillComponent):
         for target in game.units:
             if target.position:
                 try:
-                    if evaluate.evaluate(self.value, target, position=target.position):
+                    if evaluate.evaluate(self.value, target, unit, target.position):
                         positions += target_system.get_adjacent_positions(target.position)
                 except Exception as e:
                     logging.error("Could not evaluate %s (%s)", self.value, e)

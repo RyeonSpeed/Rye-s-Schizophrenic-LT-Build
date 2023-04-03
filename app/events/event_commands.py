@@ -628,11 +628,12 @@ Moves the cursor to the map coordinate given by *Position*. The optional *Speed*
 Extra flags:
 
 1. *immediate*: Causes the cursor to immediately jump to the target coordinates.
+2. *no_block*: Event script will continue while cursor moves in background.
         """
 
     keywords = ["Position"]
     optional_keywords = ['Speed']
-    _flags = ["immediate"]
+    _flags = ["immediate", "no_block"]
 
 
 class CenterCursor(EventCommand):
@@ -642,11 +643,16 @@ class CenterCursor(EventCommand):
     desc = \
         """
 Similar to **move_cursor** except that it attempts to center the screen on the new cursor position to the greatest extent possible.
+
+Extra flags:
+
+1. *immediate*: Causes the cursor to immediately jump to the target coordinates.
+2. *no_block*: Event script will continue while cursor moves in background.
         """
 
     keywords = ["Position"]
     optional_keywords = ['Speed']
-    _flags = ["immediate"]
+    _flags = ["immediate", "no_block"]
 
 class FlickerCursor(EventCommand):
     nid = 'flicker_cursor'
@@ -1858,7 +1864,7 @@ If the *silent* flag is given, the unit will change class immediately into the s
         """
 
     keywords = ["GlobalUnit"]
-    optional_keywords = ["Klass"]
+    optional_keywords = ["KlassList"]
     _flags = ["silent"]
 
 class AddTag(EventCommand):
@@ -2447,9 +2453,9 @@ class RemoveTable(EventCommand):
 
     desc = \
     """
-    Remove a table created by the `Table` command.
+    Removes a GUI object created by the `Table` or `Textbox` command.
 
-    * *Nid* is the name of the table to be removed.
+    * *Nid* is the name of the object to be removed.
     """
 
     keywords = ['Nid']
@@ -2893,6 +2899,20 @@ class UnlockDifficulty(EventCommand):
 
     keywords = ['DifficultyMode']
     keyword_types = ['DifficultyMode']
+
+class Python(EventCommand):
+    nid = 'python'
+    tag = Tags.HIDDEN
+    special_handling = True
+
+    desc = "Executes the following lines in python. End with `end_python`"
+
+class EndPython(EventCommand):
+    nid = 'end_python'
+    tag = Tags.HIDDEN
+    special_handling = True
+
+    desc = "Ends a block of python code."
 
 def get_commands():
     return EventCommand.__subclasses__()

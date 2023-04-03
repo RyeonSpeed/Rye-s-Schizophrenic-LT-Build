@@ -41,7 +41,10 @@ class EnemyOversplash(Oversplash, SkillComponent):
 
 class SmartOversplash(Oversplash, SkillComponent):
     nid = 'smart_oversplash'
-    desc = "Grants unit +X area of effect for regular and blast items"
+    desc = """
+        Grants unit +X area of effect for regular and blast items. If the main target is an enemy, then splash will only affect enemies. 
+        The same holds true for allies.
+        """
 
     def alternate_splash(self, unit):
         from app.engine.item_components.aoe_components import SmartBlastAOE

@@ -532,8 +532,11 @@ def move_cursor(self: Event, position, speed=None, flags=None):
             duration = int(speed)
             self.game.camera.do_slow_pan(duration)
         self.game.camera.set_xy(*position)
-        self.game.state.change('move_camera')
-        self.state = 'paused'  # So that the message will leave the update loop
+        if 'no_block' in flags:
+            pass
+        else:
+            self.game.state.change('move_camera')
+            self.state = 'paused'  # So that the message will leave the update loop
 
 def center_cursor(self: Event, position, speed=None, flags=None):
     flags = flags or set()
@@ -553,8 +556,11 @@ def center_cursor(self: Event, position, speed=None, flags=None):
             duration = int(speed)
             self.game.camera.do_slow_pan(duration)
         self.game.camera.set_center(*position)
-        self.game.state.change('move_camera')
-        self.state = 'paused'  # So that the message will leave the update loop
+        if 'no_block' in flags:
+            pass
+        else:
+            self.game.state.change('move_camera')
+            self.state = 'paused'  # So that the message will leave the update loop
 
 def flicker_cursor(self: Event, position, flags=None):
     # This is a macro that just adds new commands to command list
@@ -2155,15 +2161,20 @@ def promote(self: Event, global_unit, klass_list=None, flags=None):
         self.game.state.change('transition_out')
         self.state = 'paused'
 
-def change_class(self: Event, global_unit, klass=None, flags=None):
+def change_class(self: Event, global_unit, klass_list=None, flags=None):
     flags = flags or set()
 
     unit = self._get_unit(global_unit)
     if not unit:
         self.logger.error("change_class: Couldn't find unit %s" % global_unit)
         return
-    if klass:
-        new_klass = klass
+    if klass_list:
+        s_klass = klass_list.split(',')
+        if len(s_klass) == 1:
+            new_klass = s_klass[0]
+        else:
+            self.game.memory['promo_options'] = s_klass
+            new_klass = None
     elif not unit.generic:
         unit_prefab = DB.units.get(unit.nid)
         if not unit_prefab.alternate_classes:
@@ -2171,8 +2182,11 @@ def change_class(self: Event, global_unit, klass=None, flags=None):
             return
         elif len(unit_prefab.alternate_classes) == 1:
             new_klass = unit_prefab.alternate_classes[0]
-        else:
+        else:  # Has many alternate classes
             new_klass = None
+    else:
+        self.logger.error("change_class: No available alternate classes for %s" % unit)
+        return
 
     if new_klass == unit.klass:
         self.logger.error("change_class: No need to change classes")
@@ -2954,7 +2968,6 @@ def text_entry(self: Event, nid, string, positive_integer=None, illegal_characte
     header = string
     limit = 16
     illegal_characters = []
-    force_entry = False
     if positive_integer:
         limit = int(positive_integer)
     if illegal_character_list:

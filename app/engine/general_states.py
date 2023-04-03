@@ -1082,7 +1082,7 @@ class MenuState(MapState):
             moves = target_system.get_valid_moves(self.cur_unit)
             game.highlight.display_moves(moves)
         game.highlight.display_aura_highlights(self.cur_unit)
-        self.menu = menus.Choice(self.cur_unit, options, info = info_descs)
+        self.menu = menus.Choice(self.cur_unit, options, info=info_descs)
         self.menu.set_limit(8)
         self.menu.set_color(['green' if option not in self.normal_options else None for option in options])
 

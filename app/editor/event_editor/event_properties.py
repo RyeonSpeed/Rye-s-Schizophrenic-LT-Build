@@ -1,45 +1,54 @@
-from app.editor.lib.components.validated_line_edit import NoParentheticalLineEdit
-from app.events.triggers import ALL_TRIGGERS
 import functools
 import logging
 import math
 import os
 import re
 from dataclasses import dataclass
-from app.extensions.markdown2 import Markdown
 
-from app.data.database.database import DB
-from app.events.regions import RegionType
-from app.editor import table_model, timer
-from app.editor.base_database_gui import CollectionModel
-from app.editor.event_editor import event_autocompleter, find_and_replace
-import app.editor.game_actions.game_actions as GAME_ACTIONS
-from app.editor.map_view import SimpleMapView
-from app.editor.settings import MainSettingsController
-from app.events import event_commands, event_prefab, event_validators
-from app.events.mock_event import IfStatementStrategy
-from app.extensions.custom_gui import (ComboBox, PropertyBox, PropertyCheckBox,
-                                       QHLine, TableView)
-from app.data.resources.resources import RESOURCES
-from app.utilities import str_utils
 from PyQt5.QtCore import (QRect, QRegularExpression, QSize,
-                          QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal)
+                          QSortFilterProxyModel, Qt,
+                          pyqtSignal)
 from PyQt5.QtGui import (QColor, QFont, QFontMetrics, QIcon, QPainter,
                          QPalette, QSyntaxHighlighter, QTextCharFormat,
                          QTextCursor)
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QApplication,
                              QCheckBox, QCompleter, QDialog, QFrame,
-                             QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListView,
-                             QMessageBox, QPlainTextEdit, QPushButton,
-                             QSizePolicy, QSpinBox, QSplitter, QStyle,
-                             QStyledItemDelegate, QTextEdit, QToolBar,
-                             QVBoxLayout, QWidget, QMenu, QHeaderView)
+                             QGridLayout, QHBoxLayout, QHeaderView, QLabel,
+                             QLineEdit, QListView, QMenu, QMessageBox,
+                             QPlainTextEdit, QPushButton, QSizePolicy,
+                             QSpinBox, QSplitter, QStyle, QStyledItemDelegate,
+                             QTextEdit, QToolBar, QVBoxLayout, QWidget)
+
+import app.editor.game_actions.game_actions as GAME_ACTIONS
+from app.data.database.database import DB
+from app.data.resources.resources import RESOURCES
+from app.editor import table_model, timer
+from app.editor.base_database_gui import CollectionModel
+from app.editor.event_editor import event_autocompleter, find_and_replace
+from app.editor.lib.components.validated_line_edit import \
+    NoParentheticalLineEdit
+from app.editor.map_view import SimpleMapView
+from app.editor.settings import MainSettingsController
+from app.events import event_commands, event_validators
+from app.events.mock_event import IfStatementStrategy
+from app.events.regions import RegionType
+from app.events.triggers import ALL_TRIGGERS
+from app.extensions.custom_gui import (ComboBox, PropertyBox, PropertyCheckBox,
+                                       QHLine, TableView)
+from app.extensions.markdown2 import Markdown
+from app.utilities import str_utils
 
 
 @dataclass
 class Rule():
     pattern: QRegularExpression
     _format: QTextCharFormat
+
+class HighlighterState():
+    EVENT_CODE = -1
+    PYTHON_CODE = 0
+    TRIPLE_SINGLE_QUOTES = 1
+    TRIPLE_DOUBLE_QUOTES = 2
 
 class Highlighter(QSyntaxHighlighter):
     def __init__(self, parent, window):
@@ -88,7 +97,26 @@ class Highlighter(QSyntaxHighlighter):
             QRegularExpression("#[^\n]*"), comment_format)
         self.highlight_rules.append(self.comment_rule)
 
-    def highlightBlock(self, text):
+        self.setCurrentBlockState(HighlighterState.EVENT_CODE)
+
+    def highlightBlock(self, text: str):
+        if text.startswith("python"):
+            self.setCurrentBlockState(HighlighterState.PYTHON_CODE)
+            self.highlightEventCode(text)
+        elif text.startswith("end_python"):
+            self.setCurrentBlockState(HighlighterState.EVENT_CODE)
+            self.highlightEventCode(text)
+        else:
+            if self.previousBlockState() == HighlighterState.EVENT_CODE:
+                self.highlightEventCode(text)
+            else:
+                self.highlightPython(text)
+            self.setCurrentBlockState(self.previousBlockState())
+
+    def highlightPython(self, text):
+        pass
+
+    def highlightEventCode(self, text):
         text = text.replace('\u2028', ' ')
         for rule in self.highlight_rules:
             match_iterator = rule.pattern.globalMatch(text)
@@ -206,7 +234,7 @@ class LineNumberArea(QWidget):
 
 class CodeEditor(QPlainTextEdit):
     clicked = pyqtSignal()
-    
+
     def mouseReleaseEvent(self, event):
         self.clicked.emit()
         return super().mouseReleaseEvent(event)
@@ -232,7 +260,7 @@ class CodeEditor(QPlainTextEdit):
         fm = QFontMetrics(self.font())
         self.setTabStopWidth(4 * fm.width(' '))
 
-        self.completer: event_autocompleter.Completer = None
+        self.completer: QCompleter = None
         self.function_annotator: QLabel = QLabel(self)
         self.markdown_converter: Markdown = Markdown()
 
@@ -240,7 +268,7 @@ class CodeEditor(QPlainTextEdit):
             return  # Event auto completer is turned off
         else:
             # completer
-            self.setCompleter(event_autocompleter.Completer(parent=self))
+            self.setCompleter(event_autocompleter.EventScriptCompleter(parent=self))
             self.textChanged.connect(self.complete)
             self.textChanged.connect(self.display_function_hint)
             self.clicked.connect(self.display_function_hint)
@@ -264,9 +292,20 @@ class CodeEditor(QPlainTextEdit):
 
     def insertCompletion(self, completion):
         tc = self.textCursor()
-        tc.movePosition(QTextCursor.StartOfWord)
-        tc.movePosition(QTextCursor.EndOfWord)
-        tc.select(QTextCursor.WordUnderCursor)
+        while not tc.atBlockEnd():
+            tc.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
+            if tc.selectedText() in ";,":
+                break
+            tc.clearSelection()
+        end = tc.position()
+        while not tc.atBlockStart():
+            tc.movePosition(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
+            if tc.selectedText() in ';,':
+                break
+            tc.clearSelection()
+        start = tc.position()
+        for i in range(start, end):
+            tc.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
         tc.removeSelectedText()
         tc.insertText(completion)
         self.setTextCursor(tc)
@@ -374,18 +413,6 @@ class CodeEditor(QPlainTextEdit):
         tc = self.textCursor()
         line = tc.block().text()
         cursor_pos = tc.positionInBlock()
-
-        def arg_text_under_cursor(text: str, cursor_pos):
-            before_text = text[0:cursor_pos]
-            after_text = text[cursor_pos:]
-            idx = before_text.rfind(';')
-            before_arg = before_text[idx + 1:]
-            idx = after_text.find(';')
-            after_arg = after_text[0:idx]
-            return (before_arg + after_arg)
-
-        arg_under_cursor = arg_text_under_cursor(line, cursor_pos)
-
         if len(line) != cursor_pos:
             return  # Only do autocomplete on end of line
         if tc.blockNumber() <= 0 and cursor_pos <= 0:  # Remove if cursor is at the very top left of event
@@ -398,26 +425,7 @@ class CodeEditor(QPlainTextEdit):
                 pass
             return
 
-        # determine what dictionary to use for completion
-        validator, flags = event_autocompleter.detect_type_under_cursor(line, cursor_pos, arg_under_cursor)
-        autofill_dict = event_autocompleter.generate_wordlist_from_validator_type(validator, self.window.current.level_nid, arg_under_cursor, DB, RESOURCES)
-        if flags:
-            autofill_dict = autofill_dict + event_autocompleter.generate_flags_wordlist(flags)
-        if len(autofill_dict) == 0:
-            try:
-                if self.completer.popup().isVisible():
-                    self.completer.popup().hide()
-            except: # popup doesn't exist?
-                pass
-            return
-        self.completer.setModel(QStringListModel(autofill_dict, self.completer))
-
-        # filter the dictionary and display the popup
-        completionPrefix = self.textUnderCursor()
-        self.completer.setCompletionPrefix(completionPrefix)
-        popup = self.completer.popup()
-        popup.setCurrentIndex(
-            self.completer.completionModel().index(0, 0))
+        self.completer.setTextToComplete(line, cursor_pos, self.window.current.level_nid)
         cr = self.cursorRect()
         cr.setWidth(
             self.completer.popup().sizeHintForColumn(0) + self.completer.popup().verticalScrollBar().sizeHint().width())
@@ -803,11 +811,11 @@ class EventProperties(QWidget):
 
         # Text setup
         self.cursor = self.text_box.textCursor()
-        self.font = QFont()
-        self.font.setFamily("Courier")
-        self.font.setFixedPitch(True)
-        self.font.setPointSize(10)
-        self.text_box.setFont(self.font)
+        self.code_font = QFont()
+        self.code_font.setFamily("Courier")
+        self.code_font.setFixedPitch(True)
+        self.code_font.setPointSize(10)
+        self.text_box.setFont(self.code_font)
         self.highlighter = Highlighter(self.text_box.document(), self)
 
         main_section = QVBoxLayout()

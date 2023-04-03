@@ -221,6 +221,15 @@ class SupportController():
         aff2_nid = unit2.affinity
         aff1 = DB.affinities.get(aff1_nid)
         aff2 = DB.affinities.get(aff2_nid)
+        
+        # Check affinities exist before proceeding
+        if not aff1:
+            logging.error("%s is not a valid affinity", aff1_nid)
+            return SupportEffect()
+        if not aff2:
+            logging.error("%s is not a valid affinity", aff2_nid)
+            return SupportEffect()
+
         aff1_bonus = None
         aff2_bonus = None
         for support_rank_bonus in aff1.bonus:

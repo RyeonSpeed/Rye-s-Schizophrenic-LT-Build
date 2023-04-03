@@ -799,6 +799,10 @@ def get_palette(anim_prefab: CombatAnimation, unit) -> tuple:
         idx = palette_names.index(unit.nid)
         palette_name = unit.nid
         palette_nid = palette_nids[idx]
+    elif unit.variant and unit.variant in palette_names:
+        idx = palette_names.index(unit.variant)
+        palette_name = unit.variant
+        palette_nid = palette_nids[idx]
     elif team_palette in palette_names:
         idx = palette_names.index(team_palette)
         palette_name = team_palette

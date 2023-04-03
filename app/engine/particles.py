@@ -136,7 +136,7 @@ class MapParticleSystem(SimpleParticleSystem):
         for particle in remove:
             self.particle_pool.release(particle)
 
-        if len(self.particles) < self.abundance:
+        while len(self.particles) < self.abundance:
             self.generate_new_particle()    
 
         if self.abundance <= 0 and not self.particles:
@@ -239,11 +239,11 @@ class Fire(Particle):
         surf.blit(self.sprite, (self.x, self.y))
 
 class Snow(Particle):
-    sprite = SPRITES.get('particle_snow')
+    full_sprite = SPRITES.get('particle_snow')
 
     def reset(self, pos):
         super().reset(pos)
-        self.sprite = engine.subsurface(self.sprite, (0, random.randint(0, 2) * 8, 8, 8))
+        self.sprite = engine.subsurface(self.full_sprite, (0, random.randint(0, 2) * 8, 8, 8))
         speeds = [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5]
         self.y_speed = random.choice(speeds)
         x_speeds = speeds[:speeds.index(self.y_speed) + 1]

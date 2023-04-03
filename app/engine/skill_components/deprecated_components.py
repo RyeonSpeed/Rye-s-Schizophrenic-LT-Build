@@ -7,7 +7,7 @@ from app.engine import action
 class LostOnEndCombat(SkillComponent):
     nid = 'lost_on_end_combat'
     desc = "Remove after combat"
-    tag = SkillTags.HIDDEN
+    tag = SkillTags.DEPRECATED
 
     expose = (ComponentType.MultipleOptions)
 
@@ -49,7 +49,7 @@ class LostOnEndCombat(SkillComponent):
 class CombatArtSetMaxRange(SkillComponent):
     nid = 'combat_art_set_max_range'
     desc = "Defines what unit's max range is for testing combat art. Combine with 'Limit Max Range' component on subskill."
-    tag = SkillTags.HIDDEN
+    tag = SkillTags.DEPRECATED
     paired_with = ('combat_art', )
 
     expose = ComponentType.Int
@@ -60,7 +60,7 @@ class CombatArtSetMaxRange(SkillComponent):
 class CombatArtModifyMaxRange(SkillComponent):
     nid = 'combat_art_modify_max_range'
     desc = "Modifies unit's max range when testing combat art. Combine with 'Modify Max Range' component on subskill."
-    tag = SkillTags.HIDDEN
+    tag = SkillTags.DEPRECATED
     paired_with = ('combat_art', )
 
     expose = ComponentType.Int

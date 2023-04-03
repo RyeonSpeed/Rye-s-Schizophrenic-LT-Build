@@ -87,7 +87,8 @@ def camel_case(s: str) -> str:
     return functools.reduce(lambda a, b: a + ((b.upper() == b and (a and a[-1].upper() != a[-1])) and (' ' + b) or b), s, '')
 
 def ignore_numbers(s: str) -> str:
-    return ''.join([c for c in s if not c.isdigit()])
+    s = ''.join([c for c in s if not c.isdigit()])
+    return s.strip()
 
 def camel_to_snake(name: str) -> str:
     """

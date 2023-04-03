@@ -207,7 +207,10 @@ class ClassChangeChoiceState(PromotionChoiceState):
     name = 'class_change_choice'
 
     def _get_choices(self):
-        if not self.unit.generic:
+        if game.memory.get('promo_options', None):
+            self.class_options = game.memory['promo_options']
+            game.memory['promo_options'] = None
+        elif not self.unit.generic:
             unit_prefab = DB.units.get(self.unit.nid)
             self.class_options = [c for c in unit_prefab.alternate_classes if c != self.unit.klass]
         else:  # Just every class, lol?
