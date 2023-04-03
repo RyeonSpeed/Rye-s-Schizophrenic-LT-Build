@@ -200,6 +200,14 @@ class TraversableTargetRestrict(ItemComponent):
             if game.movement.check_traversable(unit, def_pos):
                 return True
         return False
+        
+class IgnoreLineOfSight(ItemComponent):
+    nid = 'ignore_line_of_sight'
+    desc = 'Item ignores line of sight rules even when line of sight constant is enabled.'
+    tag = ItemTags.TARGET
+    
+    def ignore_line_of_sight(self, unit, item) -> bool:
+        return True
 
 class MinimumRange(ItemComponent):
     nid = 'min_range'

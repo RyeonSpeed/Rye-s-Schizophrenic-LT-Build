@@ -449,7 +449,7 @@ class PrimaryAI():
 
             # Check line of sight
             line_of_sight_flag = True
-            if DB.constants.value('line_of_sight'):
+            if DB.constants.value('line_of_sight') and not item_system.ignore_line_of_sight(self.unit, item):
                 item_range = item_funcs.get_range(self.unit, item)
                 if item_range:
                     max_item_range = max(item_range)
