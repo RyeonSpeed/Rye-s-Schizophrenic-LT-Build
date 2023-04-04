@@ -14,7 +14,7 @@ from app.editor import timer
 
 from app.extensions.custom_gui import PropertyBox, ComboBox, Dialog, RightClickListView
 from app.editor.base_database_gui import DragDropCollectionModel
-from app.editor.custom_widgets import UnitBox, ClassBox, FactionBox, AIBox, ObjBox, RoamAIBox
+from app.editor.custom_widgets import CustomQtRoles, UnitBox, ClassBox, FactionBox, AIBox, ObjBox, RoamAIBox
 from app.editor.class_editor import class_model
 from app.editor.item_editor import item_model
 from app.editor.unit_editor import unit_tab
@@ -173,9 +173,11 @@ class UnitPainterMenu(QWidget):
                 unit.ai_group = old_unit_ai_group
 
 
-class AllUnitModel(DragDropCollectionModel):
+class LevelUnitModel(DragDropCollectionModel):
+    allow_delete_last_obj = True
+
     def data(self, index, role):
-        if not index.isValid():
+        if not index.isValid() or index.row() >= len(self._data):
             return None
         if role == Qt.DisplayRole:
             unit = self._data[index.row()]
@@ -214,8 +216,11 @@ class AllUnitModel(DragDropCollectionModel):
                 return QBrush(QColor("cyan"))
             else:
                 return QBrush(QColor("red"))
+        elif role == CustomQtRoles.UnderlyingDataRole:
+            return self._data[index.row()]
         return None
 
+class AllUnitModel(LevelUnitModel):
     def delete(self, idx):
         # check to make sure nothing else is using me!!
         unit = self._data[idx]

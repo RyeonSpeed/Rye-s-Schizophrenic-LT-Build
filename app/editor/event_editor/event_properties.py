@@ -38,6 +38,9 @@ from app.extensions.custom_gui import (ComboBox, PropertyBox, PropertyCheckBox,
 from app.extensions.markdown2 import Markdown
 from app.utilities import str_utils
 
+from app.data.database.levels import LevelPrefab
+from app.editor.custom_widgets import TilemapBox
+
 
 @dataclass
 class Rule():
@@ -1067,12 +1070,17 @@ class EventProperties(QWidget):
         self.close_commands()
 
 class ShowMapDialog(QDialog):
-    def __init__(self, current_level, parent=None):
+    def __init__(self, current_level: LevelPrefab, parent=None):
         super().__init__(parent)
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.setWindowTitle("Level Map View")
         self.window = parent
         self.current_level = current_level
+
+        self.map_selector = TilemapBox(self)
+        self.map_selector.edit.activated.connect(self.select_current)
+        if self.current_level and self.current_level.tilemap:
+            self.map_selector.edit.setCurrentIndex(self.map_selector.edit.findText(self.current_level.tilemap))
 
         self.map_view = SimpleMapView(self)
         self.map_view.position_clicked.connect(self.position_clicked)
@@ -1085,10 +1093,20 @@ class ShowMapDialog(QDialog):
 
         layout = QVBoxLayout()
         self.setLayout(layout)
+        layout.addWidget(self.map_selector)
         layout.addWidget(self.map_view)
         layout.addWidget(self.position_edit, Qt.AlignRight)
 
         timer.get_timer().tick_elapsed.connect(self.map_view.update_view)
+
+    def select_current(self):
+        tilemap_nid = self.map_selector.edit.currentText()
+        if tilemap_nid == self.current_level.tilemap:
+            self.map_view.set_current_level(self.current_level)
+        else:
+            tilemap = RESOURCES.tilemaps.get(tilemap_nid)
+            if tilemap:
+                self.map_view.set_current_map(tilemap)
 
     def position_clicked(self, x, y):
         self.window.insert_text("%d,%d" % (x, y))
