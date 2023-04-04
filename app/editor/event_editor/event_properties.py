@@ -428,7 +428,8 @@ class CodeEditor(QPlainTextEdit):
                 pass
             return
 
-        self.completer.setTextToComplete(line, cursor_pos, self.window.current.level_nid)
+        if not self.completer.setTextToComplete(line, cursor_pos, self.window.current.level_nid):
+            return
         cr = self.cursorRect()
         cr.setWidth(
             self.completer.popup().sizeHintForColumn(0) + self.completer.popup().verticalScrollBar().sizeHint().width())

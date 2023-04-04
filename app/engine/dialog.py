@@ -278,11 +278,16 @@ class Dialog():
         elif command == '{tgs}':
             self.should_speak_sound = not self.should_speak_sound
         elif command == ' ':  # Check to see if we should move to next line
-            current_line = self.text_lines[-1]
-            # Remove any commands from line
-            current_line = re.sub(r'\{[^}]*\}', '', current_line)
+            # Wow this is cursed
+            # Basically, we need to make sure we are using 
+            # a fixed tags version of what the dialog would look like,
+            # if the next word was added to the current line (self.text_lines[-1])
             next_word = self._get_next_word(self.text_index)
-            next_width = text_width(self.font_type, current_line + ' ' + next_word)
+            test_lines = self.text_lines[:-1] + [self.text_lines[-1] + ' ' + next_word]
+            test_line = fix_tags(test_lines)[-1]
+            # Remove any commands from line
+            test_line = re.sub(r'\{[^}]*\}', '', test_line)
+            next_width = text_width(self.font_type, test_line)
             if next_width > self.text_width:
                 self._next_line()
             else:
@@ -307,7 +312,8 @@ class Dialog():
                 if letter.startswith('{'):
                     break
                 elif letter.startswith('<'):
-                    continue
+                    # continue
+                    word += letter
             else:
                 word += letter
         return word
