@@ -133,7 +133,7 @@ def get_attacks(unit: UnitObject, item: ItemObject = None, force=False) -> set:
 
     return attacks
     
-def get_all_attacks(unit, valid_moves, items) -> (set, int):
+def _get_all_attacks(unit, valid_moves, items) -> (set, int):
     attacks = set()
     max_range = 0
     for item in items:
@@ -154,14 +154,19 @@ def get_all_attacks(unit, valid_moves, items) -> (set, int):
                 attacks |= get_shell(valid_moves, item_range, game.board.bounds, manhattan_restriction)
     return (attacks, max_range)
     
-
 def _get_possible_attacks(unit, valid_moves, items):
-    items_std = [item for item in items if not item_system.ignore_line_of_sight(unit, item)]
-    items_ignore_los = [item for item in items if item_system.ignore_line_of_sight(unit, item)]
-    attacks, max_range = get_all_attacks(unit, valid_moves, items_std)
+    items_standard, items_ignore_los = [], []
+    for item in items:
+        (items_standard, items_ignore_los)[item_system.ignore_line_of_sight(unit, item)].append(item)
+    # First get all attacks by items that obey line of sight
+    attacks, max_range = _get_all_attacks(unit, valid_moves, items_standard)
+    # max_range is used only for making line of sight calculation faster
+    # Filter away those that aren't in line of sight
     if DB.constants.value('line_of_sight'):
-        attacks = set(line_of_sight.line_of_sight(valid_moves, attacks, max_range))      
-    attacks |= get_all_attacks(unit, valid_moves, items_ignore_los)[0]
+        attacks = set(line_of_sight.line_of_sight(valid_moves, attacks, max_range))
+    # Now get all attacks by items that ignore line of sight
+    attacks2, _ = _get_all_attacks(unit, valid_moves, items_ignore_los)
+    attacks |= attacks2
     return attacks
 
 def get_possible_attacks(unit, valid_moves) -> set:

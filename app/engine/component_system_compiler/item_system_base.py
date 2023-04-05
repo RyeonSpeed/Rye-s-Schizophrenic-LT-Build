@@ -423,22 +423,6 @@ def can_unlock(unit, item, region) -> bool:
             if component.can_unlock(unit, item, region):
                 return True
     return False
-    
-def ignore_line_of_sight(unit, item) -> bool:
-    """
-    If any hook reports true, then it is true
-    """
-    all_components = get_all_components(unit, item)
-    for component in all_components:
-        if component.defines('ignore_line_of_sight'):
-            if component.ignore_line_of_sight(unit, item):
-                return True
-    if item.parent_item:
-        for component in item.parent_item.components:
-            if component.defines('ignore_line_of_sight'):
-                if component.ignore_line_of_sight(unit, item.parent_item):
-                    return True
-    return False
 
 def init(item):
     """
