@@ -477,7 +477,7 @@ class ConstantDatabase(DatabaseTab):
         misc_constants = ('game_nid', 'title', 'num_save_slots', 'sell_modifier', 'glancing_hit')
         misc_section = self.create_section(misc_constants)
         misc_section.setTitle("Miscellaneous Constants")
-        music_constants = ('music_main', 'music_promotion', 'music_class_change')
+        music_constants = ('music_main', 'music_promotion', 'music_class_change', 'music_game_over')
         music_section = self.create_section(music_constants)
         music_section.setTitle("Music Constants")
 

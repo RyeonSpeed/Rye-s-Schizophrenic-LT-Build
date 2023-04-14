@@ -1,5 +1,4 @@
 from app.utilities.typing import NID
-import os
 from typing import Set, List
 import pygame
 
@@ -37,7 +36,7 @@ class MusicDict(dict):
                 return None
         return self[val]
 
-    def clear(self, song_to_keep: NID=None):
+    def clear(self, song_to_keep: NID = None):
         if not song_to_keep:
             super().clear()
         else:
@@ -96,12 +95,13 @@ class Channel():
             pass
         if self.state in ("fade_out", "crossfade_out"):
             progress = utils.clamp((current_time - self.last_update) / self.fade_out_time, 0, 1)
-            # logging.debug("Progress: %s", progress)
+            # logging.debug("Fade out progress of %s: %s", self.nid, progress)
             if self.state == 'fade_out':
                 self.local_volume = 1 - progress
             elif self.state == 'crossfade_out':
                 self.crossfade_volume = 1 - progress
             self.reset_volume()
+            # logging.debug("Volume of %s: %s", self.nid, self._channel.get_volume())
             if progress >= 1:
                 if self.state == 'fade_out':
                     # logging.debug('%s Paused from %s', self.nid, self.last_state)
@@ -122,11 +122,13 @@ class Channel():
                     self.last_state = "playing"
         if self.state in ("fade_in", "crossfade_in"):
             progress = utils.clamp((current_time - self.last_update) / self.fade_in_time, 0, 1)
+            # logging.debug("Fade in progress of %s: %s", self.nid, progress)
             if self.state == 'fade_in':
                 self.local_volume = progress
             elif self.state == 'crossfade_in':
                 self.crossfade_volume = progress
             self.reset_volume()
+            # logging.debug("Volume of %s: %s", self.nid, self._channel.get_volume())
             if progress >= 1:
                 self.state = "playing"
                 self.last_state = "playing"
@@ -227,7 +229,7 @@ class Channel():
         self.reset_volume()
 
     def reset_volume(self):
-        volume = self.crossfade_volume * self.local_volume * self.global_volume
+        volume = utils.clamp(self.crossfade_volume * self.local_volume * self.global_volume, 0, 1)
         self._channel.set_volume(volume)
 
 class ChannelPair():
@@ -494,6 +496,11 @@ class SoundController():
             self.song_stack.append(next_song)
             # Clear the oldest channel and use it
             self.set_next_song(next_song, num_plays, fade_in)
+            if is_playing:
+                pass
+            else:
+                next_song.channel.fade_in()
+                self.fade_out_start = 0
 
         return self.song_stack[-1]
 

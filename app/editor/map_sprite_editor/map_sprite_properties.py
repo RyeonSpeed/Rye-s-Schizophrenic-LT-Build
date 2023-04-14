@@ -153,19 +153,19 @@ class MapSpriteProperties(QWidget):
 
     def draw_frame(self):
         if self.left_arrow.isChecked():
-            num = timer.get_timer().active_counter.count
+            num = timer.get_timer().move_sprite_counter.count
             frame = self.current.moving_pixmap.copy(num*48, 40, 48, 40)
         elif self.right_arrow.isChecked():
-            num = timer.get_timer().active_counter.count
+            num = timer.get_timer().move_sprite_counter.count
             frame = self.current.moving_pixmap.copy(num*48, 80, 48, 40)
         elif self.up_arrow.isChecked():
-            num = timer.get_timer().active_counter.count
+            num = timer.get_timer().move_sprite_counter.count
             frame = self.current.moving_pixmap.copy(num*48, 120, 48, 40)
         elif self.down_arrow.isChecked():
-            num = timer.get_timer().active_counter.count
+            num = timer.get_timer().move_sprite_counter.count
             frame = self.current.moving_pixmap.copy(num*48, 0, 48, 40)
         elif self.focus.isChecked():
-            num = timer.get_timer().passive_counter.count
+            num = timer.get_timer().active_counter.count
             frame = self.current.standing_pixmap.copy(num*64, 96, 64, 48)
         else:
             num = timer.get_timer().passive_counter.count

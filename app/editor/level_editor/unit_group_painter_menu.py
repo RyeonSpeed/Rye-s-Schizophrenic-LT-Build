@@ -299,7 +299,7 @@ class GroupUnitModel(DragDropCollectionModel):
                 return None
         elif role == Qt.ForegroundRole:
             unit_nid = self._data[index.row()]
-            if unit_nid in self.positions:
+            if unit_nid in self.positions and self.positions[unit_nid]:
                 return QBrush(QApplication.palette().text().color())
             else:
                 return QBrush(QColor("red"))

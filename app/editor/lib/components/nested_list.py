@@ -102,7 +102,6 @@ class LTNestedList(QWidget):
 
         self.tree_widget = QTreeWidget()
         self.build_tree_widget(self.tree_widget, list_entries, list_categories)
-        self.tree_widget.itemClicked.connect(self.on_tree_item_click)
         layout.addWidget(self.tree_widget)
 
         self.new_item_button = QPushButton("Create New")
@@ -123,11 +122,10 @@ class LTNestedList(QWidget):
         self.disturbed_category = item
 
     def on_filter_list_click(self, e):
-        if self.on_click_item:
-            self.on_click_item(e.text())
-
-    def on_tree_item_click(self, item_clicked):
-        self.select_item(item_clicked)
+        item_nid = e.text()
+        tree_item = self.find_item_by_nid(item_nid)
+        if tree_item:
+            self.select_item(tree_item)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
@@ -179,6 +177,7 @@ class LTNestedList(QWidget):
         tree_widget.customContextMenuRequested.connect(self.customMenuRequested)
         tree_widget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         tree_widget.itemChanged.connect(self.data_changed)
+        tree_widget.selectionModel().selectionChanged.connect(self.on_tree_item_selected)
 
     def on_filter_changed(self, text: str):
         if text:
@@ -283,17 +282,25 @@ class LTNestedList(QWidget):
         if isinstance(item, NID):
             item = self.find_item_by_nid(item)
         if item:
-            nid = item.text(0)
-            is_category = item.data(0, IsCategoryRole)
+            self.tree_widget.selectionModel().clearSelection()
             item.setSelected(True)
             self.tree_widget.scrollToItem(item)
-            if not is_category and self.on_click_item:
-                self.on_click_item(nid)
-            elif is_category and self.on_click_item:
-                self.on_click_item(None)
         else:
             if self.on_click_item:
                 self.on_click_item(None)
+
+    def on_tree_item_selected(self, selection: Optional[QItemSelection]):
+        if not self.on_click_item:
+            return
+        if not selection or not selection.indexes():
+            self.on_click_item(None)
+            return
+        nid = selection.indexes()[0].data()
+        is_category = selection.indexes()[0].data(IsCategoryRole)
+        if not is_category:
+            self.on_click_item(nid)
+        elif is_category:
+            self.on_click_item(None)
 
     def on_drag_drop(self, event):
         self.tree_widget.originalDropEvent(event)

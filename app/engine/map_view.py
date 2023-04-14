@@ -62,7 +62,7 @@ class MapView():
                         (cull_rect[0] - TILEWIDTH*2 < (unit.position or unit.sprite.fake_position)[0] * TILEWIDTH < cull_rect[0] + cull_rect[2] + TILEWIDTH*2 and
                          cull_rect[1] - TILEHEIGHT*2 < (unit.position or unit.sprite.fake_position)[1] * TILEHEIGHT < cull_rect[1] + cull_rect[3] + TILEHEIGHT*2)]
         if game.level_vars.get('_fog_of_war') or game.board.fog_region_set:
-            culled_units = [unit for unit in culled_units if game.board.in_vision(unit.position or unit.sprite.fake_position)]
+            culled_units = [unit for unit in culled_units if game.board.in_vision(unit.sprite.get_round_fake_pos() or unit.position)]
         draw_units = sorted(culled_units, key=lambda unit: unit.position[1] if unit.position else unit.sprite.fake_position[1])
 
         topleft = cull_rect[0], cull_rect[1]

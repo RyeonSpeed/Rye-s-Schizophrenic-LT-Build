@@ -65,7 +65,7 @@ class EventScriptCompleter(QCompleter):
             return False
         self.setModel(QStringListModel(autofill_dict, self))
         trimmed_line = line[0:cursor_pos]
-        start_last_arg = max(max([trimmed_line.rfind(c) for c in ';,']), 0)
+        start_last_arg = max(max([trimmed_line.rfind(c) for c in ';,']), -1)
         completionPrefix = trimmed_line[start_last_arg + 1:]
         self.setCompletionPrefix(completionPrefix)
         self.popup().setCurrentIndex(self.completionModel().index(0, 0))

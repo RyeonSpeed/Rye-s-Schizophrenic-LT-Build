@@ -322,6 +322,19 @@ class UnitSprite():
         self.update_transition()
         self.health_bar.update()
 
+        # update animations
+        self.animations = {k: v for (k, v) in self.animations.items() if not v.update()}
+
+        # update personal particles
+        self.particles = [ps for ps in self.particles if not ps.remove_me_flag]
+        for particle_system in self.particles:
+            particle_system.update()
+
+        # update damage numbers
+        self.damage_numbers = [d for d in self.damage_numbers if not d.done]
+        for damage_num in self.damage_numbers:
+            damage_num.update()
+
     def update_state(self):
         if self.state == 'normal':
             if self.unit.finished and not self.unit.is_dying:
@@ -527,22 +540,17 @@ class UnitSprite():
         # Draw animations
 
         valid_anims: list = skill_system.should_draw_anim(self.unit)
-        self.animations = {k: v for (k, v) in self.animations.items() if not v.update()}
         for animation in self.animations.values():
             if not animation.contingent or animation.nid in valid_anims:
                 animation.draw(surf, (left, anim_top))
 
         # Draw personal particles
-        self.particles = [ps for ps in self.particles if not ps.remove_me_flag]
         for particle_system in self.particles:
-            particle_system.update()
             particle_system.draw(surf, cull_rect[0], cull_rect[1])
 
         # Draw damage numbers
         for damage_num in self.damage_numbers:
-            damage_num.update()
             damage_num.draw(surf, (left + 4, anim_top))
-        self.damage_numbers = [d for d in self.damage_numbers if not d.done]
 
         return surf
 

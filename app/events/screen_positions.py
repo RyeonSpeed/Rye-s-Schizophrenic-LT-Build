@@ -19,6 +19,7 @@ vertical_screen_positions = {'Top': 0,
 def parse_screen_position(pos) -> tuple:
     x, y = 0, 0
     mirror = False
+    pos = pos.replace(')', '').replace('(', '')
     if pos and ',' in pos:
         split_pos = pos.split(',')
         # Handle first part of tuple

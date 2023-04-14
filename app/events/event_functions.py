@@ -231,18 +231,37 @@ def mirror_portrait(self: Event, portrait, flags=None):
     if not portrait:
         return False
 
-    self.portraits[name] = \
+    flipped_portrait = \
         EventPortrait(
             self.portraits[name].portrait,
             self.portraits[name].position,
             self.portraits[name].priority,
             False, None, not self.portraits[name].mirror, name)
 
-    if 'no_block' in flags or self.do_skip:
-        pass
+    if self.do_skip:
+        self.portraits[name] = flipped_portrait
     else:
-        self.wait_time = engine.get_time() + portrait.transition_speed + 33
-        self.state = 'waiting'
+        if 'fade' in flags:
+            # Removal of portrait also happens
+            commands = []
+            commands.append(event_commands.RemovePortrait({'Portrait': name}, {'no_block'}))
+            command_flags = set()
+            if not self.portraits[name].mirror:
+                command_flags.add("mirror")
+            if 'no_block' in flags:
+                command_flags.add("no_block")
+            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': str(self.portraits[name].position)}, command_flags))
+            for command in reversed(commands):
+                # Done backwards to preserve order upon insertion
+                self.commands.insert(self.command_idx + 1, command)
+        else:
+            # Immediate removal followed by a transition in
+            self.portraits[name] = flipped_portrait
+            if 'no_block' in flags:
+                pass
+            else:
+                self.wait_time = engine.get_time() + portrait.transition_speed + 33
+                self.state = 'waiting'
 
 def bop_portrait(self: Event, portrait, flags=None):
     flags = flags or set()
@@ -964,6 +983,12 @@ def add_unit(self: Event, unit, position=None, entry_type=None, placement=None, 
     if unit.dead:
         self.logger.error("add_unit: Unit is dead!")
         return
+    # If the unit is already on the map as a traveler
+    for u in self.game.get_all_units():
+        if u.traveler == unit.nid:
+            self.logger.error("add_unit: Unit is already traveling with %s", u.nid)
+            return
+
     if position:
         position = self._parse_pos(position)
     else:
@@ -2988,7 +3013,7 @@ def chapter_title(self: Event, music=None, string=None, flags=None):
     self.game.state.change('chapter_title')
     self.state = 'paused'
 
-def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None, animation=None, flags=None):
+def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None, animation=None, speed=None, flags=None):
     flags = flags or set()
 
     name = nid
@@ -3001,6 +3026,10 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
         z = int(z_level)
     anim_dir = animation
 
+    anim_speed = 1000
+    if speed:
+        anim_speed = int(speed)
+
     sprite = SPRITES.get(sprite_nid)
     component = UIComponent.from_existing_surf(sprite)
     component.name = name
@@ -3008,10 +3037,10 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
     x, y = pos
     if anim_dir:
         if anim_dir == 'fade':
-            enter_anim = fade_anim(0, 1, 1000)
-            exit_anim = fade_anim(1, 0, 1000)
+            enter_anim = fade_anim(0, 1, anim_speed)
             component.margin = (x, 0, y, 0)
         else:
+            start_x, start_y = 0, 0
             if anim_dir == 'west':
                 start_x = -component.width
                 start_y = y
@@ -3024,13 +3053,14 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
             elif anim_dir == 'south':
                 start_x = x
                 start_y = WINHEIGHT
-            enter_anim = translate_anim((start_x, start_y), (x, y), 750, interp_mode=InterpolationType.CUBIC)
-            exit_anim = translate_anim((x, y), (start_x, start_y), 750, disable_after=True, interp_mode=InterpolationType.CUBIC)
+            enter_anim = translate_anim((start_x, start_y), (x, y), anim_speed, interp_mode=InterpolationType.CUBIC)
         component.save_animation(enter_anim, '!enter')
-        component.save_animation(exit_anim, '!exit')
     else:
         component.margin = (x, 0, y, 0)
-    self.overlay_ui.add_child(component)
+    if 'foreground' in self.overlay_ui:
+        self.foreground_overlay_ui.add_child(component)
+    else:
+        self.overlay_ui.add_child(component)
     if self.do_skip:
         component.enable()
         return
@@ -3038,22 +3068,57 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
         component.enter()
 
     if anim_dir and 'no_block' not in flags:
-        self.wait_time = engine.get_time() + 750
+        self.wait_time = engine.get_time() + anim_speed
         self.state = 'waiting'
 
-def remove_overlay_sprite(self: Event, nid, flags=None):
+def remove_overlay_sprite(self: Event, nid, animation=None, speed=None, flags=None):
     flags = flags or set()
-    component = self.overlay_ui.get_child(nid)
-    if component:
-        if self.do_skip:
-            self.overlay_ui._should_redraw = True
-            component.disable()
+    if 'foreground' in flags:
+        component = self.foreground_overlay_ui.get_child(nid)
+    else:
+        component = self.overlay_ui.get_child(nid)
+    if not component:
+        return
+
+    anim_speed = 1000
+    if speed:
+        anim_speed = int(speed)
+
+    if animation:
+        if animation == 'fade':
+            exit_anim = fade_anim(1, 0, anim_speed)
         else:
-            self.overlay_ui._should_redraw = True
-            component.exit()
-            if component.is_animating() and 'no_block' not in flags:
-                self.wait_time = engine.get_time() + 750
-                self.state = 'waiting'
+            curr_x, curr_y = component.offset
+            end_x, end_y = 0, 0
+            if animation == 'west':
+                end_x = -component.width
+                end_y = curr_y
+            elif animation == 'east':
+                end_x = WINWIDTH
+                end_y = curr_y
+            elif animation == 'north':
+                end_x = curr_x
+                end_y = -component.height
+            elif animation == 'south':
+                end_x = curr_x
+                end_y = WINHEIGHT
+            exit_anim = translate_anim((curr_x, curr_y), (end_x, end_y), anim_speed, disable_after=True, interp_mode=InterpolationType.CUBIC)
+        component.save_animation(exit_anim, '!exit')
+
+    if 'foreground' in flags:
+        overlay_ui = self.foreground_overlay_ui
+    else:
+        overlay_ui = self.overlay_ui
+
+    if self.do_skip:
+        overlay_ui._should_redraw = True
+        component.disable()
+    else:
+        overlay_ui._should_redraw = True
+        component.exit()
+        if component.is_animating() and 'no_block' not in flags:
+            self.wait_time = engine.get_time() + anim_speed
+            self.state = 'waiting'
 
 def alert(self: Event, string, item=None, skill=None, icon=None, flags=None):
     if item and item in DB.items.keys():
@@ -3357,7 +3422,7 @@ def complete_achievement(self: Event, achievement: str, completed: str, flags=No
 
         get_sound_thread().play_sfx("Item", volume=0.5)
 
-        self.overlay_ui.add_child(component)
+        self.foreground_overlay_ui.add_child(component)
         if self.do_skip:
             component.enable()
             return
@@ -3371,11 +3436,11 @@ def complete_achievement(self: Event, achievement: str, completed: str, flags=No
         # Remember to remove the command eventually
         anim_nid = 'achievement_notification_' + nid
         if self.do_skip:
-            remove_overlay_sprite(self, anim_nid)
+            remove_overlay_sprite(self, anim_nid, flags={'foreground'})
         else:
             self.wait_time = engine.get_time() + 2000
             self.state = 'waiting'
-            remove_overlay_sprite_command = event_commands.RemoveOverlaySprite({'Nid': anim_nid})
+            remove_overlay_sprite_command = event_commands.RemoveOverlaySprite({'Nid': anim_nid}, flags={'foreground'})
             self.commands.insert(self.command_idx + 1, remove_overlay_sprite_command)
 
 def clear_achievements(self: Event, flags=None):

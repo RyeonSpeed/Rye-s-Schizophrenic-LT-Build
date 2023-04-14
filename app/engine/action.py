@@ -668,6 +668,7 @@ class Rescue(Action):
         self.unit = unit
         self.rescuee = rescuee
         self.old_pos = self.rescuee.position
+        self.update_fow_rescuee = UpdateFogOfWar(self.rescuee)
         self.subactions = []
 
     def do(self):
@@ -684,6 +685,7 @@ class Rescue(Action):
 
         for action in self.subactions:
             action.do()
+        self.update_fow_rescuee.do()
 
     def execute(self):
         self.unit.traveler = self.rescuee.nid
@@ -694,6 +696,7 @@ class Rescue(Action):
 
         for action in self.subactions:
             action.execute()
+        self.update_fow_rescuee.execute()
 
     def reverse(self):
         self.rescuee.position = self.old_pos
@@ -701,6 +704,7 @@ class Rescue(Action):
         self.unit.traveler = None
         self.unit.has_rescued = False
 
+        self.update_fow_rescuee.reverse()
         for action in self.subactions:
             action.reverse()
 
@@ -823,6 +827,7 @@ class PairUp(Action):
         self.old_pos = self.unit.position
         self.unit_gauge = self.unit.get_guard_gauge()
         self.target_gauge = self.target.get_guard_gauge()
+        self.update_fow_unit = UpdateFogOfWar(self.unit)
         self.subactions = []
 
     def do(self):
@@ -844,6 +849,7 @@ class PairUp(Action):
 
         for action in self.subactions:
             action.do()
+        self.update_fow_unit.do()
 
     def execute(self):
         self.target.traveler = self.unit.nid
@@ -859,6 +865,7 @@ class PairUp(Action):
 
         for action in self.subactions:
             action.execute()
+        self.update_fow_unit.execute()
 
     def reverse(self):
         self.unit.position = self.old_pos
@@ -874,8 +881,10 @@ class PairUp(Action):
         self.unit.set_guard_gauge(self.unit_gauge)
         self.target.set_guard_gauge(self.target_gauge)
 
+        self.update_fow_unit.reverse()
         for action in self.subactions:
             action.reverse()
+        self.unit.sprite.change_state('normal')
 
 
 class SwapPaired(Action):

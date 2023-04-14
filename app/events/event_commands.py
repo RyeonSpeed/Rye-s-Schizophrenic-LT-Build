@@ -432,7 +432,7 @@ The direction of the portrait is flipped across the Y axis.
         """
 
     keywords = ['Portrait']
-    _flags = ["no_block"]
+    _flags = ["no_block", "fade"]
 
 class Expression(EventCommand):
     nid = "expression"
@@ -2501,15 +2501,20 @@ class DrawOverlaySprite(EventCommand):
 """
 Draws a sprite on the screen at the specified position. Position defaults to 0, 0.
 Will always draw immediately behind the dialog.
-You can control the order that multiple siimultaneous overlays are drawn by choosing a custom z-level.
+You can control the order that multiple simultaneous overlays are drawn by choosing a custom z-level.
 Higher z-level sprites will cover lower z-level sprites occupying the same positions.
 
+*Speed* indicates the duration of the transition.
+
 Can choose to animate the sprite in and out.
+
+*foreground* flag indicates the overlay sprite will be placed above EVERY other drawable in the event
 """
 
     keywords = ["Nid", "SpriteID"]
-    optional_keywords = ["Position", "ZLevel", "Animation"]
-    keyword_types = ["Nid", "Sprite", "PositionOffset", "Integer", "AnimationType"]
+    optional_keywords = ["Position", "ZLevel", "Animation", "Speed"]
+    keyword_types = ["Nid", "Sprite", "PositionOffset", "Integer", "AnimationType", "Speed"]
+    _flags = ["no_block", "foreground"]
 
 class RemoveOverlaySprite(EventCommand):
     nid = 'remove_overlay_sprite'
@@ -2519,9 +2524,16 @@ class RemoveOverlaySprite(EventCommand):
     desc = \
 """
 Removes an overlay sprite with the given name from the screen.
+
+*Speed* indicates the duration of the transition.
+
+Can choose to animate the sprite in and out.
 """
 
     keywords = ['Nid']
+    optional_keywords = ['Animation', 'Speed']
+    keyword_types = ["Nid", "AnimationType", "Speed"]
+    _flags = ["no_block", "foreground"]
 
 class Alert(EventCommand):
     nid = 'alert'

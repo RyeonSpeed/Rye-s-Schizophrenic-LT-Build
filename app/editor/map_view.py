@@ -410,14 +410,15 @@ class NewMapView(SimpleMapView):
                 current_unit = self.main_editor.group_painter_menu.get_current_unit()
                 if current_unit and current_unit.nid in current_group.positions:
                     coord = current_group.positions.get(current_unit.nid)
-                    cursor_sprite = SPRITES['cursor']
-                    if cursor_sprite:
-                        if not cursor_sprite.pixmap:
-                            cursor_sprite.pixmap = QPixmap(
-                                cursor_sprite.full_path)
-                        cursor_image = cursor_sprite.pixmap.toImage().copy(0, 64, 32, 32)
-                        painter.drawImage(
-                            coord[0] * TILEWIDTH - 8, coord[1] * TILEHEIGHT - 5, cursor_image)
+                    if coord:
+                        cursor_sprite = SPRITES['cursor']
+                        if cursor_sprite:
+                            if not cursor_sprite.pixmap:
+                                cursor_sprite.pixmap = QPixmap(
+                                    cursor_sprite.full_path)
+                            cursor_image = cursor_sprite.pixmap.toImage().copy(0, 64, 32, 32)
+                            painter.drawImage(
+                                coord[0] * TILEWIDTH - 8, coord[1] * TILEHEIGHT - 5, cursor_image)
             painter.end()
 
     def paint_regions(self):

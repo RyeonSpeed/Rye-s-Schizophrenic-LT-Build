@@ -121,7 +121,7 @@ class UIView():
 
         # === Final drawing
         # Should be in topleft, unless cursor is in topleft, in which case it should be in bottomleft
-        if self.unit_info_disp:
+        if game.state.current() in self.legal_states and self.unit_info_disp:
             # If in top and not in right
             if not DB.constants.value('initiative') or not game.initiative.draw_me:
                 if self.remove_unit_info:

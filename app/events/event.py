@@ -58,6 +58,8 @@ class Event():
         self.other_boxes: List[Tuple[NID, Any]] = []
         self.overlay_ui = uif.UIComponent.create_base_component()
         self.overlay_ui.name = self.nid
+        self.foreground_overlay_ui = uif.UIComponent.create_base_component()
+        self.foreground_overlay_ui.name = self.nid
 
         self.prev_state = None
         self.state = 'processing'
@@ -273,6 +275,10 @@ class Event():
             s = engine.create_surface((WINWIDTH, WINHEIGHT), transparent=True)
             s.fill((*self.transition_color, int(255 * self.transition_progress)))
             surf.blit(s, (0, 0))
+
+        # draw all achievements
+        ui_surf = self.foreground_overlay_ui.to_surf()
+        surf.blit(ui_surf, (0, 0))
 
         return surf
 

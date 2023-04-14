@@ -30,7 +30,7 @@ class ObjectiveMenuState(State):
     def get_surfaces(self) -> list:
         surfaces = []
 
-        name_back_surf = SPRITES.get('chapter_select_green')
+        name_back_surf = SPRITES.get('chapter_select_green').copy()
         # Text
         big_font = FONT['chapter-green']
         center = (name_back_surf.get_width()//2, name_back_surf.get_height()//2 - big_font.height//2)
