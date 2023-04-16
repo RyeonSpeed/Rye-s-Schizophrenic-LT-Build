@@ -244,6 +244,7 @@ class TitleMainState(State):
         suspend = save.SaveSlot(save.SUSPEND_LOC, None)
         logging.info("Loading suspend...")
         save.load_game(game, suspend)
+        save.remove_suspend()
 
     def draw(self, surf):
         if self.bg:
@@ -724,7 +725,9 @@ class TitleExtrasState(TitleLoadState):
         self.bg = game.memory['title_bg']
         self.particles = game.memory['title_particles']
 
-        options = ['Options', 'Credits', 'Sound Room']
+        options = ['Options', 'Credits']
+        if DB.constants.value('title_sound'):
+            options.append('Sound Room')
         if ACHIEVEMENTS:
             options.insert(1, 'Achievements')
         if cf.SETTINGS['debug']:

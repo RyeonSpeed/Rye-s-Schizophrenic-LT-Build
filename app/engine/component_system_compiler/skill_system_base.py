@@ -345,34 +345,58 @@ def init(skill):
         if component.defines('init'):
             component.init(skill)
 
-def on_add(unit, skill):
+def before_add(unit, skill):
     for component in skill.components:
-        if component.defines('on_add'):
-            component.on_add(unit, skill)
+        if component.defines('before_add'):
+            component.before_add(unit, skill)
     for other_skill in unit.skills:
         for component in other_skill.components:
-            if component.defines('on_gain_skill'):
-                component.on_gain_skill(unit, skill)
+            if component.defines('before_gain_skill'):
+                component.before_gain_skill(unit, skill)
 
-def on_remove(unit, skill):
+def after_add(unit, skill):
     for component in skill.components:
-        if component.defines('on_remove'):
-            component.on_remove(unit, skill)
+        if component.defines('after_add'):
+            component.after_add(unit, skill)
+    for other_skill in unit.skills:
+        for component in other_skill.components:
+            if component.defines('after_gain_skill'):
+                component.after_gain_skill(unit, skill)
 
-def re_add(unit, skill):
+def before_remove(unit, skill):
     for component in skill.components:
-        if component.defines('re_add'):
-            component.re_add(unit, skill)
+        if component.defines('before_remove'):
+            component.before_remove(unit, skill)
 
-def on_true_remove(unit, skill):
+def after_remove(unit, skill):
+    for component in skill.components:
+        if component.defines('after_remove'):
+            component.after_remove(unit, skill)
+
+def after_add_from_restore(unit, skill):
+    for component in skill.components:
+        if component.defines('after_add_from_restore'):
+            component.after_add_from_restore(unit, skill)
+
+def before_true_remove(unit, skill):
     """
-    This one does not intrinsically interact with the turnwheel
+    This does not intrinsically interact with the turnwheel
     It only fires when the skill is actually removed for the first time
     Not on execute or reverse
     """
     for component in skill.components:
-        if component.defines('on_true_remove'):
-            component.on_true_remove(unit, skill)
+        if component.defines('before_true_remove'):
+            component.before_true_remove(unit, skill)
+
+def after_true_remove(unit, skill):
+    """
+    This does not intrinsically interact with the turnwheel
+    It only fires when the skill is actually removed for the first time
+    Not on execute or reverse
+    """
+    for component in skill.components:
+        if component.defines('after_true_remove'):
+            component.after_true_remove(unit, skill)
 
 def get_text(skill) -> str:
     for component in skill.components:

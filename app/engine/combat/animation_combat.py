@@ -1,3 +1,5 @@
+import random
+
 import logging
 
 import app.engine.config as cf
@@ -644,6 +646,7 @@ class AnimationCombat(BaseCombat, MockCombat):
 
     def _handle_playback(self, sound=True):
         hp_brushes = ('damage_hit', 'damage_crit', 'heal_hit')
+        _, _, defender, _, _ = self.get_actors()
         for brush in self.playback:
             if brush.nid in hp_brushes:
                 self.last_update = engine.get_time()
@@ -651,8 +654,10 @@ class AnimationCombat(BaseCombat, MockCombat):
                 self.handle_damage_numbers(brush)
             elif brush.nid == 'hit_sound' and sound and not brush.map_only:
                 play_sound = brush.sound
-                if sound == 'Attack Miss 2':
+                if play_sound == 'Attack Miss 2':
                     play_sound = 'Miss'  # Replace with miss sound
+                if self.special_boss_crit(defender, after_attack=True) and play_sound.startswith('Attack Hit'):
+                    play_sound = 'Critical Hit ' + str(random.randint(1, 2))
                 get_sound_thread().play_sfx(play_sound)
 
     def _apply_actions(self):
@@ -849,11 +854,11 @@ class AnimationCombat(BaseCombat, MockCombat):
         return True
     add_proc_icon.memory = {}
 
-    def special_boss_crit(self, defender):
+    def special_boss_crit(self, defender, after_attack=False):
         return DB.constants.value('boss_crit') and \
             self.get_from_playback('mark_hit') and \
             'Boss' in defender.tags and \
-            self.get_damage() >= defender.get_hp()
+            (defender.get_hp() <= 0 if after_attack else self.get_damage() >= defender.get_hp())
 
     def set_up_combat_animation(self):
         self.state = 'anim'

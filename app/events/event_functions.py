@@ -86,7 +86,7 @@ def change_music(self: Event, phase, music, flags=None):
     else:
         action.do(action.ChangePhaseMusic(phase, music))
 
-def add_portrait(self: Event, portrait, screen_position, slide=None, expression_list=None, speed_mult=1, flags=None):
+def add_portrait(self: Event, portrait, screen_position, slide=None, expression_list=None, speed_mult=None, flags=None):
     flags = flags or set()
 
     name = portrait
@@ -119,7 +119,7 @@ def add_portrait(self: Event, portrait, screen_position, slide=None, expression_
     transition = True
     if 'immediate' in flags or self.do_skip:
         transition = False
-
+    speed_mult = speed_mult or 1
     speed_mult = 1 / max(speed_mult, 0.001)
 
     new_portrait = EventPortrait(portrait, position, priority, transition,
@@ -3057,7 +3057,7 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=None
         component.save_animation(enter_anim, '!enter')
     else:
         component.margin = (x, 0, y, 0)
-    if 'foreground' in self.overlay_ui:
+    if 'foreground' in flags:
         self.foreground_overlay_ui.add_child(component)
     else:
         self.overlay_ui.add_child(component)

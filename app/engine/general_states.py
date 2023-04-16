@@ -1549,6 +1549,10 @@ class ItemDiscardState(MapState):
             self.pennant = banner.Pennant('Choose item to discard')
 
     def begin(self):
+        if self.check_locked_inventory():
+            game.state.back()
+            game.state.change('alert')
+            return 'repeat'
         self.menu.update_options(self.cur_unit.items)
         ignore = [bool(item_system.locked(self.cur_unit, item)) for item in self.cur_unit.items]
         self.menu.set_ignore(ignore)
@@ -1556,6 +1560,27 @@ class ItemDiscardState(MapState):
         if not item_funcs.too_much_in_inventory(self.cur_unit):
             game.state.back()
             return 'repeat'
+            
+    def check_locked_inventory(self) -> bool:
+        locked_items = [item for item in self.cur_unit.items if item_system.locked(self.cur_unit, item) and not item_system.is_accessory(self.cur_unit, item)]
+        if len(locked_items) > item_funcs.get_num_items(self.cur_unit):
+            if game.game_vars.get('_convoy'):
+                game.alerts.append(banner.SentToConvoy(locked_items[-1]))
+                action.do(action.StoreItem(self.cur_unit, locked_items[-1]))
+            else:
+                game.alerts.append(banner.LostItem(locked_items[-1]))
+                action.do(action.RemoveItem(self.cur_unit, locked_items[-1]))
+            return True
+        locked_accessories = [item for item in self.cur_unit.items if item_system.locked(self.cur_unit, item) and item_system.is_accessory(self.cur_unit, item)]
+        if len(locked_accessories) > item_funcs.get_num_accessories(self.cur_unit):
+            if game.game_vars.get('_convoy'):
+                game.alerts.append(banner.SentToConvoy(locked_accessories[-1]))
+                action.do(action.StoreItem(self.cur_unit, locked_accessories[-1]))
+            else:
+                game.alerts.append(banner.LostItem(locked_accessories[-1]))
+                action.do(action.RemoveItem(self.cur_unit, locked_accessories[-1]))
+            return True
+        return False
 
     def take_input(self, event):
         first_push = self.fluid.update()

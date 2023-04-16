@@ -220,15 +220,19 @@ class UnitObject(Prefab):
                 self.calculate_needed_wexp_from_items()
 
             # Handle skills
+            all_skills = []
             global_skills = unit_funcs.get_global_skills(self)
-            self.skills += global_skills
+            all_skills += global_skills
             personal_skills = unit_funcs.get_personal_skills(self, prefab)
-            self.skills += personal_skills
+            all_skills += personal_skills
             class_skills = unit_funcs.get_starting_skills(self)
-            self.skills += class_skills
+            all_skills += class_skills
             if self.generic:
                 generic_skills = item_funcs.create_skills(self, prefab.starting_skills)
-                self.skills += generic_skills
+                all_skills += generic_skills
+            for skill in all_skills:
+                skill_system.before_add(self, skill)
+                self.skills.append(skill)
 
         klass = DB.classes.get(self.klass)
         if klass.tier == 0:
@@ -276,7 +280,7 @@ class UnitObject(Prefab):
 
         # equip items and skill after initialization
         for skill in self.skills:
-            skill_system.on_add(self, skill)
+            skill_system.after_add(self, skill)
 
         # -- Equipped Items
         self.autoequip()
@@ -784,7 +788,7 @@ class UnitObject(Prefab):
         # Maybe move to movement manager?
 
         for skill in self.skills:
-            skill_system.re_add(self, skill)
+            skill_system.after_add_from_restore(self, skill)
 
         return self
 

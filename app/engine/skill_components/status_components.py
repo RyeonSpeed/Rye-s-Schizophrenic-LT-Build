@@ -162,13 +162,13 @@ class ResistStatus(SkillComponent):
     desc = "Unit is only affected by statuses for a turn"
     tag = SkillTags.STATUS
 
-    def on_add(self, unit, skill):
+    def before_add(self, unit, skill):
         for skill in unit.skills:
-            if skill.time:
+            if skill.time or skill.end_time or skill.combined_time:
                 action.do(action.SetObjData(skill, 'turns', min(skill.data['turns'], 1)))
 
-    def on_gain_skill(self, unit, other_skill):
-        if other_skill.time:
+    def before_gain_skill(self, unit, other_skill):
+        if other_skill.time or other_skill.end_time or other_skill.combined_time:
             action.do(action.SetObjData(other_skill, 'turns', min(other_skill.data['turns'], 1)))
 
 class ImmuneStatus(SkillComponent):
@@ -176,12 +176,12 @@ class ImmuneStatus(SkillComponent):
     desc = "Unit is not affected by negative statuses"
     tag = SkillTags.STATUS
 
-    def on_add(self, unit, skill):
+    def after_add(self, unit, skill):
         for skill in unit.skills:
             if skill.negative:
                 action.do(action.RemoveSkill(unit, skill))
 
-    def on_gain_skill(self, unit, other_skill):
+    def after_gain_skill(self, unit, other_skill):
         if other_skill.negative:
             action.do(action.RemoveSkill(unit, other_skill))
 
@@ -190,7 +190,7 @@ class ReflectStatus(SkillComponent):
     desc = "Unit reflects statuses back to initiator"
     tag = SkillTags.STATUS
 
-    def on_gain_skill(self, unit, other_skill):
+    def after_gain_skill(self, unit, other_skill):
         if other_skill.initiator_nid:
             other_unit = game.get_unit(other_skill.initiator_nid)
             if other_unit:

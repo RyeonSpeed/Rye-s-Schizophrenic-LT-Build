@@ -12,13 +12,13 @@ class UnitAnim(SkillComponent):
 
     expose = ComponentType.MapAnimation
 
-    def on_add(self, unit, skill):
+    def after_add(self, unit, skill):
         unit.sprite.add_animation(self.value, contingent=True)
 
-    def re_add(self, unit, skill):
+    def after_add_from_restore(self, unit, skill):
         unit.sprite.add_animation(self.value, contingent=True)
 
-    def on_remove(self, unit, skill):
+    def after_remove(self, unit, skill):
         unit.sprite.remove_animation(self.value)
 
     def should_draw_anim(self, unit, skill):
@@ -131,13 +131,13 @@ class ChangeVariant(SkillComponent):
     expose = ComponentType.String
     value = ''
 
-    def on_add(self, unit, skill):
+    def after_add(self, unit, skill):
         unit.sprite.load_sprites()
 
-    def re_add(self, unit, skill):
+    def after_add_from_restore(self, unit, skill):
         unit.sprite.load_sprites()
 
-    def on_remove(self, unit, skill):
+    def after_remove(self, unit, skill):
         unit.sprite.load_sprites()
 
     def change_variant(self, unit):

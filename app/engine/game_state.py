@@ -252,7 +252,12 @@ class GameState():
         for unit in self.current_level.units:
             self.full_register(unit)
         for unit in self.current_level.units:
-            self.arrive(unit)
+            # Only let unit's that have a VALID position spawn onto the map
+            if unit.position and self.current_level.tilemap.check_bounds(unit.position):
+                self.arrive(unit)
+            else:
+                logging.warning("Unit %s's position not on map. Removing...", unit.nid)
+                unit.position = None
 
         # Handle initiative
         if DB.constants.value('initiative'):

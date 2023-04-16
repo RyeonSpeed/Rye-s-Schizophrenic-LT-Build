@@ -228,19 +228,23 @@ class PropertiesMenu(QWidget):
         elif key == 'loss':
             self.current.objective[key] = self.loss_condition.edit.text()
 
+    def check_positions(self, tilemap):
+        # Tilemap is the tilemap itself, not a nid
+        # Reset the positions of units who are now off the side of the map
+        for unit in self.current.units:
+            if unit.starting_position:
+                if unit.starting_position[0] >= tilemap.width or unit.starting_position[1] >= tilemap.height:
+                    unit.starting_position = None
+        # Reset any illegal positions for groups
+        for group in self.current.unit_groups:
+            group.positions = {k: v for k, v in group.positions.items() if v[0] < tilemap.width and v[1] < tilemap.height}
+
     def select_tilemap(self):
         res, ok = tile_tab.get_tilemaps()
         if ok and res:
             nid = res.nid
             self.current.tilemap = nid
-            # Reset the positions of units who are now off the side of the map
-            for unit in self.current.units:
-                if unit.starting_position:
-                    if unit.starting_position[0] >= res.width or unit.starting_position[1] >= res.height:
-                        unit.starting_position = None
-            # Reset any illegal positions for groups
-            for group in self.current.unit_groups:
-                group.positions = {k: v for k, v in group.positions.items() if v[0] < res.width and v[1] < res.height}
+            self.check_positions(res)
             self.state_manager.change_and_broadcast('ui_refresh_signal', None)
 
     def select_bg_tilemap(self):

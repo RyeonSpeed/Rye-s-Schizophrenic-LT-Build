@@ -203,7 +203,7 @@ class EventOnRemove(SkillComponent):
 
     expose = ComponentType.Event
 
-    def on_true_remove(self, unit, skill):
+    def after_true_remove(self, unit, skill):
         event_prefab = DB.events.get_from_nid(self.value)
         if event_prefab:
             game.events.trigger_specific_event(event_prefab.nid, unit)

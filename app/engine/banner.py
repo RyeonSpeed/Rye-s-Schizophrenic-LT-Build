@@ -109,6 +109,15 @@ class SentToConvoy(Banner):
         self.text = '<{item_color}>{item_name}</> sent to convoy.'.format(item_color=item_color, item_name=item.name)
         self.figure_out_size()
         self.sound = 'Item'
+        
+class LostItem(Banner):
+    def __init__(self, item: ItemObject):
+        super().__init__()
+        self.item = item
+        item_color = item_system.text_color(None, item) if item_system.text_color(None, item) else 'blue'
+        self.text = '<{item_color}>{item_name}</> was discarded.'.format(item_color=item_color, item_name=item.name)
+        self.figure_out_size()
+        self.sound = 'ItemBreak'
 
 class BrokenItem(Banner):
     def __init__(self, unit: UnitObject, item: ItemObject):

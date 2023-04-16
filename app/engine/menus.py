@@ -1137,15 +1137,19 @@ class Table(Simple):
         old_index = self.current_index
         row, col = self._true_coords(old_index)
         idx = old_index
+        num_rows = math.ceil(len(self.options) / self.columns)
         while True:
             col += 1
             if self._exists(row, col):
                 pass
             elif idx >= len(self.options) - 1:
                 break  # Don't move right because we are on the last row
-            elif row < self.rows - 1:
+            elif row < num_rows - 1:
                 row += 1
                 col = 0
+                if row > self.scroll + self.rows - 2:
+                    self.scroll += 1
+                    self.scroll = utils.clamp(self.scroll, 0, max(0, num_rows - self.rows))
             else:
                 # Set to most recent good option
                 idx = max(i for i in range(len(self.options)) if not self.options[idx].ignore)
@@ -1170,6 +1174,9 @@ class Table(Simple):
             elif row > 0:
                 row -= 1
                 col = self._get_right(row)
+                if row < self.scroll + 1:
+                    self.scroll -= 1
+                    self.scroll = max(0, self.scroll)
             else:
                 # Set to most recent good option
                 idx = min(i for i in range(len(self.options)) if not self.options[idx].ignore)
