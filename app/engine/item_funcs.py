@@ -75,17 +75,6 @@ def repair_price(unit, item):
         repair_cost = math.ceil(charges_used * cost_per_charge)
     return int(repair_cost)
 
-# def can_wield(unit, item) -> bool:
-#     weapon = item_system.is_weapon(unit, item)
-#     spell = item_system.is_weapon(unit, item)
-#     avail = available(unit, item)
-#     if (weapon or spell):
-#         if avail:
-#             return True
-#         else:
-#             return False
-#     return True
-
 def create_item(unit, item_nid, droppable=False, parent: ItemObject = None) -> ItemObject:
     item_prefab = DB.items.get(item_nid)
     if not item_prefab:

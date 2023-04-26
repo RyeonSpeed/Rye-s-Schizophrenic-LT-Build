@@ -36,6 +36,7 @@ class Event():
 
         self.background = None
 
+        self.trigger = trigger
         event_args = trigger.to_args()
         self.unit = event_args.get('unit1', None)
         self.unit2 = event_args.get('unit2', None)
@@ -377,7 +378,7 @@ class Event():
         if command.nid == 'if':
             self.logger.info('%s: %s, %s', command.nid, command.parameters, command.chosen_flags)
             if not self.if_stack or self.if_stack[-1]:
-                truth = self._get_truth(command)
+                truth = self._get_truth(command)                
                 self.if_stack.append(truth)
                 self.parse_stack.append(truth)
             else:

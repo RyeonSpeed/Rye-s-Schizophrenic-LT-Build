@@ -656,8 +656,13 @@ class AnimationCombat(BaseCombat, MockCombat):
                 play_sound = brush.sound
                 if play_sound == 'Attack Miss 2':
                     play_sound = 'Miss'  # Replace with miss sound
-                if self.special_boss_crit(defender, after_attack=True) and play_sound.startswith('Attack Hit'):
-                    play_sound = 'Critical Hit ' + str(random.randint(1, 2))
+                if self.special_boss_crit(defender, after_attack=True):
+                    if play_sound.startswith('Attack Hit'):
+                        play_sound = 'Critical Hit ' + str(random.randint(1, 2))
+                    elif play_sound.startswith('Final Hit'):
+                        new_sound = 'Critical Hit ' + str(random.randint(1, 2))
+                        get_sound_thread().play_sfx(new_sound)
+
                 get_sound_thread().play_sfx(play_sound)
 
     def _apply_actions(self):

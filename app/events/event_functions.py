@@ -366,7 +366,10 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
             continue
         text = text.replace(block, '{p}', 1)  # Replace first instance
         # Done backwards to preserve order
-        self._queue_command('unpause;%s' % speaker)
+        if speaker:
+            self._queue_command('unpause;%s' % speaker)
+        else:
+            self._queue_command('unpause')
         self._queue_command(event_command_str)
 
     if text_position:
@@ -472,13 +475,19 @@ def unhold(self: Event, nid, flags=None):
         if box.style_nid == nid:
             box.hold = False
 
-def unpause(self: Event, nid, flags=None):
-    for box in reversed(self.text_boxes):
-        if box.speaker == nid:
-            box.command_unpause()
-            break
+def unpause(self: Event, nid=None, flags=None):
+    if nid is None and self.text_boxes:
+        # Just remove the most recent text box
+        box = self.text_boxes[-1]
+        box.command_unpause()
+    
     else:
-        self.logger.warning("Did not find any text box with speaker: %s", nid)
+        for box in reversed(self.text_boxes):
+            if box.speaker == nid:
+                box.command_unpause()
+                break
+        else:
+            self.logger.warning("Did not find any text box with speaker: %s", nid)
     self.state = 'dialog'
 
 def transition(self: Event, direction=None, speed=None, color3=None, flags=None):
@@ -738,6 +747,12 @@ def battle_save(self: Event, flags=None):
 
 def clear_turnwheel(self: Event, flags=None):
     self.game.action_log.set_first_free_action()
+
+def stop_turnwheel_recording(self: Event, flags=None):
+    self.game.action_log.stop_recording()
+
+def start_turnwheel_recording(self: Event, flags=None):
+    self.game.action_log.start_recording()
 
 def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None, flags=None):
     """

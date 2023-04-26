@@ -324,7 +324,7 @@ class GameState():
         self.boundary = boundary.BoundaryInterface(tilemap.width, tilemap.height)
 
     def save(self):
-        self.action_log.record = False
+        self.action_log.stop_recording()
 
         s_dict = {'units': [unit.save() for unit in self.unit_registry.values()],
                   'items': [item.save() for item in self.item_registry.values()],
@@ -372,7 +372,7 @@ class GameState():
             meta_dict['level_nid'] = None
             meta_dict['level_title'] = 'Overworld'
 
-        self.action_log.record = True
+        self.action_log.start_recording()
         return s_dict, meta_dict
 
     def load(self, s_dict):

@@ -6,7 +6,7 @@ from app.data.resources.icons import Icon, IconSheet
 class IconView(QGraphicsView):
     min_scale = 0.5
     max_scale = 5
-    static_size = None
+    static_size = False
 
     def __init__(self, parent=None):
         super().__init__(parent)

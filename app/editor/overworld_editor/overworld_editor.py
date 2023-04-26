@@ -1,10 +1,11 @@
 import math
 from collections import namedtuple
 from enum import Enum
-from typing import Tuple
+from typing import Optional, Tuple
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
+from app import dark_theme
 
 from app.data.database.database import DB
 # Data
@@ -431,12 +432,9 @@ class OverworldEditor(QMainWindow):
         self.back_to_main_act = QAction(
             "Back", self, shortcut="E", triggered=self.navigate_to_global)
 
-    def set_icons(self):
-        theme = self.settings.get_theme(0)
-        if theme == 0:
-            icon_folder = 'icons/icons'
-        else:
-            icon_folder = 'icons/dark_icons'
+    def set_icons(self, force_theme: Optional[dark_theme.ThemeType] = None):
+        theme = dark_theme.get_theme(force_theme)
+        icon_folder = theme.icon_dir()
         self.zoom_in_act.setIcon(QIcon(f'{icon_folder}/zoom_in.png'))
         self.zoom_out_act.setIcon(QIcon(f'{icon_folder}/zoom_out.png'))
         self.back_to_main_act.setIcon(QIcon(f'{icon_folder}/left_arrow.png'))

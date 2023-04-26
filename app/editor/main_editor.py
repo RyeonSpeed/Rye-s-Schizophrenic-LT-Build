@@ -2,13 +2,14 @@ import logging
 import os
 import sys
 import functools
+from typing import Optional
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QMenu, QMessageBox, \
     QDesktopWidget, \
     QToolButton, QWidgetAction, QStackedWidget
 from PyQt5.QtGui import QIcon
 
-from app import autoupdate
+from app import autoupdate, dark_theme
 
 from app.editor.settings import MainSettingsController
 
@@ -69,6 +70,7 @@ from app.editor.support_editor import support_pair_tab
 from app.editor.portrait_editor.portrait_tab import PortraitDatabase
 from app.editor.panorama_editor.panorama_tab import PanoramaDatabase
 from app.editor.map_sprite_editor.map_sprite_tab import MapSpriteDatabase
+from app.editor.map_animation_editor.map_animation_tab import MapAnimationDatabase
 
 __version__ = VERSION
 
@@ -161,15 +163,9 @@ class MainEditor(QMainWindow):
             self.window_title = title + ' -- LT Maker %s' % (__version__)
         self.setWindowTitle(self.window_title)
 
-    def set_icons(self, force_theme=None):
-        if force_theme is None:
-            theme = self.settings.get_theme(0)
-        else:
-            theme = force_theme
-        if theme == 0:
-            icon_folder = 'icons/icons'
-        else:
-            icon_folder = 'icons/dark_icons'
+    def set_icons(self, force_theme: Optional[dark_theme.ThemeType] = None):
+        theme = dark_theme.get_theme(force_theme)
+        icon_folder = theme.icon_dir()
 
         self.new_act.setIcon(QIcon(f'{icon_folder}/file-plus.png'))
         self.open_act.setIcon(QIcon(f'{icon_folder}/folder.png'))
@@ -255,7 +251,7 @@ class MainEditor(QMainWindow):
 
         resource_actions = {"Icons": self.edit_icons,
                             "Portraits": PortraitDatabase.edit,
-                            # "Map Animations": AnimationDatabase.edit_resource,
+                            "Map Animations": MapAnimationDatabase.edit,
                             "Backgrounds": PanoramaDatabase.edit,
                             "Map Sprites": MapSpriteDatabase.edit,
                             "Combat Animations": self.edit_combat_animations,
@@ -379,7 +375,7 @@ class MainEditor(QMainWindow):
     def closeEvent(self, event):
         if self.project_save_load_handler.maybe_save():
             logging.info("Setting current project %s" %
-                  self.settings.get_current_project())
+                         self.settings.get_current_project())
             self.settings.set_current_project(
                 self.settings.get_current_project())
             event.accept()
@@ -460,7 +456,7 @@ class MainEditor(QMainWindow):
             title = os.path.split(self.settings.get_current_project())[-1]
             self.set_window_title(title)
             logging.info("Loaded project from %s" %
-                  self.settings.get_current_project())
+                         self.settings.get_current_project())
             self.status_bar.showMessage(
                 "Loaded project from %s" % self.settings.get_current_project())
             # Return to global
@@ -477,7 +473,7 @@ class MainEditor(QMainWindow):
         title = os.path.split(self.settings.get_current_project())[-1]
         self.set_window_title(title)
         logging.info("Loaded project from %s" %
-              self.settings.get_current_project())
+                     self.settings.get_current_project())
         self.status_bar.showMessage(
             "Loaded project from %s" % self.settings.get_current_project())
         # Return to global

@@ -3217,7 +3217,7 @@ def do(action):
     game.action_log.action_depth += 1
     action.do()
     game.action_log.action_depth -= 1
-    if game.action_log.record and game.action_log.action_depth <= 0:
+    if game.action_log.is_recording() and game.action_log.action_depth <= 0:
         game.action_log.append(action)
 
 
@@ -3225,7 +3225,7 @@ def execute(action):
     game.action_log.action_depth += 1
     action.execute()
     game.action_log.action_depth -= 1
-    if game.action_log.record and game.action_log.action_depth <= 0:
+    if game.action_log.is_recording() and game.action_log.action_depth <= 0:
         game.action_log.append(action)
 
 
@@ -3236,7 +3236,7 @@ def reverse(action):
     # game.action_log.action_depth += 1
     # action.reverse()
     # game.action_log.action_depth -= 1
-    if game.action_log.record and game.action_log.action_depth <= 0:
+    if game.action_log.is_recording() and game.action_log.action_depth <= 0:
         # Handles reversing the action
         game.action_log.hard_remove(action)
     else: # Right now, this section will never happen

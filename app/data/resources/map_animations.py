@@ -1,11 +1,12 @@
 from app.utilities import str_utils
 from app.data.resources.base_catalog import ManifestCatalog
 
-class Animation():
-    def __init__(self, nid, full_path=None):
+class MapAnimation():
+    def __init__(self, nid, full_path=None, pixmap=None):
         self.nid = nid
         self.full_path = full_path
         self.image = None
+        self.pixmap = pixmap
 
         self.frame_x, self.frame_y = 1, 1
         self.num_frames = 1
@@ -38,7 +39,7 @@ class Animation():
             self.speed = [int(_) for _ in s_dict['speed'].split(',')]
         return self
 
-class AnimationCatalog(ManifestCatalog[Animation]):
+class MapAnimationCatalog(ManifestCatalog[MapAnimation]):
     manifest = 'animations.json'
-    title = 'animations'
-    datatype = Animation
+    title = 'map_animations'
+    datatype = MapAnimation

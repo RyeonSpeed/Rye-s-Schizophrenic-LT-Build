@@ -7,7 +7,7 @@ from app.utilities import exceptions
 from app.data.resources.fonts import FontCatalog
 from app.data.resources.icons import Icon16Catalog, Icon32Catalog, Icon80Catalog
 from app.data.resources.portraits import PortraitCatalog
-from app.data.resources.animations import AnimationCatalog
+from app.data.resources.map_animations import MapAnimationCatalog
 from app.data.resources.panoramas import PanoramaCatalog
 from app.data.resources.map_icons import MapIconCatalog
 from app.data.resources.map_sprites import MapSpriteCatalog
@@ -62,7 +62,7 @@ class Resources():
         self.icons80 = Icon80Catalog()
 
         self.portraits = PortraitCatalog()
-        self.animations = AnimationCatalog()
+        self.animations = MapAnimationCatalog()
 
         self.panoramas = PanoramaCatalog()
         self.map_icons = MapIconCatalog()

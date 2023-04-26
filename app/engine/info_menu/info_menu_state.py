@@ -220,7 +220,7 @@ class InfoMenuState(State):
 
     def move_down(self):
         get_sound_thread().play_sfx('Status_Character')
-        if self.scroll_units:
+        if len(self.scroll_units) > 1:
             if self.rescuer:
                 new_index = self.scroll_units.index(self.rescuer)
                 self.rescuer = None
@@ -235,7 +235,7 @@ class InfoMenuState(State):
 
     def move_up(self):
         get_sound_thread().play_sfx('Status_Character')
-        if self.scroll_units:
+        if len(self.scroll_units) > 1:
             if self.rescuer:
                 new_index = self.scroll_units.index(self.rescuer)
                 self.rescuer = None

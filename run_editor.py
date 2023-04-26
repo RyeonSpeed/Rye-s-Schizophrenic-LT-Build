@@ -37,8 +37,7 @@ if __name__ == '__main__':
         ap = QApplication(sys.argv)
         ap.setWindowIcon(QIcon('favicon.ico'))
         from app import dark_theme
-        settings = MainSettingsController()
-        theme = settings.get_theme(0)
+        theme = dark_theme.get_theme()
         dark_theme.set(ap, theme)
         from app.editor.main_editor import MainEditor
         window = MainEditor()

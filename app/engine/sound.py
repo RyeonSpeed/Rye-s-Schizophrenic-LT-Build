@@ -1,4 +1,5 @@
 from app.utilities.typing import NID
+from enum import Enum
 from typing import Set, List
 import pygame
 
@@ -55,9 +56,11 @@ class SoundDict(dict):
                 return None
         return self[val]
 
+DEFAULT_FADE_TIME_MS = 400
+
 class Channel():
-    fade_in_time = 400
-    fade_out_time = 400
+    fade_in_time = DEFAULT_FADE_TIME_MS
+    fade_out_time = DEFAULT_FADE_TIME_MS
     playing_states = ("playing", "crossfade_out", "fade_in", "crossfade_in")
 
     def __init__(self, name, nid, end_event):
@@ -186,6 +189,8 @@ class Channel():
             self._channel.unpause()
         elif self.last_state == "stopped":
             self._play()
+        elif not self.is_playing():  # Sometimes possible with weird timings
+            self._play()
         self.last_state = "playing"
         self.state = "fade_in"
         self.last_update = engine.get_time()
@@ -224,6 +229,9 @@ class Channel():
         self.last_state = "stopped"
         self.state = "stopped"
 
+    def is_playing(self) -> bool:
+        return self._channel.get_busy()
+
     def set_volume(self, volume):
         self.global_volume = volume
         self.reset_volume()
@@ -249,6 +257,9 @@ class ChannelPair():
     def is_playing(self):
         return (self.channel.state in self.channel.playing_states) or \
             (self.battle.state in self.battle.playing_states)
+
+    def is_fading_out(self):
+        return self.channel.state == 'fade_out'
 
     def update(self, event_list, current_time):
         res1 = self.channel.update(event_list, current_time)
@@ -312,7 +323,24 @@ class ChannelPair():
         self.channel.set_volume(volume)
         self.battle.set_volume(volume)
 
+class GlobalMusicState(Enum):
+    STOPPED = 'stopped'
+    PLAYING = 'playing'
+    FADE_IN = 'fade_in'
+    FADE_OUT_TO_PAUSE = 'fade_out_to_pause'
+    FADE_OUT_TO_STOP = 'fade_out_to_stop'
+    FADE_OUT_TO_PLAY = 'fade_out_to_play'
+    FADE_OUT_TO_FADE_IN = 'fade_out_to_fade_in'
+    PAUSED = 'paused'
+
 class SoundController():
+    fade_out_states = (
+        GlobalMusicState.FADE_OUT_TO_PLAY,
+        GlobalMusicState.FADE_OUT_TO_STOP,
+        GlobalMusicState.FADE_OUT_TO_PAUSE,
+        GlobalMusicState.FADE_OUT_TO_FADE_IN,
+    )
+
     def __init__(self):
         pygame.mixer.set_num_channels(16)
         pygame.mixer.set_reserved(8)  # Reserve the first 8 channels for music
@@ -327,52 +355,20 @@ class SoundController():
         self.channel_stack = [self.channel1, self.channel2, self.channel3, self.channel4]
         self.song_stack: List[Song] = []
 
-        self.reset_timers()
+        self._state = GlobalMusicState.STOPPED
 
         self.PRELOADTHREAD = None
 
-    def reset_timers(self):
-        self.fade_out_start = 0
-        self.fade_out_stop = 0
-        self.fade_out_pause = 0
-
     @property
-    def current_channel(self):
-        return self.channel_stack[-1]
+    def state(self):
+        return self._state
 
-    def clear(self):
-        logging.debug("Clear")
-        self.stop()
-        for channel in self.channel_stack:
-            channel.clear()
-        self.song_stack.clear()
-
-    def fade_clear(self, fade_out=400):
-        logging.debug('Fade to Clear')
-        self.current_channel.set_fade_out_time(fade_out)
-        self.current_channel.fade_out()
-        self.fade_out_stop = engine.get_time()
-        self.song_stack.clear()
-
-    def fade_to_stop(self, fade_out=400):
-        logging.debug('Fade to Stop')
-        self.current_channel.set_fade_out_time(fade_out)
-        self.current_channel.fade_out()
-        self.fade_out_stop = engine.get_time()
-
-    def fade_to_pause(self, fade_out=400):
-        logging.debug('Fade to Pause')
-        self.current_channel.set_fade_out_time(fade_out)
-        self.current_channel.fade_out()
-        self.fade_out_pause = engine.get_time()
-
-    def pause(self):
-        logging.debug('Pause')
-        self.current_channel.pause()
-
-    def resume(self):
-        self.current_channel.resume()
-
+    @state.setter
+    def state(self, value):
+        logging.info("Changing State to %s" % value)
+        self._state = value
+    
+    # === Volume ===
     def mute(self):
         self.current_channel.set_volume(0)
 
@@ -398,10 +394,50 @@ class SoundController():
     def set_sfx_volume(self, volume):
         self.global_sfx_volume = volume
 
-    def is_playing(self):
+    # === Music state ===
+    @property
+    def current_channel(self):
+        return self.channel_stack[-1]
+
+    def clear(self):
+        logging.debug("Clear")
+        self.stop()
+        for channel in self.channel_stack:
+            channel.clear()
+        self.song_stack.clear()
+
+    def fade_clear(self, fade_out=DEFAULT_FADE_TIME_MS):
+        logging.debug('Fade to Clear')
+        self.current_channel.set_fade_out_time(fade_out)
+        self.current_channel.fade_out()
+        self.song_stack.clear()
+        self.state = GlobalMusicState.FADE_OUT_TO_STOP
+
+    def fade_to_stop(self, fade_out=DEFAULT_FADE_TIME_MS):
+        logging.debug('Fade to Stop')
+        self.current_channel.set_fade_out_time(fade_out)
+        self.current_channel.fade_out()
+        self.state = GlobalMusicState.FADE_OUT_TO_STOP
+
+    def fade_to_pause(self, fade_out=DEFAULT_FADE_TIME_MS):
+        logging.debug('Fade to Pause')
+        self.current_channel.set_fade_out_time(fade_out)
+        self.current_channel.fade_out()
+        self.state = GlobalMusicState.FADE_OUT_TO_PAUSE
+
+    def pause(self):
+        logging.debug('Pause')
+        self.current_channel.pause()
+        self.state = GlobalMusicState.PAUSED
+
+    def resume(self):
+        self.current_channel.resume()
+        self.state = GlobalMusicState.PLAYING
+
+    def is_playing(self) -> bool:
         return self.current_channel.is_playing()
 
-    def set_next_song(self, song, num_plays, fade_in=400):
+    def _set_next_song(self, song, num_plays, fade_in=DEFAULT_FADE_TIME_MS):
         # Clear the oldest channel and use it
         # to play the next song
         logging.info("Set Next Song: %s" % song)
@@ -412,7 +448,7 @@ class SoundController():
         oldest_channel.set_fade_in_time(fade_in)
         oldest_channel.set_current_song(song, num_plays)
 
-    def battle_fade_in(self, next_song, fade=400, from_start=True):
+    def battle_fade_in(self, next_song, fade=DEFAULT_FADE_TIME_MS, from_start=True):
         song = MUSIC.get(next_song)
         if not song:
             logging.warning("Song does not exist")
@@ -429,7 +465,7 @@ class SoundController():
         elif from_start:
             self.fade_back()
 
-    def crossfade(self, fade=400):
+    def crossfade(self, fade=DEFAULT_FADE_TIME_MS):
         self.current_channel.set_fade_in_time(fade)
         self.current_channel.set_fade_out_time(fade)
         self.current_channel.crossfade()
@@ -441,14 +477,14 @@ class SoundController():
             return self.song_stack[-1]
         return None
 
-    def fade_in(self, next_song, num_plays=-1, fade_in=400, from_start=False):
+    def fade_in(self, next_song, num_plays=-1, fade_in=DEFAULT_FADE_TIME_MS, from_start=False):
         logging.info("Fade in %s" % next_song)
         next_song = MUSIC.get(next_song)
         if not next_song:
             logging.warning("Song does not exist")
             return None
 
-        is_playing = self.is_playing()
+        any_music_is_playing = self.is_playing()
         current_song = self.get_current_song()
 
         # Confirm that we're not just replacing the same song
@@ -456,12 +492,16 @@ class SoundController():
             logging.info("Song already present")
             return None
 
-        # Fade out the current channel -- even if nothing is playing
-        # Just so that the engine will recognize that something changed
-        # So it will know to fade in afterwards
-        self.current_channel.set_fade_out_time(fade_in)
-        self.current_channel.fade_out()
-        self.fade_out_start = engine.get_time()
+        # Determine what state we should be going to next
+        if any_music_is_playing:
+            self.current_channel.set_fade_out_time(fade_in)
+            self.current_channel.fade_out()
+            self.state = GlobalMusicState.FADE_OUT_TO_FADE_IN
+        elif self.state in self.fade_out_states:
+            any_music_is_playing = True  # So we don't fade in immediately
+            self.state = GlobalMusicState.FADE_OUT_TO_FADE_IN
+        else:
+            self.state = GlobalMusicState.FADE_IN
 
         # Determine if song is already in stack
         for song in self.song_stack:
@@ -481,30 +521,27 @@ class SoundController():
                     self.channel_stack.append(song.channel)
                     song.channel.num_plays = num_plays
                     song.channel.set_fade_in_time(fade_in)
-                    logging.debug("Is Playing? %s", is_playing)
-                    # is_playing = True
-                    if is_playing:
+                    logging.debug("Any Music is Playing? %s", any_music_is_playing)
+                    if any_music_is_playing:
                         pass
                     else:
                         song.channel.fade_in()
-                        self.fade_out_start = 0  # Necessary so we don't fade in twice
-                else:
-                    self.set_next_song(song, num_plays, fade_in)
+                else:  # New channel and start song over
+                    self._set_next_song(song, num_plays, fade_in)
                 break
-        else:
+        else: # Song is not in stack
             logging.info("New song %s" % next_song)
             self.song_stack.append(next_song)
             # Clear the oldest channel and use it
-            self.set_next_song(next_song, num_plays, fade_in)
-            if is_playing:
+            self._set_next_song(next_song, num_plays, fade_in)
+            if any_music_is_playing:
                 pass
             else:
                 next_song.channel.fade_in()
-                self.fade_out_start = 0
 
         return self.song_stack[-1]
 
-    def fade_back(self, fade_out=400):
+    def fade_back(self, fade_out=DEFAULT_FADE_TIME_MS):
         logging.info("Fade back")
 
         if not self.song_stack:
@@ -513,13 +550,23 @@ class SoundController():
         current_channel.set_fade_out_time(fade_out)
         current_channel.fade_out()
         last_song = self.song_stack.pop()
+
+        # Where do we go next
         next_song = self.song_stack[-1] if self.song_stack else None
+        if next_song:
+            logging.info("Fade out to Fade in")
+            self.state = GlobalMusicState.FADE_OUT_TO_FADE_IN
+        else:
+            logging.info("Fade out to Stop")
+            self.state = GlobalMusicState.FADE_OUT_TO_STOP
+
         # Move current channel down to bottom of world
         self.channel_stack.remove(current_channel)
         self.channel_stack.insert(0, current_channel)
 
     def stop(self):
         self.current_channel.stop()
+        self.state = GlobalMusicState.STOPPED
 
     def update(self, event_list):
         current_time = engine.get_time()
@@ -528,24 +575,29 @@ class SoundController():
         for channel in self.channel_stack:
             if channel.update(event_list, current_time):
                 any_changes = True
-                # break
+
         if any_changes:
-            logging.debug("Any Changes")
+            logging.debug("Channel changed its state")
+            if self.state == GlobalMusicState.FADE_OUT_TO_FADE_IN:
+                logging.debug('Update Fade In')
+                self.current_channel.set_volume(self.global_music_volume)
+                self.current_channel.fade_in()
+                self.state = GlobalMusicState.FADE_IN
+            elif self.state == GlobalMusicState.FADE_OUT_TO_STOP:
+                logging.debug('Update Fade to Stop')
+                self.stop()
+            elif self.state == GlobalMusicState.FADE_OUT_TO_PAUSE:
+                logging.debug('Update Fade to Pause')
+                self.pause()
+            elif self.state == GlobalMusicState.FADE_IN:
+                self.state = GlobalMusicState.PLAYING
 
-        if self.fade_out_start and any_changes:
-            logging.debug('Update Fade In')
-            self.reset_timers()
-            self.current_channel.set_volume(self.global_music_volume)
+        if self.state == GlobalMusicState.PLAYING and not self.is_playing():
+            logging.warning("In PLAYING state but not playing music")
+            self.current_channel.set_fade_in_time(1)
             self.current_channel.fade_in()
-        elif self.fade_out_stop and any_changes:
-            logging.debug('Update Fade to Stop')
-            self.reset_timers()
-            self.stop()
-        elif self.fade_out_pause and any_changes:
-            logging.debug('Update Fade to Pause')
-            self.reset_timers()
-            self.pause()
 
+    # === Other Miscellaneous Funcs ===
     def play_sfx(self, sound, loop=False, volume=1):
         sfx = SFX.get(sound)
         if sfx:

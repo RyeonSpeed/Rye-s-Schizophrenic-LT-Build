@@ -308,7 +308,6 @@ class TradeAbility(Ability):
             adj.add(unit.position)
         return adj
 
-
     @staticmethod
     def do(unit):
         game.state.change('trade')

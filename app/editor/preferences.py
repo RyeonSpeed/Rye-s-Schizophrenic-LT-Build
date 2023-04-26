@@ -18,8 +18,6 @@ key_to_button = {'Tab': Qt.Key_Tab,
 button_to_key = {v: k for k, v in key_to_button.items()}
 
 class PreferencesDialog(Dialog):
-    theme_options = ['Light', 'Dark', 'Discord', 'Sidereal', 'Mist', 'Sky', 'Purple']
-
     def __init__(self, parent):
         super().__init__(parent)
         self.window = parent
@@ -60,9 +58,9 @@ class PreferencesDialog(Dialog):
         self.place.edit.currentIndexChanged.connect(self.place_changed)
 
         self.theme = PropertyBox('Theme', ComboBox, self)
-        for option in self.theme_options:
-            self.theme.edit.addItem(option)
-        self.theme.edit.setValue(self.theme_options[self.saved_preferences['theme']])
+        for option in dark_theme.ThemeType:
+            self.theme.edit.addItem(option.name)
+        self.theme.edit.setValue(dark_theme.ThemeType(self.saved_preferences['theme']).name)
         self.theme.edit.currentIndexChanged.connect(self.theme_changed)
 
         self.autocomplete = PropertyCheckBox('Event Autocomplete', QCheckBox, self)
@@ -163,8 +161,9 @@ class PreferencesDialog(Dialog):
     def theme_changed(self, idx):
         choice = self.theme.edit.currentText()
         ap = QApplication.instance()
-        dark_theme.set(ap, idx)
-        self.window.set_icons(idx)  # Change icons of main editor
+        theme_type = dark_theme.ThemeType[choice]
+        dark_theme.set(ap, theme_type)
+        self.window.set_icons(theme_type)  # Change icons of main editor
 
     def autosave_time_changed(self, val):
         t = timer.get_timer()

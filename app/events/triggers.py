@@ -31,6 +31,7 @@ class GenericTrigger(EventTrigger):
     """A generic trigger containing common fields. Use to trigger
     anonymous events.
     """
+    nid: ClassVar[NID] = None
     unit1: UnitObject = None
     unit2: UnitObject = None
     position: Tuple[int, int] = None
@@ -287,7 +288,9 @@ class OnBaseStart(EventTrigger):
 @dataclass(init=True)
 class OnTurnwheel(EventTrigger):
     """
-    Occurs after the turnwheel is used.
+    Occurs after the turnwheel is used. Events that happen within are 
+    not recorded within the turnwheel and therefore will not be reversed
+    upon turnwheel activation.
     """
     nid: ClassVar[NID] = 'on_turnwheel'
 
@@ -388,7 +391,7 @@ class RegionTrigger(EventTrigger):
     region: RegionObject
     item: ItemObject = None
 
-ALL_TRIGGERS = [tclass for tclass in EventTrigger.__subclasses__() if hasattr(tclass, 'nid')]
+ALL_TRIGGERS = [tclass for tclass in EventTrigger.__subclasses__() if hasattr(tclass, 'nid') and tclass is not GenericTrigger]
 
 # _TRIGGER_NAME_MAP = {trigger.nid: trigger for trigger in ALL_TRIGGERS if hasattr(trigger, 'nid')}
 
