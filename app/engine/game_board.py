@@ -192,7 +192,9 @@ class GameBoard(object):
         if self.vision_regions[idx]:
             return True
 
-        if game.level_vars.get('_fog_of_war') or self.fog_regions[idx]:
+        if game.level_vars.get('_fog_of_war') or self.fog_regions[idx] or \
+            (game.board.get_unit(pos) and 'Veiled' in game.board.get_unit(pos).tags and \
+            ((team in ['player', 'other'] and game.board.get_unit(pos).team in ['enemy', 'enemy2']) or (team in ['enemy', 'enemy2'] and game.board.get_unit(pos).team in ['player', 'other']))):
             if team == 'player':
                 # Right now, line of sight doesn't interact at all with vision regions
                 # Since I'm not sure how we'd handle cases where a vision region is obscured by an opaque tile
