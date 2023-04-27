@@ -341,11 +341,12 @@ class Time(Validator):
 
 class Music(Validator):
     def validate(self, text, level):
-        if text in self._resources.music.keys():
-            return text
-        elif text == 'None':
-            return text
-        return None
+        return text
+        #if text in self._resources.music.keys():
+        #    return text
+        #elif text == 'None':
+        #    return text
+        #return None
 
     def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
         valids = [(None, music.nid) for music in self._resources.music.values()]

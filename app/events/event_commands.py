@@ -903,6 +903,16 @@ The player is given the option of saving the game mid-battle.
 This can be useful if the player chose Classic Mode,
 as he or she would otherwise only be able to suspend and not save mid-battle.
         """
+        
+class BattleSaveImmediate(EventCommand):
+    nid = 'battle_save_immediate'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+As battle_save, but triggers immediately instead of
+waiting for the event to conclude.
+        """
 
 class ClearTurnwheel(EventCommand):
     nid = 'clear_turnwheel'
