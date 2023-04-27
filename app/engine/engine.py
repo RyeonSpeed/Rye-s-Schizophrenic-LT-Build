@@ -135,7 +135,7 @@ def copy_surface(surf):
 def save_surface(surf, fn):
     pygame.image.save(surf, fn)
 
-def subsurface(surf, rect):
+def subsurface(surf, rect) -> pygame.Surface:
     x, y, width, height = rect
     twidth = min(surf.get_width() - x, width)
     theight = min(surf.get_height() - y, height)

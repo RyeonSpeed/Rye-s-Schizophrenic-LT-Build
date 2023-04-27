@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 from app.data.database.database import Database
 from app.editor.event_editor.event_inspector import EventInspectorEngine
 from app.engine.fonts import FONT
-from app.engine.graphics.ui_framework.ui_framework_layout import (HAlignment,
-                                                                  VAlignment)
+from app.utilities.enums import HAlignment, VAlignment
 from app.events import event_commands
 from app.events.screen_positions import horizontal_screen_positions, vertical_screen_positions
 from app.data.resources.resources import Resources
@@ -1344,7 +1343,7 @@ class MaybeSprite(Validator):
 
 class DifficultyMode(Validator):
     desc = 'accepts the nid of a difficulty mode.'
-    
+
     def validate(self, text, level):
         if text in self._db.difficulty_modes.keys():
             return text

@@ -7,8 +7,9 @@ from app.data.database.database import DB
 from app.data.database.difficulty_modes import RNGOption
 from app.engine import (base_surf, combat_calcs, engine, equations, evaluate,
                         icons, image_mods, item_funcs, item_system,
-                        menu_options, skill_system, text_funcs)
+                        skill_system, text_funcs)
 from app.engine.fonts import FONT
+from app.engine.game_menus import menu_options
 from app.engine.game_counters import ANIMATION_COUNTERS
 from app.engine.game_state import game
 from app.engine.sprites import SPRITES
@@ -413,8 +414,10 @@ class UIView():
             else:
                 FONT['text-blue'].blit_right(str(num), surf, (x_pos, y_pos))
 
-        grandmaster = game.mode.rng_choice == RNGOption.GRANDMASTER
         crit_flag = DB.constants.value('crit')
+        grandmaster = game.mode.rng_choice == RNGOption.GRANDMASTER
+        if grandmaster:  # Grandmaster takes precedence
+            crit_flag = False
 
         # Choose attack info background
         prefix = 'attack_info_'
@@ -574,8 +577,10 @@ class UIView():
         if not self.attack_info_disp:
             self.attack_info_disp = self.create_attack_info(attacker, weapon, defender, a_assist, d_assist)
 
-        grandmaster = game.mode.rng_choice == RNGOption.GRANDMASTER
         crit_flag = DB.constants.value('crit')
+        grandmaster = game.mode.rng_choice == RNGOption.GRANDMASTER
+        if grandmaster:  # Grandmaster takes precedence
+            crit_flag = False
 
         if game.cursor.position[0] > TILEX // 2 + game.camera.get_x() - 1:
             if DB.constants.value('pairup') and \
@@ -617,10 +622,10 @@ class UIView():
         if skill_system.check_enemy(attacker, defender):
             self.draw_adv_arrows(surf, attacker, defender, weapon, defender.get_weapon(), (topleft[0] + 37, topleft[1] + 8))
 
-            y_pos = topleft[1] + 105
+            y_pos = topleft[1] + 89
             if not crit_flag:
                 y_pos -= 16
-            if not grandmaster:
+            if grandmaster:
                 y_pos -= 16
 
             self.draw_adv_arrows(surf, defender, attacker, defender.get_weapon(), weapon, (topleft[0] + 85, y_pos))

@@ -16,7 +16,7 @@ from app.engine.state_machine import SimpleStateMachine
 from app.engine.animations import Animation
 from app.engine.game_state import game
 from app.engine.graphics.text.text_renderer import render_text
-from app.utilities.enums import Alignments
+from app.utilities.enums import HAlignment
 
 class ExpState(State):
     name = 'exp'
@@ -78,6 +78,16 @@ class ExpState(State):
             # We're done here, since the unit is at max level and has no stats to gain
             game.state.back()
             return 'repeat'
+
+        # determine source for trigger later
+        # purposefully explicit here
+        self.source = 'exp_gain'
+        if self.starting_state == 'stat_booster':
+            self.source = 'stat_change'
+        elif self.starting_state == 'class_change':
+            self.source = 'class_change'
+        elif self.starting_state == 'promote':
+            self.source = 'promote'
 
         self.level_up_sound_played = False
 
@@ -259,7 +269,7 @@ class ExpState(State):
                     self, self.unit, self.stat_changes, self.old_level, self.unit.level)
             if self.level_up_screen.update(current_time):
                 game.state.back()
-                game.events.trigger(triggers.UnitLevelUp(self.unit, self.stat_changes))
+                game.events.trigger(triggers.UnitLevelUp(self.unit, self.stat_changes, self.source))
                 if self.combat_object:
                     self.combat_object.lighten_ui()
 
@@ -489,7 +499,7 @@ class LevelUpScreen():
         elif self.state == 'get_next_spark':
             done = self.inc_spark()
             if done:
-                game.events.trigger(triggers.DuringUnitLevelUp(self.unit, self.parent.stat_changes))
+                game.events.trigger(triggers.DuringUnitLevelUp(self.unit, self.parent.stat_changes, self.parent.source))
                 self.state = 'level_up_wait'
                 self.start_time = current_time
             else:
@@ -614,7 +624,7 @@ class LevelUpScreen():
 
         for font, color, text, pos, time in self.simple_nums:
             if engine.get_time() - time > 80:
-                render_text(surf, [font], [text], [color], pos, align=Alignments.RIGHT)
+                render_text(surf, [font], [text], [color], pos, align=HAlignment.RIGHT)
 
         return surf
 

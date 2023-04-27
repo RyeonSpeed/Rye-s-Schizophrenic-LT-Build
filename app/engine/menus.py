@@ -2,14 +2,14 @@ import math, string
 
 from app.constants import TILEX, WINWIDTH, WINHEIGHT
 from app.data.database.database import DB
+from app.engine.game_menus import menu_options
 from app.utilities import utils
 
 from app.data.database import lore
 from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
 from app.engine.input_manager import get_input_manager
-from app.engine import engine, image_mods, icons, help_menu, menu_options, \
-    item_system, gui, item_funcs
+from app.engine import engine, image_mods, icons, help_menu, item_system, gui, item_funcs
 from app.engine.gui import ScrollBar
 from app.engine.base_surf import create_base_surf
 from app.engine.objects.item import ItemObject

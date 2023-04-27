@@ -3,7 +3,8 @@ from app.data.database.database import DB
 
 from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
-from app.engine import menus, menu_options, gui, base_surf, image_mods, text_funcs
+from app.engine.game_menus import menu_options
+from app.engine import menus, gui, base_surf, image_mods, text_funcs
 
 from app.engine.game_state import game
 

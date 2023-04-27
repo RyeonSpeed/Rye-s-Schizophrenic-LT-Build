@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import logging
 import math
@@ -108,6 +110,20 @@ class EventSyntaxRuleHighlighter():
                 for idx, char in enumerate(dialog_token.string):
                     if char in '|':
                         format_lines.append(LineToFormat(dialog_token.index + idx, 1, self.special_text_format))
+
+        # error checking
+        # error checking happens before brace formatting so that
+        # brace formatting can overwrite the error checking
+        # because if the user is using braces, they probably know what they
+        # are doing (or at least they *should* know what they are doing)
+        broken_args = self.validate_tokens(line)
+        if broken_args == 'all':
+            for token in as_tokens:
+                format_lines.append(LineToFormat(token.index, len(token.string), self.lint_format))
+        else:
+            for idx in broken_args:
+                format_lines.append(LineToFormat(as_tokens[idx].index, len(as_tokens[idx].string), self.lint_format))
+
         # brace formatting
         brace_mode = 0
         special_start = 0
@@ -120,18 +136,9 @@ class EventSyntaxRuleHighlighter():
                 if brace_mode > 0:
                     format_lines.append(LineToFormat(special_start, idx - special_start + 1, self.special_text_format))
                     brace_mode -= 1
-
-        # error checking
-        broken_args = self.validate_tokens(line)
-        if broken_args == 'all':
-            for token in as_tokens:
-                format_lines.append(LineToFormat(token.index, len(token.string), self.lint_format))
-        else:
-            for idx in broken_args:
-                format_lines.append(LineToFormat(as_tokens[idx].index, len(as_tokens[idx].string), self.lint_format))
         return format_lines
 
-    def validate_tokens(self, line: str):
+    def validate_tokens(self, line: str) -> str | List[int]:
         try:
             command, error_loc = event_commands.parse_text_to_command(line, strict=True)
             if command:

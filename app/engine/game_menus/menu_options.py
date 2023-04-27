@@ -8,7 +8,7 @@ from app.engine import engine, image_mods, icons, help_menu, text_funcs, item_sy
 from app.engine.game_state import game
 
 from app.engine.graphics.text.text_renderer import render_text, text_width, rendered_text_width
-from app.utilities.enums import Alignments
+from app.utilities.enums import HAlignment
 
 class EmptyOption():
     def __init__(self, idx):
@@ -339,7 +339,7 @@ class ItemOption(BasicOption):
         elif self.item.cooldown:
             uses_string = str(self.item.data['cooldown'])
         left = x + 99
-        render_text(surf, [uses_font], [uses_string], [uses_color], (left, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (left, y), HAlignment.RIGHT)
 
 class ConvoyItemOption(ItemOption):
     def __init__(self, idx, item, owner):
@@ -395,9 +395,9 @@ class FullItemOption(ItemOption):
         elif self.item.data.get('cooldown') is not None:
             uses_string_a = str(self.item.data['cooldown'])
             uses_string_b = str(self.item.data['starting_cooldown'])
-        render_text(surf, [uses_font], [uses_string_a], [uses_color], (x + 96, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [uses_string_a], [uses_color], (x + 96, y), HAlignment.RIGHT)
         render_text(surf, [uses_font], ["/"], [], (x + 98, y))
-        render_text(surf, [uses_font], [uses_string_b], [uses_color], (x + 120, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [uses_string_b], [uses_color], (x + 120, y), HAlignment.RIGHT)
 
 class ValueItemOption(ItemOption):
     def __init__(self, idx, item, disp_value):
@@ -430,7 +430,7 @@ class ValueItemOption(ItemOption):
             uses_string = str(self.item.parent_item.data['c_uses'])
         elif self.item.cooldown is not None:
             uses_string = str(self.item.data['cooldown'])
-        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), HAlignment.RIGHT)
 
         value_color = 'grey'
         value_string = '--'
@@ -450,7 +450,7 @@ class ValueItemOption(ItemOption):
                 value_color = 'blue'
             else:
                 value_string = '--'
-        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), HAlignment.RIGHT)
 
 class RepairValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
@@ -468,7 +468,7 @@ class RepairValueItemOption(ValueItemOption):
         uses_string = '--'
         if self.item.data.get('uses') is not None:
             uses_string = str(self.item.data['uses'])
-        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), HAlignment.RIGHT)
 
         value_color = 'grey'
         value_string = '--'
@@ -478,7 +478,7 @@ class RepairValueItemOption(ValueItemOption):
             value_string = str(value)
             if value < game.get_money():
                 value_color = 'blue'
-        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 10, y), Alignments.RIGHT)
+        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 10, y), HAlignment.RIGHT)
 
 class StockValueItemOption(ValueItemOption):
     def __init__(self, idx, item, disp_value, stock):
@@ -497,7 +497,7 @@ class StockValueItemOption(ValueItemOption):
         stock_string = '--'
         if self.stock >= 0:
             stock_string = str(self.stock)
-        render_text(surf, [main_font], [stock_string], [main_color], (x + 128, y), Alignments.RIGHT)
+        render_text(surf, [main_font], [stock_string], [main_color], (x + 128, y), HAlignment.RIGHT)
 
 class UnitOption(BasicOption):
     def __init__(self, idx, unit):

@@ -1,16 +1,17 @@
 from __future__ import annotations
-from app.engine.game_menus.menu_components.generic_menu.simple_menu_wrapper import SimpleMenuUI
 
 from typing import Callable, List, Tuple
 
 from app.engine.game_menus.menu_components.generic_menu.simple_menu import \
     ChoiceTable
+from app.engine.game_menus.menu_components.generic_menu.simple_menu_wrapper import \
+    SimpleMenuUI
 from app.engine.game_state import game
 from app.engine.graphics.ui_framework.ui_framework import UIComponent
-from app.engine.graphics.ui_framework.ui_framework_layout import HAlignment, convert_align
+from app.engine.graphics.ui_framework.ui_framework_layout import convert_align
 from app.engine.icons import get_icon, get_icon_by_nid
 from app.engine.objects.unit import UnitObject
-from app.utilities.enums import Alignments, Orientation
+from app.utilities.enums import Alignments, HAlignment, Orientation
 from app.utilities.typing import NID
 
 

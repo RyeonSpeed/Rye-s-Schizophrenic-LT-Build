@@ -170,26 +170,30 @@ class UnitSelect(EventTrigger):
 @dataclass(init=True)
 class UnitLevelUp(EventTrigger):
     """
-    Occurs after a unit levels up.
+    Occurs whenever a unit reaches the level stat screen.
 
-        unit1: the unit that leveled up
+        unit1: the unit that gained/lost stats.
         stat_changes: a dict containing their stat changes.
+        source: One of ('exp_gain', 'stat_change', 'class_change', 'promote') describing how the unit got to this screen.
     """
     nid: ClassVar[NID] = 'unit_level_up'
     unit1: UnitObject
     stat_changes: Dict[NID, int]
+    source: str
 
 @dataclass(init=True)
 class DuringUnitLevelUp(EventTrigger):
     """
     Occurs during a unit's level-up screen, immediately after stat changes are granted. This event is useful for implementing level-up quotes.
 
-        unit1: the unit that leveled up
+        unit1: the unit that gained/lost stats.
         stat_changes: a dict containing their stat changes.
+        source: One of ('exp_gain', 'stat_change', 'class_change', 'promote') describing how the unit got to this screen.
     """
     nid: ClassVar[NID] = 'during_unit_level_up'
     unit1: UnitObject
     stat_changes: Dict[NID, int]
+    source: str
 
 @dataclass(init=True)
 class CombatStart(EventTrigger):
