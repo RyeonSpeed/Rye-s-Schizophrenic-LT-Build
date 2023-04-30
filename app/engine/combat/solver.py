@@ -48,7 +48,7 @@ class AttackerState(SolverState):
 
         can_double_in_pairup = not DB.constants.value('limit_attack_stance')
 
-        if solver.attacker_alive() and solver.defender_alive():
+        if solver.attacker_alive() and (not solver.defender or solver.defender_alive()):
             if command == '--':
                 if solver.defender:
                     if DB.constants.value('def_double') or skill_system.def_double(solver.defender):
@@ -137,7 +137,7 @@ class AttackerPartnerState(SolverState):
     def get_next_state(self, solver):
         command = solver.get_script()
 
-        if solver.attacker_alive() and solver.defender_alive():
+        if solver.attacker_alive() and (not solver.defender or solver.defender_alive()):
             if command == '--':
                 if solver.defender:
                     if DB.constants.value('def_double') or skill_system.def_double(solver.defender):
@@ -506,18 +506,18 @@ class CombatPhaseSolver():
         return self.defender and (self.defender.get_hp() > 0 or skill_system.ignore_dying_in_combat(self.defender))
 
     def defender_has_vantage(self) -> bool:
-        return self.allow_counterattack() and \
+        return self.defender and self.allow_counterattack() and \
             (skill_system.vantage(self.defender) or skill_system.disvantage(self.attacker))
 
     def attacker_has_desperation(self) -> bool:
         return skill_system.desperation(self.attacker)
 
     def defender_has_desperation(self) -> bool:
-        return self.allow_counterattack() and \
+        return self.defender and self.allow_counterattack() and \
             skill_system.desperation(self.defender)
 
     def allow_counterattack(self) -> bool:
-        return combat_calcs.can_counterattack(self.attacker, self.main_item, self.defender, self.def_item)
+        return self.defender and combat_calcs.can_counterattack(self.attacker, self.main_item, self.defender, self.def_item)
 
     def item_has_uses(self):
         return item_funcs.available(self.attacker, self.main_item)

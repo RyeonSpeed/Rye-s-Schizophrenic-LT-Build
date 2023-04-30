@@ -603,7 +603,7 @@ class LevelUpScreen():
                 continue
             pos = self.get_position(idx)
             name = DB.stats.get(stat).name
-            FONT['text-yellow'].blit(name, sprite, pos)
+            render_text(sprite, ['text'], [name], ['yellow'], pos)
             text = self.unit.stats[stat] - (self.stat_list[idx] if self.current_spark < idx else 0)
             width = FONT['text-blue'].width(str(text))
             FONT['text-blue'].blit(str(text), sprite, (pos[0] + 40 - width, pos[1]))
