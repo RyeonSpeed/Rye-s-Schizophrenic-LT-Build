@@ -15,6 +15,23 @@ MATCH_CAPTURE_TAG_RE = re.compile('(<[^<]*?>)')
 def font_height(font: NID):
     return FONT[font].height
 
+def anchor_align(x: int, width: int, align: HAlignment, padding: Tuple[int, int] = (0, 0)) -> int:
+    """Returns the appropriate anchor point for a specific align,
+    given a specific box. For example, supposing the text box is
+    this wide:
+
+    A -------- B -------- C
+
+    This will return A for left align, B for center align, and C for right align.
+    Padding allows this to be offset.
+    """
+    if align == HAlignment.LEFT:
+        return x + padding[0]
+    if align == HAlignment.CENTER:
+        return x + width // 2
+    else:
+        return width + x - padding[1]
+
 def rendered_text_width(fonts: List[NID], texts: List[str]) -> int:
     """Returns the full rendered width (see render_text) of a text list.
 

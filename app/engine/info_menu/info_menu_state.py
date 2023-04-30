@@ -1,26 +1,26 @@
 from typing import List, Tuple
-from app.engine.graphics.text.text_renderer import render_text, text_width
-from app.engine.objects.unit import UnitObject
 
-from app.constants import WINWIDTH, WINHEIGHT
-from app.utilities import utils
-
-from app.data.resources.resources import RESOURCES
+from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
-
-from app.engine.sprites import SPRITES
-from app.engine.sound import get_sound_thread
-from app.engine.input_manager import get_input_manager
-from app.engine.state import State
-from app.engine import engine, background, help_menu, gui, \
-    icons, image_mods, item_funcs, equations, \
-    combat_calcs, skill_system, text_funcs
-from app.engine.info_menu.info_graph import info_states, InfoGraph
-from app.engine.game_menus import menu_options
-from app.engine.game_state import game
+from app.data.resources.resources import RESOURCES
+from app.engine import (background, combat_calcs, engine, equations, gui,
+                        help_menu, icons, image_mods, item_funcs, skill_system,
+                        text_funcs)
 from app.engine.fluid_scroll import FluidScroll
+from app.engine.game_menus import menu_options
+from app.engine.game_menus.icon_options import BasicItemOption, ItemOptionModes
+from app.engine.game_state import game
 from app.engine.graphics.ingame_ui.build_groove import build_groove
+from app.engine.graphics.text.text_renderer import render_text, text_width
+from app.engine.info_menu.info_graph import InfoGraph, info_states
+from app.engine.input_manager import get_input_manager
+from app.engine.objects.unit import UnitObject
+from app.engine.sound import get_sound_thread
+from app.engine.sprites import SPRITES
+from app.engine.state import State
+from app.utilities import utils
 from app.utilities.enums import HAlignment
+
 
 class InfoMenuState(State):
     name = 'info_menu'
@@ -679,6 +679,9 @@ class InfoMenuState(State):
         surf.blit(self.wexp_surf, (96, 24))
 
     def create_equipment_surf(self):
+        def create_item_option(idx, item):
+            return BasicItemOption.from_item(idx, item, width=120, mode=ItemOptionModes.FULL_USES)
+
         surf = engine.create_surface((WINWIDTH - 96, WINHEIGHT), transparent=True)
 
         weapon = self.unit.get_weapon()
@@ -690,14 +693,14 @@ class InfoMenuState(State):
                 surf.blit(SPRITES.get('equipment_highlight'), (8, idx * 16 + 24 + 8))
                 for subitem in item.subitems:
                     if subitem is weapon:
-                        item_option = menu_options.FullItemOption(idx, subitem)
+                        item_option = create_item_option(idx, subitem)
                         break
                 else:  # Shouldn't happen
-                    item_option = menu_options.FullItemOption(idx, item)
+                    item_option = create_item_option(idx, item)
             else:
                 if item is weapon:
                     surf.blit(SPRITES.get('equipment_highlight'), (8, idx * 16 + 24 + 8))
-                item_option = menu_options.FullItemOption(idx, item)
+                item_option = create_item_option(idx, item)
             item_option.draw(surf, 8, idx * 16 + 24)
             self.info_graph.register((96 + 8, idx * 16 + 24, 120, 16), item_option.get_help_box(), 'equipment', first=(idx == 0))
 
@@ -709,14 +712,14 @@ class InfoMenuState(State):
                 surf.blit(SPRITES.get('equipment_highlight'), (8, y_pos + 8))
                 for subitem in item.subitems:
                     if subitem is accessory:
-                        item_option = menu_options.FullItemOption(aidx, subitem)
+                        item_option = create_item_option(aidx, subitem)
                         break
                 else:  # Shouldn't happen
-                    item_option = menu_options.FullItemOption(aidx, item)
+                    item_option = create_item_option(aidx, item)
             else:
                 if item is accessory:
                     surf.blit(SPRITES.get('equipment_highlight'), (8, y_pos + 8))
-                item_option = menu_options.FullItemOption(aidx, item)
+                item_option = create_item_option(aidx, item)
             item_option.draw(surf, 8, y_pos)
             first = (idx == 0 and not self.unit.nonaccessories)
             self.info_graph.register((96 + 8, y_pos, 120, 16), item_option.get_help_box(), 'equipment', first=first)

@@ -2396,15 +2396,15 @@ via hitting the back button, and the event will go on as normal.
 * The *expression* flag indicates that the provided table data should be be continually parsed as a python expression and updated.
 * The *no_bg* flag removes the bg.
 * *no_cursor* removes the cursor.
-* *arrows* adds pulsing left/right arrows.
-* *scroll_bar* adds a vertical scroll bar
+* *arrows* adds pulsing left/right arrows, while *no_arrows* removes them.
+* *scroll_bar* adds a vertical scroll bar, while *no_scroll_bar* removes them.
 * *backable* allows you to exit out of the menu without making a choice - similarly to *persist*. If backed out in this way, will set `BACK` as the chosen option.
  """
 
     keywords = ['Nid', 'Title', 'Choices']
     optional_keywords = ['RowWidth', 'Orientation', 'Alignment', 'BG', 'EventNid', 'EntryType', 'Dimensions', 'TextAlign']
     keyword_types = ['GeneralVar', 'String', 'String', 'Width', 'Orientation', 'Align', 'Sprite', 'Event', 'TableEntryType', 'Size', 'HAlign']
-    _flags = ['persist', 'expression', 'no_bg', 'no_cursor', 'arrows', 'scroll_bar', 'backable']
+    _flags = ['persist', 'expression', 'no_bg', 'no_cursor', 'arrows', 'no_arrows', 'scroll_bar', 'no_scroll_bar', 'backable']
 
 class Unchoice(EventCommand):
     nid = 'unchoice'

@@ -850,7 +850,6 @@ class BaseLibraryState(State):
                 ignore.append(True)
             options.append(lore)
             ignore.append(False)
-
         self._build_menu(options, ignore)
 
         self.display = LoreDisplay()

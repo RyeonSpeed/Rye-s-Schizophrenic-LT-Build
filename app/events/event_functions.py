@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ast
 import random
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
@@ -25,12 +25,10 @@ from app.engine.graphics.ui_framework.premade_components.plain_text_component im
 from app.engine.graphics.ui_framework.ui_framework import UIComponent
 from app.engine.graphics.ui_framework.ui_framework_animation import \
     InterpolationType
-from app.engine.graphics.ui_framework.ui_framework_layout import (HAlignment,
-                                                                  VAlignment)
 from app.engine.objects.item import ItemObject
+from app.engine.objects.region import RegionObject
 from app.engine.objects.tilemap import TileMapObject
 from app.engine.objects.unit import UnitObject
-from app.engine.objects.region import RegionObject
 from app.engine.persistent_records import RECORDS
 from app.engine.sound import get_sound_thread
 from app.events import event_commands, regions, triggers
@@ -39,7 +37,7 @@ from app.events.screen_positions import parse_screen_position
 from app.events.speak_style import SpeakStyle
 from app.sprites import SPRITES
 from app.utilities import str_utils, utils
-from app.utilities.enums import Alignments
+from app.utilities.enums import Alignments, HAlignment, Orientation, VAlignment
 from app.utilities.type_checking import check_valid_type
 from app.utilities.typing import NID
 
@@ -480,7 +478,7 @@ def unpause(self: Event, nid=None, flags=None):
         # Just remove the most recent text box
         box = self.text_boxes[-1]
         box.command_unpause()
-    
+
     else:
         for box in reversed(self.text_boxes):
             if box.speaker == nid:
@@ -2746,11 +2744,11 @@ def choice(self: Event, nid: NID, title: str, choices: str, row_width: str = Non
            dimensions: str = None, text_align: str = None, flags=None):
     flags = flags or set()
 
-    nid = nid
+    nid = nid or ""
     header = title
 
     if not row_width:
-        row_width = '-1'
+        row_width = '0'
     if not bg:
         bg = 'menu_bg_base'
     if 'no_bg' in flags:
@@ -2785,13 +2783,9 @@ def choice(self: Event, nid: NID, title: str, choices: str, row_width: str = Non
 
     row_width = int(row_width)
 
-    if not orientation:
-        orientation = 'vertical'
-    else:
-        if orientation in ('h', 'horiz', 'horizontal'):
-            orientation = 'horizontal'
-        else:
-            orientation = 'vertical'
+    actual_orientation = Orientation.VERTICAL
+    if orientation and orientation in ('h', 'horiz', 'horizontal'):
+        actual_orientation = Orientation.HORIZONTAL
 
     if not alignment:
         align = Alignments.CENTER
@@ -2804,12 +2798,21 @@ def choice(self: Event, nid: NID, title: str, choices: str, row_width: str = Non
 
     size = None
     if dimensions:
-        size = tuple([int(x) for x in dimensions.split(',')])
+        rows, columns = tuple([int(x) for x in dimensions.split(',')])
+        size = (columns, rows)
 
     should_persist = 'persist' in flags
     no_cursor = 'no_cursor' in flags
-    arrows = 'arrows' in flags and orientation == 'horizontal'
-    scroll_bar = 'scroll_bar' in flags and orientation == 'vertical'
+    arrows = None
+    if 'arrows' in flags:
+        arrows = True
+    elif 'no_arrows' in flags:
+        arrows = False
+    scroll_bar = None
+    if 'scroll_bar' in flags:
+        scroll_bar = True
+    elif 'no_scroll_bar' in flags:
+        scroll_bar = False
     backable = 'backable' in flags
 
     event_context = {
@@ -2820,7 +2823,7 @@ def choice(self: Event, nid: NID, title: str, choices: str, row_width: str = Non
     }
 
     self.game.memory['player_choice'] = (nid, header, data, row_width,
-                                    orientation, dtype, should_persist,
+                                    actual_orientation, dtype, should_persist,
                                     align, bg, event_nid, size, no_cursor,
                                     arrows, scroll_bar, talign, backable, event_context)
     self.game.state.change('player_choice')

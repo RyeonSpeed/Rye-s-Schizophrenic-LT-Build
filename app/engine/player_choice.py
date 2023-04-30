@@ -1,8 +1,10 @@
 import logging
+from typing import List, Tuple
 
 from app.data.database.database import DB
 from app.engine import action
-from app.engine.game_menus.menu_components.generic_menu.choice_table_wrapper import ChoiceMenuUI
+from app.engine.game_menus.menu_components.generic_menu.cursor_hand import CursorDrawMode
+from app.engine.game_menus.menu_components.generic_menu.grid_choice import GridChoiceMenu
 from app.engine.game_state import game
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
@@ -20,32 +22,51 @@ class PlayerChoiceState(MapState):
             self.data_type, self.should_persist, self.alignment, self.bg, self.event_on_choose, \
             self.size, self.no_cursor, self.arrows, self.scroll_bar, self.text_align, self.backable, self.event_context = \
             game.memory['player_choice']
-        self.tsize = [0, 0]
-        if self.size:
-            rows, ncols = self.size
+        self.is_callable = False
+        self.data = options_list
+        if callable(options_list):
+            self._resolved_data = options_list()
+            self.is_callable = True
         else:
-            if callable(options_list):
-                data = options_list()
-            else:
-                data = options_list
+            self._resolved_data = options_list
+
+        if not self.size:
             if self.orientation == 'horizontal':
-                ncols = len(data)
-                self.size = (1, ncols)
-                rows, ncols = self.size
+                ncols = len(self._resolved_data)
+                self.size = (ncols, 1)
             else:
-                nrows = len(data)
-                self.size = (nrows, 1)
-                rows, ncols = self.size
-        self.menu = ChoiceMenuUI(options_list, data_type=self.data_type, rows=rows, row_width=self.row_width,
-                                 title=self.header, cols=ncols, alignment=self.alignment, bg=self.bg,
-                                 orientation=Orientation(self.orientation), text_align=self.text_align)
-        self.menu.set_scrollbar(self.scroll_bar)
-        self.menu.set_arrows(self.arrows)
+                nrows = len(self._resolved_data)
+                self.size = (1, nrows)
+
+        values, display_values = self.process_data(self._resolved_data)
+        self.menu = GridChoiceMenu(values, display_values, self.header, self.data_type, self.size,
+                                   self.row_width, self.alignment, self.orientation,
+                                   self.bg, self.text_align)
+
+        if self.scroll_bar is not None:
+            self.menu.set_scrollbar(self.scroll_bar)
+        if self.arrows is not None:
+            self.menu.set_arrows(self.arrows)
 
         self.made_choice = False
 
         self.info_flag = False   # For now putting info stuff here because innards of UIF are too arcane.
-        self.create_help_boxes(options_list)
+        self.create_help_boxes(self._resolved_data)
+
+    def process_data(self, data: List[str]) -> Tuple[List[str], List[str]]:
+        data = list(map(str, data))
+        values = []
+        display_values = []
+        for datum in data:
+            spl = datum.split("|")
+            if len(spl) == 1:
+                values.append(spl[0])
+                display_values.append(None)
+            else:
+                spl = [spl[0], ''.join(spl[1:])]
+                values.append(spl[0])
+                display_values.append(spl[1])
+        return values, display_values
 
     def create_help_boxes(self, options_list):
         self.help_boxes = []
@@ -68,17 +89,16 @@ class PlayerChoiceState(MapState):
     def take_input(self, event):
         first_push = self.fluid.update()
         directions = self.fluid.get_directions()
-
-        if ('RIGHT' in directions and (self.orientation == 'horizontal' or self.size[0] > 1)):
+        if ('RIGHT' in directions and (self.orientation == Orientation.HORIZONTAL or self.size[0] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_right(first_push)
-        elif ('DOWN' in directions and (self.orientation == 'vertical' or self.size[1] > 1)):
+        elif ('DOWN' in directions and (self.orientation == Orientation.VERTICAL or self.size[1] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_down(first_push)
-        elif ('LEFT' in directions and (self.orientation == 'horizontal' or self.size[0] > 1)):
+        elif ('LEFT' in directions and (self.orientation == Orientation.HORIZONTAL or self.size[0] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_left(first_push)
-        elif('UP' in directions and (self.orientation == 'vertical' or self.size[1] > 1)):
+        elif('UP' in directions and (self.orientation == Orientation.VERTICAL or self.size[1] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_up(first_push)
 
@@ -116,19 +136,28 @@ class PlayerChoiceState(MapState):
         game.game_vars[self.nid + '_choice_hover'] = selection
 
     def update(self):
+        if self.is_callable:
+            data = self.data()
+            if data != self._resolved_data:
+                self._resolved_data = data
+                values, display_values = self.process_data(self._resolved_data)
+                self.menu.set_data(values, display_values)
+                self.create_help_boxes(self._resolved_data)
+
+        self.menu.update()
         if self.made_choice and not self.should_persist:
             game.state.back()
             return 'repeat'
 
     def draw(self, surf):
-        self.menu.update()
-        focus = 0
+        draw_mode = CursorDrawMode.NO_DRAW
         if not self.no_cursor:
-            focus = 1 if game.state.current_state() == self else 2
-        self.menu.draw(surf, focus)
+            draw_mode = CursorDrawMode.DRAW if game.state.current_state() == self else CursorDrawMode.DRAW_STATIC
+        self.menu.set_cursor_mode(draw_mode)
+        self.menu.draw(surf)
 
         if self.info_flag:
-            idx = self.menu.table.selected_index[1]
+            idx = self.menu.get_selected_idx()
             help_box = self.help_boxes[idx]
             if not help_box:
                 pass
