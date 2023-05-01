@@ -229,7 +229,14 @@ class TitleMainState(State):
                     else:  # Wow, no need for choice
                         mode = available_difficulties[0]
                         game.current_mode = DifficultyModeObject.from_prefab(mode)
-                        game.state.change('title_new')
+                        build_new_game(-1)
+                        #save.SAVE_THREAD.join()
+                        #save.check_save_slots()
+                        #options, color = save.get_save_title(save.SAVE_SLOTS)
+                        #self.menu.set_colors(color)
+                        #self.menu.update_options(options)
+                        game.memory['transition_from'] = 'New Game'
+                        game.memory['title_menu'] = self.menu
                 self.state = 'transition_in'
                 return 'repeat'
 
