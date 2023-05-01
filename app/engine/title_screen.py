@@ -230,11 +230,6 @@ class TitleMainState(State):
                         mode = available_difficulties[0]
                         game.current_mode = DifficultyModeObject.from_prefab(mode)
                         build_new_game(-1)
-                        #save.SAVE_THREAD.join()
-                        #save.check_save_slots()
-                        #options, color = save.get_save_title(save.SAVE_SLOTS)
-                        #self.menu.set_colors(color)
-                        #self.menu.update_options(options)
                         game.memory['transition_from'] = 'New Game'
                         game.memory['title_menu'] = self.menu
                 self.state = 'transition_in'
@@ -332,8 +327,9 @@ class TitleModeState(State):
                 self.state = 'growth_wait'
                 game.state.change('transition_in')
             else:
-                game.memory['next_state'] = 'title_new'
-                game.state.change('transition_to')
+                build_new_game(-1)
+                game.memory['transition_from'] = 'New Game'
+                game.memory['title_menu'] = self.menu
 
         self.update_dialog()
 
@@ -393,16 +389,18 @@ class TitleModeState(State):
             get_sound_thread().play_sfx('Select 1')
             if self.state == 'growth_wait':
                 game.current_mode.growths = self.menu.get_current()
-                game.memory['next_state'] = 'title_new'
-                game.state.change('transition_to')
+                build_new_game(-1)
+                game.memory['transition_from'] = 'New Game'
+                game.memory['title_menu'] = self.menu
             elif self.state == 'death_wait':
                 game.current_mode.permadeath = self.menu.get_current() == PermadeathOption.CLASSIC
                 if self.growths_choice:
                     self.state = 'growth_setup'
                     game.state.change('transition_out')
                 else:
-                    game.memory['next_state'] = 'title_new'
-                    game.state.change('transition_to')
+                    build_new_game(-1)
+                    game.memory['transition_from'] = 'New Game'
+                    game.memory['title_menu'] = self.menu
             elif self.state == 'difficulty_wait':
                 mode = self.available_difficulties[self.menu.get_current_index()]
                 game.current_mode = DifficultyModeObject.from_prefab(mode)
@@ -415,8 +413,9 @@ class TitleModeState(State):
                     self.state = 'growth_setup'
                     game.state.change('transition_out')
                 else:
-                    game.memory['next_state'] = 'title_new'
-                    game.state.change('transition_to')
+                    build_new_game(-1)
+                    game.memory['transition_from'] = 'New Game'
+                    game.memory['title_menu'] = self.menu
             return 'repeat'
 
     def update(self):
