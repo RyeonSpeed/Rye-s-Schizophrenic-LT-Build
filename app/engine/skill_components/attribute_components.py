@@ -23,9 +23,6 @@ class TerrainSkill(SkillComponent):
 
     ignore_conditional = True
 
-    def condition(self, unit, item):
-        return not 'Flying' in unit.tags
-
 class ClassSkill(SkillComponent):
     nid = 'class_skill'
     desc = "Skill will show up on first page of info menu"
