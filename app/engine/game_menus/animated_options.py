@@ -24,12 +24,14 @@ class MapSpriteOptionUtils():
             map_sprite = sprite.create_image('passive')
         surf.blit(map_sprite, (x - 20, y - 24 - 1))
 
+
 class BasicUnitOption(BaseOption[UnitObject]):
     def __init__(self, idx: int, unit: UnitObject, display_value: str | None = None,  width: int = 0,
                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
                  align: HAlignment = HAlignment.LEFT):
         super().__init__(idx, unit, display_value, width, height, ignore)
-        self._disp_value = text_funcs.translate(display_value or self._value.name)
+        self._disp_value = text_funcs.translate(
+            display_value or self._value.name)
         self._align = align
         self._color = text_color
         self._font = font
@@ -55,14 +57,14 @@ class BasicUnitOption(BaseOption[UnitObject]):
 
     @classmethod
     def from_unit(cls, idx, value: UnitObject, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
-                 align: HAlignment = HAlignment.LEFT):
+                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                  align: HAlignment = HAlignment.LEFT):
         return cls(idx, value, display_value, width, height, ignore, font, text_color, align)
 
     def width(self):
         return self._width or 104
 
-    def set(self, val: UnitObject, disp_val: Optional[str]=None):
+    def set(self, val: UnitObject, disp_val: Optional[str] = None):
         self._value = val
         self._disp_value = text_funcs.translate(disp_val or self._value.name)
 
@@ -77,7 +79,8 @@ class BasicUnitOption(BaseOption[UnitObject]):
 
     def get_help_box(self):
         if not self._help_box:
-            self._help_box = help_menu.HelpDialog(self._value.desc, name=self._value.name)
+            self._help_box = help_menu.HelpDialog(
+                self._value.desc, name=self._value.name)
         return self._help_box
 
     def draw_option(self, surf, x, y, active=False):
@@ -87,7 +90,8 @@ class BasicUnitOption(BaseOption[UnitObject]):
             font = 'narrow'
         blit_loc = anchor_align(x, self.width(), self._align, (20, 5)), y
         color = self.get_color()
-        MapSpriteOptionUtils.draw_map_sprite(surf, self._value.sprite, x, y, active)
+        MapSpriteOptionUtils.draw_map_sprite(
+            surf, self._value.sprite, x, y, active)
         render_text(surf, [font], [display_text], [color], blit_loc)
 
     def draw(self, surf, x, y):
@@ -103,6 +107,7 @@ class BasicUnitOption(BaseOption[UnitObject]):
             surf.blit(highlight_surf, (left, top))
         self.draw_option(surf, x, y, True)
 
+
 class BasicKlassOption(BaseOption[str]):
     def __init__(self, idx: int, klass: str, display_value: str | None = None,  width: int = 0,
                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
@@ -116,7 +121,7 @@ class BasicKlassOption(BaseOption[str]):
     def width(self):
         return self._width or 104
 
-    def set(self, val: str, disp_val: Optional[str]=None):
+    def set(self, val: str, disp_val: Optional[str] = None):
         self._value = val
         self._disp_value = text_funcs.translate(disp_val or self._value)
 
@@ -132,7 +137,8 @@ class BasicKlassOption(BaseOption[str]):
     def get_help_box(self):
         db_class = DB.classes.get(self._value)
         if not self._help_box and db_class:
-            self._help_box = help_menu.HelpDialog(db_class.desc, name=db_class.name)
+            self._help_box = help_menu.HelpDialog(
+                db_class.desc, name=db_class.name)
         return self._help_box
 
     def draw_option(self, surf, x, y, active=False):

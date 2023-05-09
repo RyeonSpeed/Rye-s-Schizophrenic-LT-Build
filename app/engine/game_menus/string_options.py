@@ -14,6 +14,7 @@ from app.utilities.typing import NID, Protocol
 
 T = TypeVar('T')
 
+
 class IMenuOption(Protocol, Generic[T]):
     get: Callable[[], T]
     set: Callable[[T, str], None]
@@ -24,15 +25,18 @@ class IMenuOption(Protocol, Generic[T]):
     set_ignore: Callable[[bool], None]
     set_help_box: Callable[[help_menu.HelpDialog], None]
     get_help_box: Callable[[], Optional[help_menu.HelpDialog]]
+
     @property
     def help_box(self) -> help_menu.HelpDialog:
         pass
+
     @property
     def ignore(self) -> bool:
         pass
     draw: Callable[[engine.Surface, int, int], None]
     draw_highlight: Callable[[engine.Surface, int, int, int], None]
     is_oversize: Callable[[], bool]
+
 
 class BaseOption(IMenuOption[T]):
     def __init__(self, idx: int, value: T, display_value: Optional[str] = None, width: int = 0,
@@ -48,7 +52,7 @@ class BaseOption(IMenuOption[T]):
     def get(self):
         return self._value
 
-    def set(self, val: T, disp_val: Optional[str]=None):
+    def set(self, val: T, disp_val: Optional[str] = None):
         raise NotImplementedError()
 
     def height(self):
@@ -107,6 +111,7 @@ class BaseOption(IMenuOption[T]):
         self.draw(surf, x, y)
         return surf
 
+
 class TextOption(BaseOption[str]):
     def __init__(self, idx: int, value: str, display_value: str | None = None, width: int = 0,
                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
@@ -117,7 +122,7 @@ class TextOption(BaseOption[str]):
         self._color = text_color
         self._font = font
 
-    def set(self, val: str, disp_val: Optional[str]=None):
+    def set(self, val: str, disp_val: Optional[str] = None):
         self._value = val
         self._disp_value = text_funcs.translate(disp_val or val)
 
@@ -134,14 +139,18 @@ class TextOption(BaseOption[str]):
 
     def draw(self, surf, x, y):
         blit_loc = anchor_align(x, self.width(), self._align, (5, 5)), y
-        render_text(surf, [self._font], [self._disp_value], [self.get_color()], blit_loc, self._align)
+        render_text(surf, [self._font], [self._disp_value], [
+                    self.get_color()], blit_loc, self._align)
+
 
 class NarrowOption(TextOption):
     def __init__(self, idx: int, value: str, display_value: str | None = None, width: int = 0, height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white', align: HAlignment = HAlignment.LEFT):
-        super().__init__(idx, value, display_value, width, height, ignore, font, text_color, align)
+        super().__init__(idx, value, display_value, width,
+                         height, ignore, font, text_color, align)
 
     def width(self):
         return self._width or text_width(self._font, self._disp_value)
+
 
 class NullOption(BaseOption[None]):
     def __init__(self, idx: int, display_text: str = 'Nothing', width: int = 0, font: NID = 'text', text_color: NID = 'white', align: HAlignment = HAlignment.LEFT):
@@ -155,7 +164,9 @@ class NullOption(BaseOption[None]):
 
     def draw(self, surf, x, y):
         blit_loc = anchor_align(x, self.width(), self._align, (5, 5)), y
-        render_text(surf, [self._font], [self._disp_value], [self._color], blit_loc, self._align)
+        render_text(surf, [self._font], [self._disp_value],
+                    [self._color], blit_loc, self._align)
+
 
 class BasicPortraitOption(BaseOption[str]):
     def __init__(self, idx: int, portrait_nid: str, width: int = 0,
@@ -168,7 +179,7 @@ class BasicPortraitOption(BaseOption[str]):
     def height(self):
         return self._height or 80
 
-    def set(self, portrait_nid: str, _: Optional[str]=None):
+    def set(self, portrait_nid: str, _: Optional[str] = None):
         self._value = portrait_nid
 
     def draw(self, surf, x, y):
@@ -179,11 +190,13 @@ class BasicPortraitOption(BaseOption[str]):
                 portrait.image = engine.image_load(portrait.full_path)
             portrait.image = portrait.image.convert()
             engine.set_colorkey(portrait.image, COLORKEY, rleaccel=True)
-            main_portrait = engine.subsurface(portrait.image, main_portrait_coords)
+            main_portrait = engine.subsurface(
+                portrait.image, main_portrait_coords)
             surf.blit(main_portrait, (x, y))
 
     def draw_highlight(self, surf, x, y, menu_width):
         self.draw(surf, x, y)
+
 
 class BasicChibiOption(BaseOption[str]):
     def __init__(self, idx: int, portrait_nid: str, width: int = 0,
@@ -196,7 +209,7 @@ class BasicChibiOption(BaseOption[str]):
     def height(self):
         return self._height or 32
 
-    def set(self, portrait_nid: str, _: Optional[str]=None):
+    def set(self, portrait_nid: str, _: Optional[str] = None):
         self._value = portrait_nid
 
     def draw(self, surf, x, y):

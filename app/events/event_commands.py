@@ -2396,8 +2396,8 @@ via hitting the back button, and the event will go on as normal.
 * The *expression* flag indicates that the provided table data should be be continually parsed as a python expression and updated.
 * The *no_bg* flag removes the bg.
 * *no_cursor* removes the cursor.
-* *arrows* adds pulsing left/right arrows, while *no_arrows* removes them.
-* *scroll_bar* adds a vertical scroll bar, while *no_scroll_bar* removes them.
+* Horizontal pulsing left/right arrows will appear by default if you have a single row and it has more options than will fit inside the menu without scrolling. You can use *arrows* to force the arrows to display, or use *no_arrows* to forcibly remove them.
+* A vertical scroll bar will appear by default if you have more rows than will fit in the menu. Use *scroll_bar* to force this bar to appear when it wouldn't otherwise, or use *no_scroll_bar* to forcibly remote it.
 * *backable* allows you to exit out of the menu without making a choice - similarly to *persist*. If backed out in this way, will set `BACK` as the chosen option.
  """
 

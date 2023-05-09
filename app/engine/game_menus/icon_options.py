@@ -55,12 +55,13 @@ class ItemOptionUtils():
         elif item.cooldown:
             uses_string = str(item.data['cooldown'])
         uses_loc = anchor_align(x, width, HAlignment.RIGHT, (0, 5)), y
-        render_text(surf, [uses_font], [uses_string], [uses_color], uses_loc, HAlignment.RIGHT)
+        render_text(surf, [uses_font], [uses_string], [
+                    uses_color], uses_loc, HAlignment.RIGHT)
 
     @staticmethod
     def draw_with_full_uses(surf, x, y, item: ItemObject, font: NID, color: NID, uses_color: NID,
-                       width: int, align: HAlignment = HAlignment.LEFT,
-                       disp_text: Optional[str] = None):
+                            width: int, align: HAlignment = HAlignment.LEFT,
+                            disp_text: Optional[str] = None):
         ItemOptionUtils.draw_icon(surf, x, y, item)
         main_font = font
         display_text = disp_text or item.name
@@ -68,7 +69,8 @@ class ItemOptionUtils():
             main_font = 'narrow'
         uses_font = font
         blit_loc = anchor_align(x, width, align, (20, 36)), y
-        render_text(surf, [main_font], [display_text], [color], blit_loc, align)
+        render_text(surf, [main_font], [display_text],
+                    [color], blit_loc, align)
 
         uses_string_a = '--'
         uses_string_b = '--'
@@ -87,12 +89,16 @@ class ItemOptionUtils():
         elif item.data.get('cooldown') is not None:
             uses_string_a = str(item.data['cooldown'])
             uses_string_b = str(item.data['starting_cooldown'])
-        uses_string_a_loc = anchor_align(x, width, HAlignment.RIGHT, (0, 24)), y
+        uses_string_a_loc = anchor_align(
+            x, width, HAlignment.RIGHT, (0, 24)), y
         uses_string_b_loc = anchor_align(x, width, HAlignment.RIGHT, (0, 0)), y
         slash_loc = anchor_align(x, width, HAlignment.RIGHT, (0, 16)), y
-        render_text(surf, [uses_font], [uses_string_a], [uses_color], uses_string_a_loc, HAlignment.RIGHT)
+        render_text(surf, [uses_font], [uses_string_a], [
+                    uses_color], uses_string_a_loc, HAlignment.RIGHT)
         render_text(surf, [uses_font], ["/"], [], slash_loc, HAlignment.RIGHT)
-        render_text(surf, [uses_font], [uses_string_b], [uses_color], uses_string_b_loc, HAlignment.RIGHT)
+        render_text(surf, [uses_font], [uses_string_b], [
+                    uses_color], uses_string_b_loc, HAlignment.RIGHT)
+
 
 class ItemOptionModes(Enum):
     NO_USES = 0
@@ -102,12 +108,14 @@ class ItemOptionModes(Enum):
     VALUE = 4
     STOCK_AND_VALUE = 5
 
+
 class BasicItemOption(BaseOption[ItemObject]):
     def __init__(self, idx: int, item: ItemObject, display_value: str | None = None,  width: int = 0,
                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
                  align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
         super().__init__(idx, item, display_value, width, height, ignore)
-        self._disp_value = text_funcs.translate(display_value or self._value.name)
+        self._disp_value = text_funcs.translate(
+            display_value or self._value.name)
         self._align = align
         self._color = text_color
         self._font = font
@@ -134,14 +142,14 @@ class BasicItemOption(BaseOption[ItemObject]):
 
     @classmethod
     def from_item(cls, idx, value: ItemObject, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
-                 align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
+                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                  align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
         return cls(idx, value, display_value, width, height, ignore, font, text_color, align, mode)
 
     def width(self):
         return self._width or 104
 
-    def set(self, val: ItemObject, disp_val: Optional[str]=None):
+    def set(self, val: ItemObject, disp_val: Optional[str] = None):
         self._value = val
         self._disp_value = text_funcs.translate(disp_val or self._value.name)
 
@@ -176,18 +184,23 @@ class BasicItemOption(BaseOption[ItemObject]):
     def draw(self, surf, x, y):
         main_color, uses_color = self.get_color()
         if self._mode == ItemOptionModes.NO_USES:
-            ItemOptionUtils.draw_without_uses(surf, x, y, self._value, self._font, main_color, self.width(), self._align, self._disp_value)
+            ItemOptionUtils.draw_without_uses(
+                surf, x, y, self._value, self._font, main_color, self.width(), self._align, self._disp_value)
         elif self._mode == ItemOptionModes.USES:
-            ItemOptionUtils.draw_with_uses(surf, x, y, self._value, self._font, main_color, uses_color, self.width(), self._align, self._disp_value)
+            ItemOptionUtils.draw_with_uses(surf, x, y, self._value, self._font,
+                                           main_color, uses_color, self.width(), self._align, self._disp_value)
         elif self._mode == ItemOptionModes.FULL_USES:
-            ItemOptionUtils.draw_with_full_uses(surf, x, y, self._value, self._font, main_color, uses_color, self.width(), self._align, self._disp_value)
+            ItemOptionUtils.draw_with_full_uses(
+                surf, x, y, self._value, self._font, main_color, uses_color, self.width(), self._align, self._disp_value)
+
 
 class BasicSkillOption(BaseOption[SkillObject]):
     def __init__(self, idx: int, skill: SkillObject, display_value: str | None = None,  width: int = 0,
                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
                  align: HAlignment = HAlignment.LEFT):
         super().__init__(idx, skill, display_value, width, height, ignore)
-        self._disp_value = text_funcs.translate(display_value or self._value.name)
+        self._disp_value = text_funcs.translate(
+            display_value or self._value.name)
         self._align = align
         self._color = text_color
         self._font = font
@@ -213,14 +226,14 @@ class BasicSkillOption(BaseOption[SkillObject]):
 
     @classmethod
     def from_skill(cls, idx, value: SkillObject, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
-                 align: HAlignment = HAlignment.LEFT):
+                   height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                   align: HAlignment = HAlignment.LEFT):
         return cls(idx, value, display_value, width, height, ignore, font, text_color, align)
 
     def width(self):
         return self._width or 104
 
-    def set(self, val: SkillObject, disp_val: Optional[str]=None):
+    def set(self, val: SkillObject, disp_val: Optional[str] = None):
         self._value = val
         self._disp_value = text_funcs.translate(disp_val or self._value.name)
 
@@ -231,7 +244,8 @@ class BasicSkillOption(BaseOption[SkillObject]):
 
     def get_help_box(self):
         if not self._help_box:
-            self._help_box = help_menu.HelpDialog(self._value.desc, name=self._value.name)
+            self._help_box = help_menu.HelpDialog(
+                self._value.desc, name=self._value.name)
         return self._help_box
 
     def draw(self, surf, x, y):
@@ -245,6 +259,7 @@ class BasicSkillOption(BaseOption[SkillObject]):
         blit_loc = anchor_align(x, self.width(), self._align, (20, 5)), y
         color = self.get_color()
         render_text(surf, [font], [display_text], [color], blit_loc)
+
 
 class BasicIconOption(BaseOption[str]):
     def __init__(self, idx: int, value: str, icon_name: str, width: int = 0,
@@ -260,7 +275,7 @@ class BasicIconOption(BaseOption[str]):
     def width(self):
         return self._width or 104
 
-    def set(self, val: str, icon_name: Optional[str]=None):
+    def set(self, val: str, icon_name: Optional[str] = None):
         self._value = val
         self._disp_value = text_funcs.translate(val)
         self._icon_name = icon_name
