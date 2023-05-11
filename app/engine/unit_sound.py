@@ -5,7 +5,8 @@ class UnitSound():
         'Flier': {0: 'Flier', 20: 'repeat'},
         'Mounted': {0: 'Mounted1', 3: 'Mounted2', 10: 'Mounted3', 21: 'repeat'},
         'Armor': {0: 'Armor1', 16: 'Armor2', 32: 'repeat'},
-        'Infantry': {0: 'Infantry1', 8: 'Infantry2', 16: 'repeat'}}
+        'Infantry': {0: 'Infantry1', 8: 'Infantry2', 16: 'repeat'},
+        'Silence': {0: 'Silence', 8: 'repeat'}}
 
     def __init__(self, unit):
         self.unit = unit
@@ -20,6 +21,8 @@ class UnitSound():
             self.current_sound = 'Mounted'
         elif 'Armor' in self.unit.tags:
             self.current_sound = 'Armor'
+        elif self.unit.klass == 'Cursor':
+            self.current_sound = 'Silence'
         else:
             self.current_sound = 'Infantry'
 
