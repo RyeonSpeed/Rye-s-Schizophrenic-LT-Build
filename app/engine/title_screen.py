@@ -671,8 +671,8 @@ class TitleNewState(TitleLoadState):
 
     def back(self):
         if game.state.get_prev_state().name == 'title_mode':
-        game.state.back()
-        game.state.back()
+            game.state.back()
+            game.state.back()
 
 class TitleNewChildState(State):
     name = 'title_new_child'
