@@ -92,6 +92,7 @@ class TitleStartState(State):
         if event:
             get_sound_thread().play_sfx('Start')
             game.memory['next_state'] = 'title_main'
+            game.memory['transition_speed'] = 4
             game.state.change('transition_to')
 
     def draw(self, surf):
@@ -166,6 +167,7 @@ class TitleMainState(State):
                 get_sound_thread().play_sfx('Select 4')
                 # game.memory['next_state'] = 'title_start'
                 # game.state.change('transition_to')
+                game.memory['transition_speed'] = 4
                 game.state.change('transition_pop')
 
             elif event == 'SELECT':
@@ -225,6 +227,7 @@ class TitleMainState(State):
                          (available_difficulties[0].permadeath_choice == PermadeathOption.PLAYER_CHOICE or
                           available_difficulties[0].growths_choice == GrowthOption.PLAYER_CHOICE)):
                         game.memory['next_state'] = 'title_mode'
+                        game.memory['transition_speed'] = 4
                         game.state.change('transition_to')
                     else:  # Wow, no need for choice
                         mode = available_difficulties[0]
@@ -667,6 +670,7 @@ class TitleNewState(TitleLoadState):
                 game.state.change('title_wait')
 
     def back(self):
+        if game.state.get_prev_state().name == 'title_mode':
         game.state.back()
         game.state.back()
 
