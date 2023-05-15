@@ -64,6 +64,7 @@ class InfoMenuState(State):
 
         self.info_graph = InfoGraph()
         self.info_flag = False
+        self.multi_item_flag = False
         self.info_graph.set_current_state(self.state)
         self.reset_surfs()
 
@@ -128,13 +129,20 @@ class InfoMenuState(State):
         directions = self.fluid.get_directions()
 
         self.handle_mouse()
-        if self.info_flag:
+        if self.info_flag and self.multi_item_flag:
+            if event == 'AUX' or event == 'BACK':
+                get_sound_thread().play_sfx('Info Out')
+                self.multi_item_flag = False
+        elif self.info_flag:
             if event == 'INFO' or event == 'BACK':
                 get_sound_thread().play_sfx('Info Out')
                 self.info_graph.set_transition_out()
                 self.info_flag = False
                 return
-
+                
+            if event == 'AUX' and isinstance(self.info_graph.current_bb.help_box, ItemHelpDialog):
+                get_sound_thread().play_sfx('Info In')
+                self.multi_item_flag = True
             if 'RIGHT' in directions:
                 get_sound_thread().play_sfx('Select 6')
                 self.info_graph.move_right()
