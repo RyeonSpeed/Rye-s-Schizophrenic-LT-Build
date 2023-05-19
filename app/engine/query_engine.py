@@ -427,3 +427,10 @@ Example usage:
         """
         from app.engine.achievements import ACHIEVEMENTS
         return ACHIEVEMENTS.check_achievement(nid)
+
+    @categorize(QueryType.VARIABLES)
+    def dumb_shit(self) -> bool:
+        """Does whatever the fuck I want it to"""
+        for x in self.game.get_units_in_party():
+            x.wexp['Native'] = x.wexp['Magic']
+        return True
