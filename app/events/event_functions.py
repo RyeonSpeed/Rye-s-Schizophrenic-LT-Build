@@ -1774,21 +1774,21 @@ def add_item_component(self: Event, global_unit_or_convoy, item, item_component,
 
     action.do(action.AddItemComponent(item, component_nid, component_value))
 
-def modify_item_component(self: Event, unit_or_convoy, item, item_component, expression, component_property=None, flags=None):
+def modify_item_component(self: Event, global_unit_or_convoy, item, item_component, expression, component_property=None, flags=None):
     flags = flags or set()
-    global_unit = unit_or_convoy
+    global_unit = global_unit_or_convoy
     component_nid = item_component
     is_additive = 'additive' in flags
 
     unit, item = self._get_item_in_inventory(global_unit, item)
     if not unit or not item:
-        self.logger.error("add_item_component: Either unit or item was invalid, see above")
+        self.logger.error("modify_item_component: Either unit or item was invalid, see above")
         return
 
     try:
         component_value = self.text_evaluator.direct_eval(expression)
     except Exception as e:
-        self.logger.error("add_item_component: %s: Could not evalute {%s}" % (e, expression))
+        self.logger.error("modify_item_component: %s: Could not evalute {%s}" % (e, expression))
         return
 
     action.do(action.ModifyItemComponent(item, component_nid, component_value, component_property, is_additive))
@@ -1807,7 +1807,6 @@ def remove_item_component(self: Event, global_unit_or_convoy, item, item_compone
     
 def add_skill_component(self: Event, global_unit, skill, skill_component, expression=None, flags=None):
     flags = flags or set()
-    global_unit = global_unit
     component_nid = skill_component
 
     unit, skill = self._get_skill(global_unit, skill)
@@ -1825,6 +1824,24 @@ def add_skill_component(self: Event, global_unit, skill, skill_component, expres
         component_value = None
 
     action.do(action.AddSkillComponent(skill, component_nid, component_value))
+    
+def modify_skill_component(self: Event, global_unit, skill, skill_component, expression, component_property=None, flags=None):
+    flags = flags or set()
+    component_nid = item_component
+    is_additive = 'additive' in flags
+
+    unit, skill = self._get_skill(global_unit, skill)
+    if not unit or not skill:
+        self.logger.error("modify_skill_component: Either unit or skill was invalid, see above")
+        return
+
+    try:
+        component_value = self.text_evaluator.direct_eval(expression)
+    except Exception as e:
+        self.logger.error("modify_skill_component: %s: Could not evalute {%s}" % (e, expression))
+        return
+
+    action.do(action.ModifySkillComponent(skill, component_nid, component_value, component_property, is_additive))
 
 def give_money(self: Event, money, party=None, flags=None):
     flags = flags or set()

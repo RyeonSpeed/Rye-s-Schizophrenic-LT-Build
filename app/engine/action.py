@@ -1625,6 +1625,41 @@ class AddSkillComponent(Action):
             self.skill.components.remove_key(self.component_nid)
             del self.skill.__dict__[self.component_nid]
             self._did_add = False
+            
+class ModifySkillComponent(Action):
+    def __init__(self, skill, component_nid, new_component_value, component_property=None, additive: bool = False):
+        self.skill: SkillObject = skill
+        self.component_nid = component_nid
+        self.property_name: Optional[NID] = None
+        self.prev_component_value = None
+        self.component_value = None
+        if self.component_nid in self.skill.components.keys():
+            component = self.skill.components.get(self.component_nid)
+            if isinstance(component.value, dict):
+                self.property_name = component_property
+                self.prev_component_value = component.value[self.property_name]
+            else:
+                self.prev_component_value = component.value
+            if not additive:
+                self.component_value = new_component_value
+            else:
+                self.component_value = self.prev_component_value + new_component_value
+
+    def do(self):
+        if self.component_nid in self.skill.components.keys():
+            component = self.skill.components.get(self.component_nid)
+            if self.property_name and isinstance(component.value, dict):
+                component.value[self.property_name] = self.component_value
+            else:
+                component.value = self.component_value
+
+    def reverse(self):
+        if self.component_nid in self.skill.components.keys():
+            component = self.skill.components.get(self.component_nid)
+            if self.property_name and isinstance(self.component.value, dict):
+                component.value[self.property_name] = self.prev_component_value
+            else:
+                component.value = self.prev_component_value
 
 class SetObjData(Action):
     def __init__(self, obj, keyword, value):
