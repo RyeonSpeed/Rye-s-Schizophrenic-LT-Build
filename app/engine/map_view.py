@@ -31,8 +31,8 @@ class MapView():
         surf = surf.convert_alpha()
 
         # Draw units
-        draw_units = [unit for unit in game.units if (unit.position or unit.sprite.fake_position)]
-        draw_units = sorted(draw_units, key=lambda unit: unit.position[1] if unit.position else unit.sprite.fake_position[1])
+        draw_units = [unit for unit in game.units if unit.sprite.position]
+        draw_units = sorted(draw_units, key=lambda unit: unit.sprite.position[1])
         for unit in draw_units:
             unit.sprite.draw(surf, (0, 0))
 
@@ -44,9 +44,9 @@ class MapView():
         cull_rect_center_in_tiles = tuple_add(cull_rect_in_tiles[:2], tmult(cull_rect_in_tiles[2:], 0.5))
 
         # Update all units
-        update_units = [unit for unit in game.units if (unit.position or unit.sprite.fake_position)]
+        update_units = [unit for unit in game.units if unit.sprite.position]
         for unit in update_units:
-            if game.level and game.level.roam:
+            if game.is_roam():
                 if unit.position:
                     norm_dist_from_center = max(1.0 - magnitude(tuple_sub(unit.position, cull_rect_center_in_tiles)) / ((TILEX + TILEY) / 2), 0)
                 else:
@@ -56,14 +56,14 @@ class MapView():
             unit.sprite.update()
             unit.sound.update(volume=norm_dist_from_center)
 
-        pos_units = [unit for unit in update_units if unit is not game.cursor.cur_unit and (unit.position or unit.sprite.fake_position)]
+        pos_units = [unit for unit in update_units if unit is not game.cursor.cur_unit and unit.sprite.position]
         # Only draw units within 2 tiles of cull_rect
         culled_units = [unit for unit in pos_units if unit.sprite.draw_anyway() or
-                        (cull_rect[0] - TILEWIDTH*2 < (unit.position or unit.sprite.fake_position)[0] * TILEWIDTH < cull_rect[0] + cull_rect[2] + TILEWIDTH*2 and
-                         cull_rect[1] - TILEHEIGHT*2 < (unit.position or unit.sprite.fake_position)[1] * TILEHEIGHT < cull_rect[1] + cull_rect[3] + TILEHEIGHT*2)]
+                        (cull_rect[0] - TILEWIDTH*2 < unit.sprite.position[0] * TILEWIDTH < cull_rect[0] + cull_rect[2] + TILEWIDTH*2 and
+                         cull_rect[1] - TILEHEIGHT*2 < unit.sprite.position[1] * TILEHEIGHT < cull_rect[1] + cull_rect[3] + TILEHEIGHT*2)]
         #if game.level_vars.get('_fog_of_war') or game.board.fog_region_set:
         culled_units = [unit for unit in culled_units if game.board.in_vision(unit.sprite.get_round_fake_pos() or unit.position)]
-        draw_units = sorted(culled_units, key=lambda unit: unit.position[1] if unit.position else unit.sprite.fake_position[1])
+        draw_units = sorted(culled_units, key=lambda unit: unit.sprite.position[1])
 
         topleft = cull_rect[0], cull_rect[1]
 
@@ -79,7 +79,7 @@ class MapView():
 
         # Draw the main unit
         cur_unit = game.cursor.cur_unit
-        if cur_unit and (cur_unit.position or cur_unit.sprite.fake_position):
+        if cur_unit and cur_unit.sprite.position:
             cur_unit.sprite.draw(unit_surf, topleft)
             cur_unit.sprite.draw_hp(unit_surf, topleft, event)
             if not event:

@@ -12,6 +12,7 @@ from app.data.database.database import DB
 from app.engine import (action, dialog, engine, evaluate,
                         target_system, item_funcs)
 from app.engine.game_state import GameState
+from app.engine.movement import movement_funcs
 from app.engine.objects.overworld import OverworldNodeObject
 from app.engine.objects.unit import UnitObject
 from app.engine.sound import get_sound_thread
@@ -524,7 +525,7 @@ class Event():
         if direction == 'west':
             test_pos = (0, position[1])
             for x in offsets:
-                if self.game.movement.check_traversable(unit, test_pos):
+                if movement_funcs.check_traversable(unit, test_pos):
                     final_pos = test_pos
                     break
                 else:
@@ -532,7 +533,7 @@ class Event():
         elif direction == 'east':
             test_pos = (self.game.tilemap.width - 1, position[1])
             for x in offsets:
-                if self.game.movement.check_traversable(unit, test_pos):
+                if movement_funcs.check_traversable(unit, test_pos):
                     final_pos = test_pos
                     break
                 else:
@@ -540,7 +541,7 @@ class Event():
         elif direction == 'north':
             test_pos = (position[0], 0)
             for x in offsets:
-                if self.game.movement.check_traversable(unit, test_pos):
+                if movement_funcs.check_traversable(unit, test_pos):
                     final_pos = test_pos
                     break
                 else:
@@ -548,7 +549,7 @@ class Event():
         elif direction == 'south':
             test_pos = (position[0], self.game.tilemap.height - 1)
             for x in offsets:
-                if self.game.movement.check_traversable(unit, test_pos):
+                if movement_funcs.check_traversable(unit, test_pos):
                     final_pos = test_pos
                     break
                 else:

@@ -9,6 +9,7 @@ from app.engine import action, combat_calcs, equations, banner
 from app.engine import item_system, skill_system, item_funcs
 from app.engine.game_state import game
 from app.engine.combat import playback as pb
+from app.engine.movement import movement_funcs
 
 class PermanentStatChange(ItemComponent):
     nid = 'permanent_stat_change'
@@ -191,7 +192,7 @@ class Shove(ItemComponent):
         new_position = (unit_to_move.position[0] + offset_x * magnitude,
                         unit_to_move.position[1] + offset_y * magnitude)
 
-        mcost = game.movement.get_mcost(unit_to_move, new_position)
+        mcost = movement_funcs.get_mcost(unit_to_move, new_position)
         if game.board.check_bounds(new_position) and \
                 not game.board.get_unit(new_position) and \
                 mcost <= equations.parser.movement(unit_to_move):
@@ -281,7 +282,7 @@ class Pivot(ItemComponent):
         new_position = (anchor_pos[0] + offset_x * -magnitude,
                         anchor_pos[1] + offset_y * -magnitude)
 
-        mcost = game.movement.get_mcost(unit_to_move, new_position)
+        mcost = movement_funcs.get_mcost(unit_to_move, new_position)
         if game.board.check_bounds(new_position) and \
                 not game.board.get_unit(new_position) and \
                 mcost <= equations.parser.movement(unit_to_move):
@@ -340,8 +341,8 @@ class DrawBack(ItemComponent):
         new_position_target = (target.position[0] - offset_x * magnitude,
                                target.position[1] - offset_y * magnitude)
 
-        mcost_user = game.movement.get_mcost(user, new_position_user)
-        mcost_target = game.movement.get_mcost(target, new_position_target)
+        mcost_user = movement_funcs.get_mcost(user, new_position_user)
+        mcost_target = movement_funcs.get_mcost(target, new_position_target)
 
         if game.board.check_bounds(new_position_user) and \
                 not game.board.get_unit(new_position_user) and \

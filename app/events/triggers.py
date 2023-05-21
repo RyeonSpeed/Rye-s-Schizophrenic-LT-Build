@@ -357,7 +357,7 @@ class RoamPressInfo(EventTrigger):
     Occurs when the `info` key is pressed in Free Roam.
 
         unit1: The current roam unit.
-        unit2: the closest nearby other unit, if there is any unit nearby.
+        unit2: the closest nearby other unit.
     """
     nid: ClassVar[NID] = 'roam_press_info'
     unit1: UnitObject

@@ -781,9 +781,10 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
     reload_map = 'reload' in flags
     # For Overworld
     if reload_map and self.game.is_displaying_overworld(): # just go back to the level
-        from app.engine import level_cursor, map_view, movement
+        from app.engine import level_cursor, map_view
+        from app.engine.movement import movement_system
         self.game.cursor = level_cursor.LevelCursor(self.game)
-        self.game.movement = movement.MovementManager()
+        self.game.movement = movement_system.MovementSystem(self.game.cursor, self.game.camera)
         self.game.map_view = map_view.MapView()
         self.game.boundary = self.prev_game_boundary
         self.game.board = self.prev_board
@@ -825,9 +826,10 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
     self.game.level.tilemap = tilemap
     if self.game.is_displaying_overworld():
         # we were in the overworld before this, so we should probably reset cursor and such
-        from app.engine import level_cursor, map_view, movement
+        from app.engine import level_cursor, map_view
+        from app.engine.movement import movement_system
         self.game.cursor = level_cursor.LevelCursor(self.game)
-        self.game.movement = movement.MovementManager()
+        self.game.movement = movement_system.MovementSystem(self.game.cursor, self.game.camera)
         self.game.map_view = map_view.MapView()
     self.game.set_up_game_board(self.game.level.tilemap)
 
@@ -1075,6 +1077,10 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
         path = target_system.get_path(unit, position)
         if path:
             if self.do_skip:
+                # In case the unit is currently still moving
+                if self.game.movement.is_moving(unit):
+                    self.game.movement.stop(unit)
+                    unit.sprite.reset()
                 action.do(action.Teleport(unit, position))
             elif speed:
                 action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed))
@@ -3333,26 +3339,25 @@ def loop_units(self: Event, expression, event, flags=None):
 
 def change_roaming(self: Event, free_roam_enabled, flags=None):
     val = free_roam_enabled.lower()
-    if self.game.level:
-        self.game.action_log.set_first_free_action()
-        self.game.level.roam = val in self.true_vals
+    self.game.action_log.set_first_free_action()
+    self.game.set_roam(val in self.true_vals)
 
 def change_roaming_unit(self: Event, unit, flags=None):
-    if self.game.level:
-        unit = self._get_unit(unit)
-        if unit:
-            self.game.level.roam_unit = unit.nid
-        else:
-            self.game.level.roam_unit = None
+    unit = self._get_unit(unit)
+    if unit:
+        self.game.set_roam_unit(unit)
+    else:
+        self.game.clear_roam_unit()
 
 def clean_up_roaming(self: Event, flags=None):
     # Not turnwheel compatible
     for unit in self.game.units:
-        if unit.position and not unit == self.game.level.roam_unit:
+        if unit.position and unit != self.game.get_roam_unit():
             action.do(action.FadeOut(unit))
     if DB.constants.value('initiative'):
         self.game.initiative.clear()
-        self.game.initiative.insert_unit(self.game.level.roam_unit)
+        if self.game.get_roam_unit():
+            self.game.initiative.insert_unit(self.game.get_roam_unit().nid)
 
 def add_to_initiative(self: Event, unit, integer, flags=None):
     # NOT CURRENTLY TURNWHEEL COMPATIBLE

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import colorsys
 import hashlib
 import math
@@ -148,6 +150,12 @@ def hsv2rgb(h: float, s: float, v: float) -> tuple:
 def rgb2hsv(r: int, g: int, b: int) -> tuple:
     return tuple(colorsys.rgb_to_hsv(r, g, b))
 
+def round_pos(pos: Tuple[float, float]) -> Tuple[int, int]:
+    """
+    # Convert position to integer form
+    """
+    return (int(round(pos[0])), int(round(pos[1])))
+
 def average_pos(pos_list: list, as_int=False) -> tuple:
     avg_x, avg_y = 0, 0
     for x, y in pos_list:
@@ -225,9 +233,6 @@ def flatten_list(initial_list) -> list:
         else:
             final_list.append(item)
     return final_list
-
-def rationalize(p: Tuple[float, float]) -> Tuple[int, int]:
-    return (int(round(p[0])), int(round(p[1])))
 
 def is_windows() -> bool:
     return sys.platform.startswith('win')

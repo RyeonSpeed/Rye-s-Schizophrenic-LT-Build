@@ -342,7 +342,7 @@ class MapCombatInfo():
             self.true_position = (x_pos, y_pos)
 
         elif self.draw_method == 'splash':
-            pos = self.unit.position or self.unit.sprite.fake_position
+            pos = self.unit.sprite.position
             x_pos = pos[0] - game.camera.get_x()
             x_pos = utils.clamp(x_pos, 3, TILEX - 2)
             if pos[1] - game.camera.get_y() < TILEY//2:

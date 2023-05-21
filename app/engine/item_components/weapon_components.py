@@ -208,7 +208,7 @@ class Unwieldy(ItemComponent):
     expose = ComponentType.Int
     value = 0
 
-    def modify_defense(self, unit, item):
+    def modify_resist(self, unit, item):
         return -1 * self.value
 
 class StatChange(ItemComponent):

@@ -104,10 +104,10 @@ class Channel():
             elif self.state == 'crossfade_out':
                 self.crossfade_volume = 1 - progress
             self.reset_volume()
-            # logging.debug("Volume of %s: %s", self.nid, self._channel.get_volume())
+            # logging.debug("Fade out volume of %s: %s", self.nid, self._channel.get_volume())
             if progress >= 1:
                 if self.state == 'fade_out':
-                    # logging.debug('%s Paused from %s', self.nid, self.last_state)
+                    logging.debug('%s faded out from %s', self.nid, self.last_state)
                     if self.last_state == 'playing':
                         self.state = "paused"
                         self.last_state = "paused"
@@ -131,7 +131,7 @@ class Channel():
             elif self.state == 'crossfade_in':
                 self.crossfade_volume = progress
             self.reset_volume()
-            # logging.debug("Volume of %s: %s", self.nid, self._channel.get_volume())
+            # logging.debug("Fade in volume of %s: %s", self.nid, self._channel.get_volume())
             if progress >= 1:
                 self.state = "playing"
                 self.last_state = "playing"
@@ -174,7 +174,7 @@ class Channel():
         self.fade_out_time = max(fade_out, 1)
 
     def clear(self):
-        # logging.debug("%s Clear", self.nid)
+        logging.debug("%s Clear", self.nid)
         self._channel.stop()
         self.current_song = None
         self.num_plays = 0
@@ -183,20 +183,20 @@ class Channel():
         self.state = "stopped"
 
     def fade_in(self):
-        # logging.debug("%s Fade In: %s", self.nid, self.last_state)
+        logging.debug("%s Fade In: %s", self.nid, self.last_state)
         if self.last_state == "paused":
-            # logging.debug("%s Unpause", self.nid)
+            logging.debug("%s Unpause", self.nid)
             self._channel.unpause()
         elif self.last_state == "stopped":
             self._play()
-        elif not self.is_playing():  # Sometimes possible with weird timings
+        if not self.is_playing():  # Sometimes possible with weird timings
             self._play()
         self.last_state = "playing"
         self.state = "fade_in"
         self.last_update = engine.get_time()
 
     def fade_out(self):
-        # logging.debug("%s Fade Out: %s", self.nid, self.last_state)
+        logging.debug("%s Fade Out: %s", self.nid, self.last_state)
         self.state = "fade_out"
         self.last_update = engine.get_time()
 
@@ -211,19 +211,19 @@ class Channel():
         self.last_update = engine.get_time()
 
     def pause(self):
-        # logging.debug("%s Pause: %s", self.nid, self.last_state)
+        logging.debug("%s Pause: %s", self.nid, self.last_state)
         self._channel.pause()
         self.last_state = "paused"
         self.state = "paused"
 
     def resume(self):
-        # logging.debug("%s Resume: %s", self.nid, self.last_state)
+        logging.debug("%s Resume: %s", self.nid, self.last_state)
         self._channel.unpause()
         self.last_state = "playing"
         self.state = "playing"
 
     def stop(self):
-        # logging.debug("%s Stop: %s", self.nid, self.last_state)
+        logging.debug("%s Stop: %s", self.nid, self.last_state)
         self._channel.stop()
         self.played_intro = False
         self.last_state = "stopped"
@@ -284,10 +284,12 @@ class ChannelPair():
             self.battle.crossfade_in()
 
     def set_fade_in_time(self, fade_in):
+        logging.debug("Fade in time set to %s", fade_in)
         self.channel.set_fade_in_time(fade_in)
         self.battle.set_fade_in_time(fade_in)
 
     def set_fade_out_time(self, fade_out):
+        logging.debug("Fade out time set to %s", fade_out)
         self.channel.set_fade_out_time(fade_out)
         self.battle.set_fade_out_time(fade_out)
 
@@ -534,6 +536,7 @@ class SoundController():
             self.song_stack.append(next_song)
             # Clear the oldest channel and use it
             self._set_next_song(next_song, num_plays, fade_in)
+            logging.debug("Any music is playing? %s", any_music_is_playing)
             if any_music_is_playing:
                 pass
             else:

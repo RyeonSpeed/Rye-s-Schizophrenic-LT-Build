@@ -113,7 +113,8 @@ class UnitSprite():
         self.transition_counter = 0
         self.transition_time = self.default_transition_time
 
-        self.fake_position = None  # For escape and rescue, etc...
+        self._fake_position = None  # For escape and rescue, etc...
+        self._roam_position = None  # For roam
         self.net_position = None
         self.offset = [0, 0]
 
@@ -124,11 +125,24 @@ class UnitSprite():
         self.particles = []
         self.damage_numbers = []
 
-        self.speed = cf.SETTINGS['unit_speed']
-
         self.map_sprite = load_map_sprite(self.unit, self.unit.team)
 
         self.health_bar = health_bar.MapHealthBar(self.unit)
+
+    @property
+    def position(self):
+        if self._fake_position:
+            return self._fake_position
+        elif self._roam_position:
+            return self._roam_position
+        else:
+            return self.unit.position
+
+    def set_roam_position(self, pos):
+        self._roam_position = pos
+
+    def get_roam_position(self):
+        return self._roam_position
 
     def load_sprites(self):
         self.map_sprite = load_map_sprite(self.unit, self.unit.team)
@@ -139,16 +153,14 @@ class UnitSprite():
         return self.transition_state != 'normal' or self.particles
 
     def reset(self):
-        self.speed = cf.SETTINGS['unit_speed']
         self.offset = [0, 0]
         ANIMATION_COUNTERS.attack_movement_counter.reset()
 
-    def set_speed(self, speed):
-        self.speed = speed
-
     def get_round_fake_pos(self):
-        if self.fake_position:
-            return int(round(self.fake_position[0])), int(round(self.fake_position[1]))
+        if self._fake_position:
+            return utils.round_pos(self._fake_position)
+        elif self._roam_position:
+            return utils.round_pos(self._roam_position)
         return None
 
     def add_animation(self, anim, loop=True, contingent=False):
@@ -191,10 +203,12 @@ class UnitSprite():
     def add_warp_flowers(self, reverse=False):
         ps = particles.SimpleParticleSystem('warp_flower', particles.WarpFlower, self.unit.position, (-1, -1, -1, -1), 0)
         angle_frac = math.pi / 8
-        if self.unit.position:
+        if self._roam_position:
+            pos = self._roam_position
+        elif self._fake_position:
+            pos = self._fake_position
+        elif self.unit.position:
             pos = self.unit.position
-        elif self.fake_position:
-            pos = self.fake_position
         else:
             logging.error("No position for sprite found during add warp flowers!")
             return
@@ -225,47 +239,47 @@ class UnitSprite():
 
         if self.transition_state == 'normal':
             self.offset = [0, 0]
-            self.fake_position = None
+            self._fake_position = None
         elif self.transition_state == 'fake_in':
-            self.fake_position = None
+            self._fake_position = None
             self.change_state('fake_transition_in')
         elif self.transition_state in ('fake_out', 'rescue'):
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
             self.change_state('fake_transition_out')
         elif self.transition_state == 'fade_in':
-            self.fake_position = None
+            self._fake_position = None
         elif self.transition_state == 'fade_out':
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
         elif self.transition_state == 'fade_move':
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
         elif self.transition_state == 'warp_in':
             get_sound_thread().play_sfx('WarpEnd')
-            self.fake_position = None
+            self._fake_position = None
             self.add_warp_anim('warp_in')
             self.add_warp_flowers(reverse=True)
         elif self.transition_state == 'warp_out':
             get_sound_thread().play_sfx('Warp')
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
             self.add_warp_anim('warp_out')
             self.begin_flicker(self.transition_time, (255, 255, 255))
             self.add_warp_flowers()
         elif self.transition_state == 'warp_move':
             get_sound_thread().play_sfx('Warp')
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
             self.add_warp_anim('warp_move')
             self.begin_flicker(self.transition_time, (255, 255, 255))
             self.add_warp_flowers()
         elif self.transition_state == 'swoosh_in':
             get_sound_thread().play_sfx('Sword Whoosh')
-            self.fake_position = None
+            self._fake_position = None
             self.add_swoosh_anim()
         elif self.transition_state == 'swoosh_out':
             get_sound_thread().play_sfx('Sword Whoosh')
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
             self.add_swoosh_anim(reverse=True)
         elif self.transition_state == 'swoosh_move':
             get_sound_thread().play_sfx('Sword Whoosh')
-            self.fake_position = self.unit.position
+            self._fake_position = self.unit.position
             self.add_swoosh_anim(reverse=True)
 
     def change_state(self, new_state):
@@ -304,6 +318,7 @@ class UnitSprite():
             self.set_transition('normal')
 
     def handle_net_position(self, pos):
+        self.net_position = pos
         if abs(pos[0]) >= abs(pos[1]):
             if pos[0] > 0:
                 self.image_state = 'right'
@@ -340,11 +355,11 @@ class UnitSprite():
             if self.unit.finished and not self.unit.is_dying:
                 self.image_state = 'gray'
             elif DB.constants.value('initiative') and game.initiative.get_current_unit() != self.unit \
-                    and not game.level.roam and self.unit.team == 'player':
+                    and not game.is_roam() and self.unit.team == 'player':
                 self.image_state = 'gray'
             elif game.cursor.draw_state and game.cursor.position == self.unit.position and self.unit.team == 'player':
                 self.image_state = 'active'
-            elif game.level and game.level.roam and game.level.roam_unit == self.unit.nid:
+            elif game.is_roam() and game.get_roam_unit() == self.unit:
                 self.image_state = 'passive'
             else:
                 self.image_state = 'passive'
@@ -352,7 +367,7 @@ class UnitSprite():
             self.offset[0] = utils.clamp(self.net_position[0], -1, 1) * ANIMATION_COUNTERS.attack_movement_counter.value()
             self.offset[1] = utils.clamp(self.net_position[1], -1, 1) * ANIMATION_COUNTERS.attack_movement_counter.value()
         elif self.state == 'chosen':
-            pos = self.unit.position or self.fake_position
+            pos = self.unit.position or self._fake_position
             test_position = game.cursor.position[0] - pos[0], game.cursor.position[1] - pos[1]
             if test_position != (0, 0):
                 self.net_position = test_position
@@ -361,17 +376,18 @@ class UnitSprite():
             else:
                 self.image_state = 'down'
         elif self.state == 'moving':
-            next_position = game.movement.get_next_position(self.unit.nid)
-            if not next_position or not self.unit.position:
-                self.set_transition('normal')
-                return
-            self.net_position = (next_position[0] - self.unit.position[0], next_position[1] - self.unit.position[1])
-            last_update = game.movement.get_last_update(self.unit.nid)
-            current_time = engine.get_time()
-            dt = current_time - last_update
-            self.offset[0] = int(TILEWIDTH * dt / max(self.speed, 1) * self.net_position[0])
-            self.offset[1] = int(TILEHEIGHT * dt / max(self.speed, 1) * self.net_position[1])
-            self.handle_net_position(self.net_position)
+            # next_position = game.movement.get_next_position(self.unit.nid)
+            # if not next_position or not self.unit.position:
+            #     self.set_transition('normal')
+            #     return
+            # self.net_position = (next_position[0] - self.unit.position[0], next_position[1] - self.unit.position[1])
+            # last_update = game.movement.get_last_update(self.unit.nid)
+            # current_time = engine.get_time()
+            # dt = current_time - last_update
+            # self.offset[0] = int(TILEWIDTH * dt / max(self.speed, 1) * self.net_position[0])
+            # self.offset[1] = int(TILEHEIGHT * dt / max(self.speed, 1) * self.net_position[1])
+            # self.handle_net_position(self.net_position)
+            pass # Handled in movement system
         elif self.state == 'fake_transition_in':
             if self.offset[0] > 0:
                 self.offset[0] -= 2
@@ -403,7 +419,7 @@ class UnitSprite():
         self.transition_counter -= engine.get_delta()
         if self.transition_counter < 0:
             self.transition_counter = 0
-            self.fake_position = None
+            self._fake_position = None
             if self.transition_state in ('fade_out', 'warp_out', 'swoosh_out', 'fade_in', 'warp_in', 'swoosh_in'):
                 self.set_transition('normal')
             elif self.transition_state == 'fade_move':
@@ -436,8 +452,10 @@ class UnitSprite():
         return image
 
     def get_topleft(self, cull_rect):
-        if self.fake_position:
-            x, y = self.fake_position
+        if self._fake_position:
+            x, y = self._fake_position
+        elif self._roam_position:
+            x, y = self._roam_position
         elif self.unit.position:
             x, y = self.unit.position
         left = x * TILEWIDTH + self.offset[0] - cull_rect[0]
@@ -564,7 +582,7 @@ class UnitSprite():
                                       'combat_targeting', 'item_targeting'):
             cur_unit = game.cursor.cur_unit
         elif game.state.current() == 'free_roam':
-            cur_unit = game.get_unit(game.level.roam_unit)
+            cur_unit = game.get_roam_unit()
         if not cur_unit:
             return surf
 
@@ -574,15 +592,15 @@ class UnitSprite():
         frame = (engine.get_time() // 100) % 8
         offset = [0, 0, 0, 1, 2, 2, 2, 1][frame]
         markers = []
-        if game.level.roam and game.state.current() == 'free_roam' and game.state.state[-1].can_talk() and \
+        if game.is_roam() and game.state.current() == 'free_roam' and game.state.state[-1].get_closest_unit(must_have_talk=True) and \
                 (self.unit.nid, cur_unit.nid) in game.talk_options:
             markers.append('talk')
         elif (cur_unit.nid, self.unit.nid) in game.talk_options:
             markers.append('talk')
-        if (game.level.roam and game.state.current() == 'free_roam' and
-            game.state.state[-1].can_visit() and
-            game.state.state[-1].roam_unit and
-            game.state.state[-1].roam_unit.nid == self.unit.nid):
+        if (game.is_roam() and game.state.current() == 'free_roam' and
+                game.state.state[-1].get_visit_region() and
+                game.state.state[-1].roam_unit and
+                game.state.state[-1].roam_unit.nid == self.unit.nid):
             markers.append('interact')
         if cur_unit.team == 'player':
             for item in item_funcs.get_all_items(self.unit):
@@ -596,7 +614,7 @@ class UnitSprite():
         return surf
 
     def check_draw_hp(self) -> bool:
-        if game.level.roam and DB.constants.value('roam_hide_hp'):
+        if game.is_roam() and DB.constants.value('roam_hide_hp'):
             return False
         if self.unit.is_dying or self.unit.dead:
             return False

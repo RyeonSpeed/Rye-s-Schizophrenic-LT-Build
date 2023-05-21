@@ -227,7 +227,8 @@ class StatusOnEquip(ItemComponent):
             action.do(act)
 
     def on_unequip_item(self, unit, item):
-        action.do(action.RemoveSkill(unit, self.value))
+        if self.value in [skill.nid for skill in unit.skills]:
+            action.do(action.RemoveSkill(unit, self.value))
 
 class MultiStatusOnEquip(ItemComponent):
     nid = 'multi_status_on_equip'
@@ -244,7 +245,8 @@ class MultiStatusOnEquip(ItemComponent):
 
     def on_unequip_item(self, unit, item):
         for skl in self.value:
-            action.do(action.RemoveSkill(unit, skl))
+            if skl in [skill.nid for skill in unit.skills]:
+                action.do(action.RemoveSkill(unit, skl))
 
 class StatusOnHold(ItemComponent):
     nid = 'status_on_hold'
@@ -257,7 +259,8 @@ class StatusOnHold(ItemComponent):
         action.do(action.AddSkill(unit, self.value))
 
     def on_remove_item(self, unit, item):
-        action.do(action.RemoveSkill(unit, self.value))
+        if self.value in [skill.nid for skill in unit.skills]:
+            action.do(action.RemoveSkill(unit, self.value))
 
 class MultiStatusOnHold(ItemComponent):
     nid = 'multi_status_on_hold'
@@ -273,7 +276,8 @@ class MultiStatusOnHold(ItemComponent):
 
     def on_remove_item(self, unit, item):
         for skl in self.value:
-            action.do(action.RemoveSkill(unit, skl))
+            if skl in [skill.nid for skill in unit.skills]:
+                action.do(action.RemoveSkill(unit, skl))
 
 class GainManaAfterCombat(ItemComponent):
     nid = 'gain_mana_after_combat'

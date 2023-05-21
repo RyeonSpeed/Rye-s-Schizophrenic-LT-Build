@@ -110,7 +110,7 @@ class UIView():
 
         if (game.state.current() in self.legal_states or game.state.current() in self.initiative_states) \
                 and DB.constants.value('initiative') \
-                and not game.current_level.roam and game.initiative.draw_me:
+                and not game.is_roam() and game.initiative.draw_me:
             self.initiative_info_disp = self.create_initiative_info()
             self.initiative_info_offset = max(0, self.initiative_info_offset)
         elif self.initiative_info_disp:

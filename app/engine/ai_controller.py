@@ -1,6 +1,7 @@
 import logging
 import math
 
+from app.constants import FRAMERATE
 from app.data.database.database import DB
 from app.engine import (action, combat_calcs, engine, equations, evaluate,
                         item_funcs, item_system, line_of_sight,
@@ -8,7 +9,7 @@ from app.engine import (action, combat_calcs, engine, equations, evaluate,
 from app.engine.pathfinding import pathfinding
 from app.engine.combat import interaction
 from app.engine.game_state import game
-from app.engine.movement import MovementManager
+from app.engine.movement import movement_funcs
 from app.events import triggers
 from app.events.regions import RegionType
 from app.utilities import utils
@@ -79,7 +80,7 @@ class AIController():
         logging.info("AI Act!")
 
         change = False
-        if game.movement.check_region_interrupt(self.unit):
+        if movement_funcs.check_region_interrupt(self.unit.position):
             self.interrupt()
 
         if not self.move_ai_complete:
@@ -227,7 +228,7 @@ class AIController():
 
         while True:
             # Can spend up to half a frame thinking
-            over_time = engine.get_true_time() - time >= 8
+            over_time: bool = engine.get_true_time() - time >= FRAMERATE/2
             logging.info("Current State: %s", self.state)
 
             if self.state == 'Init':
@@ -619,19 +620,19 @@ def handle_unit_spec(all_targets, behaviour):
     invert = bool(behaviour.invert_targeting)
     # Uses ^ (which is XOR) to handle inverting the targeting
     if target_spec[0] == "Tag":
-        all_targets = [pos for pos in all_targets if bool(target_spec[1] in game.board.get_unit(pos).tags) ^ invert]
+        all_targets = [pos for pos in all_targets if any((target_spec[1] in u.tags) ^ invert for u in game.board.get_units(pos))]
     elif target_spec[0] == "Class":
-        all_targets = [pos for pos in all_targets if bool(game.board.get_unit(pos).klass == target_spec[1]) ^ invert]
+        all_targets = [pos for pos in all_targets if any((u.klass == target_spec[1]) ^ invert for u in game.board.get_units(pos))]
     elif target_spec[0] == "Name":
-        all_targets = [pos for pos in all_targets if bool(game.board.get_unit(pos).name == target_spec[1]) ^ invert]
+        all_targets = [pos for pos in all_targets if any((u.name == target_spec[1]) ^ invert for u in game.board.get_units(pos))]
     elif target_spec[0] == 'Faction':
-        all_targets = [pos for pos in all_targets if bool(game.board.get_unit(pos).faction == target_spec[1]) ^ invert]
+        all_targets = [pos for pos in all_targets if any((u.faction == target_spec[1]) ^ invert for u in game.board.get_units(pos))]
     elif target_spec[0] == 'Party':
-        all_targets = [pos for pos in all_targets if bool(game.board.get_unit(pos).party == target_spec[1]) ^ invert]
+        all_targets = [pos for pos in all_targets if any((u.party == target_spec[1]) ^ invert for u in game.board.get_units(pos))]
     elif target_spec[0] == 'ID':
-        all_targets = [pos for pos in all_targets if bool(game.board.get_unit(pos).nid == target_spec[1]) ^ invert]
+        all_targets = [pos for pos in all_targets if any((u.nid == target_spec[1]) ^ invert for u in game.board.get_units(pos))]
     elif target_spec[0] == 'Team':
-        all_targets = [pos for pos in all_targets if bool(game.board.get_unit(pos).team == target_spec[1]) ^ invert]
+        all_targets = [pos for pos in all_targets if any((u.team == target_spec[1]) ^ invert for u in game.board.get_units(pos))]
     return all_targets
 
 def get_targets(unit, behaviour):
@@ -656,8 +657,6 @@ def get_targets(unit, behaviour):
         if behaviour.target_spec == "Starting":
             if unit.starting_position:
                 all_targets = [unit.starting_position]
-            else:
-                all_targets = []
         else:
             all_targets = [tuple(behaviour.target_spec)]
     if behaviour.target in ('Unit', 'Enemy', 'Ally'):
@@ -685,7 +684,7 @@ class SecondaryAI():
         self.single_move = self.zero_move + equations.parser.movement(self.unit)
         self.double_move = self.single_move + equations.parser.movement(self.unit)
 
-        movement_group = MovementManager.get_movement_group(self.unit)
+        movement_group = movement_funcs.get_movement_group(self.unit)
         self.grid = game.board.get_grid(movement_group)
         self.pathfinder = \
             pathfinding.AStar(self.unit.position, None, self.grid,

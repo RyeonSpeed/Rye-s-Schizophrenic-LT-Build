@@ -111,7 +111,7 @@ class ItemOptionModes(Enum):
 
 class BasicItemOption(BaseOption[ItemObject]):
     def __init__(self, idx: int, item: ItemObject, display_value: str | None = None,  width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
         super().__init__(idx, item, display_value, width, height, ignore)
         self._disp_value = text_funcs.translate(
@@ -123,7 +123,7 @@ class BasicItemOption(BaseOption[ItemObject]):
 
     @classmethod
     def from_nid(cls, idx, item_nid: NID, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
         item_prefab = DB.items.get(item_nid, None)
         if not item_prefab:
@@ -133,7 +133,7 @@ class BasicItemOption(BaseOption[ItemObject]):
 
     @classmethod
     def from_uid(cls, idx, item_uid: int, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
         item_object = game.item_registry.get(item_uid)
         if not item_object:
@@ -142,7 +142,7 @@ class BasicItemOption(BaseOption[ItemObject]):
 
     @classmethod
     def from_item(cls, idx, value: ItemObject, display_value: str | None = None, width: int = 0,
-                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                  height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                   align: HAlignment = HAlignment.LEFT, mode: ItemOptionModes = ItemOptionModes.NO_USES):
         return cls(idx, value, display_value, width, height, ignore, font, text_color, align, mode)
 
@@ -196,7 +196,7 @@ class BasicItemOption(BaseOption[ItemObject]):
 
 class BasicSkillOption(BaseOption[SkillObject]):
     def __init__(self, idx: int, skill: SkillObject, display_value: str | None = None,  width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT):
         super().__init__(idx, skill, display_value, width, height, ignore)
         self._disp_value = text_funcs.translate(
@@ -207,7 +207,7 @@ class BasicSkillOption(BaseOption[SkillObject]):
 
     @classmethod
     def from_nid(cls, idx, skill_nid: NID, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT):
         skill_prefab = DB.skills.get(skill_nid, None)
         if not skill_prefab:
@@ -217,7 +217,7 @@ class BasicSkillOption(BaseOption[SkillObject]):
 
     @classmethod
     def from_uid(cls, idx, skill_uid: int, display_value: str | None = None, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT):
         skill_object = game.skill_registry.get(skill_uid)
         if not skill_object:
@@ -226,7 +226,7 @@ class BasicSkillOption(BaseOption[SkillObject]):
 
     @classmethod
     def from_skill(cls, idx, value: SkillObject, display_value: str | None = None, width: int = 0,
-                   height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                   height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                    align: HAlignment = HAlignment.LEFT):
         return cls(idx, value, display_value, width, height, ignore, font, text_color, align)
 
@@ -263,7 +263,7 @@ class BasicSkillOption(BaseOption[SkillObject]):
 
 class BasicIconOption(BaseOption[str]):
     def __init__(self, idx: int, value: str, icon_name: str, width: int = 0,
-                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: NID = 'white',
+                 height: int = 0, ignore: bool = False, font: NID = 'text', text_color: Optional[NID] = None,
                  align: HAlignment = HAlignment.LEFT):
         super().__init__(idx, value, value, width, height, ignore)
         self._disp_value = text_funcs.translate(value)

@@ -483,12 +483,17 @@ class UnitObject(Prefab):
 
     def autoequip(self):
         all_items = item_funcs.get_all_items(self)
+        # Do an an initial check that the weapon is still good
+        if self.equipped_weapon and not self.can_equip(self.equipped_weapon):
+            self.unequip(self.equipped_weapon)
         if not self.equipped_weapon:
             for item in all_items:
                 if not item_system.is_accessory(self, item):
                     if self.can_equip(item):
                         self.equip(item)
                         break
+        if self.equipped_accessory and not self.can_equip(self.equipped_accessory):
+            self.unequip(self.equipped_accessory)
         if not self.equipped_accessory:
             for item in all_items:
                 if item_system.is_accessory(self, item):
