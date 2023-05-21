@@ -644,8 +644,8 @@ class Event():
             return None, None
         skill_id = skill
         skill_list = unit.skills
-        snids = [skill.nid for item in skill_list]
-        suids = [skill.uid for item in skill_list]
+        snids = [skill.nid for skill in skill_list]
+        suids = [skill.uid for skill in skill_list]
         if (skill_id not in snids) and (not str_utils.is_int(skill_id) or not int(skill_id) in suids):
             self.logger.error("Couldn't find skill with id %s" % skill)
             return None, None

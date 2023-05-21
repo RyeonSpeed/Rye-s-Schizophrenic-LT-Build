@@ -1604,7 +1604,7 @@ Removes *ItemComponent* from *Item* in the inventory of *GlobalUnitOrConvoy*.
     
 class AddSkillComponent(EventCommand):
     nid = 'add_skill_component'
-    tag = Tags.MODIFY_SKILLPROPERTIES
+    tag = Tags.MODIFY_SKILL_PROPERTIES
 
     desc = \
         """

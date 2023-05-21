@@ -1805,13 +1805,13 @@ def remove_item_component(self: Event, global_unit_or_convoy, item, item_compone
 
     action.do(action.RemoveItemComponent(item, component_nid))
     
-def add_skill_component(self: Event, global_unit_or_convoy, skill, skill_component, expression=None, flags=None):
+def add_skill_component(self: Event, global_unit, skill, skill_component, expression=None, flags=None):
     flags = flags or set()
-    global_unit = global_unit_or_convoy
+    global_unit = global_unit
     component_nid = skill_component
 
     unit, skill = self._get_skill(global_unit, skill)
-    if not unit or not item:
+    if not unit or not skill:
         self.logger.error("add_skill_component: Either unit or skill was invalid, see above")
         return
 
