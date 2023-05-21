@@ -150,20 +150,32 @@ class RoamPlayerMovementComponent(MovementComponent):
         dx = self.x_vel * delta_time
         dy = self.y_vel * delta_time
         next_position = (x + dx, y + dy)
+        alt_position_h = (x + dx, y)
+        alt_position_v = (x, y + dy)
 
         rounded_pos = utils.round_pos(next_position)
+        rounded_pos_h = utils.round_pos(alt_position_h)
+        rounded_pos_v = utils.round_pos(alt_position_v)
         # Can always move within current position
         if rounded_pos == self.unit.position or self._can_move(rounded_pos):
             self.position = next_position
-
-            # Assign the position to the sprite
-            self.unit.sprite.set_roam_position(self.position)
-
-            # Move the unit's true position if necessary
-            if rounded_pos != self.unit.position:
-                game.leave(self.unit)
-                self.unit.position = rounded_pos
-                game.arrive(self.unit)
-                action.UpdateFogOfWar(self.unit).do()
+        # Try to move to a valid position just horizontally
+        elif self._can_move(rounded_pos_h):
+            self.position = alt_position_h
+            rounded_pos = rounded_pos_h
+        # Try to move to a valid position just vertically
+        elif self._can_move(rounded_pos_v):
+            self.position = alt_position_v
+            rounded_pos = rounded_pos_v
         else:
-            pass
+            return
+
+        # Assign the position to the sprite
+        self.unit.sprite.set_roam_position(self.position)
+
+        # Move the unit's true position if necessary
+        if rounded_pos != self.unit.position:
+            game.leave(self.unit)
+            self.unit.position = rounded_pos
+            game.arrive(self.unit)
+            action.UpdateFogOfWar(self.unit).do()

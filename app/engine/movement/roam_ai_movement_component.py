@@ -68,22 +68,23 @@ class RoamAIMovementComponent(RoamPlayerMovementComponent):
         dx = self.x_vel * delta_time * self.speed_modifier
         dy = self.y_vel * delta_time * self.speed_modifier
         next_position = (x + dx, y + dy)
+        alt_position_h = (x + dx, y)
+        alt_position_v = (x, y + dy)
 
         rounded_pos = utils.round_pos(next_position)
-        alternate_pos1 = rounded_pos[0] + utils.sign(dx), rounded_pos[1]
-        alternate_pos2 = rounded_pos[0], rounded_pos[1] + utils.sign(dy)
+        rounded_pos_h = utils.round_pos(alt_position_h)
+        rounded_pos_v = utils.round_pos(alt_position_v)
+        # Can always move within current position
         if rounded_pos == self.unit.position or self._can_move(rounded_pos):
             self.position = next_position
         # Try to move to a valid position just horizontally
-        elif self._can_move(alternate_pos1):
-            next_position = (x + dx, y)
-            rounded_pos = alternate_pos1
-            self.position = next_position
+        elif self._can_move(rounded_pos_h):
+            self.position = alt_position_h
+            rounded_pos = rounded_pos_h
         # Try to move to a valid position just vertically
-        elif self._can_move(alternate_pos2):
-            next_position = (x, y + dy)
-            rounded_pos = alternate_pos2
-            self.position = next_position
+        elif self._can_move(rounded_pos_v):
+            self.position = alt_position_v
+            rounded_pos = rounded_pos_v
         else:
             self.path.clear()
             return
