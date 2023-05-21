@@ -1804,6 +1804,27 @@ def remove_item_component(self: Event, global_unit_or_convoy, item, item_compone
         return
 
     action.do(action.RemoveItemComponent(item, component_nid))
+    
+def add_skill_component(self: Event, global_unit_or_convoy, skill, skill_component, expression=None, flags=None):
+    flags = flags or set()
+    global_unit = global_unit_or_convoy
+    component_nid = skill_component
+
+    unit, skill = self._get_skill(global_unit, skill)
+    if not unit or not item:
+        self.logger.error("add_skill_component: Either unit or skill was invalid, see above")
+        return
+
+    if expression is not None:
+        try:
+            component_value = self.text_evaluator.direct_eval(expression)
+        except Exception as e:
+            self.logger.error("add_skill_component: %s: Could not evalute {%s}" % (e, expression))
+            return
+    else:
+        component_value = None
+
+    action.do(action.AddSkillComponent(skill, component_nid, component_value))
 
 def give_money(self: Event, money, party=None, flags=None):
     flags = flags or set()

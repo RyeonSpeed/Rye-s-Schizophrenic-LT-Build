@@ -1597,6 +1597,34 @@ class RemoveItemComponent(Action):
             # Assign parent to component
             component.item = self.item
             self._did_remove = False
+            
+class AddSkillComponent(Action):
+    def __init__(self, skill, component_nid, component_value):
+        self.skill = skill
+        self.component_nid = component_nid
+        self.component_value = component_value
+        self._did_add = False
+
+    def do(self):
+        import app.engine.skill_component_access as SCA
+        self._did_add = False
+        component = SCA.restore_component((self.component_nid, self.component_value))
+        if not component:
+            logging.error("AddSkillComponent: Couldn't find skill component with nid %s", self.component_nid)
+            return
+        self.skill.components.append(component)
+        self.skill.__dict__[self.component_nid] = component
+        # Assign parent to component
+        component.skill = self.skill
+        if component.defines('init'):
+            component.init(self.skill)
+        self._did_add = True
+
+    def reverse(self):
+        if self._did_add:
+            self.skill.components.remove_key(self.component_nid)
+            del self.skill.__dict__[self.component_nid]
+            self._did_add = False
 
 class SetObjData(Action):
     def __init__(self, obj, keyword, value):

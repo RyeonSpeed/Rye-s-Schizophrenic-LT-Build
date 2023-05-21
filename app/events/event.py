@@ -1,5 +1,6 @@
 from __future__ import annotations
 from app.engine.objects.item import ItemObject
+from app.engine.objects.skill import SkillObject
 from app.engine.text_evaluator import TextEvaluator
 
 import logging
@@ -635,6 +636,21 @@ class Event():
             return None, None
         item = [item for item in item_list if (item.nid == item_id or (str_utils.is_int(item_id) and item.uid == int(item_id)))][0]
         return unit, item
+        
+    def _get_skill(self, unit_nid: str, skill: str) -> tuple[UnitObject, SkillObject]:
+        unit = self._get_unit(unit_nid)
+        if not unit:
+            self.logger.error("Couldn't find unit with nid %s" % unit_nid)
+            return None, None
+        skill_id = skill
+        skill_list = unit.skills
+        snids = [skill.nid for item in skill_list]
+        suids = [skill.uid for item in skill_list]
+        if (skill_id not in snids) and (not str_utils.is_int(skill_id) or not int(skill_id) in suids):
+            self.logger.error("Couldn't find skill with id %s" % skill)
+            return None, None
+        skill = [skill for skill in skill_list if (skill.nid == skill_id or (str_utils.is_int(skill_id) and skill.uid == int(skill_id)))][0]
+        return unit, skill
 
     def _apply_stat_changes(self, unit, stat_changes, flags):
         klass = DB.classes.get(unit.klass)
