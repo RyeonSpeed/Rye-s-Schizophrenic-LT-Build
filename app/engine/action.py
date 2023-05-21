@@ -1660,6 +1660,34 @@ class ModifySkillComponent(Action):
                 component.value[self.property_name] = self.prev_component_value
             else:
                 component.value = self.prev_component_value
+                
+class RemoveSkillComponent(Action):
+    def __init__(self, skill, component_nid):
+        self.skill = skill
+        self.component_nid = component_nid
+        self.component_value = None
+        self._did_remove = False
+
+    def do(self):
+        self._did_remove = False
+        if self.component_nid in self.skill.components.keys():
+            component = self.skill.components.get(self.component_nid)
+            self.component_value = component.value
+            self.skill.components.remove_key(self.component_nid)
+            del self.skill.__dict__[self.component_nid]
+            self._did_remove = True
+        else:
+            logging.warning("remove_skill_component: component with nid %s not found for skill %s", self.component_nid, self.skill)
+
+    def reverse(self):
+        import app.engine.skill_component_access as SCA
+        if self._did_remove:
+            component = SCA.restore_component((self.component_nid, self.component_value))
+            self.skill.components.append(component)
+            self.skill.__dict__[self.component_nid] = component
+            # Assign parent to component
+            component.skill = self.skill
+            self._did_remove = False
 
 class SetObjData(Action):
     def __init__(self, obj, keyword, value):

@@ -1842,6 +1842,17 @@ def modify_skill_component(self: Event, global_unit, skill, skill_component, exp
         return
 
     action.do(action.ModifySkillComponent(skill, component_nid, component_value, component_property, is_additive))
+    
+def remove_skill_component(self: Event, global_unit, skill, skill_component, flags=None):
+    flags = flags or set()
+    component_nid = skill_component
+
+    unit, skill = self._get_skill(global_unit, skill)
+    if not unit or not skill:
+        self.logger.error("remove_skill_component: Either unit or item was invalid, see above")
+        return
+
+    action.do(action.RemoveItemComponent(skill, component_nid))
 
 def give_money(self: Event, money, party=None, flags=None):
     flags = flags or set()
