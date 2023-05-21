@@ -22,6 +22,7 @@ class Tags(Enum):
     ADD_REMOVE_INTERACT_WITH_UNITS = 'Add/Remove/Interact with Units'
     MODIFY_UNIT_PROPERTIES = 'Modify Unit Properties'
     MODIFY_ITEM_PROPERTIES = 'Modify Item Properties'
+    MODIFY_SKILL_PROPERTIES = 'Modify Skill Properties'
     UNIT_GROUPS = 'Unit Groups'
     MISCELLANEOUS = 'Miscellaneous'
     OVERWORLD = 'Overworld'
@@ -1585,7 +1586,7 @@ Use **ComponentProperty* to change a specific value if the ItemComponent has mor
 Use the *additive* flag to add rather than set the value.
         """
 
-    keywords = ["UnitOrConvoy", "Item", "ItemComponent", "Expression"]
+    keywords = ["GlobalUnitOrConvoy", "Item", "ItemComponent", "Expression"]
     optional_keywords = ["ComponentProperty"]
     keyword_types = ["GlobalUnitOrConvoy", "Item", "ItemComponent", "Expression", "String"]
     _flags = ['additive']
@@ -1600,6 +1601,47 @@ Removes *ItemComponent* from *Item* in the inventory of *GlobalUnitOrConvoy*.
         """
 
     keywords = ["GlobalUnitOrConvoy", "Item", "ItemComponent"]
+    
+class AddSkillComponent(EventCommand):
+    nid = 'add_skill_component'
+    tag = Tags.MODIFY_SKILLPROPERTIES
+
+    desc = \
+        """
+Adds a *SkillComponent* with optional value of *Expression* to *Skill* belonging to *GlobalUnit*.
+        """
+
+    keywords = ["GlobalUnit", "Skill", "SkillComponent"]
+    optional_keywords = ["Expression"]
+    
+class ModifySkillComponent(EventCommand):
+    nid = 'modify_skill_component'
+    tag = Tags.MODIFY_SKILL_PROPERTIES
+
+    desc = \
+        """
+Sets the value of an *SkillComponent* to *Expression* for a *Skill* belonging to *GlobalUnit*.
+
+Use **ComponentProperty* to change a specific value if the SkillComponent has more than one option available.
+
+Use the *additive* flag to add rather than set the value.
+        """
+
+    keywords = ["GlobalUnit", "Skill", "SkillComponent", "Expression"]
+    optional_keywords = ["ComponentProperty"]
+    keyword_types = ["GlobalUnit", "Skill", "SkillComponent", "Expression", "String"]
+    _flags = ['additive']
+    
+class RemoveSkillComponent(EventCommand):
+    nid = 'remove_skill_component'
+    tag = Tags.MODIFY_SKILL_PROPERTIES
+
+    desc = \
+        """
+Removes *SkillComponent* from *Skill* in the inventory of *GlobalUnit*.
+        """
+
+    keywords = ["GlobalUnit", "Skill", "SkillComponent"]
 
 class GiveMoney(EventCommand):
     nid = 'give_money'
