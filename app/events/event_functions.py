@@ -1827,7 +1827,7 @@ def add_skill_component(self: Event, global_unit, skill, skill_component, expres
     
 def modify_skill_component(self: Event, global_unit, skill, skill_component, expression, component_property=None, flags=None):
     flags = flags or set()
-    component_nid = item_component
+    component_nid = skill_component
     is_additive = 'additive' in flags
 
     unit, skill = self._get_skill(global_unit, skill)
