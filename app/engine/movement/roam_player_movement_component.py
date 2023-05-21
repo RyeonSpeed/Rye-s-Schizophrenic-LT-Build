@@ -61,6 +61,8 @@ class RoamPlayerMovementComponent(MovementComponent):
         self.x_mag, self.y_mag = 0.0, 0.0
 
     def finish(self, surprise=False):
+        self.unit.sprite.change_state('normal')
+        self.unit.sound.stop()
         self.active = False
 
     def update(self, current_time: int):
