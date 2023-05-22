@@ -1042,6 +1042,20 @@ class ItemComponent(Validator):
         from app.engine import item_component_access as ICA
         valids = [(None, component.nid) for component in ICA.get_item_components()]
         return valids
+        
+class SkillComponent(Validator):
+    desc = "accepts a skill component."
+
+    def validate(self, text, level):
+        from app.engine import skill_component_access as SCA
+        if text in SCA.get_skill_components().keys():
+            return text
+        return None
+
+    def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
+        from app.engine import skill_component_access as SCA
+        valids = [(None, component.nid) for component in SCA.get_skill_components()]
+        return valids
 
 class StatList(Validator):
     desc = "accepts a comma-delimited list of pairs of stat nids and stat changes. For example, `STR,2,SPD,-3`."
