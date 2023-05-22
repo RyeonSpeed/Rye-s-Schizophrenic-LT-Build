@@ -1632,6 +1632,22 @@ Use the *additive* flag to add rather than set the value.
     keyword_types = ["GlobalUnit", "Skill", "SkillComponent", "Expression", "String"]
     _flags = ['additive']
     
+class ChangeSkillTime(EventCommand):
+    nid = 'change_skill_time'
+    tag = Tags.MODIFY_SKILL_PROPERTIES
+    
+    desc = \
+        """
+Sets the remaining time on a *Skill* belong to *GlobalUnit* to *Integer*.
+
+Use the *additive* flag to add rather than set the value.
+Use the *assess* flag to immediately check if the skill is expired.
+        """
+        
+    keywords = ["GlobalUnit", "Skill", "Integer"]
+    keyword_types = ["GlobalUnit", "Skill", "Integer"]
+    _flags = ['additive', 'assess']
+    
 class RemoveSkillComponent(EventCommand):
     nid = 'remove_skill_component'
     tag = Tags.MODIFY_SKILL_PROPERTIES

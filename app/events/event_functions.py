@@ -1843,6 +1843,28 @@ def modify_skill_component(self: Event, global_unit, skill, skill_component, exp
 
     action.do(action.ModifySkillComponent(skill, component_nid, component_value, component_property, is_additive))
     
+def change_skill_time(self: Event, global_unit, skill, integer, flags=None):
+    flags = flags or set()
+    is_additive = 'additive' in flags
+    assess = 'assess' in flags
+    val = int(integer)
+    unit, skill = self._get_skill(global_unit, skill)
+    if not unit or not skill:
+        self.logger.error("change_skill_time: Either unit or skill was invalid, see above")
+        return
+        
+    if not skill.data['turns']:
+        self.logger.error("change_skill_time: Skill %s does not have time" % skill.nid)
+        return
+
+    if is_additive:
+        val += skill.data['turns']
+
+    action.do(action.SetObjData(skill, 'turns', val))
+    
+    if assess and skill.data['turns'] <= 0:
+        action.do(action.RemoveSkill(unit, skill))
+    
 def remove_skill_component(self: Event, global_unit, skill, skill_component, flags=None):
     flags = flags or set()
     component_nid = skill_component
