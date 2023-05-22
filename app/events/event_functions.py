@@ -1852,7 +1852,7 @@ def remove_skill_component(self: Event, global_unit, skill, skill_component, fla
         self.logger.error("remove_skill_component: Either unit or item was invalid, see above")
         return
 
-    action.do(action.RemoveItemComponent(skill, component_nid))
+    action.do(action.RemoveSkillComponent(skill, component_nid))
 
 def give_money(self: Event, money, party=None, flags=None):
     flags = flags or set()
