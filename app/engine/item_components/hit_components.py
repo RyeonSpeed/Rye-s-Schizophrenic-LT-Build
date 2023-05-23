@@ -48,10 +48,10 @@ class PermanentStatChange(ItemComponent):
             # clamp stat changes
             stat_changes = {k: utils.clamp(v, -target.stats[k], klass.max_stats.get(k, 30) - target.stats[k]) for k, v in stat_changes.items()}
             action.do(action.ApplyStatChanges(target, stat_changes))
-            if any(v != 0 for v in stat_changes.values()):
-                game.memory['stat_changes'] = stat_changes
-                game.exp_instance.append((target, 0, None, 'stat_booster'))
-                game.state.change('exp')
+            #if any(v != 0 for v in stat_changes.values()):
+            #    game.memory['stat_changes'] = stat_changes
+            #    game.exp_instance.append((target, 0, None, 'stat_booster'))
+            #    game.state.change('exp')
         self._hit_count = 0
 
 class PermanentGrowthChange(ItemComponent):
