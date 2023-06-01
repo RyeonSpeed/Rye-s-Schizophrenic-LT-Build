@@ -467,13 +467,13 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
                           name_tag_bg=nametag, flags=flags)
         self.text_boxes.append(new_dialog)
 
-            if self.do_skip:
-                # Which means we must have held, so just process the whole dialog immediately
-                new_dialog.warp_speed()
-                action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
-            elif 'no_block' in flags:
-                pass
-            else:  # Usually we go to a dialog state
+        if self.do_skip:
+            # Which means we must have held, so just process the whole dialog immediately
+            new_dialog.warp_speed()
+            action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
+        elif 'no_block' in flags:
+            pass
+        else:  # Usually we go to a dialog state
             self.state = 'dialog'
     # End else
 
@@ -500,11 +500,11 @@ def unpause(self: Event, nid=None, flags=None):
                 break
         else:
             if not self.do_skip:  # Don't bother warning if we are skipping
-            self.logger.warning("Did not find any text box with speaker: %s", nid)
+                self.logger.warning("Did not find any text box with speaker: %s", nid)
     if self.do_skip:
         pass
     else:
-    self.state = 'dialog'
+        self.state = 'dialog'
 
 def transition(self: Event, direction=None, speed=None, color3=None, flags=None):
     flags = flags or set()
