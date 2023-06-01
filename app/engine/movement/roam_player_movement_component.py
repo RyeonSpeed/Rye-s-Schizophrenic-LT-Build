@@ -59,6 +59,7 @@ class RoamPlayerMovementComponent(MovementComponent):
         self.x_vel, self.y_vel = 0.0, 0.0
         # What the player is inputting
         self.x_mag, self.y_mag = 0.0, 0.0
+        self.active = True
 
     def finish(self, surprise=False):
         self.unit.sprite.change_state('normal')
@@ -144,6 +145,13 @@ class RoamPlayerMovementComponent(MovementComponent):
             if not other_team or utils.compare_teams(self.unit.team, other_team):
                 return True # Allies, this is fine
             else:  # Enemies
+                return False
+        # If diagonal, also check the diagonal spots
+        if pos[0] != self.unit.position[0] and pos[1] != self.unit.position[1]:
+            pos_h = (pos[0], self.unit.position[1])
+            pos_v = (self.unit.position[0], pos[1])
+            # Check that not both are impassable
+            if not self._can_move(pos_h) and not self._can_move(pos_v):
                 return False
         return True
 

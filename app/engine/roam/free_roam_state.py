@@ -25,6 +25,8 @@ class FreeRoamState(MapState):
 
     def begin(self):
         game.cursor.hide()
+        if not self.ai_handler.active:
+            self.ai_handler.start_all_units()
 
         if game.is_roam() and game.get_roam_unit():
             roam_unit = game.get_roam_unit()
@@ -83,7 +85,9 @@ class FreeRoamState(MapState):
         if not my_pos:
             logging.warning("Roam unit does not have a position")
             return None
-        for unit in game.get_all_units():
+        # Specifically not `game.get_all_units()` in order to support units with Tile tag being talkable
+        all_units = [unit for unit in game.units if unit.position and not unit.dead and not unit.is_dying]
+        for unit in all_units:
             has_talk = (self.roam_unit.nid, unit.nid) in game.talk_options
             if unit is not self.roam_unit and \
                     utils.calculate_distance(my_pos, unit.position) < self.TALK_RANGE and \
@@ -134,7 +138,9 @@ class FreeRoamState(MapState):
             get_sound_thread().play_sfx('Select 2')
             did_trigger = game.events.trigger(triggers.OnTalk(self.roam_unit, other_unit, None))
             if did_trigger:
-                action.do(action.RemoveTalk(self.roam_unit.nid, other_unit.nid))
+                # Rely on the talk event itself to remove the trigger
+                # Behaves more like other things in the engine
+                # action.do(action.RemoveTalk(self.roam_unit.nid, other_unit.nid))
                 self.rationalize_all_units()
         elif region:
             get_sound_thread().play_sfx('Select 2')

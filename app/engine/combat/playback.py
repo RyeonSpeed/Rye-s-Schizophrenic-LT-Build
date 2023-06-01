@@ -301,6 +301,16 @@ class CastAnim(PlaybackBrush):
     anim: str
 
 @dataclass
+class TargetCastAnim(PlaybackBrush):
+    """
+    Aesthetic brush for playing a specific animation on all targets in AoE
+    Processed by a Map Combat only (Combat animations do this in Animation Combat)
+    """
+    nid: ClassVar[str] = 'target_cast_anim'
+    anim: str
+    pos: Tuple[int, int]
+
+@dataclass
 class UnitTintAdd(PlaybackBrush):
     """
     Aesthetic brush for adding a brightening tint to unit's sprite

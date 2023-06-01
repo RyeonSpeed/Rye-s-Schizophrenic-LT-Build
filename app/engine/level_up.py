@@ -73,9 +73,9 @@ class ExpState(State):
         self.stat_changes = None
         self.new_wexp = None
 
-        if self.unit.level >= self.unit_klass.max_level and not self.mana_to_gain and \
+        if self.unit.level >= self.unit_klass.max_level and not self.mana_to_gain and self.exp_gain >= 0 and \
                 not self.auto_promote and self.starting_state not in ('promote', 'class_change', 'stat_booster'):
-            # We're done here, since the unit is at max level and has no stats to gain
+            # We're done here, since the unit is at max level and has no stats to gain, mana to gain, or exp to lose
             game.state.back()
             return 'repeat'
 

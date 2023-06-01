@@ -70,7 +70,8 @@ class AnimationCombat(BaseCombat, MockCombat):
         self.state_machine = CombatPhaseSolver(
             self.attacker, self.main_item, [self.main_item],
             [self.defender], [[]], [self.defender.position],
-            self.defender, self.def_item, script, total_rounds)
+            self.defender, self.def_item, script, total_rounds,
+            update_stats=self._set_stats)
 
         self.last_update = engine.get_time()
         self.arena_combat = arena_combat
@@ -347,7 +348,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 logging.debug("Set Up Next State")
                 self.state_machine.setup_next_state()
                 return False
-            self._set_stats()
+            # self._set_stats()
 
             # Set up combat effects (legendary)
             attacker, item, defender, d_item, self.current_battle_anim = self.get_actors()
@@ -368,6 +369,7 @@ class AnimationCombat(BaseCombat, MockCombat):
             elif self.get_from_playback('defense_proc'):
                 self.set_up_proc_animation('defense_proc')
             else:
+                self.add_proc_icon.memory.clear()
                 self.set_up_combat_animation()
 
         elif self.state == 'combat_effect':

@@ -126,6 +126,7 @@ class GameState():
         self.cursor = None
         self.camera = None
         self.boundary = None
+        self.movement = None
 
         self.current_save_slot = None
         self.current_level = None
@@ -259,11 +260,12 @@ class GameState():
             self.full_register(unit)
         for unit in self.current_level.units:
             # Only let unit's that have a VALID position spawn onto the map
-            if unit.position and self.current_level.tilemap.check_bounds(unit.position):
-                self.arrive(unit)
-            else:
-                logging.warning("Unit %s's position not on map. Removing...", unit.nid)
-                unit.position = None
+            if unit.position:
+                if self.current_level.tilemap.check_bounds(unit.position):
+                    self.arrive(unit)
+                else:
+                    logging.warning("Unit %s's position not on map. Removing...", unit.nid)
+                    unit.position = None
 
         # Handle initiative
         if DB.constants.value('initiative'):
@@ -810,6 +812,9 @@ class GameState():
 
     def get_other_units(self) -> List[UnitObject]:
         return [unit for unit in self.get_all_units() if unit.team == 'other']
+
+    def get_team_units(self, team: str) -> List[UnitObject]:
+        return [unit for unit in self.get_all_units() if unit.team == team]
 
     def get_travelers(self) -> List[UnitObject]:
         return [self.get_unit(unit.traveler) for unit in self.get_all_units() if unit.traveler]

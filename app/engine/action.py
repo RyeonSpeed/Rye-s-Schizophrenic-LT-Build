@@ -2593,9 +2593,9 @@ class RemoveLore(Action):
 
 
 class LogDialog(Action):
-    def __init__(self, dialog):
-        self.speaker = dialog.speaker
-        self.plain_text = dialog.plain_text
+    def __init__(self, speaker: str, plain_text: str):
+        self.speaker = speaker
+        self.plain_text = plain_text
 
     def do(self):
         game.dialog_log.append((self.speaker, self.plain_text))
@@ -2656,7 +2656,8 @@ class AddRegion(Action):
 
             # Reset movement and opacity grids
             elif self.region.region_type == RegionType.TERRAIN:
-                game.board.reset_grid(game.level.tilemap)
+                for position in self.region.get_all_positions():
+                    game.board.reset_pos(game.level.tilemap, position)
                 game.boundary.reset()
                 _region_arrive(self.region)
 
@@ -2682,7 +2683,8 @@ class AddRegion(Action):
 
             # Reset movement and opacity grids
             if self.region.region_type == RegionType.TERRAIN:
-                game.board.reset_grid(game.level.tilemap)
+                for position in self.region.get_all_positions():
+                    game.board.reset_pos(game.level.tilemap, position)
                 game.boundary.reset()
                 _region_arrive(self.region)
 
@@ -2743,7 +2745,8 @@ class RemoveRegion(Action):
 
             # Reset movement and opacity grids
             if self.region.region_type == RegionType.TERRAIN:
-                game.board.reset_grid(game.level.tilemap)
+                for position in self.region.get_all_positions():
+                    game.board.reset_pos(game.level.tilemap, position)
                 game.boundary.reset()
                 _region_arrive(self.region)
         else:
@@ -2762,7 +2765,8 @@ class RemoveRegion(Action):
 
             # Reset movement and opacity girds
             if self.region.region_type == RegionType.TERRAIN:
-                game.board.reset_grid(game.level.tilemap)
+                for position in self.region.get_all_positions():
+                    game.board.reset_pos(game.level.tilemap, position)
                 game.boundary.reset()
                 _region_arrive(self.region)
 

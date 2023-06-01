@@ -293,9 +293,11 @@ def narrate(self: Event, speaker, string, flags=None):
         self.state = 'blocked'
 
 def set_overworld_menu_option_enabled(self: Event, overworld_node_nid: NID, overworld_node_menu_option: NID, setting: bool, flags=None):
-    overworld = game.overworld_controller
-    overworld.toggle_menu_option_enabled(overworld_node_nid, overworld_node_menu_option, setting)
+    val = (setting.lower() in self.true_vals)
+    overworld = self.game.overworld_controller
+    overworld.toggle_menu_option_enabled(overworld_node_nid, overworld_node_menu_option, val)
 
 def set_overworld_menu_option_visible(self: Event, overworld_node_nid: NID, overworld_node_menu_option: NID, setting: bool, flags=None):
-    overworld = game.overworld_controller
-    overworld.toggle_menu_option_visible(overworld_node_nid, overworld_node_menu_option, setting)
+    val = (setting.lower() in self.true_vals)
+    overworld = self.game.overworld_controller
+    overworld.toggle_menu_option_visible(overworld_node_nid, overworld_node_menu_option, val)

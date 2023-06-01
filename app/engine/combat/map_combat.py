@@ -134,6 +134,14 @@ class MapCombat(SimpleCombat):
                     if anim:
                         anim = MapAnimation(anim, pos)
                         self.animations.append(anim)
+
+                animation_brushes = self.get_from_playback('target_cast_anim')
+                for brush in animation_brushes:
+                    anim = RESOURCES.animations.get(brush.anim)
+                    if anim:
+                        anim = MapAnimation(anim, brush.pos)
+                        self.animations.append(anim)
+
                 self.state = 'sound'
 
         elif self.state == 'sound':

@@ -1644,6 +1644,7 @@ class WeaponChoiceState(MapState):
         game.cursor.hide()
         self.cur_unit = game.cursor.cur_unit
         self.cur_unit.sprite.change_state('chosen')
+        self.current_equipped = self.cur_unit.equipped_weapon
         # Sort it by the current unit's inventory so that if the order of the inventory changes, it changes here too
         options = sorted(self.options, key=lambda item: self.cur_unit.items.index(item) if item in self.cur_unit.items else 99)
         self.menu = menus.Choice(self.cur_unit, options)
@@ -1685,6 +1686,9 @@ class WeaponChoiceState(MapState):
 
         if event == 'BACK':
             get_sound_thread().play_sfx('Select 4')
+            # In case we are hovering over a not "true" equipped item
+            if self.cur_unit.can_equip(self.current_equipped):
+                action.do(action.EquipItem(self.cur_unit, self.current_equipped))
             game.memory['valid_weapons'] = None
             game.state.back()
 
@@ -1714,6 +1718,7 @@ class WeaponChoiceState(MapState):
                 equip_action = action.EquipItem(self.cur_unit, selection)
                 # game.memory['equip_action'] = equip_action
                 action.do(equip_action)
+                self.current_equipped = self.cur_unit.equipped_weapon
 
             # If the item is in our inventory, bring it to the top
             if selection in self.cur_unit.items:

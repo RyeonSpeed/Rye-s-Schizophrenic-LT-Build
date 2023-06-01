@@ -178,7 +178,7 @@ class PromotionChoiceState(State):
 
         self.bg.draw(surf)
 
-        top = 88
+        top = WINHEIGHT - 72
         surf.blit(self.left_platform, (WINWIDTH//2 - self.left_platform.get_width() + self.anim_offset + 52, top))
         surf.blit(self.right_platform, (WINWIDTH//2 + self.anim_offset + 52, top))
         anim = self.animations[self.menu.get_current_index()]
@@ -340,7 +340,7 @@ class PromotionState(State, MockCombat):
         combat_surf = engine.copy_surface(self.combat_surf)
 
         # Platforms
-        top = 88
+        top = WINHEIGHT - 72
         combat_surf.blit(self.left_platform, (WINWIDTH//2 - self.left_platform.get_width(), top))
         combat_surf.blit(self.right_platform, (WINWIDTH//2, top))
 

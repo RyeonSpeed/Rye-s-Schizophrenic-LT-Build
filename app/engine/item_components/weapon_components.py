@@ -200,6 +200,9 @@ class Weight(ItemComponent):
     def modify_defense_speed(self, unit, item):
         return -1 * max(0, self.value - equations.parser.constitution(unit))
 
+    def modify_avoid(self, unit, item):
+        return -2 * max(0, self.value - equations.parser.constitution(unit))
+
 class Unwieldy(ItemComponent):
     nid = 'Unwieldy'
     desc = "Item lowers unit's defense by X"

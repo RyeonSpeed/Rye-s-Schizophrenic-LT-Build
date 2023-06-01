@@ -370,6 +370,11 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
             self._queue_command('unpause')
         self._queue_command(event_command_str)
 
+    # Determine whether this should be skipped
+    # Hold speaks are not skipped
+    if self.do_skip and 'hold' not in flags:
+        pass  # Skip me!
+    else:
     if text_position:
         try:
             position = Alignments(text_position)
@@ -461,8 +466,17 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
                       draw_cursor=cursor, message_tail=tail, transparency=transparency,
                       name_tag_bg=nametag, flags=flags)
     self.text_boxes.append(new_dialog)
-    if 'no_block' not in flags:
+
+        if self.do_skip:
+            # Which means we must have held, so just process the whole dialog immediately
+            new_dialog.warp_speed()
+            action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
+        elif 'no_block' in flags:
+            pass
+        else:  # Usually we go to a dialog state
         self.state = 'dialog'
+    # End else
+
     # Bring portrait to forefront
     if portrait and 'low_priority' not in flags:
         portrait.priority = self.priority_counter
@@ -475,7 +489,7 @@ def unhold(self: Event, nid, flags=None):
 
 def unpause(self: Event, nid=None, flags=None):
     if nid is None and self.text_boxes:
-        # Just remove the most recent text box
+        # Just unpause the most recent text box
         box = self.text_boxes[-1]
         box.command_unpause()
 
@@ -485,7 +499,11 @@ def unpause(self: Event, nid=None, flags=None):
                 box.command_unpause()
                 break
         else:
+            if not self.do_skip:  # Don't bother warning if we are skipping
             self.logger.warning("Did not find any text box with speaker: %s", nid)
+    if self.do_skip:
+        pass
+    else:
     self.state = 'dialog'
 
 def transition(self: Event, direction=None, speed=None, color3=None, flags=None):
@@ -1272,7 +1290,9 @@ def resurrect(self: Event, global_unit, flags=None):
     if not unit:
         self.logger.error("resurrect: Couldn't find unit %s" % global_unit)
         return
-    if unit.dead:
+    if unit.is_dying:
+        self.game.death.miracle(unit)
+    elif unit.dead:
         action.do(action.Resurrect(unit))
     action.do(action.Reset(unit))
     action.do(action.SetHP(unit, 1000))

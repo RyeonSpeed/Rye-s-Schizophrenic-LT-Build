@@ -168,6 +168,7 @@ class SimpleMapView(QGraphicsView):
             self.current_mouse_pos = pos
         else:
             self.position_moved.emit(-1, -1)
+            self.current_mouse_pos = None
 
         if event.buttons() & Qt.MiddleButton:
             offset = self.old_middle_pos - event.pos()
@@ -301,6 +302,7 @@ class GlobalModeLevelMapView(SimpleMapView):
             else:
                 self.main_editor.set_message(None)
         else:
+            self.current_mouse_pos = None
             self.main_editor.set_position_bar(None)
             self.main_editor.set_message(None)
 
@@ -339,18 +341,19 @@ class NewMapView(SimpleMapView):
             self.clear_scene()
             return
         if self.edit_mode == EditMode.NONE:
-            self.paint_units()
+            self.paint_units(in_unit_tab=False)
         elif self.edit_mode == EditMode.UNITS:
             self.paint_units()
         elif self.edit_mode == EditMode.REGIONS:
             self.paint_regions()
+            self.paint_units(in_unit_tab=False)
         elif self.edit_mode == EditMode.GROUPS:
             self.paint_groups()
         else:
-            self.paint_units()
+            self.paint_units(in_unit_tab=False)
         self.show_map()
 
-    def paint_units(self):
+    def paint_units(self, in_unit_tab=True):
         if self.working_image:
             painter = QPainter()
             painter.begin(self.working_image)
@@ -371,15 +374,19 @@ class NewMapView(SimpleMapView):
                         self.draw_unit(painter, unit, unit.starting_position)
             # Highlight current unit with cursor
             current_unit = self.main_editor.unit_painter_menu.get_current()
-            if current_unit and current_unit.starting_position:
-                coord = current_unit.starting_position
-                cursor_sprite = SPRITES['cursor']
-                if cursor_sprite:
-                    if not cursor_sprite.pixmap:
-                        cursor_sprite.pixmap = QPixmap(cursor_sprite.full_path)
-                    cursor_image = cursor_sprite.pixmap.toImage().copy(0, 64, 32, 32)
-                    painter.drawImage(
-                        coord[0] * TILEWIDTH - 8, coord[1] * TILEHEIGHT - 5, cursor_image)
+            if in_unit_tab and current_unit:
+                if current_unit.starting_position:
+                    coord = current_unit.starting_position
+                    cursor_sprite = SPRITES['cursor']
+                    if cursor_sprite:
+                        if not cursor_sprite.pixmap:
+                            cursor_sprite.pixmap = QPixmap(cursor_sprite.full_path)
+                        cursor_image = cursor_sprite.pixmap.toImage().copy(0, 64, 32, 32)
+                        painter.drawImage(
+                            coord[0] * TILEWIDTH - 8, coord[1] * TILEHEIGHT - 5, cursor_image)
+                if self.current_mouse_pos:
+                    coord = self.current_mouse_pos
+                    self.draw_unit(painter, current_unit, coord, opacity=True)
             painter.end()
 
     def paint_groups(self):
@@ -450,7 +457,7 @@ class NewMapView(SimpleMapView):
                     painter.setOpacity(0.75)
                     painter.drawRect(x * TILEWIDTH, y * TILEHEIGHT,
                                      width * TILEWIDTH, height * TILEHEIGHT)
-                elif self.region_select:
+                elif self.region_select and self.current_mouse_pos:
                     left = min(self.region_select[0],
                                self.current_mouse_pos[0])
                     right = max(
@@ -594,6 +601,7 @@ class NewMapView(SimpleMapView):
                     self.main_editor.set_message(
                         "%s: %s" % (terrain.nid, terrain.name))
                 else:
+                    self.current_mouse_pos = None
                     self.main_editor.set_message(None)
         else:
             self.main_editor.set_position_bar(None)

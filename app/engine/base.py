@@ -658,16 +658,16 @@ class BaseCodexChildState(State):
     name = 'base_codex_child'
     transparent = True
 
-    def start(self):
-        self.fluid = FluidScroll()
-
+    def get_options(self) -> List[str]:
         options = []
         unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore]
         if unlocked_lore:
             options.append('Library')
         if game.game_vars['_world_map_in_base']:
             options.append('Map')
-        options.append('Records')
+        if len(game.records.get_levels()) > 1:
+            # Ignore current level. Only appears if there's been at least one level
+            options.append('Records')
         if DB.constants.value('sound_room_in_codex'):
             options.append('Sound Room')
         if ACHIEVEMENTS:
@@ -675,6 +675,12 @@ class BaseCodexChildState(State):
         unlocked_guide = [lore for lore in unlocked_lore if lore.category == 'Guide']
         if unlocked_guide:
             options.append('Guide')
+        return options
+
+    def start(self):
+        self.fluid = FluidScroll()
+
+        options = self.get_options()
 
         selection = game.memory['option_owner']
         topleft = game.memory['option_menu']

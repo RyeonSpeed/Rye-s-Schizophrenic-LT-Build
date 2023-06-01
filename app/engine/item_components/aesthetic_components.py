@@ -64,7 +64,7 @@ class MapCastSFX(ItemComponent):
 
 class MapCastAnim(ItemComponent):
     nid = 'map_cast_anim'
-    desc = "Adds a specific animation effect when the item is used. Relevant in map combat situations."
+    desc = "Adds a specific animation effect on the target's tile when the item is used. Relevant in map combat situations."
     tag = ItemTags.AESTHETIC
 
     expose = ComponentType.MapAnimation
@@ -74,6 +74,21 @@ class MapCastAnim(ItemComponent):
 
     def on_miss(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         playback.append(pb.CastAnim(self.value))
+
+class MapTargetCastAnim(ItemComponent):
+    nid = 'map_target_cast_anim'
+    desc = "Adds a specific animation effect on all units in AoE when the item is used. Relevant in map combat situations."
+    tag = ItemTags.AESTHETIC
+
+    expose = ComponentType.MapAnimation
+
+    def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
+        if target:
+            playback.append(pb.TargetCastAnim(self.value, target.position))
+
+    def on_miss(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
+        if target:
+            playback.append(pb.TargetCastAnim(self.value, target.position))
 
 class BattleCastAnim(ItemComponent):
     nid = 'battle_cast_anim'

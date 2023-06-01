@@ -50,17 +50,38 @@ class GameBoard(object):
         mtype_grid = [[None for j in range(self.height)] for i in range(self.width)]
         for x in range(self.width):
             for y in range(self.height):
-                if DB.terrain:
-                    terrain_nid = game.get_terrain_nid(tilemap, (x, y))
-                    terrain_type = DB.terrain.get(terrain_nid)
-                    if not terrain_type:
-                        terrain_type = DB.terrain[0]
-                    mtype_grid[x][y] = terrain_type.mtype
-                else:
-                    mtype_grid[x][y] = None
+                terrain_nid = game.get_terrain_nid(tilemap, (x, y))
+                terrain = DB.terrain.get(terrain_nid)
+                if not terrain:
+                    terrain = DB.terrain[0]
+                mtype_grid[x][y] = terrain.mtype
         for idx, mode in enumerate(DB.mcost.unit_types):
             self.mcost_grids[mode] = self.init_grid(mode, tilemap, mtype_grid)
         self.opacity_grid = self.init_opacity_grid(tilemap)
+
+    def reset_pos(self, tilemap, pos):
+        x, y = pos
+        idx = x * self.height + y
+        terrain_nid = game.get_terrain_nid(tilemap, (x, y))
+        terrain = DB.terrain.get(terrain_nid)
+        if not terrain:
+            terrain = DB.terrain[0]
+        mtype = terrain.mtype
+
+        # Movement reset
+        for movement_group in DB.mcost.unit_types:
+            mcost_grid = self.mcost_grids[movement_group]        
+            if mtype:
+                tile_cost = DB.mcost.get_mcost(movement_group, mtype)
+            else:
+                tile_cost = 1
+            mcost_grid[idx] = Node(x, y, tile_cost < 99, tile_cost)
+
+        # Opacity reset
+        if terrain:
+            self.opacity_grid[idx] = terrain.opaque
+        else:
+            self.opacity_grid[idx] = False
 
     # For movement
     def init_grid(self, movement_group, tilemap, mtype_grid: Dict[int, Dict[int, int]]):

@@ -917,8 +917,10 @@ class ItemDescriptionPanel():
         else:
             if self.item.desc:
                 desc = self.item.desc
-            else:
+            elif not available:
                 desc = "Cannot wield."
+            else:
+                desc = ""
 
             desc = desc.replace('{br}', '\n')
             lines = text_funcs.line_wrap('text', desc, width - 8)

@@ -1,3 +1,5 @@
+from typing import Callable
+
 from app.data.database.database import DB
 from app.data.database.difficulty_modes import RNGOption
 from app.engine import action, combat_calcs, item_funcs, item_system, skill_system
@@ -111,6 +113,8 @@ class AttackerState(SolverState):
             target_pos = solver.target_positions[idx]
             if defender:
                 skill_system.start_sub_combat(actions, playback, defender, defender.get_weapon(), solver.attacker, 'defense', attack_info)
+                if solver.update_stats:
+                    solver.update_stats()
                 solver.process(actions, playback, solver.attacker, defender, target_pos, item, defender.get_weapon(), 'attack', attack_info)
                 skill_system.end_sub_combat(actions, playback, defender, defender.get_weapon(), solver.attacker, 'defense', attack_info)
             for target in splash:
@@ -185,6 +189,8 @@ class AttackerPartnerState(SolverState):
             target_pos = solver.target_positions[idx]
             if defender:
                 skill_system.start_sub_combat(actions, playback, defender, defender.get_weapon(), atk_p, 'defense', attack_info)
+                if solver.update_stats:
+                    solver.update_stats()
                 solver.process(actions, playback, atk_p, defender, target_pos, item, defender.get_weapon(), 'attack', attack_info, assist=True)
                 skill_system.end_sub_combat(actions, playback, defender, defender.get_weapon(), atk_p, 'defense', attack_info)
             for target in splash:
@@ -252,6 +258,8 @@ class DefenderState(SolverState):
         skill_system.start_sub_combat(actions, playback, solver.defender, solver.def_item, solver.attacker, 'attack', attack_info)
         skill_system.start_sub_combat(actions, playback, solver.attacker, solver.main_item, solver.defender, 'defense', attack_info)
 
+        if solver.update_stats:
+            solver.update_stats()
         solver.process(actions, playback, solver.defender, solver.attacker, solver.attacker.position, solver.def_item, solver.main_item, 'defense', attack_info)
 
         # Remove defending unit's proc skills (which is solver.attacker)
@@ -312,6 +320,8 @@ class DefenderPartnerState(SolverState):
         skill_system.start_sub_combat(actions, playback, def_p, solver.def_item, solver.attacker, 'attack', attack_info)
         skill_system.start_sub_combat(actions, playback, solver.attacker, solver.main_item, def_p, 'defense', attack_info)
 
+        if solver.update_stats:
+            solver.update_stats()
         solver.process(actions, playback, def_p, solver.attacker, solver.attacker.position, solver.def_item, solver.main_item, 'defense', attack_info, assist=True)
 
         # Remove defending unit's proc skills (which is solver.attacker)
@@ -329,7 +339,7 @@ class CombatPhaseSolver():
 
     def __init__(self, attacker, main_item, items, defenders,
                  splashes, target_positions, defender, def_item,
-                 script=None, total_rounds=1):
+                 script=None, total_rounds=1, update_stats: Callable = None):
         self.attacker = attacker
         self.main_item = main_item
         self.items = items
@@ -349,6 +359,9 @@ class CombatPhaseSolver():
         # For event combats
         self.script = list(reversed(script)) if script else []
         self.current_command = '--'
+
+        # Used to update the Combat's GUI at just the right time!
+        self.update_stats: Callable = update_stats
 
     def reset(self):
         self.num_attacks, self.num_defends = 0, 0

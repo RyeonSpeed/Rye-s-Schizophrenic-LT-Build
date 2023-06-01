@@ -25,8 +25,8 @@ from app.utilities.typing import NID
 class Event():
     true_vals = ('t', 'true', 'True', '1', 'y', 'yes')
 
-    skippable = {"speak", "wait", "bop_portrait",
-                 "sound", "location_card", "credits", "ending"}
+    skippable = {"wait", "bop_portrait", "sound", 
+                 "location_card", "credits", "ending"}
 
     def __init__(self, nid, commands, trigger: triggers.EventTrigger, game: GameState = None):
         self._transition_speed = 250
@@ -177,7 +177,9 @@ class Event():
                 if self.text_boxes:
                     if self.text_boxes[-1].is_done():
                         if dialog_log:
-                            action.do(action.LogDialog(self.text_boxes[-1]))
+                            speaker = self.text_boxes[-1].speaker
+                            plain_text = self.text_boxes[-1].plain_text
+                            action.do(action.LogDialog(speaker, plain_text))
                         self.state = 'processing'
                         if self.text_boxes[-1].is_complete():
                             self.text_boxes.pop()

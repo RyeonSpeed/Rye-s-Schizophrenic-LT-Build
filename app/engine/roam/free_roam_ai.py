@@ -32,7 +32,7 @@ class FreeRoamAIHandler:
                 self.roam_ais.append(RoamAI(unit))
                 mc = RoamAIMovementComponent(unit)
                 self.components[unit.nid] = mc
-                game.movement.add(mc)
+        self.start_all_units()
 
     def update(self):
         if not self.active:
@@ -49,6 +49,13 @@ class FreeRoamAIHandler:
         self.active = False
         for mc in self.components.values():
             mc.finish()
+
+    def start_all_units(self):
+        self.active = True
+        for mc in self.components.values():
+            mc.start()
+            game.movement.add(mc)
+
 
 class RoamAI:
     def __init__(self, unit):
@@ -201,7 +208,7 @@ class RoamAI:
                 except:
                     logging.warning("Could not evaluate region conditional %s" % r.condition)
         # Find the closest
-        regions = list(sorted(regions, lambda region: min(utils.calculate_distance(pos, rpos) for rpos in region.get_all_positions())))
+        regions = list(sorted(regions, key=lambda region: min(utils.calculate_distance(pos, rpos) for rpos in region.get_all_positions())))
         if regions:
             region = regions[0]
             return region
@@ -233,7 +240,7 @@ class RoamAI:
     def interact(self, region: RegionObject, proximity: float):
         positions = [pos for pos in region.get_all_positions() if utils.calculate_distance(self.unit.position, pos) <= proximity]
         if positions:
-            pos = list(sorted(positions, lambda pos: utils.calculate_distance(self.unit.position, pos)))[0]
+            pos = list(sorted(positions, key=lambda pos: utils.calculate_distance(self.unit.position, pos)))[0]
             did_trigger = game.events.trigger(triggers.RegionTrigger(region.sub_nid, self.state.unit, pos, region))
             if not did_trigger:  # Just in case we need the generic one
                 did_trigger = game.events.trigger(triggers.OnRegionInteract(self.state.unit, pos, region))

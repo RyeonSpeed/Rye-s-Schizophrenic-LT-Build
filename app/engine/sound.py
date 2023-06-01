@@ -362,11 +362,11 @@ class SoundController():
         self.PRELOADTHREAD = None
 
     @property
-    def state(self):
+    def state(self) -> GlobalMusicState:
         return self._state
 
     @state.setter
-    def state(self, value):
+    def state(self, value: GlobalMusicState):
         logging.info("Changing State to %s" % value)
         self._state = value
     

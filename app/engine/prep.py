@@ -81,6 +81,12 @@ class PrepMainState(MapState):
         img = SPRITES.get('focus_fade').convert_alpha()
         self.bg = SpriteBackground(img)
 
+    def leave(self):
+        self.bg.fade_out()
+        self.menu = None
+        self.fade_out = True
+        self.last_update = engine.get_time()
+
     def take_input(self, event):
         if self.fade_out:
             return
@@ -117,11 +123,20 @@ class PrepMainState(MapState):
                 game.memory['next_state'] = 'in_chapter_save'
                 game.state.change('transition_to')
             elif selection == 'Fight':
-                if any(unit.position for unit in game.units):
-                    self.bg.fade_out()
-                    self.menu = None
-                    self.fade_out = True
-                    self.last_update = engine.get_time()
+                if game.level_vars.get('_minimum_deployment', 0) > 0:
+                    if sum(bool(unit.position) for unit in game.get_units_in_party()) \
+                            >= min(game.level_vars['_minimum_deployment'], len(game.get_units_in_party())):
+                        self.leave()
+                    else:
+                        get_sound_thread().play_sfx('Select 4')
+                        if game.level_vars['_minimum_deployment'] == 1:
+                            alert = banner.Custom("Must select at least 1 unit!")
+                        else:
+                            alert = banner.Custom("Must select at least %d units!" % game.level_vars['_minimum_deployment'])
+                        game.alerts.append(alert)
+                        game.state.change('alert')
+                elif any(unit.position for unit in game.get_units_in_party()):
+                    self.leave()
                 else:
                     get_sound_thread().play_sfx('Select 4')
                     alert = banner.Custom("Must select at least one unit!")

@@ -596,7 +596,7 @@ class SimpleCombat():
                     
                     act = action.UpdateRecords('kill', pair)
                     action.do(act)
-                    if mark.defender.team == 'player':  # If player is dying, save this result even if we turnwheel back
+                    if mark.attacker.team == 'player':  # If player is dying, save this result even if we turnwheel back
                         act = action.UpdateRecords('death', pair)
                         act.do()
 

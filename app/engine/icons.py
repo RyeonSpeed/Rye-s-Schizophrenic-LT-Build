@@ -173,16 +173,19 @@ def draw_portrait(surf, unit, topleft=None, bottomright=None):
         surf.blit(image, (bottomright[0] - 96, bottomright[1] - 80))
     return surf
 
-def draw_chibi(surf, nid, topleft=None, bottomright=None):
-    image = RESOURCES.portraits.get(nid)
-    if not image:
-        return surf
-
-    if not image.image:
-        image.image = engine.image_load(image.full_path)
-    image = engine.subsurface(image.image, (image.image.get_width() - 32, 16, 32, 32))
+def get_chibi(portrait):
+    if not portrait.image:
+        portrait.image = engine.image_load(portrait.full_path)
+    image = engine.subsurface(portrait.image, (portrait.image.get_width() - 32, 16, 32, 32))
     image = image.convert()
     engine.set_colorkey(image, COLORKEY, rleaccel=True)
+    return image
+
+def draw_chibi(surf, nid, topleft=None, bottomright=None):
+    portrait = RESOURCES.portraits.get(nid)
+    if not portrait:
+        return surf
+    image = get_chibi(portrait)
 
     if topleft:
         surf.blit(image, topleft)
