@@ -69,6 +69,7 @@ class Dialog():
         self.num_lines = num_lines
         self.draw_cursor_flag = draw_cursor
         self.font = FONT[self.font_type]
+        
         if '{sub_break}' in self.plain_text:
             self.attempt_split = False
 
@@ -144,6 +145,10 @@ class Dialog():
 
         if 'no_popup' in flags:
             self.last_update = engine.get_time() - 10000
+            
+        # DUMB FUCKING FIXES
+        if not self.speed:
+            self.speed = 1.0
 
     @classmethod
     def from_style(cls, style: SpeakStyle, text, portrait=None, width=None):
