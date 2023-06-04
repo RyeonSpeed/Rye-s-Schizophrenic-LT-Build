@@ -354,6 +354,17 @@ class Locked(ItemComponent):
 
     def unstealable(self, unit, item) -> bool:
         return True
+        
+class PreventStorage(ItemComponent):
+    nid = 'prevent_storage'
+    desc = 'Item cannot be placed into convoy or discarded. However, event commands can remove the item.'
+    tag = ItemTags.USES
+
+    def prevent_storage(self, unit, item) -> bool:
+        return True
+
+    def unstealable(self, unit, item) -> bool:
+        return True
 
 class Unstealable(ItemComponent):
     nid = 'unstealable'
