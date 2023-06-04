@@ -4,7 +4,7 @@
 false_priority_hooks = \
     ('is_weapon', 'is_spell', 'is_accessory', 'equippable',
      'can_counter', 'can_be_countered', 'can_double',
-     'can_use', 'can_use_in_base', 'locked', 'unstealable', 'allow_same_target', 'allow_less_than_max_targets',
+     'can_use', 'can_use_in_base', 'locked', 'prevent_storage', 'unstealable', 'allow_same_target', 'allow_less_than_max_targets',
      'ignore_weapon_advantage', 'unrepairable', 'unsplashable', 'targets_items',
      'menu_after_combat', 'transforms', 'no_attack_after_move', 'no_map_hp_display',
      'cannot_dual_strike', 'can_attack_after_combat', 'simple_target_restrict', 'force_map_anim', 'ignore_line_of_sight')

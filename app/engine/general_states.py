@@ -1441,7 +1441,7 @@ class ItemChildState(MapState):
                 options.append("Expand")
             if item_funcs.can_use(self.cur_unit, item) and not self.cur_unit.has_attacked:
                 options.append("Use")
-            if not item_system.locked(self.cur_unit, item) and item in self.cur_unit.items:
+            if not item_system.locked(self.cur_unit, item) and not item_system.prevent_storage(self.cur_unit, item) and item in self.cur_unit.items:
                 if game.game_vars.get('_convoy'):
                     options.append('Storage')
                 else:
