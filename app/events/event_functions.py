@@ -2789,7 +2789,6 @@ def base(self: Event, background: str, music: str = None, other_options: str = N
         action.do(action.SetGameVar('_base_options_events', []))
         action.do(action.SetGameVar('_base_additional_options', []))
 
-
     if 'show_map' in flags:
         action.do(action.SetGameVar('_base_transparent', True))
     else:
@@ -2797,6 +2796,45 @@ def base(self: Event, background: str, music: str = None, other_options: str = N
 
     self.game.state.change('base_main')
     self.state = 'paused'
+
+def set_custom_options(self: Event, custom_options: str, custom_options_enabled: str = None, 
+                       custom_options_desc: str = None, custom_options_on_select: str = None, flags=None):
+    flags = flags or set()
+
+    options_list = custom_options.split(',')
+    options_enabled = [True for option in options_list]
+    options_desc = [option + '_desc' for option in options_list]
+    options_events = [None for option in options_list]
+
+    enabled_strs = custom_options_enabled.split(',') if custom_options_enabled else []
+    if len(enabled_strs) <= len(options_enabled):
+        for idx, is_enabled in enumerate(enabled_strs):
+            if is_enabled not in self.true_vals:
+                options_enabled[idx] = False
+        action.do(action.SetGameVar('_custom_options_disabled', [not enabled for enabled in options_enabled]))
+    else:
+        self.logger.error("set_custom_options: too many bools in option enabled list: ", custom_options_enabled)
+        return
+
+    info_descs = custom_options_desc.split(',') if custom_options_desc else []
+    if len(info_descs) <= len(options_events):
+        for idx, desc in enumerate(info_descs):
+            options_desc[idx] = desc
+        action.do(action.SetGameVar('_custom_info_desc', options_desc))
+    else:
+        self.logger.error("set_custom_options: too many descriptions in option description list: ", custom_options_desc)
+        return
+
+    event_nids = custom_options_on_select.split(',') if custom_options_on_select else []
+    if len(event_nids) <= len(options_events):
+        for idx, event_nid in enumerate(event_nids):
+            options_events[idx] = event_nid
+        action.do(action.SetGameVar('_custom_options_events', options_events))
+    else:
+        self.logger.error("set_custom_options: too many events in option event list: ", custom_options_on_select)
+        return
+
+    action.do(action.SetGameVar('_custom_additional_options', options_list))
 
 def shop(self: Event, unit, item_list, shop_flavor=None, stock_list=None, flags=None):
     new_unit = self._get_unit(unit)

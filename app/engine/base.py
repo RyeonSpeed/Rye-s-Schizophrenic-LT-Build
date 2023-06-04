@@ -72,9 +72,11 @@ class BaseMainState(State):
         additional_ignore = game.game_vars.get('_base_options_disabled')
         additional_events = game.game_vars.get('_base_options_events')
 
-        options = options + additional_options if additional_options else options
-        ignore = ignore + additional_ignore if additional_options else ignore
-        events = events + additional_events if additional_events else events
+        option_idx = options.index('Options')
+
+        options = options[:option_idx] + additional_options + options[option_idx:]
+        ignore = ignore[:option_idx] + additional_ignore + ignore[option_idx:]
+        events = events[:option_idx] + additional_events + events[option_idx:]
         return options, ignore, events
 
     def start(self):
@@ -105,6 +107,7 @@ class BaseMainState(State):
 
         topleft = 4, WINHEIGHT // 2 - (len(options) * 16 + 8) // 2
         self.menu = menus.Choice(None, options, topleft=topleft)
+        self.menu.set_limit(9)
         self.menu.set_ignore(ignore)
 
         game.events.trigger(triggers.OnBaseStart())

@@ -1,4 +1,6 @@
-from typing import Callable, List
+from __future__ import annotations
+
+from typing import Callable, List, Optional, Tuple
 from app.editor.event_editor.event_inspector import EventInspectorEngine
 from collections import OrderedDict
 
@@ -598,8 +600,14 @@ class LibraryState(State):
 class OptionMenuState(MapState):
     name = 'option_menu'
 
-    def start(self):
-        game.cursor.hide()
+    def _populate_options(self) -> Tuple[List[str], List[str], List[bool], List[Optional[str]]]:
+        """
+        # Returns a tuple containing:
+        # 0: The option names
+        # 1: The info descriptions
+        # 2: whether to gray out these options
+        # 3: What event nid to call when you click this option
+        """
         options = ['Unit', 'Objective', 'Options']
         info_desc = ['Unit_desc', 'Objective_desc', 'Options_desc']
         ignore = [False, False, False]
@@ -611,29 +619,58 @@ class OptionMenuState(MapState):
             options.append('Save')
             info_desc.append('Save_desc')
             ignore.append(False)
+
         if cf.SETTINGS['fullscreen']:
             options.append('Quit Game')
             info_desc.append('Quit_Game_desc')
             ignore.append(False)
+
         if not game.is_roam():
             options.append('End')
             info_desc.append('End_desc')
             ignore.append(False)
+
         unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore and lore.category == 'Guide']
         if unlocked_lore:
             options.insert(2, 'Guide')
             info_desc.insert(2, 'Guide_desc')
             ignore.insert(2, False)
+
         if DB.constants.get('turnwheel').value and game.game_vars.get('_turnwheel') and \
                 not game.is_roam():
             options.insert(1, 'Turnwheel')
             info_desc.insert(1, 'Turnwheel_desc')
             ignore.insert(1, False)
+
         if cf.SETTINGS['debug']:
             options.insert(0, 'Debug')
             info_desc.insert(0, 'Debug_desc')
             ignore.insert(0, False)
+
+        # initialize custom options and events
+        events = [None for option in options]
+        additional_options = game.game_vars.get('_custom_additional_options', [])
+        additional_ignore = game.game_vars.get('_custom_options_disabled', [])
+        additional_info_desc = game.game_vars.get('_custom_info_desc', [])
+        additional_events = game.game_vars.get('_custom_options_events', [])
+
+        option_idx = options.index('Options')
+        
+        options = options[:option_idx] + additional_options + options[option_idx:]
+        info_desc = info_desc[:option_idx] + additional_info_desc + info_desc[option_idx:]
+        ignore = ignore[:option_idx] + additional_ignore + ignore[option_idx:]
+        events = events[:option_idx] + additional_events + events[option_idx:]
+
+        return options, info_desc, ignore, events
+
+    def start(self):
+        game.cursor.hide()
+        options, info_desc, ignore, events = self._populate_options()
+
+        self.events_on_option_select = events
+        
         self.menu = menus.Choice(None, options, info=info_desc)
+        self.menu.set_limit(9)
         self.menu.set_ignore(ignore)
 
     def begin(self):
@@ -711,6 +748,13 @@ class OptionMenuState(MapState):
                     game.state.change('alert')
             elif selection == 'Debug':
                 game.state.change('debug')
+            else:  # Custom options
+                option_index = self.menu.get_current_index()
+                if self.events_on_option_select[option_index]:
+                    event_to_trigger = self.events_on_option_select[option_index]
+                    valid_events = DB.events.get_by_nid_or_name(event_to_trigger, game.level.nid)
+                    for event_prefab in valid_events:
+                        game.events.trigger_specific_event(event_prefab.nid)
 
         elif event == 'INFO':
             self.menu.toggle_info()

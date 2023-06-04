@@ -65,7 +65,7 @@ class Dialog():
         self.font_type = font_type
         self.font_color = font_color or 'black'
         self.autosize = autosize
-        self.speed = speed
+        self.speed = speed if speed is not None else 1.0
         self.num_lines = num_lines
         self.draw_cursor_flag = draw_cursor
         self.font = FONT[self.font_type]
@@ -599,7 +599,7 @@ class Dialog():
 
 class DynamicDialogWrapper():
     def __init__(self, text_func: Callable[[], str], portrait=None, background=None, position=None, width=None,
-                 speaker=None, style_nid=None, autosize=False, speed: float=1.0, font_color='black',
+                 speaker=None, style_nid=None, autosize=False, speed: float = 1.0, font_color='black',
                  font_type='convo', num_lines=2, draw_cursor=True, message_tail='message_bg_tail', transparency: float=0.05,
                  name_tag_bg='name_tag', flags=None) -> None:
         # eval trick

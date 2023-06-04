@@ -2385,6 +2385,27 @@ Flags:
     keyword_types = ['Panorama', 'Music', "StringList", "StringList", "StringList"]
     _flags = ["show_map"]
 
+class SetCustomOptions(EventCommand):
+    nid = 'set_custom_options'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Allows you to add additional custom options which can call events in the general Options Menu (where the Unit, Suspend, End Turn, etc. options are).
+You must call this again from scratch each time you want to change what custom events are available in the Options Menu.
+
+Args:
+* *CustomOptions* is a list of strings (Option1, Option2, Option3) that specify additional options to display in the main options menu.
+* *CustomOptionsEnabled* is a list of string bools (true, false, false) that specify which of the OtherOptions are enabled. By default, all other options are enabled.
+* *CustomOptionsDesc* is a list of strings (Option1_desc, Waffle_desc, This is a pig) that specifies what pops up when the player presses INFO on your custom option.
+* *CustomOptionsOnSelect* is a list of Event NIDS or Event Names. These events will be triggered when the corresponding Custom Option is selected.
+        """
+
+    keywords = ["CustomOptions"]
+    optional_keywords = ["CustomOptionsEnabled", "CustomOptionsDesc", "CustomOptionsOnSelect"]
+    keyword_types = ["StringList", "StringList", "StringList", "StringList"]
+
+
 class Shop(EventCommand):
     nid = 'shop'
     tag = Tags.MISCELLANEOUS

@@ -41,10 +41,11 @@ class PrepMainState(MapState):
         additional_ignore = [not enabled for enabled in game.game_vars.get('_prep_options_enabled')]
         additional_events = game.game_vars.get('_prep_options_events')
 
-        options = options + additional_options if additional_options else options
-        ignore = ignore + additional_ignore if additional_options else ignore
-        events = events + additional_events if additional_events else events
+        option_idx = options.index('Options')
 
+        options = options[:option_idx] + additional_options + options[option_idx:]
+        ignore = ignore[:option_idx] + additional_ignore + ignore[option_idx:]
+        events = events[:option_idx] + additional_events + events[option_idx:]
         return options, ignore, events
 
     def start(self):
@@ -61,6 +62,7 @@ class PrepMainState(MapState):
         self.events_on_option_select = events_on_options
 
         self.menu = menus.Choice(None, options, topleft='center')
+        self.menu.set_limit(8)
         self.menu.set_ignore(ignore)
 
         # Force place any required units
