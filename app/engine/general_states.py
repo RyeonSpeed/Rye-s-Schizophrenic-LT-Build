@@ -1580,7 +1580,7 @@ class ItemDiscardState(MapState):
         self.cur_unit = game.cursor.cur_unit
         options = self.cur_unit.items
         self.menu = menus.Choice(self.cur_unit, options)
-        ignore = [bool(item_system.locked(self.cur_unit, item)) for item in options]
+        ignore = [bool(item_system.locked(self.cur_unit, item) or item_system.prevent_storage(self.cur_unit, item)) for item in options]
         self.menu.set_ignore(ignore)
         self.menu.set_limit(8)
 
@@ -1595,7 +1595,7 @@ class ItemDiscardState(MapState):
             game.state.change('alert')
             return 'repeat'
         self.menu.update_options(self.cur_unit.items)
-        ignore = [bool(item_system.locked(self.cur_unit, item)) for item in self.cur_unit.items]
+        ignore = [bool(item_system.locked(self.cur_unit, item) or item_system.prevent_storage(self.cur_unit, item)) for item in self.cur_unit.items]
         self.menu.set_ignore(ignore)
         # Don't need to do this if we are under items
         if not item_funcs.too_much_in_inventory(self.cur_unit):
