@@ -1392,24 +1392,24 @@ class TradeItem(Action):
         self.equip_items(self.unit1)
         self.equip_items(self.unit2)
 
+        for act in self.subactions:
+            act.do()
+
         if self.unit1.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit1)
         if self.unit2.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit2)
-
-        for act in self.subactions:
-            act.do()
 
     def reverse(self):
         self.swap(self.unit1, self.unit2, self.item2, self.item1, self.item_index2, self.item_index1)
 
+        for act in self.subactions:
+            act.reverse()
+
         if self.unit1.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit1)
         if self.unit2.position and game.tilemap and game.boundary:
             game.boundary.recalculate_unit(self.unit2)
-
-        for act in self.subactions:
-            act.reverse()
 
 
 class RepairItem(Action):

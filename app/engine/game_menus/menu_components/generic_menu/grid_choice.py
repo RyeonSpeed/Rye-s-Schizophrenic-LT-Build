@@ -297,7 +297,7 @@ class GridChoiceMenu():
         item_width, item_height = self._item_size
         total_height = self.num_rows() * item_height + title_height
         total_width = max(self.num_cols() * item_width, title_width)
-        return total_width, total_height
+        return total_width + 16, total_height + 8
 
     def _get_screen_position(self) -> Tuple[int, int]:
         if isinstance(self._alignment, Alignments):
@@ -327,7 +327,7 @@ class GridChoiceMenu():
         tw, th = self._get_pixel_size()
         if self._should_draw_scrollbar:
             tw += 16
-        bg_surf = create_base_surf(tw, th + 8, self._bg_name)
+        bg_surf = create_base_surf(tw, th, self._bg_name)
         return bg_surf
 
     def _build_data(self, data: List[Any], display_values: Optional[List[Any]], data_type: str, row_width: int) -> List[IMenuOption]:

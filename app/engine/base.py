@@ -105,9 +105,11 @@ class BaseMainState(State):
         options, ignore, events_on_options = self.populate_options()
         self.events_on_option_select = events_on_options
 
-        topleft = 4, WINHEIGHT // 2 - (len(options) * 16 + 8) // 2
+        max_num_options = 9
+        num_options = min(len(options), max_num_options)
+        topleft = 4, WINHEIGHT // 2 - (num_options * 16 + 8) // 2
         self.menu = menus.Choice(None, options, topleft=topleft)
-        self.menu.set_limit(9)
+        self.menu.set_limit(max_num_options)
         self.menu.set_ignore(ignore)
 
         game.events.trigger(triggers.OnBaseStart())

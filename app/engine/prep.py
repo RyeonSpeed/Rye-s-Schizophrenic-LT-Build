@@ -61,8 +61,9 @@ class PrepMainState(MapState):
         options, ignore, events_on_options = self.populate_options()
         self.events_on_option_select = events_on_options
 
+        max_num_options = 8
         self.menu = menus.Choice(None, options, topleft='center')
-        self.menu.set_limit(8)
+        self.menu.set_limit(max_num_options)
         self.menu.set_ignore(ignore)
 
         # Force place any required units
