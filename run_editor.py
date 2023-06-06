@@ -40,7 +40,10 @@ if __name__ == '__main__':
         theme = dark_theme.get_theme()
         dark_theme.set(ap, theme)
         from app.editor.main_editor import MainEditor
-        window = MainEditor()
+        if len( sys.argv ) > 1:
+            window = MainEditor(sys.argv[1])
+        else:
+            window = MainEditor()
         window.show()
         ap.exec_()
     else:

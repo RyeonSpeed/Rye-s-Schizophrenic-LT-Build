@@ -79,7 +79,7 @@ class MainEditor(QMainWindow):
         self.app_state_manager.subscribe_to_key(
             MainEditor.__name__, 'main_editor_mode', self.render_editor)
 
-    def __init__(self):
+    def __init__(self, path='nah'):
         super().__init__()
         self.window_title = _('LT Maker')
         self.setWindowTitle(self.window_title)
@@ -136,7 +136,7 @@ class MainEditor(QMainWindow):
         # DB.deserialize()
         # DB.init_load()
 
-        self.auto_open()
+        self.auto_open(path)
         # if not result:
         #     DB.load('default.ltproj')
         #     self.set_window_title('default.ltproj')
@@ -468,8 +468,8 @@ class MainEditor(QMainWindow):
             self.app_state_manager.change_and_broadcast(
                 'ui_refresh_signal', None)
 
-    def auto_open(self):
-        self.project_save_load_handler.auto_open()
+    def auto_open(self, path):
+        self.project_save_load_handler.auto_open(path)
         title = os.path.split(self.settings.get_current_project())[-1]
         self.set_window_title(title)
         logging.info("Loaded project from %s" %

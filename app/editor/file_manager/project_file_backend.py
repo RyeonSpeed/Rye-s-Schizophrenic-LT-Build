@@ -190,8 +190,9 @@ class ProjectFileBackend():
         self.settings.set_current_project(self.current_proj)
         self.load()
 
-    def auto_open(self):
-        path = self.settings.get_current_project()
+    def auto_open(self, path):
+        if path == 'nah':
+            path = self.settings.get_current_project()
         logging.info("Auto Open: %s" % path)
 
         if path and os.path.exists(path):
