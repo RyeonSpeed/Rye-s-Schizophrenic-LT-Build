@@ -262,7 +262,7 @@ class SwapOnEndCombat(ItemComponent):
     tag = ItemTags.SPECIAL
 
     def end_combat(self, playback, unit, item, target, mode):
-        if not skill_system.ignore_forced_movement(unit) and \
+        if target and not skill_system.ignore_forced_movement(unit) and \
                 not skill_system.ignore_forced_movement(target) and \
                 mode == 'attack':
             action.do(action.Swap(unit, target))

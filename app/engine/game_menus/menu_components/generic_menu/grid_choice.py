@@ -169,7 +169,7 @@ class GridChoiceMenu():
             'left', (left + h_offset, top + arrow_height))
         self.rscroll_arrow = ScrollArrow(
             'right', (left + width + h_offset, top + arrow_height))
-        if self.num_rows() == 1:
+        if self.num_rows() == 1 and self.num_cols() > self._total_grid_size()[0]:
             self._should_draw_arrows = True
 
     def num_rows(self):

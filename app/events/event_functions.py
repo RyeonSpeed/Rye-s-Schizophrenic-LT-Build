@@ -1951,7 +1951,12 @@ def give_exp(self: Event, global_unit, experience, flags=None):
         if old_exp + exp >= 100:
             if unit.level < DB.classes.get(unit.klass).max_level:
                 action.do(action.GainExp(unit, exp))
+                # Since autolevel also fills current hp and current mana to max
+                # We keep track of HP to reset back
+                old_hp, old_mana = unit.get_hp(), unit.get_mana()
                 autolevel_to(self, global_unit, unit.level + 1)
+                action.do(action.SetHP(unit, old_hp))
+                action.do(action.SetMana(unit, old_mana))
             else:
                 action.do(action.SetExp(unit, 99))
         elif old_exp + exp < 0:
