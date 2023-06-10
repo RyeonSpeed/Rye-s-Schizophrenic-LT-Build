@@ -7,6 +7,7 @@ from app.data.database.database import DB
 from app.engine import action
 from app.engine.game_state import game
 
+
 class Time(SkillComponent):
     nid = 'time'
     desc = "Lasts for some number of turns (checked on upkeep)"
@@ -31,6 +32,7 @@ class Time(SkillComponent):
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
+
 class EndTime(SkillComponent):
     nid = 'end_time'
     desc = "Lasts for some number of turns (checked on endstep)"
@@ -54,6 +56,7 @@ class EndTime(SkillComponent):
 
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
+
 
 class CombinedTime(SkillComponent):
     nid = 'combined_time'
@@ -85,6 +88,7 @@ class CombinedTime(SkillComponent):
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
+
 class UpkeepStatChange(SkillComponent):
     nid = 'upkeep_stat_change'
     desc = "Gives changing stat bonuses"
@@ -106,6 +110,7 @@ class UpkeepStatChange(SkillComponent):
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
+
 class LostOnEndstep(SkillComponent):
     nid = 'lost_on_endstep'
     desc = "Remove on next endstep"
@@ -117,6 +122,7 @@ class LostOnEndstep(SkillComponent):
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
+
 class LostOnUpkeep(SkillComponent):
     nid = 'lost_on_upkeep'
     desc = "Remove on next upkeep"
@@ -127,6 +133,7 @@ class LostOnUpkeep(SkillComponent):
 
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
+
 
 class LostOnEndCombat2(SkillComponent):
     nid = 'lost_on_end_combat2'
@@ -151,8 +158,14 @@ class LostOnEndCombat2(SkillComponent):
         }
         if value:
             self.value.update(value)
+        self.marked_for_delete = False
 
-    def post_combat(self, playback, unit, item, target, mode):
+    def cleanup_combat_unconditional(self, playback, unit, item, target, mode):
+        self.marked_for_delete = True
+
+    def post_combat_unconditional(self, playback, unit, item, target, mode):
+        if not self.marked_for_delete:
+            return
         from app.engine import skill_system
         remove_skill = False
         if self.value.get('lost_on_self', True):
@@ -172,21 +185,25 @@ class LostOnEndCombat2(SkillComponent):
 
         if remove_skill:
             action.do(action.RemoveSkill(unit, self.skill))
+        self.marked_for_delete = False
 
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
+        self.marked_for_delete = False
+
 
 class LostOnKill(SkillComponent):
     nid = 'lost_on_kill'
     desc = "Remove after getting a kill"
     tag = SkillTags.TIME
 
-    def post_combat(self, playback, unit, item, target, mode):
+    def post_combat_unconditional(self, playback, unit, item, target, mode):
         if target and target.get_hp() <= 0:
             action.do(action.RemoveSkill(unit, self.skill))
 
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
+
 
 class LostOnEndChapter(SkillComponent):
     nid = 'lost_on_end_chapter'
@@ -195,6 +212,7 @@ class LostOnEndChapter(SkillComponent):
 
     def on_end_chapter(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
+
 
 class EventOnRemove(SkillComponent):
     nid = 'event_on_remove'

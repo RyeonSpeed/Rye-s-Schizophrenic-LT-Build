@@ -1,5 +1,6 @@
 from __future__ import annotations
 from app.data.database.item_components import ItemComponent
+from app.data.database.supports import SupportPair
 from app.utilities.typing import NID
 
 import functools
@@ -1597,7 +1598,7 @@ class RemoveItemComponent(Action):
             # Assign parent to component
             component.item = self.item
             self._did_remove = False
-            
+
 class AddSkillComponent(Action):
     def __init__(self, skill, component_nid, component_value):
         self.skill = skill
@@ -1625,7 +1626,7 @@ class AddSkillComponent(Action):
             self.skill.components.remove_key(self.component_nid)
             del self.skill.__dict__[self.component_nid]
             self._did_add = False
-            
+
 class ModifySkillComponent(Action):
     def __init__(self, skill, component_nid, new_component_value, component_property=None, additive: bool = False):
         self.skill: SkillObject = skill
@@ -1660,7 +1661,7 @@ class ModifySkillComponent(Action):
                 component.value[self.property_name] = self.prev_component_value
             else:
                 component.value = self.prev_component_value
-                
+
 class RemoveSkillComponent(Action):
     def __init__(self, skill, component_nid):
         self.skill = skill
@@ -2333,6 +2334,30 @@ class UnlockSupportRank(Action):
             pair.unlocked_ranks.remove(self.rank)
         if self.was_locked and self.rank not in pair.locked_ranks:
             pair.locked_ranks.append(self.rank)
+
+
+class DisableSupportRank(Action):
+    def __init__(self, nid, rank):
+        self.nid = nid
+        self.rank = rank
+        self.was_unlocked: bool = False
+        if self.nid not in game.supports.support_pairs:
+            game.supports.create_pair(self.nid)
+        pair = game.supports.support_pairs[self.nid]
+        self.locked_ranks = pair.locked_ranks[:]
+        self.unlocked_ranks = pair.unlocked_ranks[:]
+
+    def do(self):
+        pair = game.supports.support_pairs[self.nid]
+        if self.rank in pair.unlocked_ranks:
+            pair.unlocked_ranks.remove(self.rank)
+        if self.rank in pair.locked_ranks:
+            pair.locked_ranks.remove(self.rank)
+
+    def reverse(self):
+        pair = game.supports.support_pairs[self.nid]
+        pair.locked_ranks = self.locked_ranks
+        pair.unlocked_ranks = self.unlocked_ranks
 
 
 class LockAllSupportRanks(Action):
@@ -3208,7 +3233,7 @@ class AddSkill(Action):
                     break
         for action in self.subactions:
             action.execute()
-        
+
         # Actually add skill
         skill_system.before_add(self.unit, self.skill_obj)
         self.skill_obj.owner_nid = self.unit.nid

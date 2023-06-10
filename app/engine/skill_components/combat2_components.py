@@ -33,6 +33,7 @@ class TrueMiracle(SkillComponent):
             if isinstance(act, action.ChangeHP) and -act.num >= act.old_hp and act.unit == unit:
                 act.num = -act.old_hp + 1
                 did_something = True
+                playback.append(pb.DefenseHitProc(unit, self.skill))
 
         if did_something:
             actions.append(action.TriggerCharge(unit, self.skill))
@@ -192,12 +193,14 @@ class Armsthrift(SkillComponent):
             curr_uses = item.data.get('uses')
             max_uses = item.data.get('starting_uses')
             # No -1 for post combat since action.do has already happened
-            action.do(action.SetObjData(item, 'uses', min(curr_uses + self.value, max_uses)))
+            action.do(action.SetObjData(item, 'uses', min(
+                curr_uses + self.value, max_uses)))
         # Handles Chapter Uses
         if item.data.get('c_uses', None) and item.data.get('starting_c_uses', None):
             curr_uses = item.data.get('c_uses')
             max_uses = item.data.get('starting_c_uses')
-            action.do(action.SetObjData(item, 'c_uses', min(curr_uses + self.value, max_uses)))
+            action.do(action.SetObjData(item, 'c_uses',
+                                        min(curr_uses + self.value, max_uses)))
 
     def after_strike(self, actions, playback, unit, item, target, mode, attack_info, strike):
         if not item:
@@ -217,7 +220,8 @@ class Armsthrift(SkillComponent):
 
         if self._did_something:
             if item.parent_item:
-                self.post_combat(playback, unit, item.parent_item, target, mode)
+                self.post_combat(
+                    playback, unit, item.parent_item, target, mode)
             if (item.uses_options and item.uses_options.one_loss_per_combat()):
                 self._post_combat(unit, item)
 

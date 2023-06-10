@@ -1,6 +1,7 @@
-import os, sys
+import os
+import sys
+from app.editor.recent_project_dialog import choose_recent_project
 
-from app.editor.settings import MainSettingsController
 from app.editor.editor_locale import init_locale
 from app.engine.component_system_compiler import source_generator
 
@@ -39,11 +40,9 @@ if __name__ == '__main__':
         from app import dark_theme
         theme = dark_theme.get_theme()
         dark_theme.set(ap, theme)
+        selected_path = choose_recent_project()
         from app.editor.main_editor import MainEditor
-        if len( sys.argv ) > 1:
-            window = MainEditor(sys.argv[1])
-        else:
-            window = MainEditor()
+        window = MainEditor(selected_path)
         window.show()
         ap.exec_()
     else:

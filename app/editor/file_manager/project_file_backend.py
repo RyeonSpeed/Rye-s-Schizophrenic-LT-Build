@@ -5,17 +5,23 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from time import time_ns
+from typing import Optional
+
+from PyQt5.QtCore import QDir, Qt
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QProgressDialog
 
 from app.constants import VERSION
 from app.data.database.database import DB, Database
-from app.editor import timer
-from app.editor.lib.csv import text_data_exporter, csv_data_exporter
-from app.editor.new_game_dialog import NewGameDialog
-from app.editor.settings import MainSettingsController
 from app.data.resources.resources import RESOURCES
+from app.editor import timer
+from app.editor.file_manager.project_initializer import ProjectInitializer
+from app.editor.lib.csv import csv_data_exporter, text_data_exporter
+from app.editor.new_game_dialog import NewGameDialog
+from app.editor.recent_project_dialog import choose_recent_project
+from app.editor.settings import MainSettingsController
 from app.utilities import exceptions
-from PyQt5.QtCore import QDir, Qt
-from PyQt5.QtWidgets import QFileDialog, QMessageBox, QProgressDialog
+
+RESERVED_PROJECT_PATHS = ("default.ltproj", 'autosave.ltproj', 'autosave', 'default')
 
 
 class ProjectFileBackend():
@@ -25,7 +31,8 @@ class ProjectFileBackend():
         self.settings = MainSettingsController()
         self.current_proj = self.settings.get_current_project()
 
-        self.save_progress = QProgressDialog("Saving project to %s" % self.current_proj, None, 0, 100, self.parent)
+        self.save_progress = QProgressDialog(
+            "Saving project to %s" % self.current_proj, None, 0, 100, self.parent)
         self.save_progress.setAutoClose(True)
         self.save_progress.setWindowTitle("Saving Project")
         self.save_progress.setWindowModality(Qt.WindowModal)
@@ -34,11 +41,13 @@ class ProjectFileBackend():
 
         project_nid = DB.constants.value('game_nid').replace(' ', '_')
         autosave_path = os.path.abspath('autosave_%s.ltproj' % project_nid)
-        self.autosave_progress = QProgressDialog("Autosaving project to %s" % autosave_path, None, 0, 100, self.parent)
+        self.autosave_progress = QProgressDialog(
+            "Autosaving project to %s" % autosave_path, None, 0, 100, self.parent)
         self.autosave_progress.setAutoClose(True)
         self.autosave_progress.setWindowTitle("Autosaving Project")
         self.autosave_progress.setWindowModality(Qt.WindowModal)
-        self.autosave_progress.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        self.autosave_progress.setWindowFlag(
+            Qt.WindowContextHelpButtonHint, False)
         self.autosave_progress.reset()
 
         timer.get_timer().autosave_timer.timeout.connect(self.autosave)
@@ -65,8 +74,9 @@ class ProjectFileBackend():
                                                  "All Files (*)")
             if ok:
                 # Make sure you can't save as "autosave" or "default"
-                if os.path.split(fn)[-1] in ('autosave.ltproj', 'default.ltproj', 'autosave', 'default'):
-                    QMessageBox.critical(self.parent, "Save Error", "You cannot save project as <b>default.ltproj</b> or <b>autosave.ltproj</b>!\nChoose another name.")
+                if os.path.split(fn)[-1] in RESERVED_PROJECT_PATHS:
+                    QMessageBox.critical(
+                        self.parent, "Save Error", "You cannot save project as <b>default.ltproj</b> or <b>autosave.ltproj</b>!\nChoose another name.")
                     return False
                 if fn.endswith('.ltproj'):
                     self.current_proj = fn
@@ -91,14 +101,16 @@ class ProjectFileBackend():
             # we will copy the existing save (whichever is more recent)
             # as a backup
             self.tmp_proj = self.current_proj + '.lttmp'
-            self.save_progress.setLabelText("Making backup to %s" % self.tmp_proj)
+            self.save_progress.setLabelText(
+                "Making backup to %s" % self.tmp_proj)
             self.save_progress.setValue(1)
             if os.path.exists(self.tmp_proj):
                 shutil.rmtree(self.tmp_proj)
 
             most_recent_path = self.current_proj
             shutil.move(most_recent_path, self.tmp_proj)
-        self.save_progress.setLabelText("Saving project to %s" % self.current_proj)
+        self.save_progress.setLabelText(
+            "Saving project to %s" % self.current_proj)
         self.save_progress.setValue(10)
 
         # Actually save project
@@ -143,34 +155,20 @@ class ProjectFileBackend():
     def new(self):
         if not self.maybe_save():
             return False
-        result = NewGameDialog.get()
-        if not result:
-            return False
-        identifier, title = result
-        curr_path = QDir()
-        curr_path.cdUp()
-        starting_path = curr_path.path() + '/' + title + '.ltproj'
-        fn, ok = QFileDialog.getSaveFileName(self.parent, "Save Project", starting_path,
-                                             "All Files (*)")
-        if not ok:
-            return
-        shutil.copytree(QDir.currentPath() + '/' + 'default.ltproj', fn)
-        self.current_proj = fn
-        self.settings.set_current_project(fn)
+        project_initializer = ProjectInitializer()
+        result = project_initializer.full_create_new_project()
+        if result:
+            _, _, path = result
+            self.current_proj = path
+            self.settings.set_current_project(path)
         self.load()
-        DB.constants.get('game_nid').set_value(identifier)
-        DB.constants.get('title').set_value(title)
         return result
+        return False
 
     def open(self):
         if self.maybe_save():
             # Go up one directory when starting
-            if self.current_proj:
-                starting_path = os.path.join(self.current_proj, '..')
-            else:
-                starting_path = QDir.currentPath()
-            fn = QFileDialog.getExistingDirectory(
-                self.parent, "Open Project Directory", starting_path)
+            fn = choose_recent_project(load_only=True)
             if fn:
                 if not fn.endswith('.ltproj'):
                     QMessageBox.warning(self.parent, "Incorrect directory type",
@@ -190,11 +188,9 @@ class ProjectFileBackend():
         self.settings.set_current_project(self.current_proj)
         self.load()
 
-    def auto_open(self, path):
-        if path == 'nah':
-            path = self.settings.get_current_project()
+    def auto_open(self, project_path: Optional[str] = None):
+        path = project_path or self.settings.get_current_project()
         logging.info("Auto Open: %s" % path)
-
         if path and os.path.exists(path):
             try:
                 self.current_proj = path
@@ -203,7 +199,8 @@ class ProjectFileBackend():
                 return True
             except exceptions.CustomComponentsException as e:
                 logging.exception(e)
-                logging.error("Failed to load project at %s due to syntax error. Likely there's a problem in your Custom Components file, located at %s. See error above." % (path, RESOURCES.get_custom_components_path()))
+                logging.error("Failed to load project at %s due to syntax error. Likely there's a problem in your Custom Components file, located at %s. See error above." % (
+                    path, RESOURCES.get_custom_components_path()))
                 QMessageBox.warning(self.parent, "Load of project failed",
                                     "Failed to load project at %s due to syntax error. Likely there's a problem in your Custom Components file, located at %s. Exception:\n%s." % (path, RESOURCES.get_custom_components_path(), e))
                 logging.warning("falling back to default.ltproj")
@@ -213,11 +210,14 @@ class ProjectFileBackend():
                 logging.exception(e)
                 backup_project_name = path + '.lttmp'
                 corrupt_project_name = path + '.ltcorrupt'
-                logging.warning("Failed to load project at %s. Likely that project is corrupted.", path)
-                logging.warning("the corrupt project will be stored at %s.", corrupt_project_name)
+                logging.warning(
+                    "Failed to load project at %s. Likely that project is corrupted.", path)
+                logging.warning(
+                    "the corrupt project will be stored at %s.", corrupt_project_name)
                 QMessageBox.warning(self.parent, "Load of project failed",
                                     "Failed to load project at %s. Likely that project is corrupted.\nLoading from backup if available." % path)
-                logging.info("Attempting load from backup project %s, which will be renamed to %s", backup_project_name, path)
+                logging.info(
+                    "Attempting load from backup project %s, which will be renamed to %s", backup_project_name, path)
                 if os.path.exists(backup_project_name):
                     try:
                         if os.path.exists(corrupt_project_name):
@@ -231,14 +231,17 @@ class ProjectFileBackend():
                         return True
                     except Exception as e:
                         logging.error(e)
-                        logging.warning("failed to load project at %s.", backup_project_name)
+                        logging.warning(
+                            "failed to load project at %s.", backup_project_name)
                 else:
-                    logging.warning("no project found at %s", backup_project_name)
+                    logging.warning("no project found at %s",
+                                    backup_project_name)
                 logging.warning("falling back to default.ltproj")
                 self.auto_open_fallback()
                 return False
         else:
-            logging.warning("path %s not found. Falling back to default.ltproj" % path)
+            logging.warning(
+                "path %s not found. Falling back to default.ltproj" % path)
             self.auto_open_fallback()
             return False
 
@@ -246,11 +249,14 @@ class ProjectFileBackend():
         if os.path.exists(self.current_proj):
             RESOURCES.load(self.current_proj)
             DB.load(self.current_proj)
+            self.settings.append_or_bump_project(
+                DB.constants.value('title') or os.path.basename(self.current_proj), self.current_proj)
 
     def autosave(self):
         project_nid = DB.constants.value('game_nid').replace(' ', '_')
         autosave_path = os.path.abspath('autosave_%s.ltproj' % project_nid)
-        self.autosave_progress.setLabelText("Autosaving project to %s" % autosave_path)
+        self.autosave_progress.setLabelText(
+            "Autosaving project to %s" % autosave_path)
         autosave_dir = os.path.abspath(autosave_path)
         # Make directory for saving if it doesn't already exist
         if not os.path.isdir(autosave_dir):
@@ -265,7 +271,8 @@ class ProjectFileBackend():
 
         # Actually save project
         logging.info("Autosaving project to %s..." % autosave_dir)
-        RESOURCES.autosave(self.current_proj, autosave_dir, self.autosave_progress)
+        RESOURCES.autosave(self.current_proj, autosave_dir,
+                           self.autosave_progress)
         self.autosave_progress.setValue(75)
         DB.serialize(autosave_dir)
         self.autosave_progress.setValue(99)

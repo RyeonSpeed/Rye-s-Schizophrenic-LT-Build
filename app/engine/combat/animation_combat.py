@@ -648,12 +648,15 @@ class AnimationCombat(BaseCombat, MockCombat):
 
     def _handle_playback(self, sound=True):
         hp_brushes = ('damage_hit', 'damage_crit', 'heal_hit')
+        hit_brushes = ('defense_hit_proc', 'attack_hit_proc')
         _, _, defender, _, _ = self.get_actors()
         for brush in self.playback:
             if brush.nid in hp_brushes:
                 self.last_update = engine.get_time()
                 self.state = 'hp_change'
                 self.handle_damage_numbers(brush)
+            elif brush.nid in hit_brushes:
+                self.add_proc_icon(brush.unit, brush.skill)
             elif brush.nid == 'hit_sound' and sound and not brush.map_only:
                 play_sound = brush.sound
                 if play_sound == 'Attack Miss 2':
