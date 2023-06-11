@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt, QRect, QDateTime
 from PyQt5.QtGui import QImage, QPainter, QPixmap, QIcon, QColor, QPen
 from app import dark_theme
 
-from app.constants import TILEWIDTH, TILEHEIGHT, TILEX, TILEY
+from app.constants import TILEWIDTH, TILEHEIGHT
 from app.data.resources.resources import RESOURCES
 from app.data.resources.tiles import LayerGrid
 from app.data.database.database import DB
@@ -729,12 +729,12 @@ class ResizeDialog(Dialog):
         size_layout = QFormLayout()
         self.width_box = QSpinBox()
         self.width_box.setValue(self.current.width)
-        self.width_box.setRange(math.ceil(TILEX), 65536)
+        self.width_box.setRange(1, 65536)
         self.width_box.valueChanged.connect(self.on_width_changed)
         size_layout.addRow("Width:", self.width_box)
         self.height_box = QSpinBox()
         self.height_box.setValue(self.current.height)
-        self.height_box.setRange(math.ceil(TILEY), 65536)
+        self.height_box.setRange(1, 65536)
         self.height_box.valueChanged.connect(self.on_height_changed)
         size_layout.addRow("Height:", self.height_box)
         size_section.setLayout(size_layout)

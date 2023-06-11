@@ -1824,7 +1824,7 @@ def remove_item_component(self: Event, global_unit_or_convoy, item, item_compone
         return
 
     action.do(action.RemoveItemComponent(item, component_nid))
-
+    
 def add_skill_component(self: Event, global_unit, skill, skill_component, expression=None, flags=None):
     flags = flags or set()
     component_nid = skill_component
@@ -1844,7 +1844,7 @@ def add_skill_component(self: Event, global_unit, skill, skill_component, expres
         component_value = None
 
     action.do(action.AddSkillComponent(skill, component_nid, component_value))
-
+    
 def modify_skill_component(self: Event, global_unit, skill, skill_component, expression, component_property=None, flags=None):
     flags = flags or set()
     component_nid = skill_component
@@ -1862,7 +1862,7 @@ def modify_skill_component(self: Event, global_unit, skill, skill_component, exp
         return
 
     action.do(action.ModifySkillComponent(skill, component_nid, component_value, component_property, is_additive))
-
+    
 def change_skill_time(self: Event, global_unit, skill, integer, flags=None):
     flags = flags or set()
     is_additive = 'additive' in flags
@@ -2070,6 +2070,13 @@ def change_ai(self: Event, global_unit, ai, flags=None):
     else:
         self.logger.error("change_ai: Couldn't find AI %s" % ai)
         return
+
+def change_ai_group(self: Event, global_unit, ai_group, flags=None):
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("change_ai_group: Couldn't find unit %s" % global_unit)
+        return
+    action.do(action.ChangeAIGroup(unit, ai_group))
 
 def change_party(self: Event, global_unit, party, flags=None):
     unit = self._get_unit(global_unit)
@@ -2828,7 +2835,7 @@ def base(self: Event, background: str, music: str = None, other_options: str = N
     self.game.state.change('base_main')
     self.state = 'paused'
 
-def set_custom_options(self: Event, custom_options: str, custom_options_enabled: str = None,
+def set_custom_options(self: Event, custom_options: str, custom_options_enabled: str = None, 
                        custom_options_desc: str = None, custom_options_on_select: str = None, flags=None):
     flags = flags or set()
 
@@ -2867,12 +2874,13 @@ def set_custom_options(self: Event, custom_options: str, custom_options_enabled:
 
     action.do(action.SetGameVar('_custom_additional_options', options_list))
 
-def shop(self: Event, unit, item_list, shop_flavor=None, stock_list=None, flags=None):
+def shop(self: Event, unit, item_list, shop_flavor=None, stock_list=None, shop_id=None, flags=None):
     new_unit = self._get_unit(unit)
     if not new_unit:
         self.logger.error("shop: Must have a unit visit the shop!")
         return
     unit = new_unit
+    if shop_id is None:
     shop_id = self.nid
     self.game.memory['shop_id'] = shop_id
     self.game.memory['current_unit'] = unit
@@ -2896,8 +2904,8 @@ def shop(self: Event, unit, item_list, shop_flavor=None, stock_list=None, flags=
             # Remember which items have already been bought for this shop...
             for idx, item in enumerate(item_list):
                 item_history = '__shop_%s_%s' % (shop_id, item)
-                if item_history in self.game.level_vars:
-                    stock_list[idx] -= self.game.level_vars[item_history]
+            if item_history in self.game.game_vars:
+                stock_list[idx] -= self.game.game_vars[item_history]
             self.game.memory['shop_stock'] = stock_list
         else:
             self.game.memory['shop_stock'] = None

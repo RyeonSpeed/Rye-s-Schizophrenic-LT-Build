@@ -1,5 +1,6 @@
 import sys
 
+from app.data.database.database import DB
 from app.engine.game_state import game
 
 class Record():
@@ -191,7 +192,8 @@ class Recordkeeper():
         """
         levels = []
         for record in self.turns_taken:
-            if record.level_nid not in levels:
+            if record.level_nid not in levels and \
+                    DB.levels.get(record.level_nid).should_record:
                 levels.append(record.level_nid)
         return levels
 

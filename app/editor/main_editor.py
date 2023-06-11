@@ -181,11 +181,11 @@ class MainEditor(QMainWindow):
 
     # === Create Menu ===
     def create_actions(self):
-        self.new_act = QAction(_("&New Project..."), self,
+        self.new_act = QAction(_("New Project..."), self,
                                shortcut="Ctrl+N", triggered=self.new)
-        self.open_act = QAction(_("&Open Project..."), self,
+        self.open_act = QAction(_("Open Project..."), self,
                                 shortcut="Ctrl+O", triggered=self.open)
-        self.save_act = QAction(_("&Save Project"), self,
+        self.save_act = QAction(_("Save Project"), self,
                                 shortcut="Ctrl+S", triggered=self.save)
         self.save_as_act = QAction(
             _("Save Project As..."), self, shortcut="Ctrl+Shift+S", triggered=self.save_as)
@@ -447,25 +447,7 @@ class MainEditor(QMainWindow):
             self.app_state_manager.change_and_broadcast(
                 'ui_refresh_signal', None)
 
-    def open(self):
-        if self.project_save_load_handler.open():
-            title = os.path.split(self.settings.get_current_project())[-1]
-            self.set_window_title(title)
-            logging.info("Loaded project from %s" %
-                         self.settings.get_current_project())
-            self.status_bar.showMessage(
-                "Loaded project from %s" % self.settings.get_current_project())
-            # Return to global
-            if not self.mode.GLOBAL_EDITOR:
-                self.app_state_manager.change_and_broadcast(
-                    'main_editor_mode', MainEditorScreenStates.GLOBAL_EDITOR)
-            self.app_state_manager.change_and_broadcast(
-                'selected_level', DB.levels[0].nid)  # Needed in order to update map view
-            self.app_state_manager.change_and_broadcast(
-                'ui_refresh_signal', None)
-
-    def auto_open(self, project_path: Optional[str]):
-        self.project_save_load_handler.auto_open(project_path)
+    def _open(self):
         title = os.path.split(self.settings.get_current_project())[-1]
         self.set_window_title(title)
         logging.info("Loaded project from %s" %
@@ -481,25 +463,30 @@ class MainEditor(QMainWindow):
         self.app_state_manager.change_and_broadcast(
             'ui_refresh_signal', None)
 
+    def open(self):
+        if self.project_save_load_handler.open():
+            self._open()
+
+    def auto_open(self, project_path: Optional[str]):
+        self.project_save_load_handler.auto_open(project_path)
+        self._open()
+
+    def _save(self):
+        current_proj = self.settings.get_current_project()
+        title = os.path.split(current_proj)[-1]
+        self.set_window_title(title)
+        # Remove asterisk on window title
+        if self.window_title.startswith('*'):
+            self.window_title = self.window_title[1:]
+        self.status_bar.showMessage('Saved project to %s' % current_proj)
+
     def save(self):
         if self.project_save_load_handler.save():
-            current_proj = self.settings.get_current_project()
-            title = os.path.split(current_proj)[-1]
-            self.set_window_title(title)
-            # Remove asterisk on window title
-            if self.window_title.startswith('*'):
-                self.window_title = self.window_title[1:]
-            self.status_bar.showMessage('Saved project to %s' % current_proj)
+            self._save()           
 
     def save_as(self):
         if self.project_save_load_handler.save(True):
-            current_proj = self.settings.get_current_project()
-            title = os.path.split(current_proj)[-1]
-            self.set_window_title(title)
-            # Remove asterisk on window title
-            if self.window_title.startswith('*'):
-                self.window_title = self.window_title[1:]
-            self.status_bar.showMessage('Saved project to %s' % current_proj)
+            self._save()
 
     def remove_unused_resources(self):
         # Need to save first before cleaning

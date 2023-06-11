@@ -682,7 +682,11 @@ class Event():
         elif text == '{position}':
             position = self.position
         elif not self.game.is_displaying_overworld() and self._get_unit(text):
-            position = self._get_unit(text).position
+            unit = self._get_unit(text)
+            if unit.position:
+                position = unit.position
+            else:
+                position = self.game.get_rescuers_position(unit)
         elif self.game.is_displaying_overworld() and self._get_overworld_location_of_object(text):
             position = self._get_overworld_location_of_object(text).position
         elif text in self.game.level.regions.keys():

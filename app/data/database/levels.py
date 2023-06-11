@@ -23,6 +23,7 @@ class LevelPrefab(Prefab):
         self.roam_unit: str = None
 
         self.go_to_overworld: bool = False
+        self.should_record: bool = True
 
         self.units = Data[Union[UniqueUnit, GenericUnit]]()
         self.regions = Data[Region]()

@@ -61,14 +61,18 @@ class Heal(ItemComponent):
             return help_term * heal_term
         return 0
 
-class MagicHeal(Heal, ItemComponent):
-    nid = 'magic_heal'
-    desc = "Heals the target for the specified integer + the HEAL equation defined in the equations editor. Will act oddly if no HEAL equation is defined."
+class EquationHeal(Heal, ItemComponent):
+    nid = 'equation_heal'
+    desc = "Heals the target for the value of the equation defined in the equations editor. Equation is calculated using the caster's stats, not the targets"
+
+    expose = ComponentType.Equation
+    value = 'HEAL'
 
     def _get_heal_amount(self, unit, target):
         empower_heal = skill_system.empower_heal(unit, target)
         empower_heal_received = skill_system.empower_heal_received(target, unit)
-        return self.value + equations.parser.heal(unit) + empower_heal + empower_heal_received
+        equation = self.value
+        return equations.parser.get(equation, unit) + empower_heal + empower_heal_received
 
 class Refresh(ItemComponent):
     nid = 'refresh'

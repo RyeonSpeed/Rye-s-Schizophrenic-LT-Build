@@ -442,6 +442,14 @@ def get_extra_abilities(unit):
                     abilities[ability_name] = new_item
     return abilities
 
+def ai_priority_multiplier(unit) -> float:
+    ai_priority_multiplier = 1
+    for skill in unit.skills:
+        for component in skill.components:
+            if component.defines('ai_priority_multiplier'):
+                ai_priority_multiplier *= component.ai_priority_multiplier(unit)
+    return ai_priority_multiplier
+
 def get_combat_arts(unit):
     from app.engine import item_funcs, target_system, action
     combat_arts = {}

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -64,7 +66,8 @@ class ProjectFileBackend():
                 return False
         return True
 
-    def save(self, new=False):
+    def save(self, new=False) -> bool:
+        # Returns whether we successfully saved
         # check if we're editing default, if so, prompt to save as
         if self.current_proj and os.path.basename(self.current_proj) == 'default.ltproj':
             self.current_proj = None
@@ -114,9 +117,23 @@ class ProjectFileBackend():
         self.save_progress.setValue(10)
 
         # Actually save project
-        RESOURCES.save(self.current_proj, progress=self.save_progress)
+        def display_error(section: str):
+            self.save_progress.setValue(100)
+            error_msg = QMessageBox()
+            error_msg.setIcon(QMessageBox.Critical)
+            error_msg.setText("Editor was unable to save your project's %s. \nFree up memory in your hard drive or try saving somewhere else, \notherwise progress will be lost when the editor is closed. \nFor more detailed logs, please read debug.log.1 in the saves/ directory.\n\n" % section)
+            error_msg.setWindowTitle("Serialization Error")
+            error_msg.exec_()
+
+        success = RESOURCES.save(self.current_proj, progress=self.save_progress)
+        if not success:
+            display_error("resources")
+            return False
         self.save_progress.setValue(75)
-        DB.serialize(self.current_proj)
+        success = DB.serialize(self.current_proj)
+        if not success:
+            display_error("database")
+            return False
         self.save_progress.setValue(85)
 
         # Save metadata
@@ -165,7 +182,7 @@ class ProjectFileBackend():
         return result
         return False
 
-    def open(self):
+    def open(self) -> bool:
         if self.maybe_save():
             # Go up one directory when starting
             fn = choose_recent_project(load_only=True)

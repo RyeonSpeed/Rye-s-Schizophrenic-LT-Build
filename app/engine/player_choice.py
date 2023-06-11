@@ -9,6 +9,7 @@ from app.engine.game_state import game
 from app.engine.sound import get_sound_thread
 from app.engine.state import MapState
 from app.utilities.enums import Orientation
+from app.utilities.typing import NID
 
 from app.engine import item_funcs, help_menu, item_system
 from app.constants import WINWIDTH, WINHEIGHT
@@ -70,7 +71,7 @@ class PlayerChoiceState(MapState):
                 display_values.append(spl[1])
         return values, display_values
 
-    def create_help_boxes(self, options_list):
+    def create_help_boxes(self, options_list: List[NID]):
         self.help_boxes = []
         if self.data_type == 'type_base_item':
             items = item_funcs.create_items(None, options_list)
@@ -79,6 +80,10 @@ class PlayerChoiceState(MapState):
                     self.help_boxes.append(help_menu.ItemHelpDialog(item))
                 else:
                     self.help_boxes.append(help_menu.HelpDialog(item.desc))
+        elif self.data_type == 'type_skill':
+            for skill_nid in skills:
+                skill = DB.skills.get(skill_nid)
+                self.help_boxes.append(help_menu.HelpDialog(skill.desc))
 
     def choose(self, selection):
         action.do(action.SetGameVar(self.nid, selection))
@@ -100,7 +105,7 @@ class PlayerChoiceState(MapState):
         elif ('LEFT' in directions and (self.orientation == Orientation.HORIZONTAL or self.size[0] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_left(first_push)
-        elif('UP' in directions and (self.orientation == Orientation.VERTICAL or self.size[1] > 1)):
+        elif ('UP' in directions and (self.orientation == Orientation.VERTICAL or self.size[1] > 1)):
             get_sound_thread().play_sfx('Select 6')
             self.menu.move_up(first_push)
 

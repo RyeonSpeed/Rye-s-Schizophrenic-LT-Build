@@ -1250,14 +1250,8 @@ class MenuState(MapState):
                         else:
                             game.memory['valid_spells'] = all_spells
                         game.state.change('spell_choice')
-                elif item.usable:
-                    if item_system.targets_items(self.cur_unit, item):
-                        game.memory['target'] = self.cur_unit
-                        game.memory['item'] = item
-                        self._proceed_with_targets_item = True
-                        game.state.change('item_targeting')
-                    else:
-                        interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
+                elif item_funcs.can_use(self.cur_unit, item):
+                    game.state.change('combat_targeting')
                 else:
                     # equip if possible
                     if self.cur_unit.can_equip(item):
@@ -1528,12 +1522,17 @@ class ItemChildState(MapState):
             item = self.menu.owner
             if selection == 'Use':
                 if item_system.targets_items(self.cur_unit, item):
-                    game.memory['target'] = self.cur_unit
+                    # if it targets items, must use combat targeting routine to handle
                     game.memory['item'] = item
-                    self._proceed_with_targets_item = True
-                    game.state.change('item_targeting')
-                else:
-                    interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
+                    game.state.change('combat_targeting')
+                else: 
+                    targets = target_system.get_valid_targets(self.cur_unit, item)
+                    if len(targets) == 1:  # No need to select when only one target
+                        interaction.start_combat(self.cur_unit, self.cur_unit.position, item)
+                    else:
+                        game.memory['item'] = item
+                        game.state.change('combat_targeting')
+
             elif selection == 'Equip':
                 action.do(action.EquipItem(self.cur_unit, item))
                 if not game.memory['is_subitem_child_menu']:
@@ -2791,7 +2790,7 @@ class ShopState(State):
                         action.do(action.GainMoney(game.current_party, -value))
                         action.do(action.UpdateRecords('money', (game.current_party, -value)))
                         stock_marker = '__shop_%s_%s' % (self.shop_id, item.nid)
-                        action.do(action.SetLevelVar(stock_marker, game.level_vars.get(stock_marker, 0) + 1))  # Remember that we bought one of this
+                        action.do(action.SetGameVar(stock_marker, game.level_vars.get(stock_marker, 0) + 1))  # Remember that we bought one of this
                         self.buy_menu.decrement_stock()
                         self.money_counter_disp.start(-value)
                         game.register_item(new_item)

@@ -4,6 +4,7 @@ import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 if TYPE_CHECKING:
+    from app.data.database.klass import Klass
     from app.engine.game_state import GameState
     from app.engine.objects.item import ItemObject
     from app.engine.objects.region import RegionObject
@@ -11,6 +12,7 @@ if TYPE_CHECKING:
     from app.engine.objects.unit import UnitObject
     from app.utilities.typing import NID
 
+from app.data.database.database import DB
 from app.utilities import utils
 
 class QueryType():
@@ -20,6 +22,7 @@ class QueryType():
     MAP = 'Map Functions'
     ACHIEVEMENT = 'Achievements'
     VARIABLES = 'VARIABLES'
+    CLASS = 'Class'
 
 def categorize(tag):
     def deco(func):
@@ -159,6 +162,23 @@ Example usage:
         """
         return bool(self.get_skill(unit, skill))
 
+    @categorize(QueryType.CLASS)
+    def get_klass(self, unit) -> Optional[Klass]:
+        """Returns the klass prefab of the unit.
+
+        Args:
+            unit: unit in question
+
+        Returns:
+            Klass object if the unit exists and has a valid klass, otherwise None
+        """
+        unit = self._resolve_to_unit(unit)
+        if unit:
+            klass = DB.classes.get(unit.klass)
+            return klass
+        return None
+    # Gives get_klass an alternate name
+    get_class = get_klass
 
     @categorize(QueryType.MAP)
     def get_closest_allies(self, position, num: int = 1) -> List[Tuple[UnitObject, int]]:

@@ -30,7 +30,7 @@ Most game platforms, like Steam, display certain achievements as "Locked" prior 
 
 Create a new achievement.
 
-```create_achievement;KillGodOrSomething;???;Continue the story to unlock;f;f```
+```create_achievement;KillGodOrSomething;???;Continue the story to unlock;hidden```
 
 ![LockedAchievement](images/LockedAchievement.png)
 

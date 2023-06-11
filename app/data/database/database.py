@@ -149,7 +149,8 @@ class Database(object):
             # logging.info("Time taken: %s ms" % time2)
         return to_save
 
-    def serialize(self, proj_dir):
+    def serialize(self, proj_dir) -> bool:
+        # Returns whether we were successful
         from app.editor.settings import MainSettingsController
         main_settings = MainSettingsController()
 
@@ -163,52 +164,60 @@ class Database(object):
 
         to_save = self.save()
         # This section is what takes so long!
-        for key, value in to_save.items():
-            # divide save data into chunks based on key value
-            if key in self.save_as_chunks and main_settings.get_should_save_as_chunks():
-                save_dir = os.path.join(data_dir, key)
-                if os.path.exists(save_dir):
-                    shutil.rmtree(save_dir)
-                os.mkdir(save_dir)
-                orderkeys: Dict[str, int] = {}
-                for idx, subvalue in enumerate(value):
-                    # ordering
-                    if 'nid' in subvalue:
-                        name = subvalue['nid']
-                    elif 'name' in subvalue:
-                        if 'level_nid' in subvalue.keys(): # to handle the wonky event nid property
-                            name = (subvalue['level_nid'] if subvalue['level_nid'] else 'global') + "_" + subvalue['name']
-                        else:
-                            name = subvalue['name']
-                    else:
-                        name = str(idx).zfill(6)
-                    name = re.sub(r'[\\/*?:"<>|]', "", name)
-                    name = name.replace(' ', '_')
-                    fname = name + '.json'
-                    orderkeys[fname] = idx
-                    save_loc = os.path.join(save_dir, name + '.json')
-                    # logging.info("Serializing %s to %s" % ('%s/%s.json' % (key, name), save_loc))
-                    self.json_save(save_loc, [subvalue])
-                self.json_save(os.path.join(save_dir, '.orderkeys'), orderkeys)
-            else:  # Save as a single file
-                # Which means deleting the old directory
-                save_dir = os.path.join(data_dir, key)
-                if os.path.exists(save_dir):
-                    shutil.rmtree(save_dir)
-                save_loc = os.path.join(data_dir, key + '.json')
-                # logging.info("Serializing %s to %s" % (key, save_loc))
-                self.json_save(save_loc, value)
-
-        for key in self.save_data_types:
-            catalog = getattr(self, key)
-            if isinstance(catalog, CategorizedCatalog):
+        try:
+            for key, value in to_save.items():
+                # divide save data into chunks based on key value
                 if key in self.save_as_chunks and main_settings.get_should_save_as_chunks():
-                    self.json_save(os.path.join(data_dir, key, '.categories'), catalog.categories.save())
-                else:
-                    self.json_save(os.path.join(data_dir, '.%s_categories' % key), catalog.categories.save())
+                    save_dir = os.path.join(data_dir, key)
+                    if os.path.exists(save_dir):
+                        shutil.rmtree(save_dir)
+                    os.mkdir(save_dir)
+                    orderkeys: Dict[str, int] = {}
+                    for idx, subvalue in enumerate(value):
+                        # ordering
+                        if 'nid' in subvalue:
+                            name = subvalue['nid']
+                        elif 'name' in subvalue:
+                            if 'level_nid' in subvalue.keys(): # to handle the wonky event nid property
+                                name = (subvalue['level_nid'] if subvalue['level_nid'] else 'global') + "_" + subvalue['name']
+                            else:
+                                name = subvalue['name']
+                        else:
+                            name = str(idx).zfill(6)
+                        name = re.sub(r'[\\/*?:"<>|]', "", name)
+                        name = name.replace(' ', '_')
+                        fname = name + '.json'
+                        orderkeys[fname] = idx
+                        save_loc = os.path.join(save_dir, name + '.json')
+                        # logging.info("Serializing %s to %s" % ('%s/%s.json' % (key, name), save_loc))
+                        self.json_save(save_loc, [subvalue])
+                    self.json_save(os.path.join(save_dir, '.orderkeys'), orderkeys)
+                else:  # Save as a single file
+                    # Which means deleting the old directory
+                    save_dir = os.path.join(data_dir, key)
+                    if os.path.exists(save_dir):
+                        shutil.rmtree(save_dir)
+                    save_loc = os.path.join(data_dir, key + '.json')
+                    # logging.info("Serializing %s to %s" % (key, save_loc))
+                    self.json_save(save_loc, value)
+
+            for key in self.save_data_types:
+                catalog = getattr(self, key)
+                if isinstance(catalog, CategorizedCatalog):
+                    if key in self.save_as_chunks and main_settings.get_should_save_as_chunks():
+                        self.json_save(os.path.join(data_dir, key, '.categories'), catalog.categories.save())
+                    else:
+                        self.json_save(os.path.join(data_dir, '.%s_categories' % key), catalog.categories.save())
+
+        except OSError as e:  # In case we ran out of memory
+            logging.error("Editor was unable to save your project. Free up memory in your hard drive or try saving somewhere else, otherwise progress will be lost when the editor is closed.")
+            logging.exception(e)
+            return False
+
         end = time.perf_counter() * 1000
         logging.info("Total Time Taken for Database: %s ms" % (end - start))
         logging.info("Done serializing!")
+        return True
 
     def load(self, proj_dir):
         self.current_proj_dir = proj_dir

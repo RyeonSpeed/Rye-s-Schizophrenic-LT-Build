@@ -36,7 +36,7 @@ class StatChangeExpression(SkillComponent):
         try:
             return {stat[0]: int(evaluate.evaluate(stat[1], unit)) for stat in self.value}
         except Exception as e:
-            logging.error("Couldn't evaluate conditional %s", e)
+            logging.error("Couldn't evaluate conditional for skill %s: [%s], %s", self.skill.nid, str(self.value), e)
         return {stat[0]: 0 for stat in self.value}
 
 class StatMultiplier(SkillComponent):
