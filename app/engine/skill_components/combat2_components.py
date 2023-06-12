@@ -420,6 +420,56 @@ class GiveStatusAfterHit(SkillComponent):
             actions.append(action.TriggerCharge(unit, self.skill))
 
 
+class SkillBeforeCombat(SkillComponent):
+    nid = 'skill_before_combat'
+    desc = 'Grants a skill before combat'
+    tag = SkillTags.COMBAT2
+
+    expose = ComponentType.NewMultipleOptions
+
+    options = {
+        "skill": ComponentType.Skill,
+        "recipient": (ComponentType.MultipleChoice, ("self", "target", "both")),
+        "allegiance": (ComponentType.MultipleChoice, ("ally", "enemy", "both")),
+    }
+
+    def __init__(self, value=None):
+        self.value = {
+            "skill": None,
+            "recipient": "target",
+            "allegiance": "enemy"
+        }
+        if value:
+            self.value.update(value)
+
+    def get_skill_nid(self):
+        return self.value['skill']
+
+    def _resolve_targets(self, unit, target):
+        recipient = self.value['recipient']
+        allegiance = self.value['allegiance']
+        is_ally = skill_system.check_ally(unit, target)
+        if recipient == 'self':
+            return [unit]
+        if recipient == 'target':
+            if allegiance == 'enemy' and is_ally:
+                return []
+            if allegiance == 'ally' and not is_ally:
+                return []
+            return [target]
+        return [unit, target]
+
+    def start_combat(self, playback, unit, item, target, mode):
+        skill_nid = self.get_skill_nid()
+        if not skill_nid:
+            return
+        targets = self._resolve_targets(unit, target)
+        for skill_gainer in targets:
+            action.do(action.AddSkill(skill_gainer, skill_nid))
+        if targets:
+            action.do(action.TriggerCharge(unit, self.skill))
+
+
 class GainSkillAfterKill(SkillComponent):
     nid = 'gain_skill_after_kill'
     desc = "Gives a skill to user after a kill"

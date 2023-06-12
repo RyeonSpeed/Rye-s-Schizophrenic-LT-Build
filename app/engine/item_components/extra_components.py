@@ -222,13 +222,11 @@ class StatusOnEquip(ItemComponent):
     expose = ComponentType.Skill  # Nid
 
     def on_equip_item(self, unit, item):
-        if self.value not in [skill.nid for skill in unit.skills]:
-            act = action.AddSkill(unit, self.value)
-            action.do(act)
+        act = action.AddSkill(unit, self.value)
+        action.do(act)
 
     def on_unequip_item(self, unit, item):
-        if self.value in [skill.nid for skill in unit.skills]:
-            action.do(action.RemoveSkill(unit, self.value))
+        action.do(action.RemoveSkill(unit, self.value, count=1))
 
 class MultiStatusOnEquip(ItemComponent):
     nid = 'multi_status_on_equip'
@@ -239,14 +237,12 @@ class MultiStatusOnEquip(ItemComponent):
 
     def on_equip_item(self, unit, item):
         for skl in self.value:
-            if skl not in [skill.nid for skill in unit.skills]:
-                act = action.AddSkill(unit, skl)
-                action.do(act)
+            act = action.AddSkill(unit, skl)
+            action.do(act)
 
     def on_unequip_item(self, unit, item):
         for skl in self.value:
-            if skl in [skill.nid for skill in unit.skills]:
-                action.do(action.RemoveSkill(unit, skl))
+            action.do(action.RemoveSkill(unit, skl, count=1))
 
 class StatusOnHold(ItemComponent):
     nid = 'status_on_hold'
@@ -259,8 +255,7 @@ class StatusOnHold(ItemComponent):
         action.do(action.AddSkill(unit, self.value))
 
     def on_remove_item(self, unit, item):
-        if self.value in [skill.nid for skill in unit.skills]:
-            action.do(action.RemoveSkill(unit, self.value))
+        action.do(action.RemoveSkill(unit, self.value, count=1))
 
 class MultiStatusOnHold(ItemComponent):
     nid = 'multi_status_on_hold'
@@ -276,8 +271,7 @@ class MultiStatusOnHold(ItemComponent):
 
     def on_remove_item(self, unit, item):
         for skl in self.value:
-            if skl in [skill.nid for skill in unit.skills]:
-                action.do(action.RemoveSkill(unit, skl))
+            action.do(action.RemoveSkill(unit, skl, count=1))
 
 class GainManaAfterCombat(ItemComponent):
     nid = 'gain_mana_after_combat'

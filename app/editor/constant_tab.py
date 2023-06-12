@@ -531,9 +531,12 @@ class ConstantDatabase(DatabaseTab):
             if not constant:
                 logging.error("Couldn't find constant %s" % constant_nid)
                 continue
-            if constant.attr == ConstantType.INT:
+            if constant.attr in (ConstantType.INT, ConstantType.POSITIVE_INT):
                 box = PropertyBox(constant.name, QSpinBox, self)
-                box.edit.setRange(0, 100)
+                if constant.attr == ConstantType.INT:
+                    box.edit.setRange(0, 100)
+                elif constant.attr == ConstantType.POSITIVE_INT:
+                    box.edit.setRange(1, 100)
                 box.edit.setValue(constant.value)
                 box.edit.setAlignment(Qt.AlignRight)
                 box.edit.valueChanged.connect(constant.set_value)

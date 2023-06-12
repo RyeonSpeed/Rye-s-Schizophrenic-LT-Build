@@ -12,6 +12,7 @@ class ConstantType(Enum):
     FLOAT = 3
     STR = 4
     MUSIC = 5
+    POSITIVE_INT = 6
 
 class Constant(object):
     def __init__(self, nid: NID, name: str = '', attr: ConstantType | List[str] = ConstantType.BOOL, default_value: Any=False, tag='other'):
@@ -103,7 +104,7 @@ constants = ConstantCatalog([
     Constant('combat_art_category', "Combat Arts get put in their own category in the menu", ConstantType.BOOL, False),
     Constant('reset_mana', "Mana resets to full for units upon completion of the chapter", ConstantType.BOOL),
     Constant('double_splash', "When doubling, splash/aoe damage applied on second strike", ConstantType.BOOL),
-    Constant('num_save_slots', "Number of save slots", ConstantType.INT, 3, 'title'),
+    Constant('num_save_slots', "Number of save slots", ConstantType.POSITIVE_INT, 3, 'title'),
     Constant('sell_modifier', "Value multiplier when selling an item", ConstantType.FLOAT, 0.5, 'inventory'),
     Constant('attack_zero_hit', "Enemy AI attacks even if Hit is 0", ConstantType.BOOL, True, 'ai'),
     Constant('attack_zero_dam', "Enemy AI attacks even if Damage is 0", ConstantType.BOOL, True, 'ai'),

@@ -324,7 +324,7 @@ class GameState():
         self.register_unit(unit)
         for item in unit.items:
             self.register_item(item)
-        for skill in unit.skills:
+        for skill in unit.all_skills:
             self.register_skill(skill)
 
     def set_up_game_board(self, tilemap, bounds=None):
@@ -491,7 +491,7 @@ class GameState():
             for unit in self.units:
                 if unit.position:
                     self.board.set_unit(unit.position, unit)
-                    for skill in unit.skills:
+                    for skill in unit.all_skills:
                         if skill.aura:
                             aura_funcs.repopulate_aura(unit, skill, self)
                     self.boundary.arrive(unit)
@@ -897,7 +897,7 @@ class GameState():
                 child_skill = self.get_skill(child_aura_uid)
                 aura_funcs.remove_aura(unit, child_skill, test)
             if not test:
-                for skill in unit.skills:
+                for skill in unit.all_skills:
                     if skill.aura:
                         aura_funcs.release_aura(unit, skill, self)
                 self.boundary.unregister_unit_auras(unit)
@@ -906,9 +906,9 @@ class GameState():
                 if region.region_type == RegionType.STATUS and region.contains(unit.position):
                     skill_uid = self.get_terrain_status((*region.position, region.sub_nid))
                     skill_obj = self.get_skill(skill_uid)
-                    if skill_obj and skill_obj in unit.skills:
+                    if skill_obj and skill_obj in unit.all_skills:
                         if test:
-                            unit.skills.remove(skill_obj)
+                            unit.remove_skill(skill_obj)
                         else:
                             act = action.RemoveSkill(unit, skill_obj)
                             action.do(act)
@@ -919,9 +919,9 @@ class GameState():
 
             skill_uid = self.get_terrain_status(terrain_key)
             skill_obj = self.get_skill(skill_uid)
-            if skill_obj and skill_obj in unit.skills:
+            if skill_obj and skill_obj in unit.all_skills:
                 if test:
-                    unit.skills.remove(skill_obj)
+                    unit.remove_skill(skill_obj)
                 else:
                     act = action.RemoveSkill(unit, skill_obj)
                     action.do(act)
@@ -963,7 +963,7 @@ class GameState():
             # Auras
             aura_funcs.pull_auras(unit, self, test)
             if not test:
-                for skill in unit.skills:
+                for skill in unit.all_skills:
                     if skill.aura:
                         aura_funcs.propagate_aura(unit, skill, self)
                 self.boundary.register_unit_auras(unit)
@@ -992,10 +992,10 @@ class GameState():
 
         if skill_obj:
             # Only bother adding if not already present
-            if skill_obj not in unit.skills:
+            if skill_obj not in unit.all_skills:
                 if test:
                     # Don't need to use action for test
-                    unit.skills.append(skill_obj)
+                    unit.add_skill(skill_obj)
                 else:
                     act = action.AddSkill(unit, skill_obj)
                     action.do(act)
@@ -1013,10 +1013,10 @@ class GameState():
 
         if skill_obj:
             # Only bother adding if not already present
-            if skill_obj not in unit.skills:
+            if skill_obj not in unit.all_skills:
                 if test:
                     # Don't need to use action for test
-                    unit.skills.append(skill_obj)
+                    unit.add_skill(skill_obj)
                 else:
                     act = action.AddSkill(unit, skill_obj)
                     action.do(act)

@@ -15,6 +15,13 @@ def get_mock_game() -> GameState:
     game.overworld_controller = mock_overworld_manager()
     
     game.get_item = MagicMock()
-    game.get_skill = MagicMock()
+
+    # Need to mock a function that returns it's own MagicMock with stack set to None
+    get_skill = MagicMock()
+    m = MagicMock()
+    m.stack = None
+    get_skill.return_value = m
+    
+    game.get_skill = get_skill
     game.get_unit = lambda x: None
     return game

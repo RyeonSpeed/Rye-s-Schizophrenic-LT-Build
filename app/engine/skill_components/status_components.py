@@ -32,7 +32,8 @@ class AuraTarget(SkillComponent):
     tag = SkillTags.STATUS
     paired_with = ('aura', 'aura_range')
 
-    expose = ComponentType.String
+    # expose = ComponentType.String
+    expose = (ComponentType.MultipleChoice, ('ally', 'enemy', 'unit'))
     value = 'unit'
 
 class AuraShow(SkillComponent):
@@ -163,7 +164,7 @@ class ResistStatus(SkillComponent):
     tag = SkillTags.STATUS
 
     def before_add(self, unit, skill):
-        for skill in unit.skills:
+        for skill in unit.all_skills:
             if skill.time or skill.end_time or skill.combined_time:
                 action.do(action.SetObjData(skill, 'turns', min(skill.data['turns'], 1)))
 
@@ -177,7 +178,7 @@ class ImmuneStatus(SkillComponent):
     tag = SkillTags.STATUS
 
     def after_add(self, unit, skill):
-        for skill in unit.skills:
+        for skill in unit.all_skills:
             if skill.negative:
                 action.do(action.RemoveSkill(unit, skill))
 

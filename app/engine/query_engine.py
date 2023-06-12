@@ -144,7 +144,7 @@ Example usage:
         unit = self._resolve_to_unit(unit)
         skill = self._resolve_to_nid(skill)
         if unit:
-            for sk in unit.skills:
+            for sk in reversed(unit.all_skills):
                 if sk.nid == skill:
                     return sk
         return None

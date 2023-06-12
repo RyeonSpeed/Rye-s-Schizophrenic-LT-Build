@@ -429,7 +429,7 @@ class RegisterUnit(Action):
 
     def reverse(self):
         logging.debug("Unregistering unit %s and it's items and skills", self.unit.nid)
-        for skill in reversed(self.unit.skills):
+        for skill in reversed(self.unit.all_skills):
             game.unregister_skill(skill)
         for item in reversed(self.unit.items):
             game.unregister_item(item)
@@ -3210,36 +3210,19 @@ class AddSkill(Action):
             if skill_obj.uid not in game.skill_registry:
                 game.register_skill(skill_obj)
         self.skill_obj: SkillObject = skill_obj
-        self.subactions = []
         self.reset_action = ResetUnitVars(self.unit)
 
     @recalculate_unit
     def do(self):
-        self.subactions.clear()
         if not self.skill_obj:
             return
-        # Remove any skills with previous name
-        if not self.skill_obj.stack and self.skill_obj.nid in [skill.nid for skill in self.unit.skills]:
-            logging.info("Skill %s already present" % self.skill_obj.nid)
-            for skill in self.unit.skills:
-                if skill.nid == self.skill_obj.nid:
-                    self.subactions.append(RemoveSkill(self.unit, skill))
-        # if it's a stackable skill but it's at max, refresh the oldest stack
-        elif self.skill_obj.stack and item_funcs.num_stacks(self.unit, self.skill_obj.nid) >= self.skill_obj.stack.value:
-            logging.info("Skill %s at max stacks" % self.skill_obj.nid)
-            for skill in self.unit.skills:
-                if skill.nid == self.skill_obj.nid:
-                    self.subactions.append(RemoveSkill(self.unit, skill))
-                    break
-        for action in self.subactions:
-            action.execute()
 
         # Actually add skill
         skill_system.before_add(self.unit, self.skill_obj)
         self.skill_obj.owner_nid = self.unit.nid
-        self.unit.skills.append(self.skill_obj)
+        self.unit.add_skill(self.skill_obj)
 
-        if self.skill_obj.aura and self.skill_obj in self.unit.skills and \
+        if self.skill_obj.aura and self.skill_obj in self.unit.all_skills and \
                 self.unit.position and game.board and game.tilemap:
             aura_funcs.propagate_aura(self.unit, self.skill_obj, game)
             game.boundary.register_unit_auras(self.unit)
@@ -3255,18 +3238,16 @@ class AddSkill(Action):
         if not self.skill_obj:
             return
         game.boundary.unregister_unit_auras(self.unit)
-        if self.skill_obj in self.unit.skills:
+        if self.skill_obj in self.unit.all_skills:
             # Actually remove skill
             skill_system.before_remove(self.unit, self.skill_obj)
-            self.unit.skills.remove(self.skill_obj)
+            self.unit.remove_skill(self.skill_obj)
             self.skill_obj.owner_nid = None
             if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:
                 aura_funcs.release_aura(self.unit, self.skill_obj, game)
             skill_system.after_remove(self.unit, self.skill_obj)
         else:
             logging.error("Skill %s not in %s's skills", self.skill_obj.nid, self.unit)
-        for action in self.subactions:
-            action.reverse()
 
 class RemoveSkill(Action):
     def __init__(self, unit, skill, count=-1):
@@ -3285,7 +3266,7 @@ class RemoveSkill(Action):
         self.removed_skills.append(skill)
         if skill.aura and self.unit.position and game.board and game.tilemap:
             aura_funcs.release_aura(self.unit, skill, game)
-        self.unit.skills.remove(skill)
+        self.unit.remove_skill(skill)
         skill_system.after_remove(self.unit, skill)
         if true_remove:
             skill_system.after_true_remove(self.unit, skill)
@@ -3294,14 +3275,14 @@ class RemoveSkill(Action):
         self.removed_skills.clear()
         to_remove = self.count
         if isinstance(self.skill, str):
-            for skill in self.unit.skills[:]:
+            for skill in self.unit.all_skills[:]:
                 if skill.nid == self.skill and to_remove != 0:
                     self._remove_skill(skill, true_remove)
                     to_remove -= 1
             if to_remove > 0:
                 logging.warning("%d instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
-            if self.skill in self.unit.skills:
+            if self.skill in self.unit.all_skills:
                 self._remove_skill(self.skill, true_remove)
             else:
                 logging.warning("Skill %s not in %s's skills", self.skill.nid, self.unit)
@@ -3325,7 +3306,7 @@ class RemoveSkill(Action):
         for skill in self.removed_skills:
             skill_system.before_add(self.unit, skill)
             skill.owner_nid = self.unit.nid
-            self.unit.skills.append(skill)
+            self.unit.add_skill(skill)
             if skill.aura and self.unit.position and game.board and game.tilemap:
                 aura_funcs.propagate_aura(self.unit, skill, game)
             skill_system.after_add(self.unit, skill)

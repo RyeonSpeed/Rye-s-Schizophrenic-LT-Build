@@ -44,6 +44,8 @@ def restore_component(dat):
             elif base_class.expose[0] in (ComponentType.Dict, ComponentType.FloatDict, ComponentType.StringDict):
                 val = [v.copy() for v in value]
                 copy = base_class(val)
+            elif base_class.expose[0] == ComponentType.MultipleChoice:
+                copy = base_class(value)
         else:
             copy = base_class(value)
         return copy

@@ -6,7 +6,7 @@ from typing import Optional
 from app.data.database.components import ComponentType
 from app.data.database.database import DB
 from app.data.database.item_components import ItemComponent, ItemTags
-from app.engine import (action, combat_calcs, engine, image_mods, item_system,
+from app.engine import (action, combat_calcs, engine, equations, image_mods, item_system,
                         skill_system)
 from app.engine.combat import playback as pb
 from app.engine.game_state import game
