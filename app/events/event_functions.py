@@ -2881,9 +2881,9 @@ def shop(self: Event, unit, item_list, shop_flavor=None, stock_list=None, shop_i
         return
     unit = new_unit
     if shop_id is None:
-    shop_id = self.nid
-    self.game.memory['shop_id'] = shop_id
-    self.game.memory['current_unit'] = unit
+        shop_id = self.nid
+        self.game.memory['shop_id'] = shop_id
+        self.game.memory['current_unit'] = unit
     if shop_flavor == 'market':
         self.game.state.change('big_shop')
         self.state = 'paused'
