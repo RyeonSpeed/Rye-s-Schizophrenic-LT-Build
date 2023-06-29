@@ -639,10 +639,11 @@ class UIView():
 
         my_num = combat_calcs.outspeed(attacker, defender, weapon, defender.get_weapon(), "attack", (0, 0))
         my_num *= combat_calcs.compute_multiattacks(attacker, defender, weapon, "attack", (0, 0))
-        if weapon.uses_options and weapon.uses_options.one_loss_per_combat():
+        if weapon.uses_options and weapon.uses_options.one_loss_per_combat() and not weapon.mana_cost_per_use:
             pass  # If you can only lose one use at a time, no need to min this
         else:
             my_num = min(my_num, weapon.data.get('uses', 100), weapon.data.get('c_uses', 100))
+            my_num = min(my_num, attacker.get_mana() // weapon.mana_cost_per_use.value)
 
         if my_num != 1:
             surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player)
@@ -660,6 +661,7 @@ class UIView():
                 e_num = 1
             e_num *= combat_calcs.compute_multiattacks(defender, attacker, eweapon, 'defense', (0, 0))
             e_num = min(e_num, eweapon.data.get('uses', 100))
+            e_num = min(e_num, defender.get_mana() // eweapon.mana_cost_per_use.value)
 
             if e_num != 1:
                 surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy)
