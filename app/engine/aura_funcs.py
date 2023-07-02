@@ -38,16 +38,6 @@ def pull_auras(unit, game, test=False):
         if owner is not unit:
             apply_aura(owner, unit, child_skill, target, test)
 
-def repull_aura(unit, old_skill, game):
-    for aura_data in game.board.get_auras(unit.position):
-        child_aura_uid, target = aura_data
-        child_skill = game.get_skill(child_aura_uid)
-        if old_skill.nid == child_skill.nid and not old_skill.stack:
-            owner_nid = child_skill.parent_skill.owner_nid
-            owner = game.get_unit(owner_nid)
-            if owner is not unit:
-                apply_aura(owner, unit, child_skill, target)
-
 def apply_aura(owner, unit, child_skill, target, test=False):
     if target == 'enemy' and skill_system.check_enemy(owner, unit) or \
             target == 'ally' and skill_system.check_ally(owner, unit) or \
@@ -105,5 +95,4 @@ def release_aura(unit, skill, game):
         other = game.board.get_unit(pos)
         if other:
             remove_aura(other, skill.subskill)
-            repull_aura(other, skill.subskill, game)
     game.board.reset_aura(skill.subskill)

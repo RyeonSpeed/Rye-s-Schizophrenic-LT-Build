@@ -69,7 +69,8 @@ class RecentProjectDialog(SimpleDialog):
         self.project_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.project_table.resizeColumnsToContents()
         self.project_table.setSelectionBehavior(QTableView.SelectRows)
-        self.project_table.doubleClicked.connect(self.on_select_project)
+        self.project_table.clicked.connect(self.on_select_project)
+        self.project_table.doubleClicked.connect(self.on_double_click_project)
 
         button_layout = QHBoxLayout()
         self.open_other_button = QPushButton("Open other...", self)
@@ -79,6 +80,9 @@ class RecentProjectDialog(SimpleDialog):
         self.new_button.clicked.connect(self.on_click_new)
         if not load_only:
             button_layout.addWidget(self.new_button)
+        self.confirm_button = QPushButton("Open selected project", self)
+        self.confirm_button.clicked.connect(self.on_click_confirm)
+        button_layout.addWidget(self.confirm_button)
 
         layout.addWidget(self.project_table)
         layout.addLayout(button_layout)
@@ -91,6 +95,14 @@ class RecentProjectDialog(SimpleDialog):
         row = index.row()
         project = self.projects[row]
         self._selected_path = project.path
+
+    def on_double_click_project(self, index: QModelIndex):
+        row = index.row()
+        project = self.projects[row]
+        self._selected_path = project.path
+        self.accept()
+
+    def on_click_confirm(self):
         self.accept()
 
     def on_click_open(self):
@@ -123,7 +135,7 @@ class RecentProjectDialog(SimpleDialog):
 def choose_recent_project(load_only=False) -> Optional[str]:
     settings = MainSettingsController()
     recent_projects = settings.get_last_ten_projects()
-    if not recent_projects:
+    if not recent_projects or settings.get_auto_open():
         return None
     dialog = RecentProjectDialog(
         settings.get_last_ten_projects(), load_only)

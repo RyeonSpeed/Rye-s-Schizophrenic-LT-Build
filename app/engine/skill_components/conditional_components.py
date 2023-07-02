@@ -52,4 +52,4 @@ class Condition(SkillComponent):
         try:
             return bool(evaluate.evaluate(self.value, unit, position=unit.position, local_args={'item': item}))
         except Exception as e:
-            print("%s: Could not evaluate condition %s" % (e, self.value))
+            print("%s: Could not evaluate condition %s for skill %s" % (e, self.value, self.skill.nid))

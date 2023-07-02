@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from app.engine.unit_sound import UnitSound
     from app.engine.unit_sprite import UnitSprite
 
+import logging
+
 # Main unit object used by engine
 @dataclass
 class UnitObject(Prefab):
@@ -29,10 +31,10 @@ class UnitObject(Prefab):
     generic: bool = False
     persistent: bool = True
     ai: str = None
-    ai_group: str = None
+    ai_group: NID = None
     roam_ai: str = None
     faction: NID = None
-    team: str = "player"
+    team: NID = "player"
     portrait_nid: NID = None
     affinity: NID = None
     notes: List[Tuple[str, str]] = field(default_factory=list)
@@ -85,7 +87,6 @@ class UnitObject(Prefab):
     has_dropped: bool = False
 
     has_run_ai: bool = False
-    ai_group_active: bool = False
 
     _sprite = None
     _sound = None
@@ -182,7 +183,6 @@ class UnitObject(Prefab):
         self.has_dropped = False
 
         self.has_run_ai = False
-        self.ai_group_active = False
 
         self._sprite = None
         self._sound = None
@@ -247,7 +247,7 @@ class UnitObject(Prefab):
             if klass.tier >= 2:
                 prev_levels = num_levels - (self.level - 1)
                 num_levels = self.level + int(prev_levels * mode.promoted_autolevels_fraction)
-            stat_bonus = mode.get_base_bonus(self)
+            stat_bonus = mode.get_base_bonus(self, DB)
             bonus = {nid: 0 for nid in DB.stats.keys()}
             for nid in DB.stats.keys():
                 bonus[nid] = utils.clamp(stat_bonus.get(nid, 0), -self.stats.get(nid, 0), klass.max_stats.get(nid, 30) - self.stats.get(nid, 0))
@@ -258,13 +258,13 @@ class UnitObject(Prefab):
                 unit_funcs.auto_level(self, 1, num_levels)
             # Existing units would have leveled up different with bonus growths
             elif DB.constants.value('backpropagate_difficulty_growths'):
-                difficulty_growth_bonus = mode.get_growth_bonus(self)
+                difficulty_growth_bonus = mode.get_growth_bonus(self, DB)
                 if difficulty_growth_bonus:
                     unit_funcs.difficulty_auto_level(self, 1, num_levels)
 
-            difficulty_autolevels = mode.get_difficulty_autolevels(self)
+            difficulty_autolevels = mode.get_difficulty_autolevels(self, DB)
             # Handle the ones that you can change in events
-            if self.team.startswith('enemy'):
+            if self.team in DB.teams.enemies:
                 difficulty_autolevels += current_mode.enemy_autolevels
                 difficulty_autolevels += current_mode.enemy_truelevels
             if 'Boss' in self.tags:
@@ -274,7 +274,7 @@ class UnitObject(Prefab):
             if difficulty_autolevels > 0:
                 unit_funcs.auto_level(self, 1, difficulty_autolevels)
 
-            if self.team.startswith('enemy'):
+            if self.team in DB.teams.enemies:
                 self.level += current_mode.enemy_truelevels
             if 'Boss' in self.tags:
                 self.level += current_mode.boss_truelevels
@@ -526,6 +526,7 @@ class UnitObject(Prefab):
         return item_system.equippable(self, item) and item_funcs.available(self, item)
 
     def autoequip(self):
+        logging.debug("Autoequipping")
         all_items = item_funcs.get_all_items(self)
         # Do an an initial check that the weapon is still good
         if self.equipped_weapon and not self.can_equip(self.equipped_weapon):
@@ -552,24 +553,27 @@ class UnitObject(Prefab):
             return  # Don't need to do anything
         elif item is self.equipped_weapon:
             return  # Don't need to do anything
+        logging.debug("Equipping %s" % item)
         if item_system.is_accessory(self, item):
             if self.equipped_accessory:
-                self.unequip(self.equipped_accessory)
+                self.unequip(self.equipped_accessory, item)
             self.equipped_accessory = item
         else:
             if self.equipped_weapon:
-                self.unequip(self.equipped_weapon)
+                self.unequip(self.equipped_weapon, item)
             self.equipped_weapon = item
         item_system.on_equip_item(self, item)
         skill_system.on_equip_item(self, item)
 
-    def unequip(self, item):
-        skill_system.on_unequip_item(self, item)
-        item_system.on_unequip_item(self, item)
-        if item_system.is_accessory(self, item):
-            self.equipped_accessory = None
-        else:
-            self.equipped_weapon = None
+    def unequip(self, item, swap_to=None):
+        if item is self.equipped_weapon or item is self.equipped_accessory:
+            logging.debug("Unequipping %s" % item)
+            if item_system.is_accessory(self, item):
+                self.equipped_accessory = swap_to
+            else:
+                self.equipped_weapon = swap_to
+            skill_system.on_unequip_item(self, item)
+            item_system.on_unequip_item(self, item)
 
     def add_item(self, item):
         index = len(self.items)
@@ -595,6 +599,9 @@ class UnitObject(Prefab):
             skill_system.on_add_item(self, item)
 
     def remove_item(self, item):
+        # Remove item before we unequip, so that the autoequip does not
+        # re-equip the item
+        self.items.remove(item)
         if self.equipped_weapon is item or self.equipped_accessory is item:
             self.unequip(item)
         if item.multi_item:
@@ -602,14 +609,10 @@ class UnitObject(Prefab):
                 self.unequip(self.equipped_weapon)
             elif self.equipped_accessory in item_funcs.get_all_items_from_multi_item(self, item):
                 self.unequip(self.equipped_accessory)
-        self.items.remove(item)
         item.change_owner(None)
         # Status effects
         skill_system.on_remove_item(self, item)
         item_system.on_remove_item(self, item)
-        # There may be a new item equipped
-        self.get_weapon()
-        self.get_accessory()
 
     def get_internal_level(self) -> int:
         klass = DB.classes.get(self.klass)
@@ -741,7 +744,6 @@ class UnitObject(Prefab):
                   'built_guard': self.built_guard,
                   'dead': self.dead,
                   'action_state': self.get_action_state(),
-                  'ai_group_active': self.ai_group_active,
                   '_fields': self._fields,
                   'equipped_weapon': self.equipped_weapon.uid if self.equipped_weapon else None,
                   'equipped_accessory': self.equipped_accessory.uid if self.equipped_accessory else None,
@@ -827,7 +829,6 @@ class UnitObject(Prefab):
         else:
             self.reset()
         self.has_run_ai = False
-        self.ai_group_active = s_dict.get('ai_group_active')
 
         self._sprite = None
         self._sound = None

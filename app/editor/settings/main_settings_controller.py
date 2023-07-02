@@ -94,6 +94,12 @@ class MainSettingsController():
     def get_should_save_as_chunks(self, fallback=True):
         return self.state.value("should_save_as_chunks", fallback)
 
+    def set_auto_open(self, value):
+        self.state.setValue('auto_open', value)
+
+    def get_auto_open(self, fallback=False):
+        return self.state.value('auto_open', fallback)
+
     """========== General Control Settings =========="""
 
     def set_place_button(self, value):

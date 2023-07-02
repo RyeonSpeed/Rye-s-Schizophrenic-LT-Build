@@ -20,7 +20,7 @@ class Time(SkillComponent):
         self.skill.data['turns'] = self.value
         self.skill.data['starting_turns'] = self.value
 
-    def on_upkeep(self, actions, playback, unit):
+    def on_upkeep_unconditional(self, actions, playback, unit):
         val = self.skill.data['turns'] - 1
         action.do(action.SetObjData(self.skill, 'turns', val))
         if self.skill.data['turns'] <= 0:
@@ -29,7 +29,7 @@ class Time(SkillComponent):
     def text(self) -> str:
         return str(self.skill.data['turns'])
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -45,7 +45,7 @@ class EndTime(SkillComponent):
         self.skill.data['turns'] = self.value
         self.skill.data['starting_turns'] = self.value
 
-    def on_endstep(self, actions, playback, unit):
+    def on_endstep_unconditional(self, actions, playback, unit):
         val = self.skill.data['turns'] - 1
         action.do(action.SetObjData(self.skill, 'turns', val))
         if self.skill.data['turns'] <= 0:
@@ -54,7 +54,7 @@ class EndTime(SkillComponent):
     def text(self) -> str:
         return str(self.skill.data['turns'])
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -70,13 +70,13 @@ class CombinedTime(SkillComponent):
         self.skill.data['turns'] = self.value * 2
         self.skill.data['starting_turns'] = self.value * 2
 
-    def on_upkeep(self, actions, playback, unit):
+    def on_upkeep_unconditional(self, actions, playback, unit):
         val = self.skill.data['turns'] - 1
         action.do(action.SetObjData(self.skill, 'turns', val))
         if self.skill.data['turns'] <= 0:
             actions.append(action.RemoveSkill(unit, self.skill))
 
-    def on_endstep(self, actions, playback, unit):
+    def on_endstep_unconditional(self, actions, playback, unit):
         val = self.skill.data['turns'] - 1
         action.do(action.SetObjData(self.skill, 'turns', val))
         if self.skill.data['turns'] <= 0:
@@ -85,7 +85,7 @@ class CombinedTime(SkillComponent):
     def text(self) -> str:
         return str(math.ceil(self.skill.data['turns'] / 2))
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -107,7 +107,7 @@ class UpkeepStatChange(SkillComponent):
         val = self.skill.data['counter'] + 1
         action.do(action.SetObjData(self.skill, 'counter', val))
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -116,10 +116,10 @@ class LostOnEndstep(SkillComponent):
     desc = "Remove on next endstep"
     tag = SkillTags.TIME
 
-    def on_endstep(self, actions, playback, unit):
+    def on_endstep_unconditional(self, actions, playback, unit):
         actions.append(action.RemoveSkill(unit, self.skill))
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -128,10 +128,10 @@ class LostOnUpkeep(SkillComponent):
     desc = "Remove on next upkeep"
     tag = SkillTags.TIME
 
-    def on_upkeep(self, actions, playback, unit):
+    def on_upkeep_unconditional(self, actions, playback, unit):
         actions.append(action.RemoveSkill(unit, self.skill))
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -187,7 +187,7 @@ class LostOnEndCombat2(SkillComponent):
             action.do(action.RemoveSkill(unit, self.skill))
         self.marked_for_delete = False
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
         self.marked_for_delete = False
 
@@ -201,7 +201,7 @@ class LostOnKill(SkillComponent):
         if target and target.get_hp() <= 0:
             action.do(action.RemoveSkill(unit, self.skill))
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 
@@ -210,7 +210,7 @@ class LostOnEndChapter(SkillComponent):
     desc = "Remove at end of chapter"
     tag = SkillTags.TIME
 
-    def on_end_chapter(self, unit, skill):
+    def on_end_chapter_unconditional(self, unit, skill):
         action.do(action.RemoveSkill(unit, self.skill))
 
 

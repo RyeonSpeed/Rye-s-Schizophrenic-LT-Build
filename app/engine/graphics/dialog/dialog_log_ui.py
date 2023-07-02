@@ -36,7 +36,8 @@ class DialogLogEntry:
     def draw(self, surf: engine.Surface, topleft: Tuple[int, int]) -> engine.Surface:
         x, y = topleft
         # Draw name
-        render_text(surf, [self.FONT], [self.name], ['yellow'], (x + self.CHIBI_SIZE, y))
+        if self.name:
+            render_text(surf, [self.FONT], [self.name], ['yellow'], (x + self.CHIBI_SIZE, y))
 
         # Draw text
         for idx, line in enumerate(self.text_lines):

@@ -3,6 +3,7 @@ from app.utilities.data import Data
 
 from app.engine.objects.unit import UnitObject
 from app.engine.objects.region import RegionObject
+from app.engine.objects.ai_group import AIGroupObject
 from app.engine.objects.tilemap import TileMapObject
 
 from app.data.database.level_units import UnitGroup
@@ -23,6 +24,7 @@ class LevelObject():
         self.units: Data[UnitObject] = Data()
         self.regions: Data[RegionObject] = Data()
         self.unit_groups = Data()
+        self.ai_groups: Data[AIGroupObject] = Data()
 
     @classmethod
     def from_prefab(cls, prefab, tilemap, bg_tilemap, unit_registry, current_mode: DifficultyModeObject):
@@ -53,6 +55,7 @@ class LevelObject():
 
         level.regions = Data([RegionObject.from_prefab(p) for p in prefab.regions])
         level.unit_groups = Data([UnitGroup.from_prefab(p) for p in prefab.unit_groups])
+        level.ai_groups = Data([AIGroupObject.from_prefab(p) for p in prefab.ai_groups])
 
         return level
 
@@ -74,6 +77,7 @@ class LevelObject():
         level.units: Data[UnitObject] = Data()
         level.regions: Data[RegionObject] = Data()
         level.unit_groups = Data()
+        level.ai_groups: Data[AIGroupObject] = Data()
 
         return level
 
@@ -88,6 +92,7 @@ class LevelObject():
                   'units': [unit.nid for unit in self.units],
                   'regions': [region.nid for region in self.regions],
                   'unit_groups': [unit_group.save() for unit_group in self.unit_groups],
+                  'ai_groups': [ai_group.save() for ai_group in self.ai_groups],
                   }
         return s_dict
 
@@ -106,5 +111,6 @@ class LevelObject():
         level.units = Data([game.get_unit(unit_nid) for unit_nid in s_dict.get('units', [])])
         level.regions = Data([game.get_region(region_nid) for region_nid in s_dict.get('regions', [])])
         level.unit_groups = Data([UnitGroup.restore(unit_group) for unit_group in s_dict.get('unit_groups', [])])
+        level.ai_groups = Data([AIGroupObject.restore(ai_group) for ai_group in s_dict.get('ai_groups', [])])
 
         return level

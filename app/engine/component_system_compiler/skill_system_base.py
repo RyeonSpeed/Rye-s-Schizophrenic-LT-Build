@@ -12,20 +12,22 @@ class Defaults():
 
     @staticmethod
     def check_ally(unit1, unit2) -> bool:
+        from app.data.database.database import DB
         if unit1 is unit2:
             return True
-        elif unit1.team == 'player' or unit1.team == 'other':
-            return unit2.team == 'player' or unit2.team == 'other'
+        elif unit2.team in DB.teams.get_allies(unit1.team):
+            return True
         else:
             return unit2.team == unit1.team
         return False
 
     @staticmethod
     def check_enemy(unit1, unit2) -> bool:
-        if unit1.team == 'player' or unit1.team == 'other':
-            return not (unit2.team == 'player' or unit2.team == 'other')
+        from app.data.database.database import DB
+        if unit2.team in DB.teams.get_allies(unit1.team):
+            return False
         else:
-            return not unit2.team == unit1.team
+            return unit2.team != unit1.team
         return True
 
     @staticmethod
@@ -315,27 +317,13 @@ def before_crit(actions, playback, attacker, item, defender, mode, attack_info) 
             if component.defines('before_crit'):
                 component.before_crit(actions, playback, attacker, item, defender, mode, attack_info)
 
-def on_upkeep(actions, playback, unit) -> tuple:  # actions, playback
-    for skill in unit.skills:
-        for component in skill.components:
-            if component.defines('on_upkeep'):
-                if component.ignore_conditional or condition(skill, unit):
-                    component.on_upkeep(actions, playback, unit)
-    return actions, playback
-
-def on_endstep(actions, playback, unit) -> tuple:  # actions, playback
-    for skill in unit.skills:
-        for component in skill.components:
-            if component.defines('on_endstep'):
-                if component.ignore_conditional or condition(skill, unit):
-                    component.on_endstep(actions, playback, unit)
-    return actions, playback
-
 def on_end_chapter(unit, skill):
     for component in skill.components:
         if component.defines('on_end_chapter'):
             if component.ignore_conditional or condition(skill, unit):
                 component.on_end_chapter(unit, skill)
+        if component.defines('on_end_chapter_unconditional'):
+            component.on_end_chapter_unconditional(unit, skill)
 
 def init(skill):
     """
@@ -453,7 +441,8 @@ def ai_priority_multiplier(unit) -> float:
 def get_combat_arts(unit):
     from app.engine import item_funcs, target_system, action
     combat_arts = {}
-    for skill in unit.skills:
+    unit_skills = unit.skills[:]
+    for skill in unit_skills:
         if not condition(skill, unit):
             continue
         combat_art = None

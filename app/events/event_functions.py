@@ -1083,6 +1083,11 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
         self.logger.error("move_unit: Couldn't get a good position %s %s %s" % (position, movement_type, placement))
         return None
 
+    # In case the unit is currently still moving
+    if self.game.movement.is_moving(unit):
+        self.game.movement.stop(unit)
+        unit.sprite.reset()
+
     if movement_type == 'immediate':
         action.do(action.Teleport(unit, position))
     elif movement_type == 'warp':
@@ -1095,10 +1100,6 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
         path = target_system.get_path(unit, position)
         if path:
             if self.do_skip:
-                # In case the unit is currently still moving
-                if self.game.movement.is_moving(unit):
-                    self.game.movement.stop(unit)
-                    unit.sprite.reset()
                 action.do(action.Teleport(unit, position))
             elif speed:
                 action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed))
@@ -1173,7 +1174,7 @@ def remove_all_units(self: Event, flags=None):
 
 def remove_all_enemies(self: Event, flags=None):
     for unit in self.game.units:
-        if unit.position and unit.team.startswith('enemy'):
+        if unit.position and unit.team in DB.teams.enemies:
             action.do(action.FadeOut(unit))
 
 def interact_unit(self: Event, unit, position, combat_script=None, ability=None, rounds=None, flags=None):
@@ -2070,6 +2071,17 @@ def change_ai(self: Event, global_unit, ai, flags=None):
     else:
         self.logger.error("change_ai: Couldn't find AI %s" % ai)
         return
+    
+def change_roam_ai(self: Event, global_unit, ai, flags=None):
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("change_roam_ai: Couldn't find unit %s" % global_unit)
+        return
+    if ai in DB.ai.keys():
+        action.do(action.ChangeRoamAI(unit, ai))
+    else:
+        self.logger.error("change_roam_ai: Couldn't find AI %s" % ai)
+        return
 
 def change_ai_group(self: Event, global_unit, ai_group, flags=None):
     unit = self._get_unit(global_unit)
@@ -2105,7 +2117,7 @@ def change_team(self: Event, global_unit, team, flags=None):
     if not unit:
         self.logger.error("change_team: Couldn't find unit %s" % global_unit)
         return
-    if team in DB.teams:
+    if team in DB.teams.keys():
         action.do(action.ChangeTeam(unit, team))
     else:
         self.logger.error("change_team: Not a valid team: %s" % team)
@@ -2128,6 +2140,13 @@ def change_unit_desc(self: Event, global_unit, string, flags=None):
         self.logger.error("change_unit_desc: Couldn't find unit %s" % global_unit)
         return
     action.do(action.ChangeUnitDesc(unit, string))
+
+def change_affinity(self: Event, global_unit, affinity, flags=None):
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("change_affinity: Couldn't find unit %s" % global_unit)
+        return
+    action.do(action.ChangeAffinity(unit, affinity))
 
 def change_stats(self: Event, global_unit, stat_list, flags=None):
     flags = flags or set()
@@ -3331,7 +3350,8 @@ def alert(self: Event, string, item=None, skill=None, icon=None, flags=None):
     self.game.state.change('alert')
     self.state = 'paused'
 
-def victory_screen(self: Event, flags=None):
+def victory_screen(self: Event, sound=None, flags=None):
+    self.game.memory['victory_screen_sound'] = sound
     self.game.state.change('victory')
     self.state = 'paused'
 

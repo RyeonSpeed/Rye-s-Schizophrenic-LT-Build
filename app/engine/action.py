@@ -2402,6 +2402,31 @@ class ChangeAI(Action):
         self.unit.ai = self.old_ai
 
 
+class ChangeRoamAI(Action):
+    def __init__(self, unit, ai):
+        self.unit = unit
+        self.roam_ai = ai
+        self.old_ai = self.unit.roam_ai
+        self._added_to_roam_ai = False
+
+    @recalculate_unit
+    def do(self):
+        self.unit.roam_ai = self.roam_ai
+        for s in game.state.state:
+            if s.name == 'free_roam' and not s.contains_ai_unit(self.unit):
+                s.add_ai_unit(self.unit)
+                self._added_to_roam_ai = True
+
+    @recalculate_unit
+    def reverse(self):
+        self.unit.roam_ai = self.old_ai
+        if self._added_to_roam_ai:
+            for s in game.state.state:
+                if s.name == 'free_roam' and s.contains_ai_unit(self.unit):
+                    s.remove_ai_unit(self.unit)
+        self._added_to_roam_ai = False  # Reset for later
+
+
 class ChangeAIGroup(Action):
     def __init__(self, unit, ai_group):
         self.unit = unit
@@ -2416,15 +2441,17 @@ class ChangeAIGroup(Action):
 
 
 class AIGroupPing(Action):
-    def __init__(self, unit):
-        self.unit = unit
-        self.old_ai_group_state = unit.ai_group_active
+    def __init__(self, ai_group: NID):
+        self.ai_group = ai_group
+        self.old_active = game.ai_group_active(self.ai_group)
 
     def do(self):
-        self.unit.ai_group_active = True
+        ai_group = game.get_ai_group(self.ai_group)
+        ai_group.active = True
 
     def reverse(self):
-        self.unit.ai_group_active = self.old_ai_group_state
+        ai_group = game.get_ai_group(self.ai_group)
+        ai_group.active = self.old_active
 
 
 class ChangeParty(Action):
@@ -2531,6 +2558,18 @@ class ChangeUnitDesc(Action):
 
     def reverse(self):
         self.unit.desc = self.old_desc
+
+class ChangeAffinity(Action):
+    def __init__(self, unit, affinity):
+        self.unit = unit
+        self.old_affinity = unit.affinity
+        self.new_affinity = affinity
+        
+    def do(self):
+        self.unit.affinity = self.new_affinity
+    
+    def reverse(self):
+        self.unit.affinity = self.old_affinity
 
 class AddTag(Action):
     def __init__(self, unit, tag):

@@ -129,6 +129,11 @@ class AttackerState(SolverState):
         self.num_multiattacks = combat_calcs.compute_multiattacks(solver.attacker, solver.defender, solver.main_item, 'attack', attack_info)
         if solver.num_subattacks >= self.num_multiattacks:
             solver.num_attacks += 1
+        # If we are trying to go for a subattack, but there is no defender and we don't do double splash
+        # just skip the remaining attacks
+        elif not DB.constants.value('double_splash') and all(defender is None for defender in solver.defenders):
+            solver.num_subattacks = self.num_multiattacks
+            solver.num_attacks += 1
 
         # End check attack proc
         skill_system.end_sub_combat(actions, playback, solver.attacker, solver.main_item, solver.defender, 'attack', attack_info)

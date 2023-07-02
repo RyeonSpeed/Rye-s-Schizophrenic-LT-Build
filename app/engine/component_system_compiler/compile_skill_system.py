@@ -47,7 +47,8 @@ subcombat_event_hooks = ('start_sub_combat', 'end_sub_combat')
 # Takes in unit, item
 item_event_hooks = ('on_add_item', 'on_remove_item',
                     'on_equip_item', 'on_unequip_item')
-
+# Takes in actions, playback, unit
+phase_event_hooks = ('on_upkeep', 'on_endstep')
 
 def compile_skill_system():
     import os
@@ -232,5 +233,20 @@ def %s(unit, item):
                 if component.ignore_conditional or condition(skill, unit, item):
                     component.%s(unit, item)""" \
             % (hook, hook, hook)
+        compiled_skill_system.write(func)
+        compiled_skill_system.write('\n')
+
+    for hook in phase_event_hooks:
+        func = """
+def %s(actions, playback, unit) -> tuple:  # actions, playback
+    for skill in unit.skills[:]:
+        for component in skill.components:
+            if component.defines('%s'):
+                if component.ignore_conditional or condition(skill, unit):
+                    component.%s(actions, playback, unit)
+            if component.defines('%s_unconditional'):
+                component.%s_unconditional(actions, playback, unit)
+    return actions, playback""" \
+            % (hook, hook, hook, hook, hook)
         compiled_skill_system.write(func)
         compiled_skill_system.write('\n')
