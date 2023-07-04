@@ -349,7 +349,8 @@ def after_add(unit, skill):
     for other_skill in unit.skills:
         for component in other_skill.components:
             if component.defines('after_gain_skill'):
-                component.after_gain_skill(unit, skill)
+                if component.ignore_conditional or condition(other_skill, unit):
+                    component.after_gain_skill(unit, skill)
 
 def before_remove(unit, skill):
     for component in skill.components:
