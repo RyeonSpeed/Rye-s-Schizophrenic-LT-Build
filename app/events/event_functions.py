@@ -777,7 +777,7 @@ def battle_save(self: Event, flags=None):
         self.game.memory['next_state'] = 'in_chapter_save'
         self.game.state.change('transition_to')
     else:  # Wait until after this event to make the save
-    self.battle_save_flag = True
+        self.battle_save_flag = True
     
 def battle_save_immediate(self: Event, flags=None):
     self.game.memory['save_kind'] = 'battle'
