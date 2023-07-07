@@ -1855,6 +1855,24 @@ class ApplyGrowthChanges(Action):
         negative_changes = {k: -v for k, v in self.stat_changes.items()}
         unit_funcs.apply_growth_changes(self.unit, negative_changes)
 
+
+class ChangeStatCapModifiers(Action):
+    def __init__(self, unit, stat_changes):
+        self.unit = unit
+        self.stat_changes = stat_changes
+
+    def do(self):
+        for nid, value in self.stat_changes.items():
+            if nid not in self.unit.stat_cap_modifiers:
+                self.unit.stat_cap_modifiers[nid] = 0
+            self.unit.stat_cap_modifiers[nid] += value
+
+    def reverse(self):
+        negative_changes = {k: -v for k, v in self.stat_changes.items()}
+        for nid, value in negative_changes.items():
+            self.unit.stat_cap_modifiers[nid] += value
+
+
 class Promote(Action):
     def __init__(self, unit, new_class_nid):
         self.unit = unit
@@ -1879,7 +1897,7 @@ class Promote(Action):
             elif stat_value == -98:  # Use the new klass base only if it's bigger
                 self.stat_changes[stat_nid] = max(0, new_klass_bases.get(stat_nid, 0) - current_stats[stat_nid])
             else:
-                max_gain_possible = new_klass_maxes.get(stat_nid, 0) - current_stats[stat_nid]
+                max_gain_possible = new_klass_maxes.get(stat_nid, 0) + unit.stat_cap_modifiers.get(stat_nid, 0) - current_stats[stat_nid]
                 self.stat_changes[stat_nid] = min(stat_value, max_gain_possible)
 
         wexp_gain = DB.classes.get(self.new_klass).wexp_gain
@@ -1943,7 +1961,7 @@ class ClassChange(Action):
         for stat_nid in self.stat_changes.keys():
             change = new_klass_bases.get(stat_nid, 0) - old_klass_bases.get(stat_nid, 0)
             current_stat = current_stats.get(stat_nid)
-            new_value = utils.clamp(change, -current_stat, new_klass_maxes.get(stat_nid, 0) - current_stat)
+            new_value = utils.clamp(change, -current_stat, new_klass_maxes.get(stat_nid, 0) + unit.stat_cap_modifiers.get(stat_nid, 0) - current_stat)
             self.stat_changes[stat_nid] = new_value
 
         wexp_gain = DB.classes.get(self.new_klass).wexp_gain
@@ -1988,6 +2006,9 @@ class ClassChange(Action):
         self.subactions.clear()
 
 class GainWexp(Action):
+    """
+    # Given a unit and an item, gain some of amount of weapon experience for that item's weapon type
+    """
     def __init__(self, unit, item, wexp_gain):
         self.unit = unit
         self.item = item
@@ -2002,12 +2023,13 @@ class GainWexp(Action):
 
     def do(self):
         self.old_value, self.current_value = self.increase_wexp()
-        for weapon_rank in reversed(DB.weapon_ranks):
-            if self.old_value < weapon_rank.requirement and self.current_value >= weapon_rank.requirement:
-                weapon_type = item_system.weapon_type(self.unit, self.item)
-                game.alerts.append(banner.GainWexp(self.unit, weapon_rank.rank, weapon_type))
-                game.state.change('alert')
-                break
+        if self.current_value > self.old_value:
+            for weapon_rank in reversed(DB.weapon_ranks):
+                if self.old_value < weapon_rank.requirement and self.current_value >= weapon_rank.requirement:
+                    weapon_type = item_system.weapon_type(self.unit, self.item)
+                    game.alerts.append(banner.GainWexp(self.unit, weapon_rank.rank, weapon_type))
+                    game.state.change('alert')
+                    break
 
     def execute(self):
         self.old_value, self.current_value = self.increase_wexp()
@@ -2020,6 +2042,9 @@ class GainWexp(Action):
 
 
 class AddWexp(Action):
+    """
+    # Given a unit and a weapon type, gain some of amount of weapon experience
+    """
     def __init__(self, unit, weapon_type, wexp_gain):
         self.unit = unit
         self.weapon_type = weapon_type
@@ -2033,17 +2058,44 @@ class AddWexp(Action):
 
     def do(self):
         self.old_value, self.current_value = self.increase_wexp()
-        for weapon_rank in reversed(DB.weapon_ranks):
-            if self.old_value < weapon_rank.requirement and self.current_value >= weapon_rank.requirement:
-                game.alerts.append(banner.GainWexp(self.unit, weapon_rank.rank, self.weapon_type))
-                game.state.change('alert')
-                break
+        if self.current_value > self.old_value:
+            for weapon_rank in reversed(DB.weapon_ranks):
+                if self.old_value < weapon_rank.requirement and self.current_value >= weapon_rank.requirement:
+                    game.alerts.append(banner.GainWexp(self.unit, weapon_rank.rank, self.weapon_type))
+                    game.state.change('alert')
+                    break
 
     def execute(self):
         self.old_value, self.current_value = self.increase_wexp()
 
     def reverse(self):
         self.unit.wexp[self.weapon_type] = self.old_value
+
+
+class SetWexp(Action):
+    """
+    # Given a unit and a weapon type, set their wexp to a certain value
+    """
+    def __init__(self, unit, weapon_type, wexp):
+        self.unit = unit
+        self.weapon_type = weapon_type
+        self.old_wexp = self.unit.wexp[self.weapon_type]
+        self.wexp = max(0, wexp)  # Can't be less than 0        
+
+    def do(self):
+        self.unit.wexp[self.weapon_type] = self.wexp
+        if self.wexp > self.old_wexp:
+            for weapon_rank in reversed(DB.weapon_ranks):
+                if self.old_wexp < weapon_rank.requirement and self.wexp >= weapon_rank.requirement:
+                    game.alerts.append(banner.GainWexp(self.unit, weapon_rank.rank, self.weapon_type))
+                    game.state.change('alert')
+                    break
+
+    def execute(self):
+        self.unit.wexp[self.weapon_type] = self.wexp
+
+    def reverse(self):
+        self.unit.wexp[self.weapon_type] = self.old_wexp
 
 
 class ChangeHP(Action):
