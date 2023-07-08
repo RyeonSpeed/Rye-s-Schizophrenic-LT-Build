@@ -163,6 +163,7 @@ class InfoMenuState(State):
                 get_sound_thread().play_sfx('Info In')
                 self.info_graph.set_transition_in()
                 self.info_flag = True
+                return
             elif event == 'AUX':
                 if self.state == 'personal_data' and self.unit.team == 'player' and DB.constants.value('growth_info'):
                     get_sound_thread().play_sfx('Select 3')
@@ -508,9 +509,19 @@ class InfoMenuState(State):
         surf = engine.create_surface(menu_size, transparent=True)
 
         left_stats = [stat.nid for stat in DB.stats if stat.position == 'left']
-        right_stats = left_stats[6:]  # Only first six get to be on the left
+        if len(left_stats) >= 7:
+            self._extra_stat_row = True
+            # If we have 7 or more left stats, use 7 rows
+            right_stats = left_stats[7:]  
+        else:  # Otherwise, just use the 6 rows
+            self._extra_stat_row = False
+            right_stats = left_stats[6:]
         right_stats += [stat.nid for stat in DB.stats if stat.position == 'right']
-        # Make sure we only display up to 6 on each
+        # Make sure we only display up to 6 or 7 on each
+        if self._extra_stat_row:
+            left_stats = left_stats[:7]
+            right_stats = right_stats[:7]
+        else:
         left_stats = left_stats[:6]
         right_stats = right_stats[:6]
 
