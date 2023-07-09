@@ -223,6 +223,314 @@ def import_effect_from_legacy(fn: str):
         RESOURCES.combat_effects.save_image(path, current)
 
     return current
+    
+# === IMPORT EFFECT FROM GBA =================================================
+def update_effect_anim_full_image(effect_anim):
+    width_limit = 1200
+    left = 0
+    heights = []
+    max_heights = []
+    for frame in effect_anim.frames:
+        width, height = frame.pixmap.width(), frame.pixmap.height()
+        if left + width > width_limit:
+            max_heights.append(max(heights))
+            frame.rect = (0, sum(max_heights), width, height)
+            heights = [height]
+            left = width
+        else:
+            frame.rect = (left, sum(max_heights), width, height)
+            left += width
+            heights.append(height)
+    if heights:
+        max_heights.append(max(heights))
+
+    total_width = min(width_limit, sum(frame.rect[2] for frame in effect_anim.frames))
+    total_height = sum(max_heights)
+    new_pixmap = QPixmap(total_width, total_height)
+    new_pixmap.fill(QColor(0, 0, 0))
+    painter = QPainter()
+    painter.begin(new_pixmap)
+    for frame in effect_anim.frames:
+        x, y, width, height = frame.rect
+        painter.drawPixmap(x, y, frame.pixmap)
+    painter.end()
+    effect_anim.pixmap = new_pixmap
+    effect_anim.full_path = None  # So we can save our changes
+    
+def finalize_and_save_effect(current):
+    update_effect_anim_full_image(current)
+    
+    # Actually add effect animation to RESOURCES
+    if current.nid in RESOURCES.combat_effects.keys():
+        RESOURCES.combat_effects.remove_key(current.nid)
+    RESOURCES.combat_effects.append(current)
+
+    # Need to save the full image somewhere
+    settings = MainSettingsController()
+    if os.path.basename(settings.get_current_project()) != 'default.ltproj':
+        path = os.path.join(settings.get_current_project(), 'resources', 'combat_effects')
+        RESOURCES.combat_effects.save_image(path, current)
+
+def import_effect_from_gba(fn):
+    """
+    Imports effect animations from CSA formatted spell animation script file.
+
+    Parameters
+    ----------
+    fn: str, filename
+        "*.txt" file to read from
+    """
+    logging.info("Import GBA spell effect animation from script %s", fn)
+    head, tail = os.path.split(fn)
+    tail = tail.replace('_without_comment', '')
+
+    images = []
+    for image_fn in os.listdir(head):
+        if image_fn.endswith('.png'):
+            images.append(os.path.join(head, image_fn))
+    logging.info("Images located: %s", images)
+    # Remove main sheet if it exists
+    images = list(sorted([path for path in images if 'Sheet' not in os.path.split(path)[-1]]))
+
+    if not images:
+        QMessageBox.critical(None, "Error", "Cannot find valid images in %s!" % head)
+        return
+    # Convert to pixmaps
+    pixmaps = {os.path.split(path)[-1][:-4]: QPixmap(path) for path in images}
+
+    # Convert to GBA colors
+    pixmaps = {name: convert_gba(pix) for name, pix in pixmaps.items()}
+
+    # Find palette
+    all_palette_colors = editor_utilities.find_palette_from_multiple([pix.toImage() for pix in pixmaps.values()])
+    my_palette = None
+    logging.info("Generating new palette...")
+    palette_nid = str_utils.get_next_name("New Palette", RESOURCES.combat_palettes.keys())
+    my_palette = combat_palettes.Palette(palette_nid)
+    RESOURCES.combat_palettes.append(my_palette)
+
+    # Change first color to colorkey
+    colorkey_conversion = {
+        qRgb(*all_palette_colors[0]): editor_utilities.qCOLORKEY,
+        qRgb(0, 0, 0): qRgb(40, 40, 40),  # Need to make sure there's no 0, 0, 0 in the image
+    }
+    pixmaps = {name: editor_utilities.color_convert_pixmap(pixmap, colorkey_conversion) for name, pixmap in pixmaps.items()}
+    all_palette_colors[0] = COLORKEY
+    if (0, 0, 0) in all_palette_colors:
+        idx = all_palette_colors.index((0, 0, 0))
+        all_palette_colors[idx] = (40, 40, 40)
+
+    my_palette.assign_colors(all_palette_colors)
+
+    # Now do a simple crop to get rid of palette extras
+    pixmaps = {name: simple_crop(pix) for name, pix in pixmaps.items()}
+    # Split double images into "_under" image
+    pixmaps = split_doubles(pixmaps)
+    # Convert pixmaps to new palette colors
+    convert_dict = editor_utilities.get_color_conversion(my_palette)
+    pixmaps = {name: editor_utilities.color_convert_pixmap(pixmap, convert_dict) for name, pixmap in pixmaps.items()}
+    # Determine which pixmaps should be replaced by "wait" commands
+    # empty_pixmaps = find_empty_pixmaps(pixmaps)
+    empty_pixmaps = []
+    current, sub_effects = parse_csa_effect_script(fn, pixmaps, empty_pixmaps)
+    
+    palette_name = str_utils.get_next_name('Image', [name for name, nid in current.palettes])
+    current.palettes.append([palette_name, my_palette.nid])
+
+    for sub_effect in sub_effects:
+        sub_effect.palettes.append([palette_name, my_palette.nid])
+        finalize_and_save_effect(sub_effect)
+
+    finalize_and_save_effect(current)
+        
+def parse_csa_effect_script(fn, pixmaps, empty_pixmaps):
+    # Read script
+    # Now add poses to the weapon anim
+    with open(fn, encoding='utf-8') as script_fp:
+        script_lines = [line.strip() for line in script_fp.readlines()]
+        script_lines = [(line[:line.index('#')] if '#' in line else line) for line in script_lines]
+        script_lines = [line for line in script_lines if line]
+
+    
+    current_anim = combat_anims.EffectAnimation(os.path.basename(fn)[:-4])
+    current_command: combat_commands.CombatAnimationCommand = None
+    used_images = set()
+    attack_pose = combat_anims.Pose('Attack')
+    miss_pose = combat_anims.Pose('Miss')
+    sub_effects = []
+    sub_effect_poses = []
+    sub_effect_used_images = []
+    sub_effect_active = False
+    include_miss = True
+    enemy_focus = False
+    over_name = ""
+    under_name = ""
+    current_frames = 0
+
+    def parse_text(text):
+        nonlocal sub_effect_active
+        command = combat_commands.parse_text(text)
+        # If there is a frame in the command,
+        # add it to the set of used images
+        if command.has_frames():
+            frames = command.get_frames()
+            add_frame = False
+            if any(f in empty_pixmaps for f in frames):
+                command = combat_commands.parse_text('wait;%d' % command.value[0])
+            else:
+                add_frame = True
+            nonlocal current_command
+            current_command = command
+            if not sub_effect_active and enemy_focus:
+                sub_effects.append(combat_anims.EffectAnimation(os.path.basename(fn)[:-4] + str(len(sub_effects)+1)))
+                sub_effect_poses.append(combat_anims.Pose('Attack'))
+                sub_effect_active = True
+                sub_effect_poses[-1].timeline.append(command)
+                sub_effect_used_images.append(set())
+                if add_frame:
+                    for frame in frames:
+                       sub_effect_used_images[-1].add(frame)
+            elif sub_effect_active and enemy_focus:
+                sub_effect_poses[-1].timeline.append(command)
+                if add_frame:
+                    for frame in frames:
+                       sub_effect_used_images[-1].add(frame)
+            else:
+                if include_miss:
+                    miss_pose.timeline.append(command)
+                attack_pose.timeline.append(command)
+                if add_frame:
+                    for frame in frames:
+                       used_images.add(frame)
+
+        elif command.nid == 'wait' and sub_effect_active:
+            sub_effect_poses[-1].timeline.append(command)
+
+        else:
+            if sub_effect_active:
+                nonlocal current_frames
+                sub_effect_active = False
+                sub_effects[-1].poses.append(sub_effect_poses[-1])
+                save_images(sub_effect_poses[-1], sub_effects[-1], sub_effect_used_images[-1])
+                finalize_and_save_effect(sub_effects[-1])
+                sub_effect_command = combat_commands.parse_text('enemy_effect_with_offset_no_mirror;%s;-15;0' % sub_effects[-1].nid)
+                current_frames -= 1
+                if include_miss:
+                    miss_pose.timeline.append(sub_effect_command)
+                    miss_pose.timeline.append(combat_commands.parse_text('wait;%d' % current_frames))
+                attack_pose.timeline.append(sub_effect_command)
+                attack_pose.timeline.append(combat_commands.parse_text('wait;%d' % current_frames))
+                current_frames = 0
+            if include_miss:
+                miss_pose.timeline.append(command)
+            attack_pose.timeline.append(command)
+
+    def copy_frame(frame_command, num_frames: int = 1):
+        new_command = frame_command.__class__.copy(frame_command)
+        new_command.set_frame_count(num_frames)
+        current_pose.timeline.append(new_command)
+
+    def wait_for_hit(frame_command):
+        if frame_command.nid in ('frame', 'over_frame', 'under_frame', 'frame_with_offset'):
+            frame_name = frame_command.value[1]
+            new_command = combat_commands.parse_text('wait_for_hit;%s' % frame_name)
+            current_pose.timeline.append(new_command)
+        elif frame_command.nid == 'dual_frame':
+            frame_name1 = frame_command.value[1]
+            frame_name2 = frame_command.value[2]
+            new_command = combat_commands.parse_text('wait_for_hit;%s;%s' % (frame_name1, frame_name2))
+            current_pose.timeline.append(new_command)
+        else:
+            return
+
+    def save_images(current_pose, current_anim, current_used_images):
+        if current_anim:
+            for frame_nid in sorted(current_used_images):
+                if frame_nid in current_anim.frames.keys():
+                    # Don't bother if already present
+                    continue
+                pixmap = pixmaps[frame_nid]
+                x, y, width, height = editor_utilities.get_bbox(pixmap.toImage())
+                if width > 0 and height > 0:
+                    pixmap = pixmap.copy(x, y, width, height)
+                    new_frame = combat_anims.Frame(frame_nid, (0, 0, width, height), (x, y), pixmap=pixmap)
+                    current_anim.frames.append(new_frame) 
+
+    for line in script_lines:
+        logging.info("Processing script line: %s", line)
+        if line.startswith('/// - '):
+            break  # Done with reading script
+
+        elif line.startswith('C'):
+            command_code = line[5:7]
+            write_extra_frame = True  # Most commands occur at the same time as the last frame
+            if command_code == '1A':
+                include_miss = False
+            elif command_code == '1F':
+                parse_text('enemy_tint;1;255,255,255')
+                parse_text('spell_hit')
+            elif command_code == '29':
+                brightness = int(line[1:3], 16)
+                opacity = int(line[3:5], 16)
+                # Resolve brightness to "dark" or "light"
+                if brightness >= 9:
+                    parse_text('darken')
+                    parse_text('wait;1')
+                elif brightness <= 16:
+                    parse_text('lighten')
+                    parse_text('wait;1')
+                # TODO: discarding bg opacity currently, should do something with it
+            elif command_code == '40':
+                parse_text('pan')
+                enemy_focus = not enemy_focus
+            elif command_code == '48':
+                music_id = line[1:5]
+                parse_text("sound;%s" % music_id)
+            else:
+                logging.warning("Unknown/Ignored Command Code: C%s" % command_code)
+
+            if write_extra_frame and current_command:
+                current_command.increment_frame_count()
+                
+        
+        elif line.startswith('O') or line.startswith('B'): # Frame image
+            try:
+                s_l = line.split()
+                over = s_l[0] == 'O'
+                png_name = s_l[1]
+            except ValueError:
+                logging.error('Cannot parse "%s"! Skipping over this line...' % line)
+                continue
+            if over:
+                over_name = png_name[:-4]
+            else:
+                under_name = png_name[:-4]
+            if png_name[:-4] not in pixmaps:
+                print(png_name[:-4])
+                logging.error("%s frame not in pixmaps" % png_name[:-4])
+                
+        elif line[0].isdigit(): # Frame count
+            def parse_frame(num_frames, over_name, under_name):
+                # parse_text('dual_frame;%d;%s;%s' % (num_frames, over_name, under_name))
+                # TODO: Dual frame doesn't seem to work here, need some other strat for bg/fg, ignoring non-bg for now
+                parse_text('frame;%d;%s' % (num_frames, under_name))
+
+            parse_frame(int(line[0]), over_name, under_name)
+            current_frames += int(line[0])
+    
+    include_miss = True
+    parse_text('end_parent_loop')
+    if enemy_focus:
+        parse_text('pan')
+    parse_text('wait;1')
+    
+    save_images(attack_pose, current_anim, used_images)
+    save_images(miss_pose, current_anim, used_images)
+            
+    current_anim.poses.append(attack_pose)
+    current_anim.poses.append(miss_pose)
+
+    return current_anim, sub_effects
 
 # === IMPORT FROM GBA ========================================================
 def update_weapon_anim_full_image(weapon_anim):
