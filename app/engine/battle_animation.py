@@ -284,7 +284,7 @@ class BattleAnimation():
         self.screen_dodge_counter = num_frames
         self.screen_dodge_color = color
 
-    def get_effect(self, effect_nid: str, enemy: bool = False, pose=None) -> EffectAnimation:
+    def get_effect(self, effect_nid: str, enemy: bool = False, pose=None, de_mirror: bool = False) -> EffectAnimation:
         effect = RESOURCES.combat_effects.get(effect_nid)
         if effect:
             # Determine effect's palette
@@ -304,7 +304,7 @@ class BattleAnimation():
                 palette = self.current_palette
 
             child_effect = BattleAnimation.get_effect_anim(effect, self.palette_name, palette, self.unit, self.item)
-            right = not self.right if enemy else self.right
+            right = not self.right if enemy and not de_mirror else self.right
             parent = self.parent.partner_anim if enemy else self.parent
             child_effect.pair(self.owner, self.partner_anim, right, self.at_range, parent=parent)
             if pose:
@@ -515,6 +515,13 @@ class BattleAnimation():
             effect = values[0]
             x_offset, y_offset = values[1], values[2]
             child_effect = self.get_effect(effect, enemy=True)
+            if child_effect and self.partner_anim:
+                child_effect.effect_offset = (x_offset, y_offset)
+                self.partner_anim.child_effects.append(child_effect)
+        elif command.nid == 'enemy_effect_with_offset_no_mirror':
+            effect = values[0]
+            x_offset, y_offset = values[1], values[2]
+            child_effect = self.get_effect(effect, enemy=True, de_mirror=True)
             if child_effect and self.partner_anim:
                 child_effect.effect_offset = (x_offset, y_offset)
                 self.partner_anim.child_effects.append(child_effect)

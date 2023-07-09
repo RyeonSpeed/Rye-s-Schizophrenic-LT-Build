@@ -468,7 +468,7 @@ def get_command_widget(command, parent):
         c = SoundCommand(command, parent)
     elif command.attr == ('effect',):
         c = EffectCommand(command, parent)
-    elif command.nid in ('effect_with_offset', 'under_effect_with_offset', 'enemy_effect_with_offset'):
+    elif command.nid in ('effect_with_offset', 'under_effect_with_offset', 'enemy_effect_with_offset', 'enemy_effect_with_offset_no_mirror'):
         c = EffectWithOffsetCommand(command, parent)
     elif command.nid == 'wait_for_hit':
         c = WaitForHitCommand(command, parent)

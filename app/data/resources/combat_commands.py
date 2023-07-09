@@ -192,6 +192,7 @@ anim_commands = Data([
     CombatAnimationCommand('effect_with_offset', 'Show Effect On Self With Offset', ('effect', int, int), (None, 0, 0), 'effect'),
     CombatAnimationCommand('under_effect_with_offset', 'Show Effect Under Self With Offset', ('effect', int, int), (None, 0, 0), 'effect'),
     CombatAnimationCommand('enemy_effect_with_offset', 'Show Effect On Enemy With Offset', ('effect', int, int), (None, 0, 0), 'effect'),
+    CombatAnimationCommand('enemy_effect_with_offset_no_mirror', 'Show Effect On Enemy With Offset No Mirror', ('effect', int, int), (None, 0, 0), 'effect'),
     CombatAnimationCommand('clear_all_effects', 'Clear All Effects', None, None, 'effect'),
 
     CombatAnimationCommand('pan', 'Pan Screen', None, None, 'aesthetic3'),
