@@ -522,8 +522,8 @@ class InfoMenuState(State):
             left_stats = left_stats[:7]
             right_stats = right_stats[:7]
         else:
-        left_stats = left_stats[:6]
-        right_stats = right_stats[:6]
+            left_stats = left_stats[:6]
+            right_stats = right_stats[:6]
 
         for idx, stat_nid in enumerate(left_stats):
             curr_stat = DB.stats.get(stat_nid)
