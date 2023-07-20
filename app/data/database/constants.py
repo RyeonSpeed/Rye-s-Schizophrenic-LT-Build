@@ -31,7 +31,7 @@ class ConstantTag(str, Enum):
 
 class Constant(object):
     def __init__(self, nid: NID, name: str = '', attr: ConstantType | List[str] = ConstantType.BOOL, 
-                 default_value: Any=False, tag: ConstantTag = ConstantTag.OTHER):
+                 default_value: Any = False, tag: ConstantTag = ConstantTag.OTHER):
         self.nid: NID = nid
         self.name: str = name
         self.attr: ConstantType | List[str] = attr
@@ -113,6 +113,7 @@ constants = ConstantCatalog([
     Constant('roam_hide_hp', "Hide hp bars during free roam", ConstantType.BOOL, False, ConstantTag.AESTHETIC),
     Constant('autogenerate_grey_map_sprites', 'Automatically generate grey "wait" map sprites', ConstantType.BOOL, True, ConstantTag.AESTHETIC),
     Constant('translucent_unit_sprite', "A phantom of current unit will appear at cursor's position", ConstantType.BOOL, False, ConstantTag.AESTHETIC),
+    Constant('talk_display', "If enough room, display who a unit can talk to in info menu", ConstantType.BOOL, False, ConstantTag.AESTHETIC),
     Constant('convoy_on_death', "Items held by dead player units are sent to convoy", ConstantType.BOOL, ConstantTag.OTHER),
     Constant('repair_shop', "Access the Repair Shop in prep and base", ConstantType.BOOL, False, ConstantTag.OTHER),
     Constant('sound_room_in_codex', "Can access sound room from Codex menu in base", ConstantType.BOOL, True, ConstantTag.OTHER),

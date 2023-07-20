@@ -5,7 +5,7 @@ from app.data.database.database import DB
 from app.data.resources.resources import RESOURCES
 from app.engine import (background, combat_calcs, engine, equations, gui,
                         help_menu, icons, image_mods, item_funcs, skill_system,
-                        text_funcs)
+                        text_funcs, unit_funcs)
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.game_menus import menu_options
 from app.engine.game_menus.icon_options import BasicItemOption, ItemOptionModes
@@ -512,7 +512,7 @@ class InfoMenuState(State):
         if len(left_stats) >= 7:
             self._extra_stat_row = True
             # If we have 7 or more left stats, use 7 rows
-            right_stats = left_stats[7:]  
+            right_stats = left_stats[7:]
         else:  # Otherwise, just use the 6 rows
             self._extra_stat_row = False
             right_stats = left_stats[6:]
@@ -567,6 +567,8 @@ class InfoMenuState(State):
             self.info_graph.register((96 + 72, 16 * idx + 24, 64, 16), help_box, state)
 
         other_stats = ['RAT']
+        if DB.constants.value('talk_display'):
+            other_stats.insert(0, 'TALK')
         if DB.constants.value('pairup') and DB.constants.value('attack_stance_only'):
             pass
         else:
@@ -576,6 +578,7 @@ class InfoMenuState(State):
             other_stats.insert(0, 'MANA')
         if DB.constants.value('pairup') and not DB.constants.value('attack_stance_only'):
             other_stats.insert(2, 'GAUGE')
+
         other_stats = other_stats[:6 - len(right_stats)]
 
         for idx, stat in enumerate(other_stats):
@@ -629,6 +632,15 @@ class InfoMenuState(State):
                 render_text(surf, ['text'], [gge], ['blue'], (111, 16 * true_idx + 24), HAlignment.RIGHT)
                 render_text(surf, ['text'], [text_funcs.translate('GAUGE')], ['yellow'], (72, 16 * true_idx + 24))
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'GAUGE_desc', state)
+                
+            elif stat == 'TALK':
+                if (len([talk for talk in game.talk_options if talk[0] == self.unit.nid]) != 0):
+                    talkee = [talk for talk in game.talk_options if talk[0] == self.unit.nid][0][1]
+                    render_text(surf, ['text'], [game.get_unit(talkee).name], ['blue'], (96, 16 * true_idx + 24))
+                else:
+                    render_text(surf, ['text'], ['--'], ['blue'], (98, 16 * true_idx + 24))
+                render_text(surf, ['text'], [text_funcs.translate('Talk')], ['yellow'], (72, 16 * true_idx + 24))
+                self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'Talk_desc', state)
 
             if DB.constants.value('lead'):
                 render_text(surf, ['text'], [text_funcs.translate('Lead')], ['yellow'], (72, 120))
@@ -650,11 +662,9 @@ class InfoMenuState(State):
         surf.blit(self.growths_surf, (96, 0))
 
     def create_wexp_surf(self):
-        class_obj = DB.classes.get(self.unit.klass)
         wexp_to_draw: List[Tuple[str, int]] = []
         for weapon, wexp in self.unit.wexp.items():
-            if wexp > 0 and (class_obj.wexp_gain.get(weapon).usable or skill_system.wexp_usable_skill(self.unit, weapon)) \
-            and not skill_system.wexp_unusable_skill(self.unit, weapon):
+            if wexp > 0 and weapon in unit_funcs.usable_wtypes(self.unit):
                 wexp_to_draw.append((weapon, wexp))
         width = (WINWIDTH - 102) // 2
         height = 16 * 3 + 4
