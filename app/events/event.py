@@ -633,8 +633,8 @@ class Event():
                 self.logger.error("Couldn't find unit with nid %s" % unit_nid)
                 return None, None
         # If UID, immediately retrieve item
-        if item.isdigit() and self.game.get_item(int(item)):
-            return unit, self.game.get_item(int(item))
+        # if item.isdigit() and self.game.get_item(int(item)):
+        #     return unit, self.game.get_item(int(item))
         item_id = item
         if recursive:
             item_list = item_funcs.get_all_items_with_multiitems(unit.items)
