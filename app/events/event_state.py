@@ -27,12 +27,12 @@ class EventState(State):
 
     def take_input(self, event):
         if self.event:
-            if self.event.state == 'dialog' and event == 'INFO':
-                # game.state.change('dialog_log')
+            if self.event.state == 'dialog' and event == 'AUX':
+                game.state.change('dialog_log')
+
+            elif self.event.state == 'dialog' and event == 'INFO':
                 game.events.trigger(triggers.RoamPressInfo(None, None))
-            elif self.event.state == 'dialog' and event == 'AUX':
-                game.memory['save_kind'] = 'battle'
-                game.state.change('in_chapter_save')
+
             else:
                 self.event.take_input(event)
 
