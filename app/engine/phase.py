@@ -61,7 +61,20 @@ class PhaseController():
     def get_previous(self) -> NID:
         if DB.constants.value('initiative'):
             return game.initiative.get_previous_unit().team
-        return DB.teams[self.previous].nid
+        else:
+            return DB.teams[self.previous].nid
+
+    def get_next(self) -> NID:
+        if DB.constants.value('initiative'):
+            return game.initiative.get_next_unit().team
+        else:
+            counter = 0
+            while counter < 99:
+                counter += 1
+                next_team = DB.teams[(self.current + counter) % len(DB.teams)].nid
+                if any(unit.team == next_team for unit in game.units if unit.position and 'Tile' not in unit.tags):
+                    return next_team
+            return 'player'
 
     def set_player(self):
         self.current = 0
