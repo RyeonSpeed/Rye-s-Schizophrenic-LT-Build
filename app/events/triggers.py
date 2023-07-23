@@ -370,6 +370,18 @@ class RoamPressInfo(EventTrigger):
     nid: ClassVar[NID] = 'roam_press_info'
     unit1: UnitObject
     unit2: UnitObject
+    
+@dataclass(init=True)
+class RoamPressAux(EventTrigger):
+    """
+    Occurs when the `aux` key is pressed in Free Roam.
+
+        unit1: The current roam unit.
+        unit2: the closest nearby other unit.
+    """
+    nid: ClassVar[NID] = 'roam_press_aux'
+    unit1: UnitObject
+    unit2: UnitObject
 
 @dataclass(init=True)
 class RoamingInterrupt(EventTrigger):
