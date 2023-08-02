@@ -186,16 +186,6 @@ class FreeRoamState(MapState):
             self.rationalize_all_units()
         else:
             get_sound_thread().play_sfx('Error')
-
-    def check_aux(self):
-        """
-        # Called whenever the player presses AUX
-        """
-        other_unit = self.get_closest_unit()
-        self.rationalize_all_units()
-        did_trigger = game.events.trigger(triggers.RoamPressAux(self.roam_unit, other_unit))
-        if not did_trigger:
-            game.state.change('option_menu')
     
     def check_start(self):
         """
