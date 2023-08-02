@@ -130,6 +130,7 @@ class InfoMenuState(State):
         directions = self.fluid.get_directions()
 
         self.handle_mouse()
+        if self.info_flag:
             if event == 'INFO' or event == 'BACK':
                 get_sound_thread().play_sfx('Info Out')
                 self.info_graph.set_transition_out()
