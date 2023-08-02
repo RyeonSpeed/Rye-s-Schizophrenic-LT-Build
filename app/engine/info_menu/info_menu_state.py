@@ -130,11 +130,6 @@ class InfoMenuState(State):
         directions = self.fluid.get_directions()
 
         self.handle_mouse()
-        if self.info_flag and self.multi_item_flag:
-            if event == 'AUX' or event == 'BACK':
-                get_sound_thread().play_sfx('Info Out')
-                self.multi_item_flag = False
-        elif self.info_flag:
             if event == 'INFO' or event == 'BACK':
                 get_sound_thread().play_sfx('Info Out')
                 self.info_graph.set_transition_out()
@@ -231,13 +226,14 @@ class InfoMenuState(State):
 
     def move_down(self):
         get_sound_thread().play_sfx('Status_Character')
-        if len(self.scroll_units) > 1:
             if self.rescuer:
                 new_index = self.scroll_units.index(self.rescuer)
                 self.rescuer = None
+        elif len(self.scroll_units) > 1:
+            index = self.scroll_units.index(self.unit)
+            new_index = (index + 1) % len(self.scroll_units)    
             else:
-                index = self.scroll_units.index(self.unit)
-                new_index = (index + 1) % len(self.scroll_units)
+            return
             self.next_unit = self.scroll_units[new_index]
             if self.state == 'notes' and not (DB.constants.value('unit_notes')):
                 self.state = 'personal_data'
@@ -246,13 +242,14 @@ class InfoMenuState(State):
 
     def move_up(self):
         get_sound_thread().play_sfx('Status_Character')
-        if len(self.scroll_units) > 1:
             if self.rescuer:
                 new_index = self.scroll_units.index(self.rescuer)
                 self.rescuer = None
-            else:
+        elif len(self.scroll_units) > 1:
                 index = self.scroll_units.index(self.unit)
                 new_index = (index - 1) % len(self.scroll_units)
+        else:
+            return        
             self.next_unit = self.scroll_units[new_index]
             if self.state == 'notes' and not (DB.constants.value('unit_notes')):
                 self.state = 'personal_data'

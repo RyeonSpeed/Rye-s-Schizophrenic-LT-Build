@@ -355,9 +355,11 @@ class RoamPressStart(EventTrigger):
     Occurs when the `start` key is pressed in Free Roam.
 
         unit1: The current roam unit.
+        unit2: the closest nearby other unit.
     """
     nid: ClassVar[NID] = 'roam_press_start'
     unit1: UnitObject
+    unit2: UnitObject
 
 @dataclass(init=True)
 class RoamPressInfo(EventTrigger):
@@ -371,6 +373,18 @@ class RoamPressInfo(EventTrigger):
     unit1: UnitObject
     unit2: UnitObject
     
+@dataclass(init=True)
+class RoamPressAux(EventTrigger):
+    """
+    Occurs when the `aux` key is pressed in Free Roam.
+
+        unit1: The current roam unit.
+        unit2: the closest nearby other unit.
+    """
+    nid: ClassVar[NID] = 'roam_press_aux'
+    unit1: UnitObject
+    unit2: UnitObject
+
 @dataclass(init=True)
 class RoamPressAux(EventTrigger):
     """

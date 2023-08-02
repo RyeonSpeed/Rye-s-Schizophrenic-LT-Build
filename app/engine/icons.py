@@ -222,7 +222,7 @@ def draw_stat(surf, stat_nid, unit, topright, compact=False):
         if bonus > 0:
             FONT['small-green'].blit("+%d" % bonus, surf, topright)
         elif bonus < 0:
-            FONT['text-red'].blit(str(bonus), surf, topright)
+            FONT['small-red'].blit(str(bonus), surf, topright)
 
 def draw_growth(surf, stat_nid, unit, topright, compact=False):
     if stat_nid not in DB.stats.keys():
@@ -243,4 +243,4 @@ def draw_growth(surf, stat_nid, unit, topright, compact=False):
         if bonus > 0:
             FONT['small-green'].blit("+%d" % bonus, surf, topright)
         elif bonus < 0:
-            FONT['text-red'].blit(str(bonus), surf, topright)
+            FONT['small-red'].blit(str(bonus), surf, topright)
