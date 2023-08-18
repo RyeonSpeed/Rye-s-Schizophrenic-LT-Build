@@ -3,6 +3,7 @@ from app.data.database.item_components import ItemComponent, ItemTags
 from app.data.database.components import ComponentType
 
 from app.engine import action, item_funcs
+from app.engine.item_system import is_broken
 
 class Uses(ItemComponent):
     nid = 'uses'
@@ -55,6 +56,9 @@ class Uses(ItemComponent):
                         other_unit.autoequip()
             return True
         return False
+
+    def broken_alert(self, unit, item):
+        return self.is_broken(unit, item)
 
     def end_combat(self, playback, unit, item, target, mode):
         if self._did_something:
@@ -111,13 +115,13 @@ class ChapterUses(ItemComponent):
                 actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
     def on_broken(self, unit, item):
-        if self.is_broken(unit, item):
             if unit.equipped_weapon is item:
                 action.do(action.UnequipItem(unit, item))
             elif unit.equipped_accessory is item:
                 action.do(action.UnequipItem(unit, item))
-            return True
-        return False
+
+    def broken_alert(self, unit, item):
+        return self.is_broken(unit, item)
 
     def end_combat(self, playback, unit, item, target, mode):
         if self._did_something:
@@ -210,6 +214,8 @@ class ManaCost(ItemComponent):
             action.do(action.UnequipItem(unit, item))
         elif unit.equipped_accessory is item:
             action.do(action.UnequipItem(unit, item))
+
+    def broken_alert(self, unit, item):
         return False
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
@@ -292,6 +298,8 @@ class Cooldown(ItemComponent):
             action.do(action.UnequipItem(unit, item))
         elif unit.equipped_accessory is item:
             action.do(action.UnequipItem(unit, item))
+
+    def broken_alert(self, unit, item):
         return False
 
     def on_upkeep(self, actions, playback, unit, item):

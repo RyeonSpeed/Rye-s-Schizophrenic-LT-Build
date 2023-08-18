@@ -3,9 +3,11 @@ from dataclasses import dataclass
 
 import logging
 from enum import Enum
+from operator import eq
 from typing import Callable, List, Dict, Set, Tuple, Type
 
 from app.utilities.data import Prefab
+from app.utilities.typing import NID
 
 
 class Tags(Enum):
@@ -100,6 +102,11 @@ class EventCommand(Prefab):
     @property
     def flags(self) -> List[str]:
         return self._flags + UNIVERSAL_FLAGS
+
+    def __eq__(self, other: EventCommand):
+        return (self.__class__ == other.__class__
+                and self.parameters == other.parameters
+                and self.chosen_flags == other.chosen_flags)
 
 class Comment(EventCommand):
     nid = "comment"
@@ -1674,7 +1681,7 @@ in the unit's inventory, and then if no matching item is found, check the sub-it
 
     keywords = ["GlobalUnitOrConvoy", "Item", "ItemComponent"]
     _flags = ['recursive']
-    
+
 class AddSkillComponent(EventCommand):
     nid = 'add_skill_component'
     tag = Tags.MODIFY_SKILL_PROPERTIES
@@ -1686,7 +1693,7 @@ Adds a *SkillComponent* with optional value of *Expression* to *Skill* belonging
 
     keywords = ["GlobalUnit", "Skill", "SkillComponent"]
     optional_keywords = ["Expression"]
-    
+
 class ModifySkillComponent(EventCommand):
     nid = 'modify_skill_component'
     tag = Tags.MODIFY_SKILL_PROPERTIES
@@ -1704,7 +1711,7 @@ Use the *additive* flag to add rather than set the value.
     optional_keywords = ["ComponentProperty"]
     keyword_types = ["GlobalUnit", "Skill", "SkillComponent", "Expression", "String"]
     _flags = ['additive']
-    
+
 class ChangeSkillTime(EventCommand):
     nid = 'change_skill_time'
     tag = Tags.MODIFY_SKILL_PROPERTIES
@@ -1960,7 +1967,7 @@ Changes *GlobalUnit*'s description to *String*.
 class ChangeAffinity(EventCommand):
     nid = 'change_affinity'
     tag = Tags.MODIFY_UNIT_PROPERTIES
-    
+
     desc = \
         """
 Changes *GlobalUnit*'s affinity to *Affinity*.
@@ -2567,8 +2574,8 @@ class Shop(EventCommand):
 
     desc = \
         """
-Causes *Unit* to enter a shop that sells *ItemList* items. 
-The optional *ShopFlavor* keyword determines whether the shop appears as a vendor, armory, or your own custom flavor. 
+Causes *Unit* to enter a shop that sells *ItemList* items.
+The optional *ShopFlavor* keyword determines whether the shop appears as a vendor, armory, or your own custom flavor.
 The optional *StockList* keyword determines if an item should have a limited stock. The order will be the same as ItemList. Use -1 for unlimited stock.
 The optional *ShopId* keyword is available if you want to save what was bought from the shop in future shops. Memory will be preserved across shops with the same *ShopId*.
         """
@@ -3238,20 +3245,6 @@ class UnlockDifficulty(EventCommand):
     keywords = ['DifficultyMode']
     keyword_types = ['DifficultyMode']
 
-class Python(EventCommand):
-    nid = 'python'
-    tag = Tags.HIDDEN
-    special_handling = True
-
-    desc = "Executes the following lines in python. End with `end_python`"
-
-class EndPython(EventCommand):
-    nid = 'end_python'
-    tag = Tags.HIDDEN
-    special_handling = True
-
-    desc = "Ends a block of python code."
-
 def get_commands():
     return EventCommand.__subclasses__()
 
@@ -3272,6 +3265,13 @@ def restore_command(dat) -> EventCommand:
         return Comment(display_values=[nid + ';' + str.join(';', display_values)])
 
 evaluables = ('Expression', 'String', 'StringList', 'PointList', 'DashList', 'Nid')
+
+ALL_EVENT_COMMANDS: Dict[NID, EventCommand] = {
+    command.nid: command for command in EventCommand.__subclasses__()
+}
+ALL_EVENT_COMMANDS.update({
+    command.nickname: command for command in EventCommand.__subclasses__()
+})
 
 @dataclass
 class ArgToken():
@@ -3312,11 +3312,7 @@ def determine_command_type(text: str) -> Type[EventCommand]:
         return Comment
     arguments = [arg.string for arg in get_command_arguments(text)]
     command_nid = arguments[0]
-    subclasses = EventCommand.__subclasses__()
-    for command_type in subclasses:
-        if command_type.nid == command_nid or command_type.nickname == command_nid:
-            return command_type
-    return Comment
+    return ALL_EVENT_COMMANDS.get(command_nid, Comment)
 
 def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand, int]:
     """parses a line into a command
@@ -3412,10 +3408,9 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
     arguments = [arg.string for arg in get_command_arguments(text)]
 
     command_nid = arguments[0]
-    subclasses = EventCommand.__subclasses__()
     bad_idx = None
-    for command_type in subclasses:
-        if command_type.nid == command_nid or command_type.nickname == command_nid:
+    if command_nid in ALL_EVENT_COMMANDS:
+        command_type = ALL_EVENT_COMMANDS[command_nid]
             output, bad_idx = _parse_command(command_type, arguments)
             if output:
                 return output, None

@@ -165,9 +165,7 @@ def multi_add_portrait(self: Event, portrait1, screen_position1, portrait2, scre
         commands.append(event_commands.AddPortrait({'Portrait': portrait3, 'ScreenPosition': screen_position3}, flags))
     if portrait4:
         commands.append(event_commands.AddPortrait({'Portrait': portrait4, 'ScreenPosition': screen_position4}, set()))
-    for command in reversed(commands):
-        # Done backwards to preserve order upon insertion
-        self.commands.insert(self.command_idx + 1, command)
+    self.command_queue += commands
 
 def remove_portrait(self: Event, portrait, speed_mult=1, flags=None):
     flags = flags or set()
@@ -203,10 +201,7 @@ def multi_remove_portrait(self: Event, portrait1, portrait2, portrait3=None, por
         commands.append(event_commands.RemovePortrait({'Portrait': portrait3}, flags))
     if portrait4:
         commands.append(event_commands.RemovePortrait({'Portrait': portrait4}, set()))
-
-    for command in reversed(commands):
-        # Done backwards to preserve order upon insertion
-        self.commands.insert(self.command_idx + 1, command)
+    self.command_queue += commands
 
 def move_portrait(self: Event, portrait, screen_position, speed_mult=1, flags=None):
     flags = flags or set()
@@ -267,9 +262,7 @@ def mirror_portrait(self: Event, portrait, flags=None):
             if 'no_block' in flags:
                 command_flags.add("no_block")
             commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': str(self.portraits[name].position)}, command_flags))
-            for command in reversed(commands):
-                # Done backwards to preserve order upon insertion
-                self.commands.insert(self.command_idx + 1, command)
+            self.command_queue += commands
         else:
             # Immediate removal followed by a transition in
             self.portraits[name] = flipped_portrait
@@ -373,7 +366,7 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
 
     # Process text for commands
     blocks = str_utils.matched_block_expr(text, '{', '}')
-    for block in reversed(blocks):  # reversed to preserve order upon insertion
+    for block in blocks:
         if block.startswith('{command:') and block.endswith('}'):
             event_command_str = block[len('{command:'):-1]
         elif block.startswith('{c:') and block.endswith('}'):
@@ -381,12 +374,11 @@ def speak(self: Event, speaker, text, text_position=None, width=None, style_nid=
         else:
             continue
         text = text.replace(block, '{p}', 1)  # Replace first instance
-        # Done backwards to preserve order
+        self._queue_command(event_command_str)
         if speaker:
             self._queue_command('unpause;%s' % speaker)
         else:
             self._queue_command('unpause')
-        self._queue_command(event_command_str)
 
     # Determine whether this should be skipped
     # Hold speaks are not skipped
@@ -635,11 +627,12 @@ def flicker_cursor(self: Event, position, flags=None):
     disp_cursor_command1 = event_commands.DispCursor({'ShowCursor': '1'})
     wait_command = event_commands.Wait({'Time': '1000'})
     disp_cursor_command2 = event_commands.DispCursor({'ShowCursor': '0'})
-    # Done backwards to presever order upon insertion
-    self.commands.insert(self.command_idx + 1, disp_cursor_command2)
-    self.commands.insert(self.command_idx + 1, wait_command)
-    self.commands.insert(self.command_idx + 1, disp_cursor_command1)
-    self.commands.insert(self.command_idx + 1, move_cursor_command)
+    self.command_queue += [
+        move_cursor_command,
+        disp_cursor_command1,
+        wait_command,
+        disp_cursor_command2
+    ]
 
 def screen_shake(self: Event, duration, shake_type=None, flags=None):
     flags = flags or set()
@@ -1755,7 +1748,8 @@ def break_item(self: Event, global_unit_or_convoy, item, flags=None):
         self.logger.error("break_item: Item %s does not have uses!" % item.nid)
         return
 
-    alert = item_system.on_broken(unit, item)
+    item_system.on_broken(unit, item)
+    alert = item_system.broken_alert(unit, item)
     if alert and unit.team == 'player' and banner_flag:
         self.game.alerts.append(banner.BrokenItem(unit, item))
         self.game.state.change('alert')
@@ -1891,7 +1885,7 @@ def remove_item_component(self: Event, global_unit_or_convoy, item, item_compone
         return
 
     action.do(action.RemoveItemComponent(item, component_nid))
-    
+
 def add_skill_component(self: Event, global_unit, skill, skill_component, expression=None, flags=None):
     flags = flags or set()
     component_nid = skill_component
@@ -1911,7 +1905,7 @@ def add_skill_component(self: Event, global_unit, skill, skill_component, expres
         component_value = None
 
     action.do(action.AddSkillComponent(skill, component_nid, component_value))
-    
+
 def modify_skill_component(self: Event, global_unit, skill, skill_component, expression, component_property=None, flags=None):
     flags = flags or set()
     component_nid = skill_component
@@ -1929,7 +1923,7 @@ def modify_skill_component(self: Event, global_unit, skill, skill_component, exp
         return
 
     action.do(action.ModifySkillComponent(skill, component_nid, component_value, component_property, is_additive))
-    
+
 def change_skill_time(self: Event, global_unit, skill, integer, flags=None):
     flags = flags or set()
     is_additive = 'additive' in flags
@@ -2981,7 +2975,7 @@ def base(self: Event, background: str, music: str = None, other_options: str = N
     self.game.state.change('base_main')
     self.state = 'paused'
 
-def set_custom_options(self: Event, custom_options: str, custom_options_enabled: str = None, 
+def set_custom_options(self: Event, custom_options: str, custom_options_enabled: str = None,
                        custom_options_desc: str = None, custom_options_on_select: str = None, flags=None):
     flags = flags or set()
 
@@ -3513,13 +3507,13 @@ def open_guide(self: Event, flags=None):
         self.logger.warning("open_guide: Skipping opening guide because there is no unlocked lore in the guide category")
 
 def open_unit_management(self: Event, panorama=None, flags=None):
-    flags = flags or set() 
+    flags = flags or set()
     if 'scroll' in flags:
         bg = background.create_background(panorama, True)
     else:
         bg = background.create_background(panorama, False)
     self.game.memory['base_bg'] = bg
-    
+
     self.state = "paused"
     if 'immediate' in flags:
         self.game.state.change('base_manage')
@@ -3570,9 +3564,8 @@ def unlock(self: Event, unit, flags=None):
     # This is a macro that just adds new commands to command list
     find_unlock_command = event_commands.FindUnlock({'Unit': unit})
     spend_unlock_command = event_commands.SpendUnlock({'Unit': unit})
-    # Done backwards to preseve order upon insertion
-    self.commands.insert(self.command_idx + 1, spend_unlock_command)
-    self.commands.insert(self.command_idx + 1, find_unlock_command)
+    self.command_queue.append(find_unlock_command)
+    self.command_queue.append(spend_unlock_command)
 
 def find_unlock(self: Event, unit, flags=None):
     new_unit = self._get_unit(unit)
@@ -3631,7 +3624,8 @@ def spend_unlock(self: Event, unit, flags=None):
 
     # Check to see if we broke the item we were using
     if item_system.is_broken(unit, chosen_item):
-        alert = item_system.on_broken(unit, chosen_item)
+        alert = item_system.broken_alert(unit, chosen_item)
+        item_system.on_broken(unit, chosen_item)
         if alert and unit.team == 'player':
             self.game.alerts.append(banner.BrokenItem(unit, chosen_item))
             self.game.state.change('alert')
@@ -3688,11 +3682,11 @@ def loop_units(self: Event, expression, event, flags=None):
     if not all((isinstance(unit_nid, str) or isinstance(unit_nid, UnitObject)) for unit_nid in unit_list):
         self.logger.error("loop_units: %s: could not evaluate to NID list {%s}" % ('loop_units', unit_list_str))
         return
-    for unit_nid in reversed(unit_list):
+    for unit_nid in unit_list:
         if not isinstance(unit_nid, str):
             unit_nid = unit_nid.nid  # Try this!
         macro_command = event_commands.TriggerScript({'Event': event, 'Unit1': unit_nid})
-        self.commands.insert(self.command_idx + 1, macro_command)
+        self.command_queue.append(macro_command)
 
 def change_roaming(self: Event, free_roam_enabled, flags=None):
     val = free_roam_enabled.lower()
@@ -3826,7 +3820,7 @@ def complete_achievement(self: Event, achievement: str, completed: str, flags=No
             self.wait_time = engine.get_time() + 2000
             self.state = 'waiting'
             remove_overlay_sprite_command = event_commands.RemoveOverlaySprite({'Nid': anim_nid}, flags={'foreground'})
-            self.commands.insert(self.command_idx + 1, remove_overlay_sprite_command)
+            self.command_queue.append(remove_overlay_sprite_command)
 
 def clear_achievements(self: Event, flags=None):
     ACHIEVEMENTS.clear_achievements()

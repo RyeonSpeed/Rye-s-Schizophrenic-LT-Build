@@ -848,8 +848,9 @@ class MoveState(MapState):
         game.cursor.show()
         cur_unit = game.cursor.cur_unit
 
-        if cur_unit.is_dying or cur_unit.dead:
+        if cur_unit.is_dying or cur_unit.dead or not cur_unit.position:
             # This is sometimes possible if a unit dies after combat somehow but also has canto
+            # Also sometimes possible if you remove a unit in or after combat but they have canto
             # Combat will figure out that you are supposed to go to canto move (here)
             # But you then die and therefore don't have a position and shouldn't be moving
             # So we clean this up here
@@ -864,7 +865,7 @@ class MoveState(MapState):
         if cur_unit.previous_position != cur_unit.position:
             action.do(action.SetPreviousPosition(cur_unit))
 
-        # To keep track of for swapping
+        # To keep track of for switching
         if cur_unit.traveler:
             cur_unit.lead_unit = True
 
@@ -1024,7 +1025,7 @@ class MoveCameraState(State):
 class MenuState(MapState):
     name = 'menu'
     menu = None
-    normal_options = {'Item', 'Wait', 'Take', 'Give', 'Rescue', 'Trade', 'Drop', 'Visit', 'Armory', 'Vendor', 'Spells', 'Attack', 'Steal', 'Shove', 'Pair Up', 'Swap', 'Separate', 'Transfer'}
+    normal_options = {'Item', 'Wait', 'Take', 'Give', 'Rescue', 'Trade', 'Drop', 'Visit', 'Armory', 'Vendor', 'Spells', 'Attack', 'Steal', 'Shove', 'Pair Up', 'Switch', 'Separate', 'Transfer'}
 
     def start(self):
         self._proceed_with_targets_item = False
@@ -1167,7 +1168,7 @@ class MenuState(MapState):
                         game.state.change('free')
                         self.cur_unit.wait()
                 else:
-                    # Reverse Swap here
+                    # Reverse Switch here
                     if self.cur_unit.lead_unit:
                         logging.info("Lead unit is " + str(self.cur_unit.lead_unit))
                     if self.cur_unit.traveler:
