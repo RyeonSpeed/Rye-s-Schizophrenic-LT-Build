@@ -3411,9 +3411,9 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
     bad_idx = None
     if command_nid in ALL_EVENT_COMMANDS:
         command_type = ALL_EVENT_COMMANDS[command_nid]
-            output, bad_idx = _parse_command(command_type, arguments)
-            if output:
-                return output, None
+        output, bad_idx = _parse_command(command_type, arguments)
+        if output:
+            return output, None
     # Only gets here if it couldn't find a good match
     if strict:
         return None, bad_idx
