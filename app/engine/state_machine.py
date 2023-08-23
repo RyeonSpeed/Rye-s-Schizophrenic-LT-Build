@@ -157,8 +157,7 @@ class StateMachine():
              'overworld_party_option_menu': overworld_states.OverworldPartyOptionMenu,
              'overworld_on_node': overworld_states.OverworldNodeTransition,
              'overworld_next_level': overworld_states.OverworldLevelTransition,
-             'dialog_log': dialog_log.DialogLogState,
-             'library': general_states.LibraryState
+             'dialog_log': dialog_log.DialogLogState
              }
 
         if starting_states:

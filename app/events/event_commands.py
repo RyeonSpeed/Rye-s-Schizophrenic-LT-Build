@@ -950,16 +950,6 @@ as he or she would otherwise only be able to suspend and not save mid-battle.
 By default, the prompt for a battle save will not occur until the end of this event.
 The optional flag *immediately* will cause the prompt to appear immediately.
         """
-        
-class BattleSaveImmediate(EventCommand):
-    nid = 'battle_save_immediate'
-    tag = Tags.MISCELLANEOUS
-
-    desc = \
-        """
-As battle_save, but triggers immediately instead of
-waiting for the event to conclude.
-        """
 
     _flags = ["immediately"]
 

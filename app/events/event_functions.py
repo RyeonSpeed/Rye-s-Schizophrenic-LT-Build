@@ -805,11 +805,6 @@ def battle_save(self: Event, flags=None):
         self.game.state.change('transition_to')
     else:  # Wait until after this event to make the save
         self.battle_save_flag = True
-    
-def battle_save_immediate(self: Event, flags=None):
-    self.game.memory['save_kind'] = 'battle'
-    self.game.state.change('in_chapter_save')
-    self.state = 'paused'
 
 def clear_turnwheel(self: Event, flags=None):
     self.game.action_log.set_first_free_action()
