@@ -16,6 +16,7 @@ ITEM_HOOKS: Dict[str, HookInfo] = {
     'can_use_in_base':                                 HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'locked':                                          HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'unstealable':                                     HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
+    'prevent_storage':                                 HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'allow_same_target':                               HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'allow_less_than_max_targets':                     HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'ignore_weapon_advantage':                         HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
