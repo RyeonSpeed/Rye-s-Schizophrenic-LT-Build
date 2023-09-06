@@ -114,7 +114,20 @@ class PlayerChoiceState(MapState):
                 if self.backable:
                     action.do(action.SetGameVar(self.nid, "BACK"))
                 # this is the only way to exit a persistent state
-                game.state.back()
+                if self.event_on_choose:
+                    self.made_choice = True
+                    valid_events = DB.events.get_by_nid_or_name(
+                        self.event_on_choose, game.level.nid)
+                    for event_prefab in valid_events:
+                        game.events.trigger_specific_event(
+                            event_prefab.nid, **self.event_context)
+                        game.memory[self.nid + '_unchoice'] = self.unchoose
+                    if not valid_events:
+                        logging.error(
+                            "Couldn't find any valid events matching name %s" % self.event_on_choose)
+                    return 'repeat'
+                else:
+                    game.state.back()
             else:
                 get_sound_thread().play_sfx('Error')
 
