@@ -417,8 +417,8 @@ class OptionMenuState(MapState):
             info_desc.append('Suspend_desc')
             ignore.append(False)
         else:
-            options.append('Save')
-            info_desc.append('Save_desc')
+            options.append('Suspend')
+            info_desc.append('Suspend_desc')
             ignore.append(False)
 
         if cf.SETTINGS['fullscreen']:
