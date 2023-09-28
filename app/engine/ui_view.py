@@ -249,7 +249,7 @@ class UIView():
             hp_surf = engine.subsurface(hp_surf, (0, 0, idx, 2))
             surf.blit(hp_surf, (left + 58, top + 40))
 
-        if not unit.generic:
+        if True:
             # Mana text
             surf.blit(SPRITES.get('unit_info_sp'), (left + 1, top + 46))
             surf.blit(SPRITES.get('unit_info_slash'), (left + 34, top + 47))
