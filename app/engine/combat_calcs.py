@@ -127,6 +127,23 @@ def can_counterattack(attacker, aweapon, defender, dweapon) -> bool:
     if skill_system.close_counter(defender) and utils.calculate_distance(attacker.position, defender.position) == 1:
         return True
     return False
+    
+def can_followup(attacker, aweapon, defender, dweapon) -> bool:
+    from app.engine import target_system
+    if not aweapon:
+        return False
+    if not item_funcs.available(attacker, aweapon):
+        return False
+    if DB.constants.value('line_of_sight'):
+        if not item_system.ignore_line_of_sight(attacker, aweapon) and len(line_of_sight.line_of_sight([attacker.position], [defender.position], 99)) == 0:
+            return False
+    
+    if not defender.position:
+        return False
+    valid_targets = target_system.targets_in_range(attacker, aweapon)
+    if defender.position in valid_targets:
+        return True
+    return False
 
 def accuracy(unit, item=None):
     if not item:

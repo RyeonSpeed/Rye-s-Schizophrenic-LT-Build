@@ -71,22 +71,21 @@ class AttackerState(SolverState):
                     return 'attacker_partner'
                 elif solver.item_has_uses() and \
                         solver.num_subattacks < self.num_multiattacks and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.can_followup():
                     return 'attacker'
                 elif solver.item_has_uses() and \
                         solver.attacker_has_desperation() and \
                         solver.num_attacks < attacker_outspeed and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.can_followup():
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed and \
-                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
+                        solver.num_defends < defender_outspeed:
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
                         solver.num_attacks < attacker_outspeed and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.can_followup():
                     solver.num_subattacks = 0
                     return 'attacker'
                 return None
@@ -168,8 +167,7 @@ class AttackerPartnerState(SolverState):
                     return 'attacker_partner'
                 elif solver.item_has_uses() and \
                         solver.attacker_has_desperation() and \
-                        solver.num_attacks < attacker_outspeed and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.num_attacks < attacker_outspeed:
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
@@ -238,23 +236,20 @@ class DefenderState(SolverState):
                     solver.num_subdefends = 0
                     return 'defender_partner'
                 if solver.allow_counterattack() and \
-                        solver.num_subdefends < self.num_multiattacks and \
-                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
+                        solver.num_subdefends < self.num_multiattacks:
                     return 'defender'
                 elif solver.allow_counterattack() and \
                         solver.defender_has_desperation() and \
-                        solver.num_defends < defender_outspeed and \
-                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
+                        solver.num_defends < defender_outspeed:
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
                         solver.num_attacks < attacker_outspeed and \
-                        solver.defender.position in item_system.valid_targets(solver.attacker, solver.main_item):
+                        solver.can_followup():
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed and \
-                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
+                        solver.num_defends < defender_outspeed:
                     solver.num_subdefends = 0
                     return 'defender'
                 return None
@@ -402,7 +397,6 @@ class CombatPhaseSolver():
     def setup_next_state(self):
         # Does actually change the state
         next_state = self.state.get_next_state(self)
-        print(next_state)
         logging.debug("Next State: %s" % next_state)
         if next_state == 'done':
             self.state = None
@@ -544,6 +538,9 @@ class CombatPhaseSolver():
 
     def allow_counterattack(self) -> bool:
         return self.defender and combat_calcs.can_counterattack(self.attacker, self.main_item, self.defender, self.def_item)
+
+    def can_followup(self) -> bool:
+        return self.defender and combat_calcs.can_followup(self.attacker, self.main_item, self.defender, self.def_item)
 
     def item_has_uses(self):
         return item_funcs.available(self.attacker, self.main_item)
