@@ -220,7 +220,7 @@ class UIView():
         surf = SPRITES.get('unit_info_bg').copy()
         top, left = 4, 6
         if unit.generic:
-            surf = SPRITES.get('unit_info_bg_short').copy()
+            surf = SPRITES.get('unit_info_bg').copy()
             icons.draw_faction(surf, DB.factions.get(unit.faction), (left + 1, top + 4))
         else:
             surf = SPRITES.get('unit_info_bg').copy()
