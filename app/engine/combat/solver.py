@@ -80,7 +80,8 @@ class AttackerState(SolverState):
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_outspeed and \
+                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
@@ -237,11 +238,13 @@ class DefenderState(SolverState):
                     solver.num_subdefends = 0
                     return 'defender_partner'
                 if solver.allow_counterattack() and \
-                        solver.num_subdefends < self.num_multiattacks:
+                        solver.num_subdefends < self.num_multiattacks and \
+                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
                     return 'defender'
                 elif solver.allow_counterattack() and \
                         solver.defender_has_desperation() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_outspeed and \
+                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
@@ -250,7 +253,8 @@ class DefenderState(SolverState):
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_outspeed and \
+                        solver.attacker.position in item_system.valid_targets(solver.defender, solver.def_item):
                     solver.num_subdefends = 0
                     return 'defender'
                 return None
@@ -398,6 +402,7 @@ class CombatPhaseSolver():
     def setup_next_state(self):
         # Does actually change the state
         next_state = self.state.get_next_state(self)
+        print(next_state)
         logging.debug("Next State: %s" % next_state)
         if next_state == 'done':
             self.state = None
