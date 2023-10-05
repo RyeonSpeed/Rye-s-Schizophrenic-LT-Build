@@ -2822,7 +2822,7 @@ class RemoveRegion(Action):
             if self.region.region_type == RegionType.STATUS:
                 for unit in game.units:
                     if unit.position and self.region.contains(unit.position):
-                        self.subactions.append(RemoveSkill(unit, self.region.sub_nid))
+                        self.subactions.append(RemoveSkill(unit, self.region.sub_nid, source=self.region.nid, source_type=SourceType.REGION))
 
             # Update fog of war if appropriate
             elif self.region.region_type == RegionType.FOG:
@@ -3304,18 +3304,19 @@ class AddSkill(Action):
         # Remove oldest displaceable skill with same name, abort action if none found and current skill is displaceable
         if (not self.skill_obj.stack and self.skill_obj.nid in [skill.nid for skill in self.unit.skills])or (self.skill_obj.stack and item_funcs.num_stacks(self.unit, self.skill_obj.nid) >= self.skill_obj.stack.value):
             logging.info("Skill %s at max stacks" % self.skill_obj.nid)
-            displaceable_skills = [s for s in self.unit.all_skills if skill.nid == self.skill_obj.nid and skill.source_type.displaceable]
+            displaceable_skills = [s for s in self.unit.all_skills if s.nid == self.skill_obj.nid and s.source_type.displaceable]
             if len(displaceable_skills) == 0 and self.skill_obj.source_type.displaceable:
                 logging.info("Skill %s could not be added as no instance could be displaced" % self.skill_obj.nid)
                 return
-            self.subactions.append(RemoveSkill(self.unit, skill))
+            if len(displaceable_skills) > 0:
+                self.subactions.append(RemoveSkill(self.unit, displaceable_skills[0], source=self.source, source_type=self.source_type))
         for action in self.subactions:
             action.execute()
 
         # Actually add skill
         skill_system.before_add(self.unit, self.skill_obj)
         self.skill_obj.owner_nid = self.unit.nid
-        self.replaced_obj = self.unit.add_skill(self.skill_obj)
+        self.unit.add_skill(self.skill_obj)
 
         if self.skill_obj.aura and self.skill_obj in self.unit.all_skills and \
                 self.unit.position and game.board and game.tilemap:
@@ -3389,16 +3390,14 @@ class RemoveSkill(Action):
         to_remove = self.count
         if isinstance(self.skill, str):
             for skill in self.unit.all_skills[:]:
-                if skill.nid == self.skill and ((not self.source and skill.source_type.removable) or (self.source == skill.source and self.source_type == skill.source_type)) and to_remove != 0:
+                if skill.nid == self.skill and (skill.source_type.removable or (self.source == skill.source and self.source_type == skill.source_type)) and to_remove != 0:
                     self._remove_skill(skill, true_remove)
                     to_remove -= 1
             if to_remove > 0:
                 logging.warning("%d removable instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
-            if not self.source and not self.skill.source_type.removable:
-                logging.warning("Skill %s is not removable for %s", self.skill.nid, self.unit)
-            elif not (self.source == self.skill.source and self.source_type == self.skill.source_type):
-                logging.warning("Incorrect source attempting to remove skill %s for %s", self.skill.nid)
+            if not self.skill.source_type.removable and not(self.source == self.skill.source and self.source_type == self.skill.source_type):
+                logging.warning("Incorrect source attempting to remove skill %s for %s", self.skill.nid, self.unit)
             elif self.skill in self.unit.all_skills:
                 self._remove_skill(self.skill, true_remove)
             else:

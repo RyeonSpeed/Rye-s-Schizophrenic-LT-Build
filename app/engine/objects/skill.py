@@ -2,6 +2,7 @@ from app.utilities.data import Data
 
 from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
+from enum import Enum
 
 class SourceType(Enum):
     AURA = ('aura', False, False)
@@ -12,7 +13,7 @@ class SourceType(Enum):
     PERSONAL = ('personal', False, True)
     OTHER = ('other', True, True)
 
-    def __init__(self, displaceable, removable):
+    def __init__(self, nid, displaceable, removable):
         self.nid = nid
         self.displaceable = displaceable
         self.removable = removable

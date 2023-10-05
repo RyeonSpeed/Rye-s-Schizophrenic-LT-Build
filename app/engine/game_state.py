@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from app.engine.objects.level import LevelObject
     from app.engine.objects.overworld import OverworldObject
     from app.engine.objects.party import PartyObject
-    from app.engine.objects.skill import SkillObject, SourceType
+    from app.engine.objects.skill import SkillObject
     from app.engine.objects.unit import UnitObject
     from app.engine.objects.region import RegionObject
     from app.engine.objects.ai_group import AIGroupObject
@@ -42,6 +42,7 @@ from app.engine import state_machine
 from app.engine.roam.roam_info import RoamInfo
 from app.utilities import static_random
 from app.data.resources.resources import RESOURCES
+from app.engine.objects.skill import SourceType
 
 import logging
 

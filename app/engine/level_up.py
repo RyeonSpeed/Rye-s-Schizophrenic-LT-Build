@@ -436,7 +436,7 @@ class ExpState(State):
             return unit.level >= level_needed
 
         unit_klass = DB.classes.get(unit.klass)
-        ExpState._give_skills(unit, unit_klass.learned_skills, compare)
+        ExpState._give_skills(unit, unit_klass.learned_skills, compare, SourceType.KLASS)
         
 class LevelUpScreen():
     bg = SPRITES.get('level_screen')
