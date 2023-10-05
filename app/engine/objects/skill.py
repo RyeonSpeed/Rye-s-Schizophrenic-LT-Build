@@ -4,15 +4,16 @@ from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
 
 class SourceType(Enum):
-    AURA = (False, False)
-    TERRAIN = (False, False)
-    ITEM = (False, False)
-    REGION = (False, False)
-    CLASS = (False, True)
-    PERSONAL = (False, True)
-    OTHER = (True, True)
+    AURA = ('aura', False, False)
+    TERRAIN = ('terrain', False, False)
+    ITEM = ('item', False, False)
+    REGION = ('region', False, False)
+    KLASS = ('class', False, True)
+    PERSONAL = ('personal', False, True)
+    OTHER = ('other', True, True)
 
     def __init__(self, displaceable, removable):
+        self.nid = nid
         self.displaceable = displaceable
         self.removable = removable
 
