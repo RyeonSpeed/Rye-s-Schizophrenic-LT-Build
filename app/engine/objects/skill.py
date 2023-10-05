@@ -3,6 +3,19 @@ from app.utilities.data import Data
 from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
 
+class SourceType(Enum):
+    AURA = (False, False)
+    TERRAIN = (False, False)
+    ITEM = (False, False)
+    REGION = (False, False)
+    CLASS = (False, True)
+    PERSONAL = (False, True)
+    OTHER = (True, True)
+
+    def __init__(self, displaceable, removable):
+        self.displaceable = displaceable
+        self.removable = removable
+
 class SkillObject():
     next_uid = 100
 
@@ -33,6 +46,9 @@ class SkillObject():
         self.subskill = None
         self.subskill_uid = None
         self.parent_skill = None
+        # Track skill source
+        self.source = None
+        self.source_type = SourceType.OTHER
 
     @classmethod
     def from_prefab(cls, prefab):
@@ -63,8 +79,8 @@ class SkillObject():
         serial_dict['data'] = self.data
         serial_dict['initiator_nid'] = self.initiator_nid
         serial_dict['subskill'] = self.subskill_uid
-        serial_dict['displaceable'] = self.persistence
-        serial_dict['removeable'] = self.persistence
+        serial_dict['source'] = self.source
+        serial_dict['source_type'] = self.source_type
         return serial_dict
 
     @classmethod
@@ -80,6 +96,6 @@ class SkillObject():
         self.data = dat['data']
         self.initiator_nid = dat.get('initiator_nid', None)
         self.subskill_uid = dat.get('subskill', None)
-        self.displaceable = dat.get('displaceable', False)
-        self.removable = dat.get('removable', False)
+        self.source = dat.get('source', None)
+        self.source_type = dat.get('source_type', SourceType.OTHER)
         return self

@@ -222,11 +222,11 @@ class StatusOnEquip(ItemComponent):
     expose = ComponentType.Skill  # Nid
 
     def on_equip_item(self, unit, item):
-        act = action.AddSkill(unit, self.value)
+        act = action.AddSkill(unit, self.value, source=item.nid, source_type=SourceType.ITEM)
         action.do(act)
 
     def on_unequip_item(self, unit, item):
-        action.do(action.RemoveSkill(unit, self.value, count=1))
+        action.do(action.RemoveSkill(unit, self.value, count=1, source=item.nid, source_type=SourceType.ITEM))
 
 class MultiStatusOnEquip(ItemComponent):
     nid = 'multi_status_on_equip'
@@ -237,12 +237,12 @@ class MultiStatusOnEquip(ItemComponent):
 
     def on_equip_item(self, unit, item):
         for skl in self.value:
-            act = action.AddSkill(unit, skl)
+            act = action.AddSkill(unit, skl, source=item.nid, source_type=SourceType.ITEM)
             action.do(act)
 
     def on_unequip_item(self, unit, item):
         for skl in self.value:
-            action.do(action.RemoveSkill(unit, skl, count=1))
+            action.do(action.RemoveSkill(unit, skl, count=1, source=item.nid, source_type=SourceType.ITEM))
 
 class StatusOnHold(ItemComponent):
     nid = 'status_on_hold'
@@ -252,10 +252,10 @@ class StatusOnHold(ItemComponent):
     expose = ComponentType.Skill  # Nid
 
     def on_add_item(self, unit, item):
-        action.do(action.AddSkill(unit, self.value))
+        action.do(action.AddSkill(unit, self.value, source=item.nid, source_type=SourceType.ITEM))
 
     def on_remove_item(self, unit, item):
-        action.do(action.RemoveSkill(unit, self.value, count=1))
+        action.do(action.RemoveSkill(unit, self.value, count=1, source=item.nid, source_type=SourceType.ITEM))
 
 class MultiStatusOnHold(ItemComponent):
     nid = 'multi_status_on_hold'
@@ -266,12 +266,12 @@ class MultiStatusOnHold(ItemComponent):
 
     def on_add_item(self, unit, item):
         for skl in self.value:
-            act = action.AddSkill(unit, skl)
+            act = action.AddSkill(unit, skl, source=item.nid, source_type=SourceType.ITEM)
             action.do(act)
 
     def on_remove_item(self, unit, item):
         for skl in self.value:
-            action.do(action.RemoveSkill(unit, skl, count=1))
+            action.do(action.RemoveSkill(unit, skl, count=1, source=item.nid, source_type=SourceType.ITEM))
 
 class GainManaAfterCombat(ItemComponent):
     nid = 'gain_mana_after_combat'

@@ -5,6 +5,7 @@ from app.engine.objects.unit import UnitObject
 from app.data.database.database import DB
 
 from app.engine import action, skill_system, line_of_sight
+from app.engine.objects.skill import SourceType
 
 import logging
 
@@ -51,7 +52,7 @@ def apply_aura(owner, unit, child_skill, target, test=False):
             # Doesn't need to use action system
             unit.add_skill(child_skill)
         else:
-            act = action.AddSkill(unit, child_skill, displaceable=False, removable=False)
+            act = action.AddSkill(unit, child_skill, source=child_skill.parent_skill.nid, source_type=SourceType.AURA)
             action.do(act)
 
 def remove_aura(unit, child_skill, test=False):
@@ -60,7 +61,7 @@ def remove_aura(unit, child_skill, test=False):
         if test:
             unit.remove_skill(child_skill)
         else:
-            act = action.RemoveSkill(unit, child_skill, bypass_removable=True)
+            act = action.RemoveSkill(unit, child_skill, source=child_skill.parent_skill.nid, source_type=SourceType.AURA)
             action.do(act)
 
 def propagate_aura(unit, skill, game):
