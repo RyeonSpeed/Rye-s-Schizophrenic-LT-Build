@@ -3269,7 +3269,7 @@ class MoveInInitiative(Action):
         game.initiative.insert_at(self.unit, self.old_idx)
 
 class AddSkill(Action):
-    def __init__(self, unit, skill, initiator=None):
+    def __init__(self, unit, skill, initiator=None, displaceable=False, removable=False):
         self.unit = unit
         self.initiator = initiator
         # Check if we just passed in the skill nid to create
@@ -3283,18 +3283,34 @@ class AddSkill(Action):
             skill_system.init(skill_obj)
             if skill_obj.uid not in game.skill_registry:
                 game.register_skill(skill_obj)
+            if persisent != SkillPersistence.STANDARD:
+                skill_obj.persistence = persistence
         self.skill_obj: SkillObject = skill_obj
+        self.subactions = []
         self.reset_action = ResetUnitVars(self.unit)
+        self.did_something = False
 
     @recalculate_unit
     def do(self):
+        self.subactions.clear()
         if not self.skill_obj:
             return
+            
+        # Remove oldest displaceable skill with same name, abort action if none found
+        if (not self.skill_obj.stack and self.skill_obj.nid in [skill.nid for skill in self.unit.skills])or (self.skill_obj.stack and item_funcs.num_stacks(self.unit, self.skill_obj.nid) >= self.skill_obj.stack.value):
+            logging.info("Skill %s at max stacks" % self.skill_obj.nid)
+            displaceable_skills = [s for s in self.unit.all_skills if skill.nid == self.skill_obj.nid and skill.displaceable]
+            if len(displaceable_skills) == 0:
+                logging.info("Skill %s could not be added as no instance could be displaced" % self.skill_obj.nid)
+                return
+            self.subactions.append(RemoveSkill(self.unit, skill))
+        for action in self.subactions:
+            action.execute()
 
         # Actually add skill
         skill_system.before_add(self.unit, self.skill_obj)
         self.skill_obj.owner_nid = self.unit.nid
-        self.unit.add_skill(self.skill_obj)
+        self.replaced_obj = self.unit.add_skill(self.skill_obj)
 
         if self.skill_obj.aura and self.skill_obj in self.unit.all_skills and \
                 self.unit.position and game.board and game.tilemap:
@@ -3303,12 +3319,16 @@ class AddSkill(Action):
             game.boundary.register_unit_auras(self.unit)
 
         skill_system.after_add(self.unit, self.skill_obj)
+        
+        self.did_something = True
 
         # Handle affects movement
         self.reset_action.execute()
 
     @recalculate_unit
     def reverse(self):
+        if not self.did_something:
+            return
         self.reset_action.reverse()
         if not self.skill_obj:
             return
@@ -3327,8 +3347,12 @@ class AddSkill(Action):
         else:
             logging.error("Skill %s not in %s's skills", self.skill_obj.nid, self.unit)
 
+        # Return displaced skills
+        for action in self.subactions:
+            action.reverse()
+
 class RemoveSkill(Action):
-    def __init__(self, unit, skill, count=-1):
+    def __init__(self, unit, skill, count=-1, bypass_removable=False):
         self.unit = unit
         self.skill = skill  # Skill obj or skill nid str
         self.removed_skills = []
@@ -3358,13 +3382,15 @@ class RemoveSkill(Action):
         to_remove = self.count
         if isinstance(self.skill, str):
             for skill in self.unit.all_skills[:]:
-                if skill.nid == self.skill and to_remove != 0:
+                if skill.nid == self.skill and (skill.removable or self.bypass_removable) and to_remove != 0:
                     self._remove_skill(skill, true_remove)
                     to_remove -= 1
             if to_remove > 0:
-                logging.warning("%d instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
+                logging.warning("%d removable instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
-            if self.skill in self.unit.all_skills:
+            if not self.skill.removable and not self.bypass_removable:
+                logging.warning("No removable instance of skill %s in %s's skills", self.skill.nid, self.unit)
+            elif self.skill in self.unit.all_skills:
                 self._remove_skill(self.skill, true_remove)
             else:
                 logging.warning("Skill %s not in %s's skills", self.skill.nid, self.unit)

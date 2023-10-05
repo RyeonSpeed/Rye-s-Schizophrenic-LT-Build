@@ -27,7 +27,8 @@ class SkillObject():
 
         self.data = {}
         self.initiator_nid = None
-
+        self.displaceable = True
+        self.removable = True
         # For subskill
         self.subskill = None
         self.subskill_uid = None
@@ -62,6 +63,8 @@ class SkillObject():
         serial_dict['data'] = self.data
         serial_dict['initiator_nid'] = self.initiator_nid
         serial_dict['subskill'] = self.subskill_uid
+        serial_dict['displaceable'] = self.persistence
+        serial_dict['removeable'] = self.persistence
         return serial_dict
 
     @classmethod
@@ -77,4 +80,6 @@ class SkillObject():
         self.data = dat['data']
         self.initiator_nid = dat.get('initiator_nid', None)
         self.subskill_uid = dat.get('subskill', None)
+        self.displaceable = dat.get('displaceable', False)
+        self.removable = dat.get('removable', False)
         return self

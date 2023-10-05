@@ -51,7 +51,7 @@ def apply_aura(owner, unit, child_skill, target, test=False):
             # Doesn't need to use action system
             unit.add_skill(child_skill)
         else:
-            act = action.AddSkill(unit, child_skill)
+            act = action.AddSkill(unit, child_skill, displaceable=False, removable=False)
             action.do(act)
 
 def remove_aura(unit, child_skill, test=False):
@@ -60,7 +60,7 @@ def remove_aura(unit, child_skill, test=False):
         if test:
             unit.remove_skill(child_skill)
         else:
-            act = action.RemoveSkill(unit, child_skill)
+            act = action.RemoveSkill(unit, child_skill, bypass_removable=True)
             action.do(act)
 
 def propagate_aura(unit, skill, game):
