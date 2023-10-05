@@ -2195,14 +2195,14 @@ class ChangeFatigue(Action):
         if game.game_vars.get('_fatigue') == 2:
             if 'Fatigued' in DB.skills.keys():
                 if self.unit.get_fatigue() >= self.unit.get_max_fatigue():
-                    self.subactions.append(AddSkill(self.unit, 'Fatigued'))
+                    self.subactions.append(AddSkill(self.unit, 'Fatigued', source='game', source_type=SourceType.FATIGUE))
                 elif 'Fatigued' in [skill.nid for skill in self.unit.skills]:
-                    self.subactions.append(RemoveSkill(self.unit, 'Fatigued'))
+                    self.subactions.append(RemoveSkill(self.unit, 'Fatigued', source='game', source_type=SourceType.FATIGUE))
             if 'Rested' in DB.skills.keys():
                 if self.unit.get_fatigue() < self.unit.get_max_fatigue():
-                    self.subactions.append(AddSkill(self.unit, 'Rested'))
+                    self.subactions.append(AddSkill(self.unit, 'Rested', source='game', source_type=SourceType.FATIGUE))
                 elif 'Rested' in [skill.nid for skill in self.unit.skills]:
-                    self.subactions.append(RemoveSkill(self.unit, 'Rested'))
+                    self.subactions.append(RemoveSkill(self.unit, 'Rested', source='game', source_type=SourceType.FATIGUE))
 
         for action in self.subactions:
             action.do()
