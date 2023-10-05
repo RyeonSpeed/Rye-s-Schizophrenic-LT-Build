@@ -691,7 +691,7 @@ class Rescue(Action):
         self.unit.has_rescued = True
 
         if not skill_system.ignore_rescue_penalty(self.unit) and 'Rescue' in DB.skills.keys():
-            self.subactions.append(AddSkill(self.unit, 'Rescue'))
+            self.subactions.append(AddSkill(self.unit, 'Rescue', source=self.rescuee.nid, source_type=SourceType.TRAVELER))
 
         for action in self.subactions:
             action.do()
@@ -737,7 +737,7 @@ class Drop(Action):
         self.unit.traveler = None
         self.unit.has_dropped = True
 
-        self.subactions.append(RemoveSkill(self.unit, "Rescue"))
+        self.subactions.append(RemoveSkill(self.unit, "Rescue", source=self.droppee.nid, source_type=SourceType.TRAVELER))
         for action in self.subactions:
             action.do()
 
@@ -781,10 +781,10 @@ class Give(Action):
 
         self.other.traveler = self.unit.traveler
         if not skill_system.ignore_rescue_penalty(self.other) and 'Rescue' in DB.skills.keys():
-            self.subactions.append(AddSkill(self.other, 'Rescue'))
+            self.subactions.append(AddSkill(self.other, 'Rescue', source=self.other.traveler.nid, source_type=SourceType.TRAVELER))
 
         self.unit.traveler = None
-        self.subactions.append(RemoveSkill(self.unit, "Rescue"))
+        self.subactions.append(RemoveSkill(self.unit, "Rescue", source=self.other.traveler.nid, source_type=SourceType.TRAVELER))
 
         self.unit.has_given = True
 
@@ -811,10 +811,10 @@ class Take(Action):
 
         self.unit.traveler = self.other.traveler
         if not skill_system.ignore_rescue_penalty(self.unit) and 'Rescue' in DB.skills.keys():
-            self.subactions.append(AddSkill(self.unit, 'Rescue'))
+            self.subactions.append(AddSkill(self.unit, 'Rescue', source=self.unit.traveler.nid, source_type=SourceType.TRAVELER))
 
         self.other.traveler = None
-        self.subactions.append(RemoveSkill(self.other, "Rescue"))
+        self.subactions.append(RemoveSkill(self.other, "Rescue", source=self.unit.traveler.nid, source_type=SourceType.TRAVELER))
 
         self.unit.has_taken = True
 

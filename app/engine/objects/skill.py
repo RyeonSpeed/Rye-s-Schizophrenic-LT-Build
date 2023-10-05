@@ -11,6 +11,8 @@ class SourceType(Enum):
     REGION = ('region', False, False)
     KLASS = ('class', False, True)
     PERSONAL = ('personal', False, True)
+    TRAVELER = ('traveler', False, False)
+    FATIGUE = ('fatigue', False, True)
     OTHER = ('other', True, True)
 
     def __init__(self, nid, displaceable, removable):
