@@ -3,22 +3,57 @@ from app.utilities.data import Data
 from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
 from enum import Enum
+from typing import Union
+        
+class SourceInfo():
+    source: Union[str, tuple, int]
+    displaceable: bool
+    removable: bool
+    
+    def __init__(self, source: Union[str, tuple, int]):
+        self.source = source
 
-class SourceType(Enum):
-    AURA = ('aura', False, False)
-    TERRAIN = ('terrain', False, False)
-    ITEM = ('item', False, False)
-    REGION = ('region', False, False)
-    KLASS = ('class', False, True)
-    PERSONAL = ('personal', False, True)
-    TRAVELER = ('traveler', False, False)
-    FATIGUE = ('fatigue', False, True)
-    OTHER = ('other', True, True)
+    def displaceable(self):
+        return self.displaceable
 
-    def __init__(self, nid, displaceable, removable):
-        self.nid = nid
-        self.displaceable = displaceable
-        self.removable = removable
+    def removable(self):
+        return self.removable
+        
+class TerrainSourceInfo(SourceInfo):
+    displaceable = False
+    removable = False
+    
+class AuraSourceInfo(SourceInfo):
+    displaceable = False
+    removable = False
+    
+class ItemSourceInfo(SourceInfo):
+    displaceable = False
+    removable = False
+    
+class RegionSourceInfo(SourceInfo):
+    displaceable = False
+    removable = False
+    
+class TravelerSourceInfo(SourceInfo):
+    displaceable = False
+    removable = False
+    
+class KlassSourceInfo(SourceInfo):
+    displaceable = False
+    removable = True
+    
+class PersonalSourceInfo(SourceInfo):
+    displaceable = False
+    removable = True
+
+class FatigueSourceInfo(SourceInfo):
+    displaceable = False
+    removable = True
+    
+class DefaultSourceInfo(SourceInfo):
+    displaceable = True
+    removable = True
 
 class SkillObject():
     next_uid = 100
@@ -51,8 +86,7 @@ class SkillObject():
         self.subskill_uid = None
         self.parent_skill = None
         # Track skill source
-        self.source = None
-        self.source_type = SourceType.OTHER
+        self.source_info = None
 
     @classmethod
     def from_prefab(cls, prefab):
@@ -83,8 +117,7 @@ class SkillObject():
         serial_dict['data'] = self.data
         serial_dict['initiator_nid'] = self.initiator_nid
         serial_dict['subskill'] = self.subskill_uid
-        serial_dict['source'] = self.source
-        serial_dict['source_type'] = self.source_type
+        serial_dict['source_info'] = self.source_info
         return serial_dict
 
     @classmethod
@@ -100,6 +133,5 @@ class SkillObject():
         self.data = dat['data']
         self.initiator_nid = dat.get('initiator_nid', None)
         self.subskill_uid = dat.get('subskill', None)
-        self.source = dat.get('source', None)
-        self.source_type = dat.get('source_type', SourceType.OTHER)
+        self.source_info = dat.get('source_info', DefaultSourceInfo(None))
         return self

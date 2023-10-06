@@ -42,7 +42,7 @@ from app.engine import state_machine
 from app.engine.roam.roam_info import RoamInfo
 from app.utilities import static_random
 from app.data.resources.resources import RESOURCES
-from app.engine.objects.skill import SourceType
+from app.engine.objects.skill import RegionSourceInfo, TerrainSourceInfo
 
 import logging
 
@@ -937,7 +937,7 @@ class GameState():
                         if test:
                             unit.remove_skill(skill_obj)
                         else:
-                            act = action.RemoveSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
+                            act = action.RemoveSkill(unit, skill_obj, source_info=RegionSourceInfo(region.nid))
                             action.do(act)
             # Tiles and terrain regions
             terrain_nid = self.get_terrain_nid(self.tilemap, unit.position)
@@ -950,7 +950,7 @@ class GameState():
                 if test:
                     unit.remove_skill(skill_obj)
                 else:
-                    act = action.RemoveSkill(unit, skill_obj, source=terrain_nid, source_type=SourceType.TERRAIN)
+                    act = action.RemoveSkill(unit, skill_obj, source_info=TerrainSourceInfo(unit.position))
                     action.do(act)
             # Boundary
             if not test:
@@ -1024,7 +1024,7 @@ class GameState():
                     # Don't need to use action for test
                     unit.add_skill(skill_obj)
                 else:
-                    act = action.AddSkill(unit, skill_obj, source=terrain_nid, source_type=SourceType.TERRAIN)
+                    act = action.AddSkill(unit, skill_obj, source_info=TerrainSourceInfo(unit.position))
                     action.do(act)
 
     def add_region_status(self, unit: UnitObject, region: RegionObject, test: bool):
@@ -1045,7 +1045,7 @@ class GameState():
                     # Don't need to use action for test
                     unit.add_skill(skill_obj)
                 else:
-                    act = action.AddSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
+                    act = action.AddSkill(unit, skill_obj, source_info=RegionSourceInfo(region.nid))
                     action.do(act)
                     return act
 
