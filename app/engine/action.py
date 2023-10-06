@@ -3283,8 +3283,8 @@ class AddSkill(Action):
             skill_system.init(skill_obj)
             if skill_obj.uid not in game.skill_registry:
                 game.register_skill(skill_obj)
-            if self.source_info:
-                self.source_info = source_info
+            if source_info:
+                skill_obj.source_info = source_info
         self.skill_obj: SkillObject = skill_obj
         self.subactions = []
         self.reset_action = ResetUnitVars(self.unit)
@@ -3385,7 +3385,7 @@ class RemoveSkill(Action):
         to_remove = self.count
         if isinstance(self.skill, str):
             for skill in self.unit.all_skills[:]:
-                if skill.nid == self.skill and (skill.source_info.removable or (self.source_info.source == skill.source_info.source and type(self.source_info) is type(skill.source_info))) and to_remove != 0:
+                if skill.nid == self.skill and (skill.source_info.removable or (self.source_info and self.source_info.source == skill.source_info.source and type(self.source_info) is type(skill.source_info))) and to_remove != 0:
                     self._remove_skill(skill, true_remove)
                     to_remove -= 1
             if to_remove > 0:
