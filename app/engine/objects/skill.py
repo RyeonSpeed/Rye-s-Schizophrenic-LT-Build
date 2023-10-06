@@ -2,6 +2,23 @@ from app.utilities.data import Data
 
 from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
+from enum import Enum
+
+class SourceType(Enum):
+    AURA = ('aura', False, False)
+    TERRAIN = ('terrain', False, False)
+    ITEM = ('item', False, False)
+    REGION = ('region', False, False)
+    KLASS = ('class', False, True)
+    PERSONAL = ('personal', False, True)
+    TRAVELER = ('traveler', False, False)
+    FATIGUE = ('fatigue', False, True)
+    OTHER = ('other', True, True)
+
+    def __init__(self, nid, displaceable, removable):
+        self.nid = nid
+        self.displaceable = displaceable
+        self.removable = removable
 
 class SkillObject():
     next_uid = 100
@@ -27,11 +44,15 @@ class SkillObject():
 
         self.data = {}
         self.initiator_nid = None
-
+        self.displaceable = True
+        self.removable = True
         # For subskill
         self.subskill = None
         self.subskill_uid = None
         self.parent_skill = None
+        # Track skill source
+        self.source = None
+        self.source_type = SourceType.OTHER
 
     @classmethod
     def from_prefab(cls, prefab):
@@ -62,6 +83,8 @@ class SkillObject():
         serial_dict['data'] = self.data
         serial_dict['initiator_nid'] = self.initiator_nid
         serial_dict['subskill'] = self.subskill_uid
+        serial_dict['source'] = self.source
+        serial_dict['source_type'] = self.source_type
         return serial_dict
 
     @classmethod
@@ -77,4 +100,6 @@ class SkillObject():
         self.data = dat['data']
         self.initiator_nid = dat.get('initiator_nid', None)
         self.subskill_uid = dat.get('subskill', None)
+        self.source = dat.get('source', None)
+        self.source_type = dat.get('source_type', SourceType.OTHER)
         return self
