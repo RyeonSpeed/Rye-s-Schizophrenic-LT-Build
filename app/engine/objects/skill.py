@@ -86,7 +86,7 @@ class SkillObject():
         self.subskill_uid = None
         self.parent_skill = None
         # Track skill source
-        self.source_info = None
+        self.source_info = DefaultSourceInfo(None)
 
     @classmethod
     def from_prefab(cls, prefab):
