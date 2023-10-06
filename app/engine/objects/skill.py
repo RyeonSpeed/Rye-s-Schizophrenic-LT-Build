@@ -14,10 +14,10 @@ class SourceInfo():
         self.source = source
 
     def displaceable(self):
-        return self.displaceable
+        return self._displaceable
 
     def removable(self):
-        return self.removable
+        return self._removable
         
 class TerrainSourceInfo(SourceInfo):
     displaceable = False
