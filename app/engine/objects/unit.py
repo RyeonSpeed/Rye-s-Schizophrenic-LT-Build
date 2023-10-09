@@ -22,6 +22,63 @@ if TYPE_CHECKING:
 
 import logging
 
+# Tracking origin of skills for removal policies
+class UnitSkillInfo():
+    skill_obj: SkillObject
+    source: Union[str, tuple, int]
+    displaceable: bool
+    removable: bool
+    
+    def __init__(self, skill_obj: SkillObject, source: Union[str, tuple, int]):
+        self.skill_obj = SkillObject
+        self.source = source
+
+    def displaceable(self):
+        return self._displaceable
+
+    def removable(self):
+        return self._removable
+        
+class GlobalSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = False
+        
+class TerrainSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = False
+    
+class AuraSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = False
+    
+class ItemSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = False
+    
+class RegionSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = False
+    
+class TravelerSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = False
+    
+class KlassSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = True
+    
+class PersonalSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = True
+
+class FatigueSkillInfo(UnitSkillInfo):
+    displaceable = False
+    removable = True
+    
+class DefaultSkillInfo(UnitSkillInfo):
+    displaceable = True
+    removable = True
+
 # Main unit object used by engine
 @dataclass
 class UnitObject(Prefab):
@@ -78,7 +135,7 @@ class UnitObject(Prefab):
     equipped_weapon: ItemObject = None
     equipped_accessory: ItemObject = None
 
-    _skills: List[SkillObject] = field(default_factory=list)
+    _skills: List[UnitSkillInfo] = field(default_factory=list)
     _visible_skills_cache: List[SkillObject] = field(default_factory=list)
 
     has_rescued: bool = False
@@ -242,10 +299,11 @@ class UnitObject(Prefab):
             all_skills += class_skills
             if self.generic:
                 generic_skills = item_funcs.create_skills(self, prefab.starting_skills)
-                all_skills += generic_skills
-            for skill in all_skills:
-                skill_system.before_add(self, skill)
-                self._skills.append(skill)
+                for skill_obj in generic_skills:
+                    all_skills.append(PersonalSkillInfo(skill_obj, self.nid))
+            for skill_info in all_skills:
+                skill_system.before_add(self, skill_info.skill_obj)
+                self._skills.append(skill_info)
 
         klass = DB.classes.get(self.klass)
         if klass.tier == 0:
@@ -293,8 +351,8 @@ class UnitObject(Prefab):
                 self.level += current_mode.boss_truelevels
 
         # equip items and skill after initialization
-        for skill in self._skills:
-            skill_system.after_add(self, skill)
+        for skill_info in self._skills:
+            skill_system.after_add(self, skill_info.skill_obj)
         self._visible_skills_cache.clear()
 
         # -- Equipped Items
@@ -364,16 +422,20 @@ class UnitObject(Prefab):
     def set_exp(self, val: int) -> int:
         self.exp = int(utils.clamp(val, 0, 100))
 
-    def add_skill(self, skill_obj):
-        self._skills.append(skill_obj)
+    def add_skill(self, skill_info):
+        self._skills.append(skill_info)
         self._visible_skills_cache.clear()
 
-    def remove_skill(self, skill_obj):
-        self._skills.remove(skill_obj)
+    def remove_skill(self, skill_info):
+        self._skills.remove(skill_info)
         self._visible_skills_cache.clear()
 
     @property
     def all_skills(self):
+        return [s.skill_obj for s in self._skills]
+        
+    @property
+    def all_skill_info(self):
         return self._skills
 
     @property
@@ -389,7 +451,7 @@ class UnitObject(Prefab):
         skills = []
         skill_nids = set()
         # reversed so that more recently added skills take priority
-        for skill in reversed(self._skills):
+        for skill in reversed([s.skill_obj for s in self._skills]):
             if skill.stack:
                 if sum([s.nid == skill.nid for s in skills]) >= skill.stack.value:
                     pass
@@ -750,7 +812,7 @@ class UnitObject(Prefab):
                   'wexp': self.wexp,
                   'portrait_nid': self.portrait_nid,
                   'affinity': self.affinity,
-                  'skills': [skill.uid for skill in self._skills],
+                  'skills': [(skill_info.skill_obj.uid, skill_info.source, skill_info.__class__) for skill in self._skills],
                   'notes': self.notes,
                   'current_hp': self.current_hp,
                   'current_mana': self.current_mana,
@@ -811,8 +873,10 @@ class UnitObject(Prefab):
         self.equipped_weapon = None
         self.equipped_accessory = None
 
-        self._skills = [game.get_skill(skill_uid) for skill_uid in s_dict['skills']]
-        self._skills = [s for s in self._skills if s]
+        for skill_uid, source, skill_info_class in s_dict['skills']:
+            skill_obj = game.get_skill(skill_uid)
+            if skill_obj:
+                self._skills.append(skill_info_class(skill_obj, source))
 
         self.current_hp = s_dict['current_hp']
         self.current_mana = s_dict['current_mana']
@@ -854,8 +918,8 @@ class UnitObject(Prefab):
         self.current_move = None  # Holds the move action the unit last used
         # Maybe move to movement manager?
 
-        for skill in self._skills:
-            skill_system.after_add_from_restore(self, skill)
+        for skill_info in self._skills:
+            skill_system.after_add_from_restore(self, skill_info.skill_obj)
         self._visible_skills_cache.clear()
 
         return self
