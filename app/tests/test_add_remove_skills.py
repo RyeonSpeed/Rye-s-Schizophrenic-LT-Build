@@ -5,7 +5,7 @@ from app.engine.game_board import GameBoard
 from app.engine.target_system import TargetSystem
 from app.engine.objects.unit import UnitObject
 from app.engine.action import AddSkill, RemoveSkill, Action
-from app.engine.skill_info import KlassSkill, TerrainSkill, RegionSkill, AuraSkill, PersonalSkill, ItemSkill
+from app.engine.source_type import SourceType
 
 class FakeResetUnitVars:
     def __init__(self, unit):
@@ -65,7 +65,7 @@ class AddRemoveSkillTests(unittest.TestCase):
             
             AddSkill(self.test_unit, self.test_skill).do()
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
-            RemoveSkill(self.test_unit, 'Potatomancy', source='Bollocks', skill_type=KlassSkill).do()
+            RemoveSkill(self.test_unit, 'Potatomancy', source='Bollocks', source_type=SourceType.KLASS).do()
             self.assertNotIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
         
     def test_add_remove_unremovable_skill(self):
@@ -73,19 +73,19 @@ class AddRemoveSkillTests(unittest.TestCase):
         You can remove a unremovable skill from a unit only via the introducing effect, matching both NID and type
         '''
         with unittest.mock.patch('app.engine.action.ResetUnitVars', FakeResetUnitVars) as plz_work:
-            AddSkill(self.test_unit, self.test_skill, source='Idaho', skill_type=TerrainSkill).do()
+            AddSkill(self.test_unit, self.test_skill, source='Idaho', source_type=SourceType.TERRAIN).do()
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
             RemoveSkill(self.test_unit, 'Potatomancy').do()
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
-            RemoveSkill(self.test_unit, 'Potatomancy', source='Idaho', skill_type=RegionSkill).do()
+            RemoveSkill(self.test_unit, 'Potatomancy', source='Idaho', source_type=SourceType.REGION).do()
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
-            RemoveSkill(self.test_unit, 'Potatomancy', source='Bombay', skill_type=TerrainSkill).do()
+            RemoveSkill(self.test_unit, 'Potatomancy', source='Bombay', source_type=SourceType.TERRAIN).do()
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
-            RemoveSkill(self.test_unit, 'Potatomancy', source='Idaho', skill_type=TerrainSkill).do()
+            RemoveSkill(self.test_unit, 'Potatomancy', source='Idaho', source_type=SourceType.TERRAIN).do()
             self.assertNotIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
         
     def test_displace_displaceable_skill(self):
@@ -109,7 +109,7 @@ class AddRemoveSkillTests(unittest.TestCase):
         You can remove a unremovable skill from a unit only via the introducing effect, matching both NID and type
         '''
         with unittest.mock.patch('app.engine.action.ResetUnitVars', FakeResetUnitVars) as plz_work:
-            AddSkill(self.test_unit, self.test_skill, source='Idaho', skill_type=TerrainSkill).do()
+            AddSkill(self.test_unit, self.test_skill, source='Idaho', source_type=SourceType.TERRAIN).do()
             self.assertIn(self.test_skill, self.test_unit.all_skills)
             
             test_skill_dup = MagicMock()
@@ -119,7 +119,7 @@ class AddRemoveSkillTests(unittest.TestCase):
             self.assertIn(self.test_skill, self.test_unit.all_skills)
             self.assertNotIn(test_skill_dup, self.test_unit.all_skills)
             
-            AddSkill(self.test_unit, test_skill_dup, source='Bungus_Blade', skill_type=ItemSkill).do()
+            AddSkill(self.test_unit, test_skill_dup, source='Bungus_Blade', source_type=SourceType.ITEM).do()
             self.assertIn(self.test_skill, self.test_unit.all_skills)
             self.assertIn(test_skill_dup, self.test_unit.all_skills)
             
@@ -128,7 +128,7 @@ class AddRemoveSkillTests(unittest.TestCase):
         Adding a new copy of a stack skill displaces the oldest existing displaceable copy
         '''
         with unittest.mock.patch('app.engine.action.ResetUnitVars', FakeResetUnitVars) as plz_work:
-            AddSkill(self.test_unit, self.test_skill_stack, source='Magmancer', skill_type=KlassSkill).do()
+            AddSkill(self.test_unit, self.test_skill_stack, source='Magmancer', source_type=SourceType.KLASS).do()
             
             test_skill_stack2 = MagicMock()
             test_skill_stack2.nid = 'Spud_Stack'
@@ -160,31 +160,31 @@ class AddRemoveSkillTests(unittest.TestCase):
         Removing a stack skill removes all removable copies (including hidden ones), or the oldest removable copy for single count
         '''
         with unittest.mock.patch('app.engine.action.ResetUnitVars', FakeResetUnitVars) as plz_work:
-            AddSkill(self.test_unit, self.test_skill_stack, source='Fart_Aura', skill_type=AuraSkill).do()
+            AddSkill(self.test_unit, self.test_skill_stack, source='Fart_Aura', source_type=SourceType.AURA).do()
             
             test_skill_stack2 = MagicMock()
             test_skill_stack2.nid = 'Spud_Stack'
             test_skill_stack2.stack = MagicMock()
             test_skill_stack2.stack.value = 3
-            AddSkill(self.test_unit, test_skill_stack2, source='Magmancer', skill_type=KlassSkill).do()
+            AddSkill(self.test_unit, test_skill_stack2, source='Magmancer', source_type=SourceType.KLASS).do()
             
             test_skill_stack3 = MagicMock()
             test_skill_stack3.nid = 'Spud_Stack'
             test_skill_stack3.stack = MagicMock()
             test_skill_stack3.stack.value = 3
-            AddSkill(self.test_unit, test_skill_stack3, source='Magmancer', skill_type=KlassSkill).do()
+            AddSkill(self.test_unit, test_skill_stack3, source='Magmancer', source_type=SourceType.KLASS).do()
             
             test_skill_stack4 = MagicMock()
             test_skill_stack4.nid = 'Spud_Stack'
             test_skill_stack4.stack = MagicMock()
             test_skill_stack4.stack.value = 3
-            AddSkill(self.test_unit, test_skill_stack4, source='Ophie', skill_type=PersonalSkill).do()
+            AddSkill(self.test_unit, test_skill_stack4, source='Ophie', source_type=SourceType.PERSONAL).do()
             
             test_skill_stack5 = MagicMock()
             test_skill_stack5.nid = 'Spud_Stack'
             test_skill_stack5.stack = MagicMock()
             test_skill_stack5.stack.value = 3
-            AddSkill(self.test_unit, test_skill_stack5, source='Magmancer', skill_type=KlassSkill).do()
+            AddSkill(self.test_unit, test_skill_stack5, source='Magmancer', source_type=SourceType.KLASS).do()
             self.assertIn(self.test_skill_stack, self.test_unit.all_skills)
             self.assertIn(test_skill_stack2, self.test_unit.all_skills)
             self.assertIn(test_skill_stack3, self.test_unit.all_skills)

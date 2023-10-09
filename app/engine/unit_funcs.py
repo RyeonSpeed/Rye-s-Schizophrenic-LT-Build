@@ -5,7 +5,6 @@ from app.engine import item_funcs, skill_system
 from app.engine.game_state import game
 from app.events import triggers
 from app.utilities import utils, static_random
-from app.engine.skill_info import GlobalSkill, PersonalSkill, KlassSkill
 
 import logging
 
@@ -264,7 +263,6 @@ def get_starting_skills(unit, starting_level: int = 0) -> list:
     all_klasses.reverse()
 
     skills_to_add = []
-    skill_class_lookup = []
     feats = DB.skills.get_feats()
     current_skills = [skill.nid for skill in unit.skills]
     for idx, klass in enumerate(all_klasses):
@@ -277,15 +275,12 @@ def get_starting_skills(unit, starting_level: int = 0) -> list:
                         my_feats = [feat for feat in feats if feat.nid not in current_skills and feat.nid not in skills_to_add]
                         random_number = static_random.get_growth() % len(my_feats)
                         new_skill = my_feats[random_number]
-                        skill_obj = item_funcs.create_skill(unit, new_skill.nid)
-                        if skill_obj:
-                            skills_to_add.append(KlassSkill(skill_obj, klass.nid))
+                        skills_to_add.append(new_skill.nid)
                 else:
-                    skill_obj = item_funcs.create_skill(unit, learned_skill[1])
-                    if skill_obj:
-                        skills_to_add.append(KlassSkill(skill_obj, klass.nid))
+                    skills_to_add.append(learned_skill[1])
 
-    return skills_to_add
+    klass_skills = item_funcs.create_skills(unit, skills_to_add)
+    return klass_skills
 
 def get_personal_skills(unit, prefab, starting_level: int = 0) -> list:
     skills_to_add = []
@@ -295,22 +290,17 @@ def get_personal_skills(unit, prefab, starting_level: int = 0) -> list:
             skills_to_add.append(learned_skill[1])
 
     personal_skills = item_funcs.create_skills(unit, skills_to_add)
-    personal_skill_info = []
-    for skill_obj in personal_skills:
-        personal_skill_info.append(PersonalSkill(skill_obj, unit.nid))
-    return personal_skill_info
+    return personal_skills
 
 def get_global_skills(unit) -> list:
     skills_to_add = []
+    current_skills = [skill.nid for skill in unit.skills]
     for skill_prefab in DB.skills:
-        if skill_prefab.components.get('global'):
+        if skill_prefab.components.get('global') and skill_prefab.nid not in current_skills:
             skills_to_add.append(skill_prefab.nid)
 
     global_skills = item_funcs.create_skills(unit, skills_to_add)
-    global_skill_info = []
-    for skill_obj in global_skills:
-        global_skill_info.append(GlobalSkill(skill_obj, 'global'))
-    return global_skill_info
+    return global_skills
 
 def can_unlock(unit, region) -> bool:
     from app.engine import item_system, skill_system

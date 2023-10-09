@@ -5,7 +5,7 @@ from app.data.database.components import ComponentType
 from app.utilities import utils
 from app.engine import action, combat_calcs, item_funcs, image_mods, engine, item_system, skill_system
 from app.engine.combat import playback as pb
-from app.engine.skill_info import ItemSkill
+from app.engine.source_type import SourceType
 
 class EffectiveDamage(ItemComponent):
     nid = 'effective_damage'
@@ -223,11 +223,11 @@ class StatusOnEquip(ItemComponent):
     expose = ComponentType.Skill  # Nid
 
     def on_equip_item(self, unit, item):
-        act = action.AddSkill(unit, self.value, source=item.uid, skill_type=ItemSkill)
+        act = action.AddSkill(unit, self.value, source=item.uid, source_type=SourceType.ITEM)
         action.do(act)
 
     def on_unequip_item(self, unit, item):
-        action.do(action.RemoveSkill(unit, self.value, count=1, source=item.uid, skill_type=ItemSkill))
+        action.do(action.RemoveSkill(unit, self.value, count=1, source=item.uid, source_type=SourceType.ITEM))
 
 class MultiStatusOnEquip(ItemComponent):
     nid = 'multi_status_on_equip'
@@ -238,12 +238,12 @@ class MultiStatusOnEquip(ItemComponent):
 
     def on_equip_item(self, unit, item):
         for skl in self.value:
-            act = action.AddSkill(unit, skl, source=item.uid, skill_type=ItemSkill)
+            act = action.AddSkill(unit, skl, source=item.uid, source_type=SourceType.ITEM)
             action.do(act)
 
     def on_unequip_item(self, unit, item):
         for skl in self.value:
-            action.do(action.RemoveSkill(unit, skl, count=1, source=item.uid, skill_type=ItemSkill))
+            action.do(action.RemoveSkill(unit, skl, count=1, source=item.uid, source_type=SourceType.ITEM))
 
 class StatusOnHold(ItemComponent):
     nid = 'status_on_hold'
@@ -253,10 +253,10 @@ class StatusOnHold(ItemComponent):
     expose = ComponentType.Skill  # Nid
 
     def on_add_item(self, unit, item):
-        action.do(action.AddSkill(unit, self.value, source=item.uid, skill_type=ItemSkill))
+        action.do(action.AddSkill(unit, self.value, source=item.uid, source_type=SourceType.ITEM))
 
     def on_remove_item(self, unit, item):
-        action.do(action.RemoveSkill(unit, self.value, count=1, source=item.uid, skill_type=ItemSkill))
+        action.do(action.RemoveSkill(unit, self.value, count=1, source=item.uid, source_type=SourceType.ITEM))
 
 class MultiStatusOnHold(ItemComponent):
     nid = 'multi_status_on_hold'
@@ -267,12 +267,12 @@ class MultiStatusOnHold(ItemComponent):
 
     def on_add_item(self, unit, item):
         for skl in self.value:
-            act = action.AddSkill(unit, skl, source=item.uid, skill_type=ItemSkill)
+            act = action.AddSkill(unit, skl, source=item.uid, source_type=SourceType.ITEM)
             action.do(act)
 
     def on_remove_item(self, unit, item):
         for skl in self.value:
-            action.do(action.RemoveSkill(unit, skl, count=1, source=item.uid, skill_type=ItemSkill))
+            action.do(action.RemoveSkill(unit, skl, count=1, source=item.uid, source_type=SourceType.ITEM))
 
 class GainManaAfterCombat(ItemComponent):
     nid = 'gain_mana_after_combat'

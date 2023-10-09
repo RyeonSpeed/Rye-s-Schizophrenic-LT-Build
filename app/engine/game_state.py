@@ -42,7 +42,7 @@ from app.engine import state_machine
 from app.engine.roam.roam_info import RoamInfo
 from app.utilities import static_random
 from app.data.resources.resources import RESOURCES
-from app.engine.skill_info import TerrainSkill, RegionSkill
+from app.engine.source_type import SourceType
 
 import logging
 
@@ -539,7 +539,7 @@ class GameState():
                 droppee = self.get_unit(unit.traveler)
                 if full:
                     unit.traveler = None
-                    action.RemoveSkill(unit, 'Rescue', source=unit.traveler, skill_type=TravelerSkill).execute()
+                    action.RemoveSkill(unit, 'Rescue', source=unit.traveler, source_type=SourceType.TRAVELER).execute()
                 else:
                     pos = self.target_system.get_nearest_open_tile(droppee, unit.position)
                     action.Drop(unit, droppee, pos).execute()
@@ -937,7 +937,7 @@ class GameState():
                         if test:
                             unit.remove_skill(RegionSkill(skill_obj, region.nid))
                         else:
-                            act = action.RemoveSkill(unit, skill_obj, source=region.nid, skill_type=RegionSkill)
+                            act = action.RemoveSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
                             action.do(act)
             # Tiles and terrain regions
             terrain_nid = self.get_terrain_nid(self.tilemap, unit.position)
@@ -950,7 +950,7 @@ class GameState():
                 if test:
                     unit.remove_skill(TerrainSkill(skill_obj, unit.position))
                 else:
-                    act = action.RemoveSkill(unit, skill_obj, source=unit.position, skill_type=TerrainSkill)
+                    act = action.RemoveSkill(unit, skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                     action.do(act)
             # Boundary
             if not test:
@@ -1024,7 +1024,7 @@ class GameState():
                     # Don't need to use action for test
                     unit.add_skill(TerrainSkill(skill_obj, unit.position))
                 else:
-                    act = action.AddSkill(unit, skill_obj, source=unit.position, skill_type=TerrainSkill)
+                    act = action.AddSkill(unit, skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                     action.do(act)
 
     def add_region_status(self, unit: UnitObject, region: RegionObject, test: bool):
@@ -1045,7 +1045,7 @@ class GameState():
                     # Don't need to use action for test
                     unit.add_skill(RegionSkill(skill_obj, region.nid))
                 else:
-                    act = action.AddSkill(unit, skill_obj, source=region.nid, skill_type=RegionSkill)
+                    act = action.AddSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
                     action.do(act)
                     return act
 
