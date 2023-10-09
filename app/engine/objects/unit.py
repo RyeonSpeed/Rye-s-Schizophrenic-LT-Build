@@ -12,6 +12,7 @@ from app.engine import (combat_calcs, equations, item_funcs, item_system,
 from app.engine.objects.difficulty_mode import DifficultyModeObject
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
+from app.engine.skill_info import UnitSkill
 from app.utilities import utils
 from app.utilities.data import Prefab
 from app.utilities.typing import NID
@@ -21,63 +22,6 @@ if TYPE_CHECKING:
     from app.engine.unit_sprite import UnitSprite
 
 import logging
-
-# Tracking origin of skills for removal policies
-class UnitSkill():
-    skill_obj: SkillObject
-    source: Union[str, tuple, int]
-    displaceable: bool
-    removable: bool
-    
-    def __init__(self, skill_obj: SkillObject, source: Union[str, tuple, int]):
-        self.skill_obj = SkillObject
-        self.source = source
-
-    def displaceable(self):
-        return self._displaceable
-
-    def removable(self):
-        return self._removable
-        
-class GlobalSkill(UnitSkill):
-    displaceable = False
-    removable = False
-        
-class TerrainSkill(UnitSkill):
-    displaceable = False
-    removable = False
-    
-class AuraSkill(UnitSkill):
-    displaceable = False
-    removable = False
-    
-class ItemSkill(UnitSkill):
-    displaceable = False
-    removable = False
-    
-class RegionSkill(UnitSkill):
-    displaceable = False
-    removable = False
-    
-class TravelerSkill(UnitSkill):
-    displaceable = False
-    removable = False
-    
-class KlassSkill(UnitSkill):
-    displaceable = False
-    removable = True
-    
-class PersonalSkill(UnitSkill):
-    displaceable = False
-    removable = True
-
-class FatigueSkill(UnitSkill):
-    displaceable = False
-    removable = True
-    
-class DefaultSkill(UnitSkill):
-    displaceable = True
-    removable = True
 
 # Main unit object used by engine
 @dataclass
@@ -433,10 +377,6 @@ class UnitObject(Prefab):
     @property
     def all_skills(self):
         return [s.skill_obj for s in self._skills]
-        
-    @property
-    def all_skill_info(self):
-        return self._skills
 
     @property
     def skills(self):
@@ -467,6 +407,10 @@ class UnitObject(Prefab):
         skills = list(reversed(skills)) # Reverse back to correct direction
         self._visible_skills_cache = skills
         return skills
+
+    @property
+    def all_skill_info(self):
+        return self._skills
     
     def stat_bonus(self, stat_nid: NID) -> int:
         bonus = skill_system.stat_change(self, stat_nid)
@@ -591,7 +535,7 @@ class UnitObject(Prefab):
             return skills[0]
         return None
         
-    def get_skill_info(self, skill_obj: SkillObject)
+    def get_skill_info(self, skill_obj: SkillObject):
         skills = [skill_info for skill_info in reversed(self.all_skill_info) if skill_info.skill_obj.uid == skill_obj.uid]
         if skills:
             return skills[0]

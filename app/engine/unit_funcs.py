@@ -5,7 +5,7 @@ from app.engine import item_funcs, skill_system
 from app.engine.game_state import game
 from app.events import triggers
 from app.utilities import utils, static_random
-from app.engine.objects.unit import GlobalSkill, PersonalSkill, KlassSkill
+from app.engine.skill_info import GlobalSkill, PersonalSkill, KlassSkill
 
 import logging
 

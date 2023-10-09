@@ -19,8 +19,9 @@ from app.engine import (aura_funcs, banner, equations, item_funcs, item_system,
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
 from app.engine.objects.skill import SkillObject
-from app.engine.objects.unit import UnitObject, Skill, DefaultSkill, TravelerSkill, RegionSkill
+from app.engine.objects.unit import UnitObject
 from app.engine.objects.region import RegionObject
+from app.engine.skill_info import DefaultSkill, TravelerSkill, RegionSkill
 from app.engine import engine
 from app.utilities import utils, static_random
 
@@ -3283,10 +3284,11 @@ class AddSkill(Action):
             skill_system.init(skill_obj)
             if skill_obj.uid not in game.skill_registry:
                 game.register_skill(skill_obj)
-            self.skill_info = DefaultSkill(skill_obj, source)
+            skill_info = DefaultSkill(skill_obj, source)
             if skill_type:
-                self.skill_info = skill_type(skill_obj, source)
+                skill_info = skill_type(skill_obj, source)
         self.skill_obj: SkillObject = skill_obj
+        self.skill_info: UnitSkill = skill_info
         self.subactions = []
         self.reset_action = ResetUnitVars(self.unit)
         
@@ -3306,7 +3308,7 @@ class AddSkill(Action):
                 logging.info("Skill %s could not be added as no instance could be displaced" % self.skill_obj.nid)
                 return
             if len(displaceable_skills) > 0:
-                self.subactions.append(RemoveSkill(self.unit, displaceable_skills[0]))
+                self.subactions.append(RemoveSkill(self.unit, displaceable_skills[0].skill_obj))
         for action in self.subactions:
             action.execute()
 
@@ -3388,8 +3390,8 @@ class RemoveSkill(Action):
         to_remove = self.count
         if isinstance(self.skill, str):
             for skill_info in self.unit.all_skill_info[:]:
-                if skill_info.skill_obj.nid == self.skill.nid and \
-                (skill_info.removable or (self.source and self.skill_info and self.source == skill_info.source and self.skill_type is type(skill_info))) and \
+                if skill_info.skill_obj.nid == self.skill and \
+                (skill_info.removable or (self.source and self.skill_type and self.source == skill_info.source and self.skill_type is type(skill_info))) and \
                 to_remove != 0:
                     self._remove_skill(skill_info, true_remove)
                     to_remove -= 1
@@ -3397,12 +3399,13 @@ class RemoveSkill(Action):
                 logging.warning("%d removable instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
             to_remove_info = self.unit.get_skill_info(self.skill)
-            if not to_remove_info.removable and not(to_remove_info.source == self.source and type(to_remove_info) is type(self.skill_type)):
-                logging.warning("Incorrect source attempting to remove skill %s for %s", self.skill.nid, self.unit)
-            elif self.skill in self.unit.all_skills:
-                self._remove_skill(to_remove_info, true_remove)
-            else:
+            if not to_remove_info:
                 logging.warning("Skill %s not in %s's skills", self.skill.nid, self.unit)
+            elif not to_remove_info.removable and not(to_remove_info.source == self.source and type(to_remove_info) is type(self.skill_type)):
+                logging.warning("Incorrect source attempting to remove skill %s for %s", self.skill.nid, self.unit)
+            else:
+                self._remove_skill(to_remove_info, true_remove)
+                
 
         # Handle affects movement
         self.reset_action.execute()

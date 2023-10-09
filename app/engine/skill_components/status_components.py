@@ -8,7 +8,7 @@ from app.engine.game_state import game
 from app.engine.combat import playback as pb
 from app.utilities import static_random
 from app.utilities.enums import Strike
-from app.engine.objects.skill import TravelerSourceInfo
+from app.engine.skill_info import TravelerSkill
 
 class Aura(SkillComponent):
     nid = 'aura'
@@ -60,11 +60,11 @@ class PairUpBonus(SkillComponent):
     expose = ComponentType.Skill
 
     def on_pairup(self, unit, leader):
-        action.do(action.AddSkill(leader, self.value, source_info=TravelerSourceInfo(unit.nid)))
+        action.do(action.AddSkill(leader, self.value, source=unit.nid, skill_type=TravelerSkill))
 
     def on_separate(self, unit, leader):
         if self.value in [skill.nid for skill in leader.skills]:
-            action.do(action.RemoveSkill(leader, self.value, source_info=TravelerSourceInfo(unit.nid)))
+            action.do(action.RemoveSkill(leader, self.value, source=unit.nid, skill_type=TravelerSkill))
 
 class Regeneration(SkillComponent):
     nid = 'regeneration'

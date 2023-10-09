@@ -42,7 +42,7 @@ from app.engine import state_machine
 from app.engine.roam.roam_info import RoamInfo
 from app.utilities import static_random
 from app.data.resources.resources import RESOURCES
-from app.engine.objects.unit import RegionSkill, TerrainSkill
+from app.engine.skill_info import TerrainSkill, RegionSkill
 
 import logging
 

@@ -5,7 +5,7 @@ from app.engine.objects.unit import UnitObject
 from app.data.database.database import DB
 
 from app.engine import action, skill_system, line_of_sight
-from app.engine.objects.unit import AuraSkill
+from app.engine.skill_info import AuraSkill
 
 import logging
 
