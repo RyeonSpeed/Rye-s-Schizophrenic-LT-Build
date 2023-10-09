@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 import logging
 
 # Tracking origin of skills for removal policies
-class UnitSkillInfo():
+class UnitSkill():
     skill_obj: SkillObject
     source: Union[str, tuple, int]
     displaceable: bool
@@ -39,43 +39,43 @@ class UnitSkillInfo():
     def removable(self):
         return self._removable
         
-class GlobalSkillInfo(UnitSkillInfo):
+class GlobalSkill(UnitSkill):
     displaceable = False
     removable = False
         
-class TerrainSkillInfo(UnitSkillInfo):
+class TerrainSkill(UnitSkill):
     displaceable = False
     removable = False
     
-class AuraSkillInfo(UnitSkillInfo):
+class AuraSkill(UnitSkill):
     displaceable = False
     removable = False
     
-class ItemSkillInfo(UnitSkillInfo):
+class ItemSkill(UnitSkill):
     displaceable = False
     removable = False
     
-class RegionSkillInfo(UnitSkillInfo):
+class RegionSkill(UnitSkill):
     displaceable = False
     removable = False
     
-class TravelerSkillInfo(UnitSkillInfo):
+class TravelerSkill(UnitSkill):
     displaceable = False
     removable = False
     
-class KlassSkillInfo(UnitSkillInfo):
+class KlassSkill(UnitSkill):
     displaceable = False
     removable = True
     
-class PersonalSkillInfo(UnitSkillInfo):
+class PersonalSkill(UnitSkill):
     displaceable = False
     removable = True
 
-class FatigueSkillInfo(UnitSkillInfo):
+class FatigueSkill(UnitSkill):
     displaceable = False
     removable = True
     
-class DefaultSkillInfo(UnitSkillInfo):
+class DefaultSkill(UnitSkill):
     displaceable = True
     removable = True
 
@@ -135,7 +135,7 @@ class UnitObject(Prefab):
     equipped_weapon: ItemObject = None
     equipped_accessory: ItemObject = None
 
-    _skills: List[UnitSkillInfo] = field(default_factory=list)
+    _skills: List[UnitSkill] = field(default_factory=list)
     _visible_skills_cache: List[SkillObject] = field(default_factory=list)
 
     has_rescued: bool = False
@@ -300,7 +300,7 @@ class UnitObject(Prefab):
             if self.generic:
                 generic_skills = item_funcs.create_skills(self, prefab.starting_skills)
                 for skill_obj in generic_skills:
-                    all_skills.append(PersonalSkillInfo(skill_obj, self.nid))
+                    all_skills.append(PersonalSkill(skill_obj, self.nid))
             for skill_info in all_skills:
                 skill_system.before_add(self, skill_info.skill_obj)
                 self._skills.append(skill_info)
@@ -587,6 +587,12 @@ class UnitObject(Prefab):
 
     def get_skill(self, nid: NID):
         skills = [skill for skill in reversed(self.all_skills) if skill.nid == nid or skill.uid == nid]
+        if skills:
+            return skills[0]
+        return None
+        
+    def get_skill_info(self, skill_obj: SkillObject)
+        skills = [skill_info for skill_info in reversed(self.all_skill_info) if skill_info.skill_obj.uid == skill_obj.uid]
         if skills:
             return skills[0]
         return None

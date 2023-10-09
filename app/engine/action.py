@@ -18,8 +18,8 @@ from app.engine import (aura_funcs, banner, equations, item_funcs, item_system,
                         particles, skill_system, unit_funcs, animations)
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
-from app.engine.objects.skill import SkillObject, SourceInfo, DefaultSourceInfo, TravelerSourceInfo, RegionSourceInfo
-from app.engine.objects.unit import UnitObject
+from app.engine.objects.skill import SkillObject
+from app.engine.objects.unit import UnitObject, Skill, DefaultSkill, TravelerSkill, RegionSkill
 from app.engine.objects.region import RegionObject
 from app.engine import engine
 from app.utilities import utils, static_random
@@ -691,7 +691,7 @@ class Rescue(Action):
         self.unit.has_rescued = True
 
         if not skill_system.ignore_rescue_penalty(self.unit) and 'Rescue' in DB.skills.keys():
-            self.subactions.append(AddSkill(self.unit, 'Rescue', source_info=TravelerSourceInfo(self.rescuee.nid)))
+            self.subactions.append(AddSkill(self.unit, 'Rescue', source=self.rescuee.nid, skill_type=TravelerSkill))
 
         for action in self.subactions:
             action.do()
@@ -737,7 +737,7 @@ class Drop(Action):
         self.unit.traveler = None
         self.unit.has_dropped = True
 
-        self.subactions.append(RemoveSkill(self.unit, "Rescue", source_info=TravelerSourceInfo(self.droppee.nid)))
+        self.subactions.append(RemoveSkill(self.unit, "Rescue", source=self.droppee.nid, skill_type=TravelerSkill))
         for action in self.subactions:
             action.do()
 
@@ -781,10 +781,10 @@ class Give(Action):
 
         self.other.traveler = self.unit.traveler
         if not skill_system.ignore_rescue_penalty(self.other) and 'Rescue' in DB.skills.keys():
-            self.subactions.append(AddSkill(self.other, 'Rescue', source_info=TravelerSourceInfo(self.other.traveler)))
+            self.subactions.append(AddSkill(self.other, 'Rescue', source=self.other.traveler, skill_type=TravelerSkill))
 
         self.unit.traveler = None
-        self.subactions.append(RemoveSkill(self.unit, "Rescue", source_info=TravelerSourceInfo(self.other.traveler)))
+        self.subactions.append(RemoveSkill(self.other, 'Rescue', source=self.other.traveler, skill_type=TravelerSkill))
 
         self.unit.has_given = True
 
@@ -811,10 +811,10 @@ class Take(Action):
 
         self.unit.traveler = self.other.traveler
         if not skill_system.ignore_rescue_penalty(self.unit) and 'Rescue' in DB.skills.keys():
-            self.subactions.append(AddSkill(self.unit, 'Rescue', source_info=TravelerSourceInfo(self.unit.traveler)))
+            self.subactions.append(AddSkill(self.unit, 'Rescue', source=self.unit.traveler, skill_type=TravelerSkill))
 
         self.other.traveler = None
-        self.subactions.append(RemoveSkill(self.other, "Rescue", source_info=TravelerSourceInfo(self.unit.traveler)))
+        self.subactions.append(RemoveSkill(self.unit, 'Rescue', source=self.unit.traveler, skill_type=TravelerSkill))
 
         self.unit.has_taken = True
 
@@ -2195,14 +2195,14 @@ class ChangeFatigue(Action):
         if game.game_vars.get('_fatigue') == 2:
             if 'Fatigued' in DB.skills.keys():
                 if self.unit.get_fatigue() >= self.unit.get_max_fatigue():
-                    self.subactions.append(AddSkill(self.unit, 'Fatigued', source_info=FatigueSourceInfo('game')))
+                    self.subactions.append(AddSkill(self.unit, 'Fatigued', source='game', skill_type=FatigueSkill))
                 elif 'Fatigued' in [skill.nid for skill in self.unit.skills]:
-                    self.subactions.append(RemoveSkill(self.unit, 'Fatigued', source_info=FatigueSourceInfo('game')))
+                    self.subactions.append(RemoveSkill(self.unit, 'Fatigued', source='game', skill_type=FatigueSkill))
             if 'Rested' in DB.skills.keys():
                 if self.unit.get_fatigue() < self.unit.get_max_fatigue():
-                    self.subactions.append(AddSkill(self.unit, 'Rested', source_info=FatigueSourceInfo('game')))
+                    self.subactions.append(AddSkill(self.unit, 'Rested', source='game', skill_type=FatigueSkill))
                 elif 'Rested' in [skill.nid for skill in self.unit.skills]:
-                    self.subactions.append(RemoveSkill(self.unit, 'Rested', source_info=FatigueSourceInfo('game')))
+                    self.subactions.append(RemoveSkill(self.unit, 'Rested', source='game', skill_type=FatigueSkill))
 
         for action in self.subactions:
             action.do()
@@ -2822,7 +2822,7 @@ class RemoveRegion(Action):
             if self.region.region_type == RegionType.STATUS:
                 for unit in game.units:
                     if unit.position and self.region.contains(unit.position):
-                        self.subactions.append(RemoveSkill(unit, self.region.sub_nid, source_info=RegionSourceInfo(self.region.nid)))
+                        self.subactions.append(RemoveSkill(unit, self.region.sub_nid, source=region.nid, skill_type=RegionSkill))
 
             # Update fog of war if appropriate
             elif self.region.region_type == RegionType.FOG:
@@ -3269,7 +3269,7 @@ class MoveInInitiative(Action):
         game.initiative.insert_at(self.unit, self.old_idx)
 
 class AddSkill(Action):
-    def __init__(self, unit, skill, initiator=None, source_info=DefaultSourceInfo(None)):
+    def __init__(self, unit, skill, initiator=None, source=None, skill_type=None):
         self.unit = unit
         self.initiator = initiator
         # Check if we just passed in the skill nid to create
@@ -3283,8 +3283,9 @@ class AddSkill(Action):
             skill_system.init(skill_obj)
             if skill_obj.uid not in game.skill_registry:
                 game.register_skill(skill_obj)
-            if source_info:
-                skill_obj.source_info = source_info
+            self.skill_info = DefaultSkill(skill_obj, source)
+            if skill_type:
+                self.skill_info = skill_type(skill_obj, source)
         self.skill_obj: SkillObject = skill_obj
         self.subactions = []
         self.reset_action = ResetUnitVars(self.unit)
@@ -3300,8 +3301,8 @@ class AddSkill(Action):
         # Remove oldest displaceable skill with same name, abort action if none found and current skill is displaceable
         if (not self.skill_obj.stack and self.skill_obj.nid in [skill.nid for skill in self.unit.skills])or (self.skill_obj.stack and item_funcs.num_stacks(self.unit, self.skill_obj.nid) >= self.skill_obj.stack.value):
             logging.info("Skill %s at max stacks" % self.skill_obj.nid)
-            displaceable_skills = [s for s in self.unit.all_skills if s.nid == self.skill_obj.nid and s.source_info.displaceable]
-            if len(displaceable_skills) == 0 and self.skill_obj.source_info.displaceable:
+            displaceable_skills = [s for s in self.unit.all_skill_info if s.skill_obj.nid == self.skill_obj.nid and s.displaceable]
+            if len(displaceable_skills) == 0 and self.skill_info.displaceable:
                 logging.info("Skill %s could not be added as no instance could be displaced" % self.skill_obj.nid)
                 return
             if len(displaceable_skills) > 0:
@@ -3312,7 +3313,7 @@ class AddSkill(Action):
         # Actually add skill
         skill_system.before_add(self.unit, self.skill_obj)
         self.skill_obj.owner_nid = self.unit.nid
-        self.unit.add_skill(self.skill_obj)
+        self.unit.add_skill(self.skill_info)
 
         if self.skill_obj.aura and self.skill_obj in self.unit.all_skills and \
                 self.unit.position and game.board and game.tilemap:
@@ -3337,7 +3338,7 @@ class AddSkill(Action):
         if self.skill_obj in self.unit.all_skills:
             # Actually remove skill
             skill_system.before_remove(self.unit, self.skill_obj)
-            self.unit.remove_skill(self.skill_obj)
+            self.unit.remove_skill(self.skill_info)
             self.skill_obj.owner_nid = None
 
             if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:
@@ -3354,22 +3355,24 @@ class AddSkill(Action):
             action.reverse()
 
 class RemoveSkill(Action):
-    def __init__(self, unit, skill, count=-1, source_info=None):
+    def __init__(self, unit, skill, count=-1, source=None, skill_type=None):
         self.unit = unit
         self.skill = skill  # Skill obj or skill nid str
         self.removed_skills = []
         self.count = count
-        self.source_info = source_info
+        self.source = source
+        self.skill_type = skill_type
         self.old_owner_nid = None
         self.reset_action = ResetUnitVars(self.unit)
 
-    def _remove_skill(self, skill, true_remove):
+    def _remove_skill(self, skill_info, true_remove):
+        skill = skill_info.skill_obj
         skill_system.before_remove(self.unit, skill)
         if true_remove:
             skill_system.before_true_remove(self.unit, skill)
         skill.owner_nid = None
-        self.removed_skills.append(skill)
-        self.unit.remove_skill(skill)
+        self.removed_skills.append(skill_info)
+        self.unit.remove_skill(skill_info)
 
         if skill.aura and self.unit.position and game.board and game.tilemap:
             game.boundary.unregister_unit_auras(self.unit)
@@ -3384,17 +3387,20 @@ class RemoveSkill(Action):
         self.removed_skills.clear()
         to_remove = self.count
         if isinstance(self.skill, str):
-            for skill in self.unit.all_skills[:]:
-                if skill.nid == self.skill and (skill.source_info.removable or (self.source_info and self.source_info.source == skill.source_info.source and type(self.source_info) is type(skill.source_info))) and to_remove != 0:
-                    self._remove_skill(skill, true_remove)
+            for skill_info in self.unit.all_skill_info[:]:
+                if skill_info.skill_obj.nid == self.skill.nid and \
+                (skill_info.removable or (self.source and self.skill_info and self.source == skill_info.source and self.skill_type is type(skill_info))) and \
+                to_remove != 0:
+                    self._remove_skill(skill_info, true_remove)
                     to_remove -= 1
             if to_remove > 0:
                 logging.warning("%d removable instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
-            if not self.skill.source_info.removable and not(self.skill.source_info.removable or (self.source_info.source == self.skill.source_info.source and type(self.source_info) is type(self.skill.source_info))):
+            to_remove_info = self.unit.get_skill_info(self.skill)
+            if not to_remove_info.removable and not(to_remove_info.source == self.source and type(to_remove_info) is type(self.skill_type)):
                 logging.warning("Incorrect source attempting to remove skill %s for %s", self.skill.nid, self.unit)
             elif self.skill in self.unit.all_skills:
-                self._remove_skill(self.skill, true_remove)
+                self._remove_skill(to_remove_info, true_remove)
             else:
                 logging.warning("Skill %s not in %s's skills", self.skill.nid, self.unit)
 
@@ -3414,10 +3420,11 @@ class RemoveSkill(Action):
     @recalculate_unit
     def reverse(self):
         self.reset_action.reverse()
-        for skill in self.removed_skills:
+        for skill_info in self.removed_skills:
+            skill = skill_info.skill_obj
             skill_system.before_add(self.unit, skill)
             skill.owner_nid = self.unit.nid
-            self.unit.add_skill(skill)
+            self.unit.add_skill(skill_info)
 
             if skill.aura and self.unit.position and game.board and game.tilemap:
                 game.boundary.unregister_unit_auras(self.unit)

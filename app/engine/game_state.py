@@ -42,7 +42,7 @@ from app.engine import state_machine
 from app.engine.roam.roam_info import RoamInfo
 from app.utilities import static_random
 from app.data.resources.resources import RESOURCES
-from app.engine.objects.skill import RegionSourceInfo, TerrainSourceInfo
+from app.engine.objects.unit import RegionSkill, TerrainSkill
 
 import logging
 
@@ -539,7 +539,7 @@ class GameState():
                 droppee = self.get_unit(unit.traveler)
                 if full:
                     unit.traveler = None
-                    action.RemoveSkill(unit, 'Rescue').execute()
+                    action.RemoveSkill(unit, 'Rescue', source=unit.traveler, skill_type=TravelerSkill).execute()
                 else:
                     pos = self.target_system.get_nearest_open_tile(droppee, unit.position)
                     action.Drop(unit, droppee, pos).execute()
@@ -935,9 +935,9 @@ class GameState():
                     skill_obj = self.get_skill(skill_uid)
                     if skill_obj and skill_obj in unit.all_skills:
                         if test:
-                            unit.remove_skill(skill_obj)
+                            unit.remove_skill(RegionSkill(skill_obj, region.nid))
                         else:
-                            act = action.RemoveSkill(unit, skill_obj, source_info=RegionSourceInfo(region.nid))
+                            act = action.RemoveSkill(unit, skill_obj, source=region.nid, skill_type=RegionSkill)
                             action.do(act)
             # Tiles and terrain regions
             terrain_nid = self.get_terrain_nid(self.tilemap, unit.position)
@@ -948,9 +948,9 @@ class GameState():
             skill_obj = self.get_skill(skill_uid)
             if skill_obj and skill_obj in unit.all_skills:
                 if test:
-                    unit.remove_skill(skill_obj)
+                    unit.remove_skill(TerrainSkill(skill_obj, unit.position))
                 else:
-                    act = action.RemoveSkill(unit, skill_obj, source_info=TerrainSourceInfo(unit.position))
+                    act = action.RemoveSkill(unit, skill_obj, source=unit.position, skill_type=TerrainSkill)
                     action.do(act)
             # Boundary
             if not test:
@@ -1022,9 +1022,9 @@ class GameState():
             if skill_obj not in unit.all_skills:
                 if test:
                     # Don't need to use action for test
-                    unit.add_skill(skill_obj)
+                    unit.add_skill(TerrainSkill(skill_obj, unit.position))
                 else:
-                    act = action.AddSkill(unit, skill_obj, source_info=TerrainSourceInfo(unit.position))
+                    act = action.AddSkill(unit, skill_obj, source=unit.position, skill_type=TerrainSkill)
                     action.do(act)
 
     def add_region_status(self, unit: UnitObject, region: RegionObject, test: bool):
@@ -1043,9 +1043,9 @@ class GameState():
             if skill_obj not in unit.all_skills:
                 if test:
                     # Don't need to use action for test
-                    unit.add_skill(skill_obj)
+                    unit.add_skill(RegionSkill(skill_obj, region.nid))
                 else:
-                    act = action.AddSkill(unit, skill_obj, source_info=RegionSourceInfo(region.nid))
+                    act = action.AddSkill(unit, skill_obj, source=region.nid, skill_type=RegionSkill)
                     action.do(act)
                     return act
 

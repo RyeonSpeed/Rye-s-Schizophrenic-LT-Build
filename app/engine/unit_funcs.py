@@ -5,7 +5,7 @@ from app.engine import item_funcs, skill_system
 from app.engine.game_state import game
 from app.events import triggers
 from app.utilities import utils, static_random
-from app.engine.objects.unit import GlobalSkillInfo, PersonalSkillInfo, KlassSkillInfo
+from app.engine.objects.unit import GlobalSkill, PersonalSkill, KlassSkill
 
 import logging
 
@@ -279,11 +279,11 @@ def get_starting_skills(unit, starting_level: int = 0) -> list:
                         new_skill = my_feats[random_number]
                         skill_obj = item_funcs.create_skill(unit, new_skill.nid)
                         if skill_obj:
-                            skills_to_add.append(KlassSkillInfo(skill_obj, klass.nid))
+                            skills_to_add.append(KlassSkill(skill_obj, klass.nid))
                 else:
                     skill_obj = item_funcs.create_skill(unit, learned_skill[1])
                     if skill_obj:
-                        skills_to_add.append(KlassSkillInfo(skill_obj, klass.nid))
+                        skills_to_add.append(KlassSkill(skill_obj, klass.nid))
 
     return skills_to_add
 
@@ -297,7 +297,7 @@ def get_personal_skills(unit, prefab, starting_level: int = 0) -> list:
     personal_skills = item_funcs.create_skills(unit, skills_to_add)
     personal_skill_info = []
     for skill_obj in personal_skills:
-        personal_skill_info.append(PersonalSkillInfo(skill_obj, unit.nid))
+        personal_skill_info.append(PersonalSkill(skill_obj, unit.nid))
     return personal_skill_info
 
 def get_global_skills(unit) -> list:
@@ -309,7 +309,7 @@ def get_global_skills(unit) -> list:
     global_skills = item_funcs.create_skills(unit, skills_to_add)
     global_skill_info = []
     for skill_obj in global_skills:
-        global_skill_info.append(GlobalSkillInfo(skill_obj, 'global'))
+        global_skill_info.append(GlobalSkill(skill_obj, 'global'))
     return global_skill_info
 
 def can_unlock(unit, region) -> bool:
