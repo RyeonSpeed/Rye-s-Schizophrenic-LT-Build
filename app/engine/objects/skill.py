@@ -2,8 +2,6 @@ from app.utilities.data import Data
 
 from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
-from enum import Enum
-from typing import Union
 
 class SkillObject():
     next_uid = 100
@@ -29,8 +27,6 @@ class SkillObject():
 
         self.data = {}
         self.initiator_nid = None
-        self.displaceable = True
-        self.removable = True
         # For subskill
         self.subskill = None
         self.subskill_uid = None
