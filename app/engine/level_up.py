@@ -21,7 +21,6 @@ from app.engine.graphics.text.text_renderer import render_text
 from app.utilities.enums import HAlignment
 
 from app.engine.objects.unit import UnitObject
-from app.engine.objects.skill import UnitSkill
 from app.engine.source_type import SourceType
 
 class ExpState(State):

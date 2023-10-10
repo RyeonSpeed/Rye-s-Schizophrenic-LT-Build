@@ -3338,7 +3338,7 @@ class AddSkill(Action):
         if self.skill_obj in self.unit.all_skills:
             # Actually remove skill
             skill_system.before_remove(self.unit, self.skill_obj)
-            self.unit.remove_skill(self.skill_obj)
+            self.unit.remove_skill(self.skill_obj, self.source, self.source_type)
             self.skill_obj.owner_nid = None
 
             if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:

@@ -50,7 +50,7 @@ def apply_aura(owner, unit, child_skill, target, test=False):
         logging.debug("Applying Aura %s to %s", child_skill, unit)
         if test:
             # Doesn't need to use action system
-            unit.add_skill(AuraSkill(child_skill, child_skill.parent_skill.uid))
+            unit.add_skill(child_skill, source=child_skill.parent_skill.uid, source_type=SourceType.AURA)
         else:
             act = action.AddSkill(unit, child_skill, source=child_skill.parent_skill.uid, source_type=SourceType.AURA)
             action.do(act)
@@ -59,7 +59,7 @@ def remove_aura(unit, child_skill, test=False):
     if child_skill in unit.all_skills:
         logging.debug("Removing Aura %s from %s", child_skill, unit)
         if test:
-            unit.remove_skill(AuraSkill(child_skill, child_skill.parent_skill.uid))
+            unit.remove_skill(child_skill, source=child_skill.parent_skill.uid, source_type=SourceType.AURA)
         else:
             act = action.RemoveSkill(unit, child_skill, source=child_skill.parent_skill.uid, source_type=SourceType.AURA)
             action.do(act)

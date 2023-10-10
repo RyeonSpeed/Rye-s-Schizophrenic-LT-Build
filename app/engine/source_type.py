@@ -9,6 +9,7 @@ class SourceType(Enum):
     TERRAIN = ('terrain', False, False)
     ITEM = ('item', False, False)
     REGION = ('region', False, False)
+    TRAVELER = ('traveler', False, False)
     KLASS = ('klass', False, True)
     PERSONAL = ('personal', False, True)
     GLOBAL = ('global', False, False)

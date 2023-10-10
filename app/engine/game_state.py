@@ -935,7 +935,7 @@ class GameState():
                     skill_obj = self.get_skill(skill_uid)
                     if skill_obj and skill_obj in unit.all_skills:
                         if test:
-                            unit.remove_skill(RegionSkill(skill_obj, region.nid))
+                            unit.remove_skill(skill_obj, source=region.nid, source_type=SourceType.REGION)
                         else:
                             act = action.RemoveSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
                             action.do(act)
@@ -948,7 +948,7 @@ class GameState():
             skill_obj = self.get_skill(skill_uid)
             if skill_obj and skill_obj in unit.all_skills:
                 if test:
-                    unit.remove_skill(TerrainSkill(skill_obj, unit.position))
+                    unit.remove_skill(skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                 else:
                     act = action.RemoveSkill(unit, skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                     action.do(act)
@@ -1022,7 +1022,7 @@ class GameState():
             if skill_obj not in unit.all_skills:
                 if test:
                     # Don't need to use action for test
-                    unit.add_skill(TerrainSkill(skill_obj, unit.position))
+                    unit.add_skill(skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                 else:
                     act = action.AddSkill(unit, skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                     action.do(act)
@@ -1043,7 +1043,7 @@ class GameState():
             if skill_obj not in unit.all_skills:
                 if test:
                     # Don't need to use action for test
-                    unit.add_skill(RegionSkill(skill_obj, region.nid))
+                    unit.add_skill(skill_obj, source=region.nid, source_type=SourceType.REGION)
                 else:
                     act = action.AddSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
                     action.do(act)

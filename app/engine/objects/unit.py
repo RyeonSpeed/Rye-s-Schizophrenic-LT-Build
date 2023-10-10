@@ -34,8 +34,8 @@ class UnitSkill():
         self.source=source
         self.source_type=source_type
     
-    def get():
-        return skill_obj
+    def get(self):
+        return self.skill_obj
 
 # Main unit object used by engine
 @dataclass
@@ -391,9 +391,9 @@ class UnitObject(Prefab):
         # Only actually adds the new skill on test=False
         """
         popped_skill = None
-        stack_value = skill.stack or 1
+        stack_value = skill.stack.value if skill.stack else 1
         # Checks if we already have the max allowable number of the skill
-        if item_funcs.num_stacks(self, skill.nid) >= skill.stack.value:
+        if item_funcs.num_stacks(self, skill.nid) >= stack_value:
             # Gets all skills of the same ID that can be displaced
             displaceable_skills = [s.skill_obj for s in self._skills if s.skill_obj.nid == skill.nid and s.source_type.displaceable]
             if len(displaceable_skills) == 0 and source_type.displaceable:
@@ -414,8 +414,8 @@ class UnitObject(Prefab):
         """
         removed_skill_info = None
         to_remove = None
-        same_source = s.source == source and s.source_type == source_type
         for s in self._skills:
+            same_source = s.source == source and s.source_type == source_type
             if s.skill_obj.uid == skill.uid and \
             (s.source_type.removable or same_source):
                 removed_skill_info = (s.source, s.source_type)
