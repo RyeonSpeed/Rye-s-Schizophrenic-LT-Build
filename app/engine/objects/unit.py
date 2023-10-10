@@ -384,12 +384,21 @@ class UnitObject(Prefab):
         self.exp = int(utils.clamp(val, 0, 100))
 
     def add_skill(self, skill, source=None, source_type=SourceType.DEFAULT, test=False):
-        # Remove oldest displaceable skill with same name, abort action if none found and current skill is displaceable
+        """
+        # Adds skill to the UnitSkill list while checking if the skill already exists/stack is full
+        # If so, removes the oldest displaceable skill and returns it
+        # If no existing skill is displaceable AND the new skill is displaceable, returns the new skill back
+        # Only actually adds the new skill on test=False
+        """
         popped_skill = None
-        if (not skill.stack and skill.nid in [s.nid for s in self.skills])or (skill.stack and item_funcs.num_stacks(self, skill.nid) >= skill.stack.value):
+        stack_value = skill.stack or 1
+        # Checks if we already have the max allowable number of the skill
+        if item_funcs.num_stacks(self, skill.nid) >= skill.stack.value:
+            # Gets all skills of the same ID that can be displaced
             displaceable_skills = [s.skill_obj for s in self._skills if s.skill_obj.nid == skill.nid and s.source_type.displaceable]
             if len(displaceable_skills) == 0 and source_type.displaceable:
                 popped_skill = skill
+            # Returns back the input skill only if it can't be added
             if len(displaceable_skills) > 0:
                 popped_skill = displaceable_skills[0]
         if not test:
@@ -398,11 +407,17 @@ class UnitObject(Prefab):
         return popped_skill
 
     def remove_skill(self, skill, source, source_type=SourceType.DEFAULT, test=False):
+        """
+        # Removes the given skill and returns it along with its source and source type
+        # If the given skill cannot be removed, returns nothing
+        # Only actually removes the skill on test=False
+        """
         removed_skill_info = None
         to_remove = None
+        same_source = s.source == source and s.source_type == source_type
         for s in self._skills:
             if s.skill_obj.uid == skill.uid and \
-            (s.source_type.removable or (s.source == source and s.source_type == source_type)):
+            (s.source_type.removable or same_source):
                 removed_skill_info = (s.source, s.source_type)
                 to_remove = s
         if not test and to_remove:
@@ -412,7 +427,7 @@ class UnitObject(Prefab):
 
     @property
     def all_skills(self):
-        return [s.skill_obj for s in self._skills]
+        return [s.get() for s in self._skills]
 
     @property
     def skills(self):
@@ -427,7 +442,7 @@ class UnitObject(Prefab):
         skills = []
         skill_nids = set()
         # reversed so that more recently added skills take priority
-        for skill in reversed([s.skill_obj for s in self._skills]):
+        for skill in reversed([s.get() for s in self._skills]):
             if skill.stack:
                 if sum([s.nid == skill.nid for s in skills]) >= skill.stack.value:
                     pass
@@ -895,7 +910,7 @@ class UnitObject(Prefab):
         # Maybe move to movement manager?
 
         for s in self._skills:
-            skill_system.after_add_from_restore(self, s.skill_obj)
+            skill_system.after_add_from_restore(self, s.get())
         self._visible_skills_cache.clear()
 
         return self
