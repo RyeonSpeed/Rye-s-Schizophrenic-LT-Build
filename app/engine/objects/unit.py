@@ -864,10 +864,8 @@ class UnitObject(Prefab):
         self.equipped_weapon = None
         self.equipped_accessory = None
 
-        for skill_uid, source, source_type in s_dict['skills']:
-            skill_obj = game.get_skill(skill_uid)
-            if skill_obj:
-                self._skills.append(UnitSkill(skill_obj, source, source_type))
+        self._skills = [UnitSkill(game.get_skill(skill_uid), source, source_type) for skill_uid, source, source_type in s_dict['skills']]
+        self._skills = [s for s in self._skills if s.get()]
 
         self.current_hp = s_dict['current_hp']
         self.current_mana = s_dict['current_mana']
