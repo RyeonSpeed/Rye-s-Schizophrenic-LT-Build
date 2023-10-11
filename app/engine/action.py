@@ -18,7 +18,7 @@ from app.engine import (aura_funcs, banner, equations, item_funcs, item_system,
                         particles, skill_system, unit_funcs, animations)
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
-from app.engine.objects.skill import SkillObject, SourceType
+from app.engine.objects.skill import SkillObject
 from app.engine.objects.unit import UnitObject
 from app.engine.objects.region import RegionObject
 from app.engine import engine
@@ -3402,7 +3402,7 @@ class RemoveSkill(Action):
                 if skill.nid == self.skill and (skill.source_type.removable or (self.source == skill.source and self.source_type == skill.source_type)) and to_remove != 0:
                     removed = self._remove_skill(skill, true_remove)
                     if removed:
-                    to_remove -= 1
+                        to_remove -= 1
             if to_remove > 0:
                 logging.warning("%d removable instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
