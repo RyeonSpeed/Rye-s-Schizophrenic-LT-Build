@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import logging
 from enum import Enum
-from typing import Callable, List, Dict, Set, Tuple, Type
+from typing import Callable, List, Dict, Optional, Set, Tuple, Type
 
 from app.utilities.data import Prefab
 from app.utilities.typing import NID
@@ -57,9 +57,13 @@ class EventCommand(Prefab):
         self.display_values = display_values
         if not self.display_values:
             if self.parameters:
-                self.display_values = [self.parameters.get(kwd) or "" for kwd in (self.keywords + self.optional_keywords)]
+                self.display_values = [str(self.parameters.get(kwd)) or "" for kwd in (self.keywords + self.optional_keywords)]
             else:
                 self.display_values = []
+
+    def FLAGS(self, *args) -> EventCommand:
+        self.chosen_flags |= set(args)
+        return self
 
     def save(self):
         return self.nid, self.display_values
@@ -70,19 +74,21 @@ class EventCommand(Prefab):
     def __repr__(self):
         return self.to_plain_text()
 
-    def get_keyword_types(self) -> list:
-        if len(self.keyword_types) == len(self.keywords + self.optional_keywords):
-            return self.keyword_types
+    @classmethod
+    def get_keyword_types(cls) -> list:
+        if len(cls.keyword_types) == len(cls.keywords + cls.optional_keywords):
+            return cls.keyword_types
         else:
-            return self.keywords + self.optional_keywords
+            return cls.keywords + cls.optional_keywords
 
-    def get_validator_from_keyword(self, keyword: str) -> str:
-        if keyword in self.keywords:
-            i = self.keywords.index(keyword)
-            return self.get_keyword_types()[i]
-        elif keyword in self.optional_keywords:
-            i = self.optional_keywords.index(keyword)
-            return self.get_keyword_types()[len(self.keywords) + i]
+    @classmethod
+    def get_validator_from_keyword(cls, keyword: str) -> Optional[str]:
+        if keyword in cls.keywords:
+            i = cls.keywords.index(keyword)
+            return cls.get_keyword_types()[i]
+        elif keyword in cls.optional_keywords:
+            i = cls.optional_keywords.index(keyword)
+            return cls.get_keyword_types()[len(cls.keywords) + i]
 
     def get_index_from_keyword(self, keyword: str) -> int:
         for idx, value in enumerate(self.display_values):
@@ -122,11 +128,13 @@ class Comment(EventCommand):
         """
 
     def to_plain_text(self) -> str:
-        if self.display_values and not self.display_values[0].startswith('#'):
+        if not self.display_values:
+            return ''
+        if not self.display_values[0]:
+            return ''
+        if not self.display_values[0].startswith('#'):
             self.display_values[0] = '#' + self.display_values[0]
-        if self.display_values:
-            return self.display_values[0]
-        return ''
+        return self.display_values[0]
 
 class If(EventCommand):
     nid = "if"
@@ -539,7 +547,7 @@ Extra flags:
 7. *no_sound*: The normal boop sound of dialog will be turned off
         """
 
-    keywords = ['Speaker', 'Text']
+    keywords = ['SpeakerOrStyle', 'Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
     keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'PositiveInteger', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound']
@@ -957,6 +965,17 @@ The optional flag *immediately* will cause the prompt to appear immediately.
 
     _flags = ["immediately"]
 
+class DeleteSave(EventCommand):
+    nid = 'delete_save'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Delete the save at the current *SaveSlot*. If *SaveSlot* is not provided, deletes the current save.
+        """
+
+    optional_keywords = ['SaveSlot']
+
 class ClearTurnwheel(EventCommand):
     nid = 'clear_turnwheel'
     tag = Tags.MISCELLANEOUS
@@ -1218,13 +1237,13 @@ A *CombatScript* can optionally be provided to ensure a pre-set outcome to the b
 *Ability* can be used to specify which item or ability the attacker will use.
 *PositiveInteger* can be set to determine the number of rounds the combat will go on for. Defaults to 1. Useful for arena combats (set to 20+).
 The *arena* flag should be set when you want to allow the player to be able to press B and leave the combat between rounds. It also sets the combat background to the arena.
-The *force_animation* flag tells the engine to ignore the player's settings and forcibly display a combat animation. Useful for arena combats.
+The *force_animation* and *force_no_animation* flags tell the engine whether to ignore the player's settings when choosing to display a combat animation. Useful for arena combats.
         """
 
     keywords = ["Unit", "Position"]
     optional_keywords = ["CombatScript", "Ability", "Rounds"]
     keyword_types = ["Unit", "Position", "CombatScript", "Ability", "PositiveInteger"]
-    _flags = ["arena", "force_animation"]
+    _flags = ["arena", "force_animation", "force_no_animation"]
 
 class SetName(EventCommand):
     nid = 'set_name'
@@ -1683,10 +1702,12 @@ class AddSkillComponent(EventCommand):
     desc = \
         """
 Adds a *SkillComponent* with optional value of *Expression* to *Skill* belonging to *GlobalUnit*.
+If the *stack* flag is set, all stacks of the *Skill* will be affected.
         """
 
     keywords = ["GlobalUnit", "Skill", "SkillComponent"]
     optional_keywords = ["Expression"]
+    _flags = ['stack']
 
 class ModifySkillComponent(EventCommand):
     nid = 'modify_skill_component'
@@ -1697,14 +1718,14 @@ class ModifySkillComponent(EventCommand):
 Sets the value of an *SkillComponent* to *Expression* for a *Skill* belonging to *GlobalUnit*.
 
 Use **ComponentProperty* to change a specific value if the SkillComponent has more than one option available.
-
+If the *stack* flag is set, all stacks of the *Skill* will be affected.
 Use the *additive* flag to add rather than set the value.
         """
 
     keywords = ["GlobalUnit", "Skill", "SkillComponent", "Expression"]
     optional_keywords = ["ComponentProperty"]
     keyword_types = ["GlobalUnit", "Skill", "SkillComponent", "Expression", "String"]
-    _flags = ['additive']
+    _flags = ['additive', 'stack']
 
 class ChangeSkillTime(EventCommand):
     nid = 'change_skill_time'
@@ -1729,9 +1750,11 @@ class RemoveSkillComponent(EventCommand):
     desc = \
         """
 Removes *SkillComponent* from *Skill* in the inventory of *GlobalUnit*.
+If the *stack* flag is set, all stacks of the *Skill* will be affected.
         """
 
     keywords = ["GlobalUnit", "Skill", "SkillComponent"]
+    _flags = ['stack']
 
 class GiveMoney(EventCommand):
     nid = 'give_money'
@@ -3002,7 +3025,7 @@ For example, if you called `trigger_script_with_args;MyEvent;Color,Purple,Animal
 
 class LoopUnits(EventCommand):
     nid = 'loop_units'
-    tag = Tags.MISCELLANEOUS
+    tag = Tags.HIDDEN   # command is deprecated
 
     desc = \
         """
@@ -3260,11 +3283,11 @@ def restore_command(dat) -> EventCommand:
 
 evaluables = ('Expression', 'String', 'StringList', 'PointList', 'DashList', 'Nid')
 
-ALL_EVENT_COMMANDS: Dict[NID, EventCommand] = {
+ALL_EVENT_COMMANDS: Dict[NID, Type[EventCommand]] = {
     command.nid: command for command in EventCommand.__subclasses__()
 }
 ALL_EVENT_COMMANDS.update({
-    command.nickname: command for command in EventCommand.__subclasses__()
+    command.nickname: command for command in EventCommand.__subclasses__() if command.nickname
 })
 
 @dataclass
@@ -3308,6 +3331,10 @@ def determine_command_type(text: str) -> Type[EventCommand]:
     command_nid = arguments[0]
     return ALL_EVENT_COMMANDS.get(command_nid, Comment)
 
+def parse_script_to_commands(text: str) -> List[EventCommand]:
+    lines = text.split('\n')
+    return [parse_text_to_command(line)[0] for line in lines]
+
 def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand, int]:
     """parses a line into a command
 
@@ -3330,7 +3357,7 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
             return arg[arg.find("(") + 1 : arg.rfind(")")]
         return arg
 
-    def _parse_command(command: EventCommand, arguments: List[str]) -> Tuple:
+    def _parse_command(command: EventCommand, arguments: List[str]) -> Tuple[Optional[EventCommand], Optional[int]]:
         # Start parsing
         keyword_argument_mode: bool = False
         cmd_args = arguments[1:]
@@ -3388,8 +3415,10 @@ def parse_text_to_command(text: str, strict: bool = False) -> Tuple[EventCommand
 
     # Main function starts here
     if not text:
-        return None, None
+        return Comment(), None
     text = text.lstrip()
+    if not text:
+        return Comment(), None
     if text.startswith('#'):
         return Comment(display_values=[text]), None
     if text.startswith('comment;'):

@@ -8,7 +8,6 @@ from app.engine.combat.solver import CombatPhaseSolver
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
 from app.engine.objects.unit import UnitObject
-from app.engine.level_up import ExpState
 from app.events import triggers, event_commands
 from app.utilities import utils, static_random
 
@@ -359,7 +358,7 @@ class SimpleCombat():
                             flags = {'no_banner'}
                         command = event_commands.GiveItem({'GlobalUnitOrConvoy': '{unit}', 'Item': str(item.uid)}, flags)
                         trigger = triggers.GenericTrigger(self.attacker, unit, self.attacker.position, {'item_uid': item.uid})
-                        game.events._add_event_from_commands(event_nid, [command], trigger)
+                        game.events._add_event_from_script(event_nid, str(command), trigger)
                         counter += 1
 
         if self.attacker.is_dying and self.defender:
@@ -378,7 +377,7 @@ class SimpleCombat():
                         flags = {'no_banner'}
                     command = event_commands.GiveItem({'GlobalUnitOrConvoy': '{unit}', 'Item': str(item.uid)}, flags)
                     trigger = triggers.GenericTrigger(self.defender, self.attacker, self.defender.position, {'item_uid': item.uid})
-                    game.events._add_event_from_commands(event_nid, [command], trigger)
+                    game.events._add_event_from_script(event_nid, str(command), trigger)
                     counter += 1
 
     def handle_broken_items(self, attack_partner: Optional[UnitObject], defense_partner: Optional[UnitObject]):
@@ -465,6 +464,7 @@ class SimpleCombat():
                     action.do(action.ChangeMana(self.defender, mana_gain))
 
     def handle_exp(self, combat_object=None):
+        from app.engine.level_up import ExpState
         # handle exp
         if self.attacker.team == 'player' and not self.attacker.is_dying:
             exp = self.calculate_exp(self.attacker, self.main_item)
@@ -615,7 +615,7 @@ class SimpleCombat():
                 pair = (mark.defender.nid, mark.attacker.nid)
                 if pair not in pairs:  # No duplicates
                     pairs.add(pair)
-                    
+
                     act = action.UpdateRecords('kill', pair)
                     action.do(act)
                     if mark.attacker.team == 'player':  # If player is dying, save this result even if we turnwheel back
