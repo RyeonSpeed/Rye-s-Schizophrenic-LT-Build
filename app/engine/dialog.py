@@ -581,7 +581,7 @@ class Dialog():
                 new_width = max(1, self.background.get_width() - 10 + int(10*self.transition_progress))
                 new_height = max(1, self.background.get_height() - 10 + int(10*self.transition_progress))
                 bg = engine.transform_scale(self.background, (new_width, new_height))
-                bg = image_mods.make_translucent(bg, self.dialog_transparency + (0.75 - self.dialog_transparency) * (1 - self.transition_progress))
+                bg = image_mods.make_translucent(bg, (self.dialog_transparency or 0.05) + (0.75 - (self.dialog_transparency or 0.05)) * (1 - self.transition_progress))
                 surf.blit(bg, (self.position[0], self.position[1] + self.height - bg.get_height()))
             else:
                 bg = image_mods.make_translucent(self.background, self.dialog_transparency)

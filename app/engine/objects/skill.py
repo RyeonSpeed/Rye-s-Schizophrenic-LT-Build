@@ -2,6 +2,23 @@ from app.utilities.data import Data
 
 from app.data.database.database import DB
 import app.engine.skill_component_access as SCA
+from enum import Enum
+        
+class SourceType(Enum):
+    AURA = ('aura', False, False)
+    TERRAIN = ('terrain', False, False)
+    ITEM = ('item', False, False)
+    REGION = ('region', False, False)
+    TRAVELER = ('traveler', False, False)
+    KLASS = ('klass', False, True)
+    PERSONAL = ('personal', False, True)
+    GLOBAL = ('global', False, False)
+    DEFAULT = ('other', True, True)
+
+    def __init__(self, nid, displaceable, removable):
+        self.nid = nid
+        self.displaceable = displaceable
+        self.removable = removable
 
 class SkillObject():
     next_uid = 100

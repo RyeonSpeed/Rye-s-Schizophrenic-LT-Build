@@ -864,7 +864,11 @@ class UnitObject(Prefab):
         self.equipped_weapon = None
         self.equipped_accessory = None
 
-        self._skills = [UnitSkill(game.get_skill(skill_uid), source, source_type) for skill_uid, source, source_type in s_dict['skills']]
+        if s_dict['skills'] and len(s_dict['skills']) > 0:
+            if type(s_dict['skills'][0]) is int:
+                self._skills = [UnitSkill(game.get_skill(skill_uid), 'patch', SourceType.DEFAULT) for skill_uid in s_dict['skills']]
+            else:
+                self._skills = [UnitSkill(game.get_skill(skill_uid), source, source_type) for skill_uid, source, source_type in s_dict['skills']]
         self._skills = [s for s in self._skills if s.get()]
 
         self.current_hp = s_dict['current_hp']

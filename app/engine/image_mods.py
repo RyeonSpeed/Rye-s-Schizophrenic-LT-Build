@@ -63,7 +63,7 @@ def make_translucent(image, t):
     transparency measured from 0.0 to 1.0, where 0.0 is fully opaque
     and 1.0 is fully transparent
     """
-
+    t = t or 0.05
     alpha = 255 - int(255 * t)
     alpha = utils.clamp(alpha, 0, 255)
     image = engine.copy_surface(image)
