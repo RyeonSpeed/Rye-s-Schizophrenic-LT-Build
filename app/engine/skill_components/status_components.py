@@ -8,7 +8,7 @@ from app.engine.game_state import game
 from app.engine.combat import playback as pb
 from app.utilities import static_random
 from app.utilities.enums import Strike
-from app.engine.objects.skill import SourceType
+from app.engine.source_type import SourceType
 
 class Aura(SkillComponent):
     nid = 'aura'

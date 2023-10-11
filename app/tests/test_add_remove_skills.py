@@ -2,11 +2,10 @@ import unittest
 from unittest.mock import MagicMock, Mock, patch, call
 from app.engine.objects.item import ItemObject
 from app.engine.game_board import GameBoard
-
 from app.engine.target_system import TargetSystem
 from app.engine.objects.unit import UnitObject
 from app.engine.action import AddSkill, RemoveSkill, Action
-from app.engine.objects.skill import SourceType
+from app.engine.source_type import SourceType
 
 class FakeResetUnitVars:
     def __init__(self, unit):
@@ -28,13 +27,16 @@ class AddRemoveSkillTests(unittest.TestCase):
         self.test_unit = UnitObject('player')
         self.test_skill = MagicMock()
         self.test_skill.nid = 'Potatomancy'
-        self.test_skill.source_type = SourceType.OTHER
         self.test_skill.stack = None
         self.test_skill_stack = MagicMock()
         self.test_skill_stack.nid = 'Spud_Stack'
         self.test_skill_stack.stack = MagicMock()
         self.test_skill_stack.stack.value = 3
-        self.test_skill_stack.source_type = SourceType.OTHER
+        self.patchers = [
+            patch('app.engine.action.ResetUnitVars', FakeResetUnitVars),
+        ]
+        for patcher in self.patchers:
+            patcher.start()
         pass
 
     def tearDown(self):
@@ -56,11 +58,13 @@ class AddRemoveSkillTests(unittest.TestCase):
         You can remove a skill from a unit under normal circumstances
         '''
         with unittest.mock.patch('app.engine.action.ResetUnitVars', FakeResetUnitVars) as plz_work:
-            self.test_unit.add_skill(self.test_skill)
+            AddSkill(self.test_unit, self.test_skill).do()
+            self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             RemoveSkill(self.test_unit, self.test_skill).do()
             self.assertNotIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
-            self.test_unit.add_skill(self.test_skill)
+            AddSkill(self.test_unit, self.test_skill).do()
+            self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             RemoveSkill(self.test_unit, 'Potatomancy', source='Bollocks', source_type=SourceType.KLASS).do()
             self.assertNotIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
         
@@ -76,6 +80,9 @@ class AddRemoveSkillTests(unittest.TestCase):
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
             RemoveSkill(self.test_unit, 'Potatomancy', source='Idaho', source_type=SourceType.REGION).do()
+            self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
+            
+            RemoveSkill(self.test_unit, 'Potatomancy', source='Bombay', source_type=SourceType.TERRAIN).do()
             self.assertIn('Potatomancy', [s.nid for s in self.test_unit.all_skills])
             
             RemoveSkill(self.test_unit, 'Potatomancy', source='Idaho', source_type=SourceType.TERRAIN).do()

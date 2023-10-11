@@ -9,7 +9,7 @@ from app.engine.state import MapState
 from app.engine import engine, text_funcs, menus, action, \
     icons, help_menu, banner, base_surf
 from app.engine.game_state import game
-from app.engine.objects.skill import SourceType
+from app.engine.source_type import SourceType
 
 class SkillOption(menu_options.BasicOption):
     """
