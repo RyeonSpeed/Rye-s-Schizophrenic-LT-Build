@@ -14,9 +14,10 @@ from app.engine import (action, background, banner, base_surf, dialog, engine,
 from app.engine.achievements import ACHIEVEMENTS
 from app.engine.animations import MapAnimation
 from app.engine.combat import interaction
+from app.engine.fonts import FONT
 from app.engine.game_menus.menu_components.generic_menu.simple_menu_wrapper import \
     SimpleMenuUI
-from app.engine.graphics.text.text_renderer import rendered_text_width
+from app.engine.graphics.text.text_renderer import rendered_text_width, text_width
 from app.engine.graphics.ui_framework.premade_animations.animation_templates import (
     fade_anim, translate_anim)
 from app.engine.graphics.ui_framework.premade_components.plain_text_component import \
@@ -39,6 +40,7 @@ from app.utilities import str_utils, utils
 from app.utilities.enums import Alignments, HAlignment, Orientation, VAlignment
 from app.utilities.type_checking import check_valid_type
 from app.utilities.typing import NID
+from app.engine.source_type import SourceType
 
 if TYPE_CHECKING:
     from app.events.event import Event
@@ -346,7 +348,7 @@ def speak(self: Event, speaker_or_style: str, text, text_position=None, width=No
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
           message_tail=None, transparency=None, name_tag_bg=None, flags=None):
     flags = flags or set()
-    text = dialog.clean_newlines(text)
+    text = dialog.process_dialog_shorthand(text)
 
     if 'no_block' in flags:
         text += '{no_wait}'
@@ -367,13 +369,18 @@ def speak(self: Event, speaker_or_style: str, text, text_position=None, width=No
                               font_type, dialog_box, int(num_lines) if num_lines else None, cursor, message_tail, float(transparency) if transparency else None, name_tag_bg, flags)
 
     style = self._resolve_speak_style(speaker_or_style, style_nid, manual_style)
-    speaker = style.speaker or speaker_or_style or ''
+    speaker = speaker_or_style or style.speaker or ''
     if speaker.startswith('"') and speaker.endswith('"'):
         speaker = speaker[1:-1]
     unit = self._get_unit(speaker)
     if unit:
         speaker = unit.nid
     portrait = self.portraits.get(speaker)
+
+    if portrait and style.num_lines == 0: # should auto choose 1 or 2 lines
+        style.num_lines = 2
+        if '{br}' not in text and '{clear}' not in text and text_width(style.font_type, text) < WINWIDTH // 2:
+            style.num_lines = 1
 
     # Process text for commands
     blocks = str_utils.matched_block_expr(text, '{', '}')
@@ -1883,7 +1890,7 @@ def give_money(self: Event, money, party=None, flags=None):
         if money >= 0:
             b = banner.Advanced('Got <blue>{money}</> gold.'.format(money = str(money)), 'Item')
         else:
-            b = banner.Advanced('Lost <blue>{money}</> gold.'.format(money = str(money)), 'ItemBreak')
+            b = banner.Advanced('Lost <blue>{money}</> gold.'.format(money = str(money * -1)), 'ItemBreak')
         self.game.alerts.append(b)
         self.game.state.change('alert')
         self.state = 'paused'
@@ -1932,7 +1939,7 @@ def give_exp(self: Event, global_unit, experience, flags=None):
                 action.do(action.SetExp(unit, 99))
         elif old_exp + exp < 0:
             if unit.level > 1:
-                action.do(action.SetExp(unit, 100 + old_exp - exp))
+                action.do(action.SetExp(unit, 100 + old_exp + exp))
                 autolevel_to(self, global_unit, unit.level - 1)
             else:
                 action.do(action.SetExp(unit, 0))
@@ -1982,6 +1989,7 @@ def set_wexp(self: Event, global_unit, weapon_type, whole_number, flags=None):
 def give_skill(self: Event, global_unit, skill, initiator=None, flags=None):
     flags = flags or set()
 
+    is_persistent = 'persistent' in flags
     unit = self._get_unit(global_unit)
     if not unit:
         self.logger.error("give_skill: Couldn't find unit with nid %s" % global_unit)
@@ -1996,7 +2004,10 @@ def give_skill(self: Event, global_unit, skill, initiator=None, flags=None):
             self.logger.error("Couldn't find unit with nid %s" % initiator)
             return
     banner_flag = 'no_banner' not in flags
-    action.do(action.AddSkill(unit, skill_nid, initiator))
+    if is_persistent:
+        action.do(action.AddSkill(unit, skill_nid, initiator, source=unit.nid, source_type=SourceType.PERSONAL))
+    else:
+        action.do(action.AddSkill(unit, skill_nid, initiator))
     if banner_flag:
         skill = DB.skills.get(skill_nid)
         b = banner.GiveSkill(unit, skill)
@@ -2788,9 +2799,10 @@ def arrange_formation(self: Event, flags=None):
         num_slots = len(all_formation_spots)
     assign_these = unstuck_units[:num_slots]
     for idx, unit in enumerate(assign_these):
-        position = all_formation_spots[idx]
-        action.execute(action.ArriveOnMap(unit, position))
-        action.execute(action.Reset(unit))
+        if len(all_formation_spots) > idx:
+            position = all_formation_spots[idx]
+            action.execute(action.ArriveOnMap(unit, position))
+            action.execute(action.Reset(unit))
 
 def prep(self: Event, pick_units_enabled: str = None, music: str = None, other_options: str = None,
          other_options_enabled: str = None, other_options_on_select: str = None, flags=None):
@@ -3153,7 +3165,7 @@ def textbox(self: Event, nid: str, text: str, box_position=None,
             draw_cursor=False, transparency=transparency)
     else:
         text = self.text_evaluator._evaluate_all(text)
-        text = dialog.clean_newlines(text)
+        text = dialog.process_dialog_shorthand(text)
         # textboxes shouldn't use {w} or |
         text = text.replace('{w}', '').replace('|', '{br}')
         textbox = \
@@ -3760,3 +3772,9 @@ def delete_record(self: Event, nid: str, flags=None):
 
 def unlock_difficulty(self: Event, difficulty_mode: str, flags=None):
     RECORDS.unlock_difficulty(difficulty_mode)
+
+def hide_combat_ui(self: Event, flags=None):
+    self.game.game_vars["_hide_ui"] = True
+
+def show_combat_ui(self: Event, flags=None):
+    self.game.game_vars["_hide_ui"] = False

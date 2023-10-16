@@ -24,15 +24,16 @@ if TYPE_CHECKING:
 
 import logging
 
+@dataclass
 class UnitSkill():
     skill_obj: SkillObject
     source: Union[str, tuple, int]
     source_type: tuple
     
-    def __init__(self, skill_obj, source=None, source_type=SourceType.DEFAULT):
+    def __init__(self, skill_obj, source = None, source_type = SourceType.DEFAULT):
         self.skill_obj = skill_obj
-        self.source=source
-        self.source_type=source_type
+        self.source = source
+        self.source_type = source_type
     
     def get(self):
         return self.skill_obj

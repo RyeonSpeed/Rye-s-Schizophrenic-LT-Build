@@ -58,7 +58,7 @@ class EventTextEditor(QPlainTextEdit):
         # completer
         self.textChanged.connect(self.complete)
         self.prev_keyboard_press = None
-        
+
         self.format_action = QAction("Format...", self, shortcut="Ctrl+Alt+F", triggered=self.autoformat)
         self.addAction(self.format_action)
 
@@ -185,7 +185,7 @@ class EventTextEditor(QPlainTextEdit):
 
     def lineNumberAreaWidth(self) -> int:
         num_blocks = max(1, self.blockCount())
-        digits = math.ceil(math.log(num_blocks, 10))
+        digits = int(math.log10(num_blocks)) + 1
         space = 3 + self.fontMetrics().horizontalAdvance("9") * digits
 
         return space
@@ -209,8 +209,17 @@ class EventTextEditor(QPlainTextEdit):
 
     def createMimeDataFromSelection(self):
         mimedata = QMimeData()
-        mimedata.setText(self.textCursor().selectedText())
+        raw_text_under_selection = self.textCursor().selectedText()
+        mimedata.setProperty('raw_text', raw_text_under_selection)
+        mimedata.setText(str_utils.convert_raw_text_newlines(raw_text_under_selection))
         return mimedata
+
+    def insertFromMimeData(self, source: QMimeData):
+        text = source.text()
+        if source.property('raw_text'):
+            text = source.property('raw_text')
+        source.setText(text)
+        super().insertFromMimeData(source)
 
     def should_show_completion_box(self):
         if not self.completer or not bool(self.settings.get_event_autocomplete()):

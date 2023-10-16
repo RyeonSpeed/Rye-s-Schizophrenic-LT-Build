@@ -509,7 +509,7 @@ NOTE: You can set the `__default` speak style, which will automatically apply to
 
     keywords = ['Style']
     optional_keywords = ['Speaker', 'Position', 'Width', 'Speed', 'FontColor', 'FontType', 'Background', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
-    keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'PositiveInteger', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
+    keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_talk', 'no_sound']
 
 class Speak(EventCommand):
@@ -549,7 +549,7 @@ Extra flags:
 
     keywords = ['SpeakerOrStyle', 'Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg']
-    keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'PositiveInteger', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
+    keyword_types = ['Speaker', 'Text', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound']
 
 class Unhold(EventCommand):
@@ -1796,7 +1796,7 @@ class GiveExp(EventCommand):
 
     desc = \
         """
-Gives *Experience* to *GlobalUnit*.
+Gives *Experience* to *GlobalUnit*. Can only give between -100 and 100 experience at a time.
         """
 
     keywords = ["GlobalUnit", "Experience"]
@@ -1848,12 +1848,13 @@ class GiveSkill(EventCommand):
         """
 *GlobalUnit* gains *Skill*. If the *no_banner* flag is set, the player will not be informed of this.
 Optional *Initiator* global unit can be given to give the skill an initiator.
+Use the persistent flag to have the skill be treated as a personal skill rather than a temporary status.
          """
 
     keywords = ["GlobalUnit", "Skill"]
     optional_keywords = ["Initiator"]
     keyword_types = ["GlobalUnit", "Skill", "GlobalUnit"]
-    _flags = ['no_banner']
+    _flags = ['no_banner', 'persistent']
 
 class RemoveSkill(EventCommand):
     nid = 'remove_skill'
@@ -3168,6 +3169,16 @@ class ToggleNarrationMode(EventCommand):
 
     keywords = ['Direction']
     optional_keywords = ['Speed']
+
+class HideCombatUI(EventCommand):
+    nid = 'hide_combat_ui'
+    tag = Tags.DIALOGUE_TEXT
+    desc = ('Hides the combat ui. Combat UI will remain hidden until Show Combat UI command is called.')
+
+class ShowCombatUI(EventCommand):
+    nid = 'show_combat_ui'
+    tag = Tags.DIALOGUE_TEXT
+    desc = ('Shows the combat ui. Usually only called after hide_combat_ui has been called. Also usually caleld at the end of the boss conversation.')
 
 class SetOverworldMenuOptionEnabled(EventCommand):
     nid = 'set_overworld_menu_option_enabled'

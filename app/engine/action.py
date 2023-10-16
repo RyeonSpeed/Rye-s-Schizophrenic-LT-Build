@@ -3273,8 +3273,6 @@ class AddSkill(Action):
     def __init__(self, unit, skill, initiator=None, source=None, source_type=SourceType.DEFAULT):
         self.unit = unit
         self.initiator = initiator
-        self.source = source
-        self.source_type = source_type
         # Check if we just passed in the skill nid to create
         if isinstance(skill, str):
             skill_obj = item_funcs.create_skill(unit, skill)
@@ -3286,10 +3284,6 @@ class AddSkill(Action):
             skill_system.init(skill_obj)
             if skill_obj.uid not in game.skill_registry:
                 game.register_skill(skill_obj)
-            if self.source:
-                skill_obj.source=self.source
-            if self.source_type:
-                skill_obj.source_type=source_type
         self.skill_obj: SkillObject = skill_obj
         self.source = source
         self.source_type = source_type
@@ -3399,7 +3393,7 @@ class RemoveSkill(Action):
         to_remove = self.count
         if isinstance(self.skill, str):
             for skill in self.unit.all_skills[:]:
-                if skill.nid == self.skill and (skill.source_type.removable or (self.source == skill.source and self.source_type == skill.source_type)) and to_remove != 0:
+                if skill.nid == self.skill and to_remove != 0:
                     removed = self._remove_skill(skill, true_remove)
                     if removed:
                         to_remove -= 1

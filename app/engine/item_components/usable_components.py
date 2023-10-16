@@ -207,10 +207,10 @@ class ManaCost(ItemComponent):
     def available(self, unit, item) -> bool:
         return unit.get_mana() >= self.value
 
-    def is_broken(self, unit, item) -> bool:
+    def is_unusable(self, unit, item) -> bool:
         return unit.get_mana() < self.value
 
-    def on_broken(self, unit, item) -> bool:
+    def on_unusable(self, unit, item) -> bool:
         if unit.equipped_weapon is item:
             action.do(action.UnequipItem(unit, item))
         elif unit.equipped_accessory is item:
@@ -269,15 +269,16 @@ class Cooldown(ItemComponent):
     expose = ComponentType.Int
     value = 1
 
+    _used_in_combat = False
+
     def init(self, item):
         item.data['cooldown'] = 0
         item.data['starting_cooldown'] = self.value
-        self._used_in_combat = False
 
     def available(self, unit, item) -> bool:
         return item.data['cooldown'] == 0
 
-    def is_broken(self, unit, item) -> bool:
+    def is_unusable(self, unit, item) -> bool:
         return item.data['cooldown'] != 0
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
@@ -294,7 +295,7 @@ class Cooldown(ItemComponent):
     def reverse_use(self, unit, item):
         action.do(action.SetObjData(item, 'cooldown', 0))
 
-    def on_broken(self, unit, item):
+    def on_unusable(self, unit, item):
         if unit.equipped_weapon is item:
             action.do(action.UnequipItem(unit, item))
         elif unit.equipped_accessory is item:

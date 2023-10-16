@@ -562,7 +562,7 @@ class IllegalCharacterList(Validator):
         return valids
 
 class DialogVariant(Validator):
-    built_in = ["thought_bubble", "noir", "hint", "narration", "narration_top", "cinematic", "clear"]
+    built_in = ["thought_bubble", "noir", "hint", "narration", "narration_top", "cinematic", "clear", "boss_convo_left", "boss_convo_right"]
 
     def validate(self, text, level):
         slots = self.built_in.copy()
@@ -1401,7 +1401,7 @@ class SaveSlot(Validator):
         valids = [(None, str(i)) for i in range(self._db.constants.value('num_save_slots'))]
         valids.append((None, "suspend"))
         return valids
-        
+
 validators: Dict[str, Type[Validator]]= {validator.__name__: validator for validator in Validator.__subclasses__()}
 option_validators: Dict[str, Type[OptionValidator]] = {validator.__name__: validator for validator in OptionValidator.__subclasses__()}
 eval_validators: Dict[str, Type[EvalValidator]] = {}
