@@ -1,3 +1,4 @@
+from __future__ import annotations
 from app.utilities.data import Data
 
 from app.data.database.database import DB
@@ -69,6 +70,12 @@ class SkillObject():
 
     def __repr__(self):
         return "Skill: %s %s" % (self.nid, self.uid)
+
+    def __hash__(self):
+        return hash(self.uid)
+
+    def __eq__(self, other: SkillObject) -> bool:
+        return other and self.uid == other.uid
 
     def save(self):
         serial_dict = {}
