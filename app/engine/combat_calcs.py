@@ -127,7 +127,6 @@ def can_counterattack(attacker, aweapon, defender, dweapon) -> bool:
     return False
     
 def can_followup(attacker, aweapon, defender, dweapon) -> bool:
-    from app.engine import target_system
     if not aweapon:
         return False
     if not item_funcs.available(attacker, aweapon):
@@ -138,7 +137,7 @@ def can_followup(attacker, aweapon, defender, dweapon) -> bool:
     
     if not defender.position:
         return False
-    valid_targets = target_system.targets_in_range(attacker, aweapon)
+    valid_targets = game.target_system.targets_in_range(attacker, aweapon)
     if defender.position in valid_targets:
         return True
     return False
