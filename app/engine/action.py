@@ -3407,9 +3407,7 @@ class RemoveSkill(Action):
             if to_remove > 0:
                 logging.warning("%d removable instances of Skill %s not found in %s's skills", to_remove, self.skill, self.unit)
         else:
-            if not self.skill.source_type.removable and not(self.source == self.skill.source and self.source_type == self.skill.source_type):
-                logging.warning("Incorrect source attempting to remove skill %s for %s", self.skill.nid, self.unit)
-            elif self.skill in self.unit.all_skills:
+            if self.skill in self.unit.all_skills:
                 self._remove_skill(self.skill, true_remove)
             else:
                 logging.warning("Skill %s not in %s's skills", self.skill.nid, self.unit)
