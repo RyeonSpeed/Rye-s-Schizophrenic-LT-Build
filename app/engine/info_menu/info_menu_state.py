@@ -848,7 +848,8 @@ class InfoMenuState(State):
             vert_pos = (idx // 6) * 24
             icons.draw_skill(surf, skill, (left_pos + 2, 4 + vert_pos), compact=False, grey=skill_system.is_grey(skill, self.unit))
             if skill_counter[skill.nid] > 1:
-                render_text(surf, ['small'], [str(skill_counter[skill.nid])], ['white'], (left_pos + 14 - 4 * len(str(skill_counter[skill.nid])), 6 + vert_pos))
+                text = str(skill_counter[skill.nid])
+                render_text(surf, ['small'], [text], ['white'], (left_pos + 20 - 4 * len(text), 6 + vert_pos))
             if skill.data.get('total_charge'):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
@@ -862,7 +863,7 @@ class InfoMenuState(State):
 
     def create_class_skill_surf(self):
         surf = engine.create_surface((WINWIDTH - 96, 24), transparent=True)
-        class_skills = [skill for skill in self.unit.skills if skill.class_skill and not skill_system.hidden(skill, self.unit)][:6]
+        class_skills = [skill for skill in self.unit.skills if skill.class_skill and not skill_system.hidden(skill, self.unit)]
 
         # stacked skills appear multiple times, but should be drawn only once
         skill_counter = {}
@@ -877,7 +878,8 @@ class InfoMenuState(State):
             left_pos = idx * 24
             icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False, grey=skill_system.is_grey(skill, self.unit))
             if skill_counter[skill.nid] > 1:
-                render_text(surf, ['small'], [str(skill_counter[skill.nid])], ['white'], (left_pos + 20 - 4 * len(str(skill_counter[skill.nid])), 6))
+                text = str(skill_counter[skill.nid])
+                render_text(surf, ['small'], [text], ['white'], (left_pos + 20 - 4 * len(text), 6))
             if skill.data.get('total_charge'):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
