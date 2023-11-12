@@ -84,6 +84,9 @@ def music_clear(self: Event, fade_out=0, flags=None):
 def sound(self: Event, sound, volume=1.0, flags=None):
     get_sound_thread().play_sfx(sound, volume=float(volume))
 
+def stop_sound(self: Event, sound, flags=None):
+    get_sound_thread().stop_sfx(sound)
+
 def change_music(self: Event, phase, music, flags=None):
     if music == 'None':
         action.do(action.ChangePhaseMusic(phase, None))
@@ -369,7 +372,9 @@ def speak(self: Event, speaker_or_style: str, text, text_position=None, width=No
                               font_type, dialog_box, int(num_lines) if num_lines else None, cursor, message_tail, float(transparency) if transparency else None, name_tag_bg, flags)
 
     style = self._resolve_speak_style(speaker_or_style, style_nid, manual_style)
-    speaker = speaker_or_style or style.speaker or ''
+    speaker = style.speaker or ''
+    if speaker == 'None':
+        speaker = ''
     if speaker.startswith('"') and speaker.endswith('"'):
         speaker = speaker[1:-1]
     unit = self._get_unit(speaker)
@@ -3663,13 +3668,16 @@ def pair_up(self: Event, unit1, unit2, flags=None):
     if not new_unit1:
         self.logger.error("pair_up: Couldn't find unit with nid %s" % unit1)
         return
-    unit1 = new_unit1
+    follower = new_unit1
     new_unit2 = self._get_unit(unit2)
     if not new_unit2:
         self.logger.error("pair_up: Couldn't find unit with nid %s" % unit2)
         return
-    unit2 = new_unit2
-    action.do(action.PairUp(unit1, unit2))
+    leader = new_unit2
+    if unit_funcs.can_pairup(leader, follower):
+        action.do(action.PairUp(follower, leader))
+    else:
+        action.do(action.Rescue(leader, follower))
 
 def separate(self: Event, unit, flags=None):
     new_unit = self._get_unit(unit)
