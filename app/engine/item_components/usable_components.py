@@ -58,9 +58,6 @@ class Uses(ItemComponent):
             return True
         return False
 
-    def broken_alert(self, unit, item):
-        return self.is_broken(unit, item)
-
     def end_combat(self, playback, unit, item, target, mode):
         if self._did_something and 'uses' in item.data:
             action.do(action.SetObjData(item, 'uses', item.data['uses'] - 1))
@@ -97,7 +94,7 @@ class ChapterUses(ItemComponent):
     def available(self, unit, item) -> bool:
         return item.data['c_uses'] > 0
 
-    def is_broken(self, unit, item) -> bool:
+    def is_unusable(self, unit, item) -> bool:
         return item.data['c_uses'] <= 0
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
@@ -115,14 +112,11 @@ class ChapterUses(ItemComponent):
                 actions.append(action.SetObjData(item, 'c_uses', item.data['c_uses'] - 1))
                 actions.append(action.UpdateRecords('item_use', (unit.nid, item.nid)))
 
-    def on_broken(self, unit, item):
+    def on_unusable(self, unit, item):
             if unit.equipped_weapon is item:
                 action.do(action.UnequipItem(unit, item))
             elif unit.equipped_accessory is item:
                 action.do(action.UnequipItem(unit, item))
-
-    def broken_alert(self, unit, item):
-        return self.is_broken(unit, item)
 
     def end_combat(self, playback, unit, item, target, mode):
         if self._did_something and 'c_uses' in item.data:
@@ -146,7 +140,7 @@ class UsesOptions(ItemComponent):
     desc = 'Additional options for uses'
     tag = ItemTags.HIDDEN
 
-    expose = (ComponentType.MultipleOptions)
+    expose = ComponentType.MultipleOptions
 
     value = [
         ['LoseUsesOnMiss (T/F)', 'F', 'Lose uses even on miss'],
@@ -215,9 +209,6 @@ class ManaCost(ItemComponent):
             action.do(action.UnequipItem(unit, item))
         elif unit.equipped_accessory is item:
             action.do(action.UnequipItem(unit, item))
-
-    def broken_alert(self, unit, item):
-        return False
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
         self._did_something = True
@@ -300,9 +291,6 @@ class Cooldown(ItemComponent):
             action.do(action.UnequipItem(unit, item))
         elif unit.equipped_accessory is item:
             action.do(action.UnequipItem(unit, item))
-
-    def broken_alert(self, unit, item):
-        return False
 
     def on_upkeep(self, actions, playback, unit, item):
         if item.data['cooldown'] > 0:

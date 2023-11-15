@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import os
-from typing import TYPE_CHECKING, Optional, Tuple, Type
+from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
 from PyQt5.QtCore import QRect, QSize, Qt, pyqtSignal, QMimeData
 from PyQt5.QtGui import QFontMetrics, QPainter, QPalette, QTextCursor
@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import QCompleter, QLabel, QPlainTextEdit, QWidget, QAction
 
 from app import dark_theme
 from app.editor.event_editor import event_autocompleter, event_formatter
-from app.editor.event_editor.utils import EditorLanguageMode
 from app.editor.settings import MainSettingsController
+from app.events.event_prefab import EventVersion
 from app.utilities import str_utils
 
 if TYPE_CHECKING:
@@ -74,7 +74,7 @@ class EventTextEditor(QPlainTextEdit):
                 self.function_annotator.setStyleSheet(stylecss.read())
 
     def autoformat(self):
-        if self.event_properties.language_mode == EditorLanguageMode.EVENT:
+        if self.event_properties.version == EventVersion.EVENT:
             text = self.document().toRawText()
             text = str_utils.convert_raw_text_newlines(text)
             formatted = event_formatter.format_event_script(text)
@@ -90,34 +90,33 @@ class EventTextEditor(QPlainTextEdit):
         self.completer.setWidget(self)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
-        self.completer.insertText.connect(self.insert_completion)
+        self.completer.insertText.connect(self.insert_completions)
 
     def set_function_hinter(self, function_hinter: Type[event_autocompleter.EventScriptFunctionHinter]):
         self.function_hinter = function_hinter
 
-    def insert_completion(self, completion):
-        tc = self.textCursor()
-        for i in range(len(self.completer.completionPrefix())):
-            tc.movePosition(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
-        tc.removeSelectedText()
-        tc.insertText(completion)
-        self.setTextCursor(tc)
+    def insert_completions(self, completions: List[event_autocompleter.CompletionToInsert]):
+        for completion in completions:
+            tc = self.textCursor()
+            tc.setPosition(completion.position)
+            tc.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, completion.replace)
+            tc.removeSelectedText()
+            tc.insertText(completion.text)
 
     def display_function_hint(self):
         if not self.should_show_function_hint():
             self.hide_function_hint()
             return
         tc = self.textCursor()
-        line = tc.block().text()
-        cursor_pos = tc.positionInBlock()
-
-        hint_text = self.function_hinter.generate_hint_for_line(line, cursor_pos)
+        line = self.get_command_text_under_cursor()
+        hint_text = self.function_hinter.generate_hint_for_line(line)
         if not hint_text:
             self.hide_function_hint()
             return
-        self.function_annotator.setText(hint_text)
-        self.function_annotator.setWordWrap(True)
-        self.function_annotator.adjustSize()
+        if self.function_annotator.text() != hint_text:
+            self.function_annotator.setText(hint_text)
+            self.function_annotator.setWordWrap(True)
+            self.function_annotator.adjustSize()
 
         # offset the position and display
         tc_top_right = self.mapTo(self.parent(), self.cursorRect(tc).topRight())
@@ -135,15 +134,15 @@ class EventTextEditor(QPlainTextEdit):
         self.function_annotator.move(tc_top_right)
         self.function_annotator.show()
 
-    def get_event_command_context(self) -> Tuple[str, int]: # returns code line, and position in line
-        if self.event_properties.language_mode == EditorLanguageMode.EVENT:
-            return self.textCursor().block().text(), self.textCursor().positionInBlock()
-        elif self.event_properties.language_mode == EditorLanguageMode.PYTHON:
+    def get_command_text_under_cursor(self) -> str:
+        if self.event_properties.version == EventVersion.EVENT:
+            return self.textCursor().block().text()
+        elif self.event_properties.version == EventVersion.PYEV1:
             curr_pos = self.textCursor().position()
             terminal_pos = curr_pos
-            while terminal_pos > 0 and self.document().characterAt(terminal_pos) != '$':
+            while terminal_pos > 0 and self.document().characterAt(terminal_pos) not in '$\n':
                 terminal_pos -= 1
-            return self.document().toRawText()[terminal_pos:curr_pos], curr_pos - terminal_pos
+            return self.document().toRawText()[terminal_pos:curr_pos]
         else:
             return None
 
@@ -151,8 +150,8 @@ class EventTextEditor(QPlainTextEdit):
         if not self.should_show_completion_box():
             self.hide_completion_box()
             return
-        line, cursor_pos = self.get_event_command_context()
-        if not self.completer.setTextToComplete(line, cursor_pos, self.event_properties.current.level_nid):
+        line = self.get_command_text_under_cursor()
+        if not self.completer.setTextToComplete(line, self.textCursor().position(), self.event_properties.current.level_nid):
             return
         cr = self.cursorRect()
         cr.setWidth(
