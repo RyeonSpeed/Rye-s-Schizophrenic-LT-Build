@@ -47,6 +47,9 @@ class Negative(SkillComponent):
     desc = "Skill is considered detrimental"
     tag = SkillTags.ATTRIBUTE
 
+    def condition(self, unit, item):
+        return 'Immune' not in unit.tags
+
 class Global(SkillComponent):
     nid = 'global'
     desc = "All units will possess this skill"
@@ -70,3 +73,6 @@ class HasTags(SkillComponent):
     tag = SkillTags.ATTRIBUTE
 
     expose = (ComponentType.List, ComponentType.Tag)
+
+    def additional_tags(self, unit, skill):
+        return self.value

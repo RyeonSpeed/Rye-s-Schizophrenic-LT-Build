@@ -49,6 +49,9 @@ class Event():
 
         self.trigger = trigger
         event_args = trigger.to_args()
+        # alias
+        if 'unit1' in event_args:
+            event_args['unit'] = event_args['unit1']
         self.unit = event_args.get('unit1', None)
         self.unit2 = event_args.get('unit2', None)
         self.created_unit = None
@@ -378,10 +381,13 @@ class Event():
 
     def _queue_command(self, event_command_str: str):
         try:
-            event_command, _ = event_commands.parse_text_to_command(event_command_str, strict=True)
-            if not event_command:
+            command, _ = event_commands.parse_text_to_command(event_command_str, strict=True)
+            if not command:
                 raise SyntaxError("Unable to parse command", ("event.py", 0, 0, event_command_str))
-            self.command_queue.append(event_command)
+            # We need to run convert_parse on these commands also!
+            parameters, flags = event_commands.convert_parse(command, None)
+            processed_command = command.__class__(parameters, flags, command.display_values)
+            self.command_queue.append(processed_command)
         except Exception as e:
             logging.error('_queue_command: Unable to parse command "%s". %s', event_command_str, e)
 
@@ -414,7 +420,7 @@ class Event():
             if unit.position == position:
                 # Don't bother if identical
                 return
-            path = self.game.target_system.get_path(unit, position)
+            path = self.game.path_system.get_path(unit, position)
             action.do(action.Move(unit, position, path, event=True, follow=follow))
         return position
 
@@ -594,8 +600,6 @@ class Event():
                 position = tuple(float(_) for _ in text.split(','))
             else:
                 position = tuple(int(_) for _ in text.split(','))
-        elif text == '{position}':
-            position = self.position
         elif not self.game.is_displaying_overworld() and self._get_unit(text):
             unit = self._get_unit(text)
             if unit.position:
@@ -616,14 +620,7 @@ class Event():
         return position
 
     def _get_unit(self, text) -> UnitObject:
-        if text in ('{unit}', '{unit1}'):
-            return self.unit
-        elif text == '{unit2}':
-            return self.unit2
-        elif text == '{created_unit}':
-            return self.created_unit
-        else:
-            return self.game.get_unit(text)
+        return self.game.get_unit(text)
 
     def _get_overworld_location_of_object(self, text, entity_only=False, node_only=False) -> OverworldNodeObject:
         if self.game.overworld_controller:

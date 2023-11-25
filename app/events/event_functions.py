@@ -931,7 +931,7 @@ def make_generic(self: Event, nid, klass, level, team, ai=None, faction=None, an
 
     if assign_unit:
         self.created_unit = new_unit
-        self.text_evaluator.created_unit = new_unit
+        self.text_evaluator.local_args['created_unit'] = new_unit
 
 def create_unit(self: Event, unit, nid=None, level=None, position=None, entry_type=None, placement=None, flags=None):
     flags = flags or set()
@@ -1072,7 +1072,7 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
     elif movement_type == 'fade':
         action.do(action.FadeMove(unit, position))
     elif movement_type == 'normal':
-        path = self.game.target_system.get_path(unit, position)
+        path = self.game.path_system.get_path(unit, position)
         if path:
             if self.do_skip:
                 action.do(action.Teleport(unit, position))
@@ -2273,11 +2273,15 @@ def autolevel_to(self: Event, global_unit, level, growth_method=None, flags=None
         self.logger.warning("autolevel_to: Unit %s is already that level!" % global_unit)
         return
 
-    action.do(action.AutoLevel(unit, diff, growth_method))
+    autolevel_act = action.AutoLevel(unit, diff, growth_method)
+    action.do(autolevel_act)
+    stat_changes = autolevel_act.stat_changes
     if 'hidden' in flags:
         pass
     else:
         action.do(action.SetLevel(unit, max(1, final_level)))
+        event_trigger = triggers.UnitLevelUp(unit, stat_changes, 'event')
+        self.game.events.trigger(event_trigger)
     if not unit.generic and DB.units.get(unit.nid):
         unit_prefab = DB.units.get(unit.nid)
         personal_skills = unit_funcs.get_personal_skills(unit, unit_prefab, current_level)

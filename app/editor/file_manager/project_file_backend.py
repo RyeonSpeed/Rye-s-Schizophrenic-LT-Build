@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 from datetime import datetime
+import traceback
 from typing import TYPE_CHECKING, Optional
 
 from PyQt5.QtCore import QDir, Qt
@@ -12,8 +13,8 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox, QProgressDialog, QVBoxLayo
 
 from app.constants import VERSION
 from app.data.database.database import DB, Database
-from app.data.resources.resources import RESOURCES
-from app.data.validation.db_validation import validate_all
+from app.data.resources.resources import RESOURCES, Resources
+from app.data.validation.db_validation import DBChecker
 from app.editor import timer
 from app.editor.error_viewer import show_error_report
 from app.editor.file_manager.project_initializer import ProjectInitializer
@@ -123,10 +124,10 @@ class ProjectFileBackend():
         # we should allow the save so
         # the user can make a game
         try:
-            any_errors = validate_all(DB, RESOURCES)
+            any_errors = DBChecker(DB, RESOURCES).validate_for_errors()
             DB.game_flags.has_fatal_errors = bool(any_errors)
         except Exception as e:
-            QMessageBox.warning(self.parent, "Validation warning", "Validation failed with error. Please send this message to the devs.\nYour save will continue as normal.\nException:\n%s" % str(e))
+            QMessageBox.warning(self.parent, "Validation warning", "Validation failed with error. Please send this message to the devs.\nYour save will continue as normal.\nException:\n" + traceback.format_exc())
             DB.game_flags.has_fatal_errors = False
 
         # Returns whether we successfully saved
@@ -183,7 +184,7 @@ class ProjectFileBackend():
             self.save_progress.setValue(100)
             error_msg = QMessageBox()
             error_msg.setIcon(QMessageBox.Critical)
-            error_msg.setText("Editor was unable to save your project's %s. \nFree up memory in your hard drive or try saving somewhere else, \notherwise progress will be lost when the editor is closed. \nFor more detailed logs, please read debug.log.1 in the saves/ directory.\n\n" % section)
+            error_msg.setText("Editor was unable to save your project's %s. \nFree up memory in your hard drive or try saving somewhere else, \notherwise progress will be lost when the editor is closed. \nFor more detailed logs, please click View Logs in the Extra menu.\n\n" % section)
             error_msg.setWindowTitle("Serialization Error")
             error_msg.exec_()
 
@@ -354,7 +355,7 @@ class ProjectFileBackend():
             self.parent, "Choose dump location", starting_path)
         if fn:
             csv_direc = fn
-            for ttype, tstr in csv_data_exporter.dump_as_csv(db):
+            for ttype, tstr in csv_data_exporter.dump_as_csv(db, RESOURCES):
                 with open(os.path.join(csv_direc, ttype + '.csv'), 'w') as f:
                     f.write(tstr)
         else:
