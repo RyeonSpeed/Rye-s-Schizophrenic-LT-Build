@@ -193,7 +193,7 @@ class Shove(ItemComponent):
         mcost = movement_funcs.get_mcost(unit_to_move, new_position)
         if game.board.check_bounds(new_position) and \
                 not game.board.get_unit(new_position) and \
-                mcost <= equations.parser.movement(unit_to_move):
+                mcost <= 90:
             return new_position
         return False
 
