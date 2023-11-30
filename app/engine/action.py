@@ -3386,7 +3386,7 @@ class AddSkill(Action):
         if self.skill_obj in self.unit.all_skills:
             # Actually remove skill
             skill_system.before_remove(self.unit, self.skill_obj)
-            self.unit.remove_skill(self.skill_obj, self.source, self.source_type)
+            self.unit.remove_skill(self.skill_obj, self.source, self.source_type, unconditional=True)
             self.skill_obj.owner_nid = None
 
             if self.skill_obj.aura and self.unit.position and game.board and game.tilemap:
@@ -3403,7 +3403,7 @@ class AddSkill(Action):
             action.reverse()
 
 class RemoveSkill(Action):
-    def __init__(self, unit, skill, count=-1, source=None, source_type=SourceType.DEFAULT):
+    def __init__(self, unit, skill, count=-1, source=None, source_type=SourceType.DEFAULT, unconditional=False):
         self.unit = unit
         self.skill = skill  # Skill obj or skill nid str
         self.removed_skills = []
@@ -3412,9 +3412,10 @@ class RemoveSkill(Action):
         self.source_type = source_type
         self.old_owner_nid = None
         self.reset_action = ResetUnitVars(self.unit)
+        self.unconditional = unconditional
 
     def _remove_skill(self, skill, true_remove):
-        if not self.unit.remove_skill(skill, self.source, self.source_type, test=True):
+        if not self.unit.remove_skill(skill, self.source, self.source_type, test=True, unconditional=self.unconditional):
             logging.warning("No removable instance of Skill %s in %s's skills", self.skill, self.unit)
             return False
 
@@ -3422,7 +3423,7 @@ class RemoveSkill(Action):
         if true_remove:
             skill_system.before_true_remove(self.unit, skill)
         skill.owner_nid = None
-        removed_source, removed_source_type = self.unit.remove_skill(skill, self.source, self.source_type)
+        removed_source, removed_source_type = self.unit.remove_skill(skill, self.source, self.source_type, unconditional=self.unconditional)
         self.removed_skills.append((skill, removed_source, removed_source_type))
 
         if skill.aura and self.unit.position and game.board and game.tilemap:

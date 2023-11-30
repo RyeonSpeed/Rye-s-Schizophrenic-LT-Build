@@ -1883,8 +1883,8 @@ class RemoveSkill(EventCommand):
         """
 
     keywords = ["GlobalUnit", "Skill"]
-    optional_keywords = ['Count']
-    keyword_types = ['GlobalUnit', 'Skill', 'Integer']
+    optional_keywords = ['Count', 'Unconditional']
+    keyword_types = ['GlobalUnit', 'Skill', 'Integer', 'Bool']
     _flags = ['no_banner']
 
 class SetSkillData(EventCommand):

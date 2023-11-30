@@ -407,7 +407,7 @@ class UnitObject(Prefab):
             self._visible_skills_cache.clear()
         return popped_skill
 
-    def remove_skill(self, skill, source, source_type=SourceType.DEFAULT, test=False):
+    def remove_skill(self, skill, source, source_type=SourceType.DEFAULT, test=False, unconditional=False):
         """
         # Removes the given skill and returns it along with its source and source type
         # If the given skill cannot be removed, returns nothing
@@ -418,7 +418,7 @@ class UnitObject(Prefab):
         for s in self._skills:
             same_source = s.source == source and s.source_type == source_type
             if s.skill_obj.uid == skill.uid and \
-            (s.source_type.removable or same_source):
+            (s.source_type.removable or same_source or unconditional):
                 removed_skill_info = (s.source, s.source_type)
                 to_remove = s
         if not test and to_remove:
