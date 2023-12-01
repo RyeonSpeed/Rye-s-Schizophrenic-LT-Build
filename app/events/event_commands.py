@@ -2501,8 +2501,8 @@ class AddUnitMapAnim(EventCommand):
     desc = ('Plays a map animation denoted by the nid *MapAnim* on *Unit*. Optional args: a speed multiplier'
             ' which increases the length of time it takes to play the animation (larger is slower)')
     keywords = ["MapAnim", "Unit"]
-    optional_keywords = ["Speed"]
-    keyword_types = ["MapAnim", "Unit", "Float"]
+    optional_keywords = ["Speed", "Offset"]
+    keyword_types = ["MapAnim", "Unit", "Float", "StringList"]
     _flags = ["no_block", "permanent", "blend"]
 
 class RemoveUnitMapAnim(EventCommand):
@@ -2511,6 +2511,8 @@ class RemoveUnitMapAnim(EventCommand):
     desc = ('Removes a map animation denoted by the nid *MapAnim* from *Unit*. Only removes MapAnims that were created using'
             ' the "permanent" flag')
     keywords = ["MapAnim", "Unit"]
+    optional_keywords = ["Offset"]
+    keyword_types = ["MapAnim", "Unit", "StringList"]
 
 class MergeParties(EventCommand):
     nid = 'merge_parties'

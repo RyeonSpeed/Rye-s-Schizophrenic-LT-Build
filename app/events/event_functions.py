@@ -2739,7 +2739,7 @@ def remove_map_anim(self: Event, map_anim, position, flags=None):
     pos = self._parse_pos(position, True)
     action.do(action.RemoveMapAnim(map_anim, pos, 'overlay' in flags))
 
-def add_unit_map_anim(self: Event, map_anim: NID, unit: NID, speed=None, flags=None):
+def add_unit_map_anim(self: Event, map_anim: NID, unit: NID, speed=None, offset=None, flags=None):
     flags = flags or set()
 
     if map_anim not in RESOURCES.animations.keys():
@@ -2754,8 +2754,12 @@ def add_unit_map_anim(self: Event, map_anim: NID, unit: NID, speed=None, flags=N
         speed_mult = float(speed)
     else:
         speed_mult = 1
+    if not offset:
+        offset = (-16,-16)
+    else:
+        offset = (int(offset.split(",")[0]), int(offset.split(",")[1]))
     if 'permanent' in flags:
-        action.do(action.AddAnimToUnit(map_anim, unit, speed_mult, 'blend' in flags))
+        action.do(action.AddAnimToUnit(map_anim, unit, speed_mult, 'blend' in flags, offset))
     else:
         anim = RESOURCES.animations.get(map_anim)
         pos = unit.position
@@ -2770,12 +2774,16 @@ def add_unit_map_anim(self: Event, map_anim: NID, unit: NID, speed=None, flags=N
         self.wait_time = engine.get_time() + anim.get_wait()
         self.state = 'waiting'
 
-def remove_unit_map_anim(self: Event, map_anim, unit, flags=None):
+def remove_unit_map_anim(self: Event, map_anim, unit, offset=None, flags=None):
     unit = self._get_unit(unit)
     if not unit:
         self.logger.error("remove_unit_map_anim: Could not find unit %s" % unit)
         return
-    action.do(action.RemoveAnimFromUnit(map_anim, unit))
+    if not offset:
+        offset = (-16,-16)
+    else:
+        offset = (int(offset.split(",")[0]), int(offset.split(",")[1]))
+    action.do(action.RemoveAnimFromUnit(map_anim, unit, offset))
 
 def merge_parties(self: Event, party1, party2, flags=None):
     host, guest = party1, party2
