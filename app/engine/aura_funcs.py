@@ -34,7 +34,7 @@ def pull_auras(unit, game, test=False):
     for aura_data in game.board.get_auras(unit.position):
         child_aura_uid, target = aura_data
         child_skill = game.get_skill(child_aura_uid)
-        owner_nid = child_skill.parent_skill.owner_nid
+        owner_nid = child_skill.parent_skill.owner_nid or 'Zelg'
         owner = game.get_unit(owner_nid)
         if owner is not unit:
             apply_aura(owner, unit, child_skill, target, test)
