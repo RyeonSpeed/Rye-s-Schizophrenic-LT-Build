@@ -44,19 +44,14 @@ class Uses(ItemComponent):
 
     def on_broken(self, unit, item):
         from app.engine.game_state import game
-        if self.is_broken(unit, item):
-            if item in unit.items:
-                action.do(action.RemoveItem(unit, item))
-                unit.autoequip()
-            elif item in game.party.convoy:
-                action.do(action.RemoveItemFromConvoy(item))
-            else:
-                for other_unit in game.get_units_in_party():
-                    if item in other_unit.items:
-                        action.do(action.RemoveItem(other_unit, item))
-                        other_unit.autoequip()
-            return True
-        return False
+        if item in unit.items:
+            action.do(action.RemoveItem(unit, item))
+        elif item in game.party.convoy:
+            action.do(action.RemoveItemFromConvoy(item))
+        else:
+            for other_unit in game.get_units_in_party():
+                if item in other_unit.items:
+                    action.do(action.RemoveItem(other_unit, item))
 
     def end_combat(self, playback, unit, item, target, mode):
         if self._did_something and 'uses' in item.data:
@@ -181,15 +176,10 @@ class HPCost(ItemComponent):
         return unit.get_hp() > self.value
 
     def on_hit(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
-        self._did_something = True
+        action.do(action.ChangeHP(unit, -self.value))
 
     def on_miss(self, actions, playback, unit, item, target, target_pos, mode, attack_info):
-        self._did_something = True
-
-    def end_combat(self, playback, unit, item, target, mode):
-        if self._did_something:
             action.do(action.ChangeHP(unit, -self.value))
-        self._did_something = False
 
     def reverse_use(self, unit, item):
         action.do(action.ChangeHP(unit, self.value))
