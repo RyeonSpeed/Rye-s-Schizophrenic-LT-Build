@@ -61,6 +61,8 @@ class AIPrefab(Prefab):
     def guard_ai(self) -> bool:
         # Determines whether this AI will ever move
         # Used in game.boundary for graphics
+        if all(behaviour.action == "None" for behaviour in self.behaviours):
+            return False
         for behaviour in self.behaviours:
             if behaviour.action == "None":
                 continue
