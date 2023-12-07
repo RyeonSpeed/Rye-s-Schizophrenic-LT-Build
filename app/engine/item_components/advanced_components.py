@@ -72,7 +72,7 @@ class UnloadUnit(ItemComponent):
     tag = ItemTags.ADVANCED
 
     def target_restrict(self, unit, item, def_pos, splash) -> bool:
-        if def_pos and not game.board.get_unit(def_pos):
+        if def_pos and not game.board.get_unit(def_pos) and not game.get_terrain_nid(game.tilemap, def_pos) == '9':
             return True
         return False
 
