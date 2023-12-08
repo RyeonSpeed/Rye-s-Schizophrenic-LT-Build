@@ -289,9 +289,9 @@ class SupplyAbility(Ability):
     def targets(unit) -> set:
         if game.game_vars.get('_convoy'):
             adj_allies = game.target_system.get_adj_allies(unit)
-            if 'Convoy' in unit.tags:
+            if 'Convoy' in unit.tags and not unit.generic:
                 return {unit.position}
-            elif any(['AdjConvoy' in ally.tags and ally.team == unit.team for ally in adj_allies]):
+            elif any(['AdjConvoy' in ally.tags and ally.team == unit.team and not ally.generic for ally in adj_allies]):
                 return {unit.position}
         return set()
 
