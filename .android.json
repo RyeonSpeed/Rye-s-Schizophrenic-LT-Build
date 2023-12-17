@@ -1,0 +1,15 @@
+{
+    "package": "rainlash.lextalionis",
+    "name": "lt-maker",
+    "icon_name": "tq",
+    "version": "0.1",
+    "numeric_version": "1",
+    "orientation": "sensorLandscape",
+    "permissions": [],
+    "include_pil": true,
+    "include_sqlite": false,
+    "layout": "internal",
+    "source": false,
+    "expansion": false,
+    "targetsdk": "28"
+}
