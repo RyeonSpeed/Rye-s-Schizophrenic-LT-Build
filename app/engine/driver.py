@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import collections
@@ -69,7 +70,7 @@ def check_soft_reset(game, inp) -> bool:
         inp.is_pressed('SELECT') and inp.is_pressed('BACK') and \
         inp.is_pressed('START')
 
-def run(game):
+async def run(game):
     from app.engine.sound import get_sound_thread
     from app.engine.game_counters import ANIMATION_COUNTERS
     from app.engine.input_manager import get_input_manager
@@ -141,6 +142,7 @@ def run(game):
         save_screenshot(raw_events, surf)
 
         engine.update_display()
+        await asyncio.sleep(0)
         # end = time.time_ns()
         # milliseconds_elapsed = (end - start)/1e6
         # if milliseconds_elapsed > 10:
