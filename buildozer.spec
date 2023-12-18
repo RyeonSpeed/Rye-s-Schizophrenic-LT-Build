@@ -4,7 +4,7 @@
 title = LT Maker
 
 # (str) Package name
-package.name = lt-maker
+package.name = ltmaker
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = rainlash.lextalionis
