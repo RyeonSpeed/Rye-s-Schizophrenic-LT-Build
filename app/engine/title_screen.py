@@ -62,8 +62,8 @@ class TitleStartState(State):
         game.memory['transition_speed'] = 0.5
 
         # Wait until saving thread has finished
-        if save.SAVE_THREAD:
-            save.SAVE_THREAD.join()
+        # if save.SAVE_THREAD:
+        #     save.SAVE_THREAD.join()
 
         game.state.refresh()
 
@@ -657,7 +657,7 @@ class TitleNewState(TitleLoadState):
             else:
                 get_sound_thread().play_sfx('Save')
                 build_new_game(selection)
-                save.SAVE_THREAD.join()
+                # save.SAVE_THREAD.join()
                 save.check_save_slots()
                 options, color = save.get_save_title(save.SAVE_SLOTS)
                 self.menu.set_colors(color)
@@ -701,7 +701,7 @@ class TitleNewChildState(State):
             if selection == 'Overwrite':
                 get_sound_thread().play_sfx('Save')
                 build_new_game(self.menu.owner)  # game.memory['option_owner']
-                save.SAVE_THREAD.join()
+                # save.SAVE_THREAD.join()
                 save.check_save_slots()
                 options, color = save.get_save_title(save.SAVE_SLOTS)
                 game.memory['title_menu'].set_colors(color)

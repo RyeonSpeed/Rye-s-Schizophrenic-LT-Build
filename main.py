@@ -55,35 +55,38 @@ def find_and_run_project():
                 main(name)
 
 if __name__ == '__main__':
-    import logging, traceback
-    from app import lt_log
-    success = lt_log.create_logger()
-    if not success:
-        engine.terminate()
+    print("Starting LT-Engine")
+    # import logging, traceback
+    # from app import lt_log
+    # success = lt_log.create_logger()
+    # if not success:
+        # engine.terminate()
 
+    print("Compiling necessary files")
     # compile necessary files
     if not hasattr(sys, 'frozen'):
         source_generator.generate_all()
 
     try:
-        asyncio.run(main('testing_proj'))
+        print("Asyncio Run Main")
+        asyncio.run(main('default'))
         # find_and_run_project()
         # main('lion_throne')
         # test_play('sacred_stones')
     except Exception as e:
-        logging.exception(e)
+        # logging.exception(e)
         inform_error()
         print('*** Lex Talionis Engine Version %s ***' % VERSION)
         print('Main Crash {0}'.format(str(e)))
 
         # Now print exception to screen
-        import time
-        time.sleep(0.5)
-        traceback.print_exc()
-        time.sleep(0.5)
-        inform_error()
+        # import time
+        # time.sleep(0.5)
+        # traceback.print_exc()
+        # time.sleep(0.5)
+        # inform_error()
         engine.terminate(crash=True)
-        if cf.SETTINGS['debug']:
-            time.sleep(5)
-        else:
-            time.sleep(20)
+        # if cf.SETTINGS['debug']:
+            # time.sleep(5)
+        # else:
+            # time.sleep(20)

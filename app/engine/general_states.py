@@ -25,7 +25,7 @@ from app.engine.selection_helper import SelectionHelper
 from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES
 from app.engine.input_manager import get_input_manager
 from app.engine.fluid_scroll import FluidScroll
-import threading
+# import threading
 
 import logging
 
@@ -40,7 +40,7 @@ class LoadingState(State):
         logging.debug("Loading state...")
         self.completed_time = None
         # magic number, adjust at will
-        self.loading_threads: List[threading.Thread] = []
+        # self.loading_threads: List[threading.Thread] = []
 
         # unload used assets
         # unload music
@@ -58,12 +58,13 @@ class LoadingState(State):
                 level_songs.add(music_command.parameters.get('Music'))
             for music_command in inspector.find_all_calls_of_command(event_commands.ChangeMusic(), self.level_nid).values():
                 level_songs.add(music_command.parameters.get('Music'))
-            loading_music_thread = threading.Thread(target=get_sound_thread().load_songs, args=[level_songs])
-            loading_music_thread.start()
-            self.loading_threads.append(loading_music_thread)
+            # loading_music_thread = threading.Thread(target=get_sound_thread().load_songs, args=[level_songs])
+            get_sound_thread().load_songs(level_songs)
+            # loading_music_thread.start()
+            # self.loading_threads.append(loading_music_thread)
 
     def update(self):
-        if not self.completed_time and not any([thread.is_alive() for thread in self.loading_threads]):
+        if not self.completed_time:
             self.completed_time = engine.get_time()
         if self.completed_time:
             if engine.get_time() - self.completed_time > self.duration:

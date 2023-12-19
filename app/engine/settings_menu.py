@@ -191,10 +191,11 @@ class ScreenSizeOption(SliderOption):
         n = self.get_value()
         true_n = min(n, 5)
         engine.SCREENSIZE = (WINWIDTH * true_n, WINHEIGHT * true_n)
-        if n == self.values[-1]:
-            cf.SETTINGS['fullscreen'] = 1
-        else:
-            cf.SETTINGS['fullscreen'] = 0
+        # Never allow fullscreen in browser
+        # if n == self.values[-1]:
+            # cf.SETTINGS['fullscreen'] = 1
+        # else:
+            # cf.SETTINGS['fullscreen'] = 0
         engine.DISPLAYSURF = engine.build_display(engine.SCREENSIZE)
 
     def move_left(self):
