@@ -2558,7 +2558,7 @@ Optional args:
         """
 
     optional_keywords = ['PickUnitsEnabled', 'Music', 'OtherOptions', 'OtherOptionsEnabled', 'OtherOptionsOnSelect']
-    keyword_types = ["Bool", "Music", "StringList", "StringList", "StringList"]
+    keyword_types = ["Bool", "Music", "StringList", "BoolList", "StringList"]
 
 
 class Base(EventCommand):
@@ -2581,7 +2581,7 @@ Flags:
 
     keywords = ["Background"]
     optional_keywords = ["Music", 'OtherOptions', 'OtherOptionsEnabled', 'OtherOptionsOnSelect']
-    keyword_types = ['Panorama', 'Music', "StringList", "StringList", "StringList"]
+    keyword_types = ['Panorama', 'Music', "StringList", "BoolList", "StringList"]
     _flags = ["show_map"]
 
 class SetCustomOptions(EventCommand):
@@ -2602,7 +2602,7 @@ Args:
 
     keywords = ["CustomOptions"]
     optional_keywords = ["CustomOptionsEnabled", "CustomOptionsDesc", "CustomOptionsOnSelect"]
-    keyword_types = ["StringList", "StringList", "StringList", "StringList"]
+    keyword_types = ["StringList", "BoolList", "StringList", "StringList"]
 
 
 class Shop(EventCommand):
@@ -3313,7 +3313,7 @@ def restore_command(dat) -> EventCommand:
     else:
         return Comment(display_values=[nid + ';' + str.join(';', display_values)])
 
-evaluables = ('Expression', 'String', 'StringList', 'PointList', 'DashList', 'Nid', 'Text')
+evaluables = ('Expression', 'String', 'StringList', 'PointList', 'Nid', 'Text')
 
 ALL_EVENT_COMMANDS: Dict[NID, Type[EventCommand]] = {
     command.nid: command for command in EventCommand.__subclasses__()
@@ -3496,7 +3496,6 @@ def convert_parse(command: EventCommand, _eval_evals: Callable[[str], str] = Non
     parameters = command.parameters
     if _eval_evals:
         parameters = {k: _eval_evals(v) if isinstance(v, str) else v for k, v in parameters.items()}
-
     for keyword, value in parameters.items():
         if keyword in command.keywords:
             idx = command.keywords.index(keyword)
@@ -3507,7 +3506,7 @@ def convert_parse(command: EventCommand, _eval_evals: Callable[[str], str] = Non
             continue
         keyword_type = command.get_keyword_types()[idx]
         parameters[keyword] = convert(keyword_type, value)
-
+    parameters = {k: v for k, v in parameters.items() if (v is not None or k in command.keywords)}
     return parameters, command.chosen_flags
 
 def parse_event_line(line: str) -> EventCommandTokens:
