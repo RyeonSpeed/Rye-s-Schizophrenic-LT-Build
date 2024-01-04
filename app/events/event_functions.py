@@ -2051,13 +2051,9 @@ def remove_skill(self: Event, global_unit, skill, count='-1', unconditional=Fals
 def set_skill_data(self: Event, global_unit, skill, nid, expression, flags=None):
     flags = flags or set()
 
-    unit = self._get_unit(global_unit)
-    if not unit:
-        self.logger.error("set_skill_data: Couldn't find unit with nid %s" % global_unit)
-        return
-    found_skill = unit.get_skill(skill)
-    if not found_skill:
-        self.logger.error("set_skill_data: Couldn't find skill with nid %s on unit selected" % skill)
+    unit, found_skill = self._get_skill(global_unit, skill, 'stack' in flags)
+    if not unit or not skill:
+        self.logger.error("remove_skill_component: Either unit or item was invalid, see above")
         return
     data_value = self._eval_expr(expression, 'from_python' in flags)
 
