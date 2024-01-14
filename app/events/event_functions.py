@@ -359,7 +359,7 @@ def speak(self: Event, speaker_or_style: str | UnitObject | SpeakStyle, text, te
             # Which means we must have held, so just process the whole dialog immediately
             new_dialog.warp_speed()
             if self.game.action_log:
-            action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
+                action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
         elif 'no_block' in flags:
             pass
         else:  # Usually we go to a dialog state
