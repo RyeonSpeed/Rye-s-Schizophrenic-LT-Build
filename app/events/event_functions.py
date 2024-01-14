@@ -3492,7 +3492,7 @@ def separate(self: Event, unit, flags=None):
     if DB.constants.value('pairup'):
         action.do(action.Separate(unit, unit.traveler, None))
     else:
-    action.do(action.RemovePartner(unit))
+        action.do(action.RemovePartner(unit))
 
 def create_achievement(self: Event, nid: str, name: str, description: str, flags=None):
     flags = flags or set()
