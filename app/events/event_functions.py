@@ -242,11 +242,12 @@ def mirror_portrait(self: Event, portrait, flags=None):
             commands = []
             commands.append(event_commands.RemovePortrait({'Portrait': name}, {'no_block'}))
             command_flags = set()
-            if not self.portraits[name].mirror:
+
+            if (not event_portrait.mirror) ^ (event_portrait.position[0] < WINWIDTH // 2):
                 command_flags.add("mirror")
             if 'no_block' in flags:
                 command_flags.add("no_block")
-            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': str(self.portraits[name].position)}, command_flags))
+            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': event_portrait.position}, command_flags))
             self.command_queue += commands
         else:
             # Immediate removal followed by a transition in
@@ -357,6 +358,7 @@ def speak(self: Event, speaker_or_style: str | UnitObject | SpeakStyle, text, te
         if self.do_skip:
             # Which means we must have held, so just process the whole dialog immediately
             new_dialog.warp_speed()
+            if self.game.action_log:
             action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
         elif 'no_block' in flags:
             pass
@@ -1039,6 +1041,11 @@ def kill_unit(self: Event, unit, flags=None):
     if DB.constants.value('initiative'):
         action.do(action.RemoveInitiative(unit))
 
+    # Separate from their rescuer if currently rescued
+    if self.game.get_rescuer(unit):
+        rescuer = self.game.get_rescuer(unit)
+        action.execute(action.Separate(rescuer, unit, rescuer.position))
+
     if not unit.position:
         unit.dead = True
     elif 'immediate' in flags:
@@ -1118,6 +1125,10 @@ def recruit_generic(self: Event, unit, nid, name, flags=None):
     action.do(action.SetPersistent(unit))
     action.do(action.SetNid(unit, nid))
     action.do(action.SetName(unit, name))
+    for item in unit.items:
+        action.do(action.SetItemOwner(item, nid))
+    for skill in unit.all_skills:
+        action.do(action.SetSkillOwner(skill, nid))
 
 def set_name(self: Event, unit, string, flags=None):
     actor = self._get_unit(unit)
@@ -1926,19 +1937,19 @@ def remove_skill(self: Event, global_unit, skill, count=-1, unconditional=False,
     flags = flags or set()
 
     unit = self._get_unit(global_unit)
-    if not unit:
-        self.logger.error("remove_skill: Couldn't find unit with nid %s" % global_unit)
-        return
-    skill_nid = skill
-    if skill_nid not in [skill.nid for skill in unit.skills]:
-        self.logger.error("remove_skill: Couldn't find skill with nid %s" % skill)
+    unit, found_skill = self._get_skill(global_unit, skill)
+    if not unit or not found_skill:
+        self.logger.error("add_skill_component: Either unit or skill was invalid, see above")
         return
     banner_flag = 'no_banner' not in flags
 
-    action.do(action.RemoveSkill(unit, skill_nid, count, unconditional=unconditional))
+    if count == 1 or str_utils.is_int(skill):
+        # use the object if we specifically requested it as a uid OR we only remove 1
+        action.do(action.RemoveSkill(unit, found_skill, count, unconditional=unconditional))
+    else:
+        action.do(action.RemoveSkill(unit, skill, count, unconditional=unconditional))
     if banner_flag:
-        skill = DB.skills.get(skill_nid)
-        b = banner.TakeSkill(unit, skill)
+        b = banner.TakeSkill(unit, found_skill)
         self.game.alerts.append(b)
         self.game.state.change('alert')
         self.state = 'paused'
@@ -1946,13 +1957,9 @@ def remove_skill(self: Event, global_unit, skill, count=-1, unconditional=False,
 def set_skill_data(self: Event, global_unit, skill, nid, expression, flags=None):
     flags = flags or set()
 
-    unit = self._get_unit(global_unit)
-    if not unit:
-        self.logger.error("set_skill_data: Couldn't find unit with nid %s" % global_unit)
-        return
-    found_skill = unit.get_skill(skill)
-    if not found_skill:
-        self.logger.error("set_skill_data: Couldn't find skill with nid %s on unit selected" % skill)
+    unit, found_skill = self._get_skill(global_unit, skill)
+    if not unit or not found_skill:
+        self.logger.error("add_skill_component: Either unit or skill was invalid, see above")
         return
     data_value = self._eval_expr(expression, 'from_python' in flags)
 
@@ -3066,7 +3073,7 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=0, a
     sprite_nid = sprite_id
     pos = (0, 0)
     if position:
-        pos = tuple(str_utils.intify(position))
+        pos = tuple(position)
     anim_dir = animation
 
     anim_dur = speed
@@ -3258,6 +3265,30 @@ def ending(self: Event, portrait, title, text, flags=None):
     self.text_boxes.append(new_ending)
     self.state = 'dialog'
 
+def paired_ending(self: Event, left_portrait, right_portrait, left_title, right_title, text, flags=None):
+    left_unit = self._get_unit(left_portrait)
+    if left_unit and left_unit.portrait_nid:
+        left_portrait, _ = icons.get_portrait(left_unit)
+        left_portrait = engine.flip_horiz(left_portrait)
+        left_portrait = left_portrait.convert_alpha()
+        left_portrait = image_mods.make_translucent(left_portrait, 0.5)
+    else:
+        self.logger.error("ending: Couldn't find unit or portrait %s" % left_portrait)
+        return False
+
+    right_unit = self._get_unit(right_portrait)
+    if right_unit and right_unit.portrait_nid:
+        right_portrait, _ = icons.get_portrait(right_unit)
+        right_portrait = right_portrait.convert_alpha()
+        right_portrait = image_mods.make_translucent(right_portrait, 0.5)
+    else:
+        self.logger.error("ending: Couldn't find unit or portrait %s" % right_portrait)
+        return False
+
+    new_ending = dialog.PairedEnding(left_portrait, right_portrait, left_title, right_title, text, left_unit, right_unit)
+    self.text_boxes.append(new_ending)
+    self.state = 'dialog'
+
 def pop_dialog(self: Event, flags=None):
     if self.text_boxes:
         self.text_boxes.pop()
@@ -3433,11 +3464,17 @@ def pair_up(self: Event, unit1, unit2, flags=None):
         self.logger.error("pair_up: Couldn't find unit with nid %s" % unit1)
         return
     follower = new_unit1
+    if self.game.get_rescuers_position(follower) or follower.traveler:
+        self.logger.error("pair_up: Rescuee is already traveling with somebody else")
+        return
     new_unit2 = self._get_unit(unit2)
     if not new_unit2:
         self.logger.error("pair_up: Couldn't find unit with nid %s" % unit2)
         return
     leader = new_unit2
+    if self.game.get_rescuers_position(leader) or leader.traveler:
+        self.logger.error("pair_up: Rescuer is already traveling with somebody else")
+        return
     if unit_funcs.can_pairup(leader, follower):
         action.do(action.PairUp(follower, leader))
     else:
@@ -3449,6 +3486,12 @@ def separate(self: Event, unit, flags=None):
         self.logger.error("separate: Couldn't find unit with nid %s" % unit)
         return
     unit = new_unit
+    if not unit.traveler:
+        self.logger.error("separate: Unit is not traveling with anybody")
+        return
+    if DB.constants.value('pairup'):
+        action.do(action.Separate(unit, unit.traveler, None))
+    else:
     action.do(action.RemovePartner(unit))
 
 def create_achievement(self: Event, nid: str, name: str, description: str, flags=None):

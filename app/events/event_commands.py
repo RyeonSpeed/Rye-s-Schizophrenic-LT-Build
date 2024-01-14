@@ -2300,7 +2300,7 @@ Adds *Item* to the list of purchaseable goods in the base's market. If the optio
 
     keywords = ["Item"]
     optional_keywords = ["Stock"]
-    keywords_types = ["Item", "WholeNumber"]
+    keywords_types = ["Item", "Integer"]
 
 class RemoveMarketItem(EventCommand):
     nid = 'remove_market_item'
@@ -2964,6 +2964,18 @@ Displays the epilogue text for a character. *Portrait* is the portrait to be dis
 
     keywords = ["Portrait", "Title", "Text"]
     keyword_types = ["Portrait", "String", "String"]
+
+class PairedEnding(EventCommand):
+    nid = 'paired_ending'
+    tag = Tags.DIALOGUE_TEXT
+
+    desc = \
+        """
+Displays paired epilogue text for two characters. *LeftPortrait* and *RightPortrait* are the portraits to be displayed, *LeftTitle* and *RightTitle* are the names displayed (ex: "Marcus, Badass Paladin"), the *Text* is the block of text describing what happened to the characters.
+        """
+
+    keywords = ["LeftPortrait", "RightPortrait", "LeftTitle", "RightTitle", "Text"]
+    keyword_types = ["Portrait", "Portrait", "String", "String", "String"]
 
 class PopDialog(EventCommand):
     nid = 'pop_dialog'
