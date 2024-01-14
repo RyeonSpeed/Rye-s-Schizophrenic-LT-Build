@@ -411,14 +411,15 @@ class OptionMenuState(MapState):
         options = ['Unit', 'Objective', 'Options']
         info_desc = ['Unit_desc', 'Objective_desc', 'Options_desc']
         ignore = [False, False, False]
-        if game.current_mode.permadeath:
-            options.append('Suspend')
-            info_desc.append('Suspend_desc')
-            ignore.append(False)
-        else:
-            options.append('Save')
-            info_desc.append('Save_desc')
-            ignore.append(False)
+        if game.level.nid != 'X':
+            if game.current_mode.permadeath:
+                options.append('Suspend')
+                info_desc.append('Suspend_desc')
+                ignore.append(False)
+            else:
+                options.append('Save')
+                info_desc.append('Save_desc')
+                ignore.append(False)
 
         if cf.SETTINGS['fullscreen']:
             options.append('Quit Game')

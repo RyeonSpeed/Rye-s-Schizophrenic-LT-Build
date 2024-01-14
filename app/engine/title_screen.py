@@ -124,7 +124,7 @@ class TitleMainState(State):
         save.check_save_slots()
         options = ['New Game', 'Extras']
         if any(ss.kind for ss in save.SAVE_SLOTS):
-            options.insert(0, 'Restart Level')
+            #options.insert(0, 'Restart Level')
             options.insert(0, 'Load Game')
         if os.path.exists(save.SUSPEND_LOC):
             options.insert(0, 'Continue')

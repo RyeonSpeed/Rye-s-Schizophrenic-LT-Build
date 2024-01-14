@@ -688,13 +688,13 @@ class InfoMenuState(State):
             if wexp > 0 and weapon in unit_funcs.usable_wtypes(self.unit):
                 wexp_to_draw.append((weapon, wexp))
         width = (WINWIDTH - 102) // 2
-        height = 16 * 2 + 4
+        height = 16 * 5 + 4
 
         surf = engine.create_surface((WINWIDTH - 96, height), transparent=True)
         if not wexp_to_draw:
             return surf
         counter = 0
-        for y in range(0, 32, 16):
+        for y in range(0, 80, 16):
             for x in range(0, 2):
                 weapon, value = wexp_to_draw[counter]
                 weapon_rank = DB.weapon_ranks.get_rank_from_wexp(value)
