@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = LT Maker
+title = Server 72
 
 # (str) Package name
-package.name = ltmaker
+package.name = s72
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = rainlash.lextalionis
+package.domain = sigmaraven.lextalionis
 
 # (str) Source code where the main.py live
 source.dir = .
