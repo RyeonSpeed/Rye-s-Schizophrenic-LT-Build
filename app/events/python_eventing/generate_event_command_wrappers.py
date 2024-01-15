@@ -38,7 +38,7 @@ def generate_event_command_python_wrappers():
 
     generated_event_wrappers.writelines(get_codegen_header())
 
-    with open(os.path.join(dir_path, 'python_event_commands_base.py'), 'r') as event_commands_base:
+    with open(os.path.join(dir_path, 'python_event_commands_base.txt'), 'r') as event_commands_base:
         # copy item system base
         for line in event_commands_base.readlines():
             generated_event_wrappers.write(line)
