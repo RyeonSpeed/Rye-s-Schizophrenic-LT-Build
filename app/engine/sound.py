@@ -8,13 +8,14 @@ from app.data.resources.resources import RESOURCES
 from app.engine import engine
 
 import logging
+import re
 
 class Song():
     def __init__(self, prefab):
         self.nid = prefab.nid
-        self.song = pygame.mixer.Sound(prefab.full_path)
-        self.battle = pygame.mixer.Sound(prefab.battle_full_path) if prefab.battle_full_path else None
-        self.intro = pygame.mixer.Sound(prefab.intro_full_path) if prefab.intro_full_path else None
+        self.song = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.full_path))
+        self.battle = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.prefab.battle_full_path)) if prefab.battle_full_path else None
+        self.intro = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.prefab.intro_full_path))
 
         self.channel = None
 
@@ -51,7 +52,7 @@ class SoundDict(dict):
         if val not in self:
             sfx = RESOURCES.sfx.get(val)
             if sfx:
-                self[val] = pygame.mixer.Sound(sfx.full_path)
+                self[val] = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', sfx.full_path))
             else:
                 return None
         return self[val]

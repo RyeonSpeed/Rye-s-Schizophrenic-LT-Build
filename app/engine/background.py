@@ -6,6 +6,8 @@ from app.engine import engine, image_mods
 from app.engine.sprites import SPRITES
 from app.utilities import utils
 
+import re
+
 class SpriteBackground():
     def __init__(self, image, fade=True):
         self.counter = 0
@@ -49,7 +51,8 @@ class PanoramaBackground():
         self.panorama = panorama
         if not self.panorama.images:
             for path in self.panorama.get_all_paths():
-                image = engine.image_load(path)
+                path_fixed = re.sub(r'^.*?threequel', 'threequel', path)
+                image = engine.image_load(path_fixed)
                 if image.get_size() != (WINWIDTH, WINHEIGHT):
                     image = engine.transform_scale(image, (WINWIDTH, WINHEIGHT))
                 self.panorama.images.append(image)
