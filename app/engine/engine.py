@@ -147,7 +147,7 @@ def subsurface(surf, rect) -> pygame.Surface:
     return surf.subsurface(tx, ty, twidth, theight)
 
 def image_load(fn, convert=False, convert_alpha=False):
-    image = pygame.image.load(fn)
+    image = pygame.image.load(os.path.dirname(__file__)+'/../../'+fn)
     if convert:
         image = image.convert()
     elif convert_alpha:
