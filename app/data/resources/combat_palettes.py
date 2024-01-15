@@ -80,6 +80,7 @@ class PaletteCatalog(ManifestCatalog[Palette]):
             data_fnames = os.listdir(multi_loc)
             save_data = []
             for fname in data_fnames:
+                print(fname)
                 if not fname.endswith('.json'):
                     continue
                 save_loc = os.path.join(multi_loc, fname)

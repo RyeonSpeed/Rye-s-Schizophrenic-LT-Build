@@ -55,18 +55,6 @@ if __name__ == '__main__':
 
     # compile necessary files
     if not hasattr(sys, 'frozen'):
-        def list_files(startpath):
-            for root, dirs, files in os.walk(startpath):
-                level = root.replace(startpath, '').count(os.sep)
-                if level == 1:
-                    first_level = os.path.basename(root)
-                if level == 0 or (first_level and 'app' in first_level):
-                    indent = ' ' * 4 * (level)
-                    print('Python: {}{}/'.format(indent, os.path.basename(root)))
-                    subindent = ' ' * 4 * (level + 1)
-                    for f in files:
-                        print('Python: {}{}'.format(subindent, f))
-        list_files(os.getcwd())
         source_generator.generate_all()
 
     try:
