@@ -301,8 +301,8 @@ class TileMapCatalog(ManifestCatalog[TileMapPrefab]):
                     for data in json.load(load_file):
                         data['fname'] = os.path.basename(fname)
                         save_data.append(data)
-            if '.orderkeys' in data_fnames: # using order key file
-                ordering = parse_order_keys_file(Path(multi_loc, '.orderkeys'))
+            if 'orderkeys' in data_fnames: # using order key file
+                ordering = parse_order_keys_file(Path(multi_loc, 'orderkeys'))
                 save_data = sorted(save_data, key=lambda data: ordering.index(rchop(data['fname'], '.json')) if rchop(data['fname'], '.json') in ordering else 99999)
             else: # using order keys per object
                 save_data = sorted(save_data, key=lambda obj: obj['_orderkey'])
@@ -327,7 +327,7 @@ class TileMapCatalog(ManifestCatalog[TileMapPrefab]):
             save_loc = os.path.join(save_dir, nid + '.json')
             with open(save_loc, 'w') as serialize_file:
                 json.dump([save], serialize_file, indent=4)
-        with open(os.path.join(save_dir, '.orderkeys'), 'w') as orderkey_file:
+        with open(os.path.join(save_dir, 'orderkeys'), 'w') as orderkey_file:
             json.dump(orderkeys, orderkey_file, indent=4)
 
     def save(self, loc):
