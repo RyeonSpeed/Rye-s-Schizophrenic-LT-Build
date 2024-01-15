@@ -6,6 +6,8 @@ from app.engine import engine, image_mods
 from app.engine.sprites import SPRITES
 from app.utilities import utils
 
+import re
+
 class SpriteBackground():
     def __init__(self, image, fade=True):
         self.counter = 0
