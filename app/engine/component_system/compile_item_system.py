@@ -134,7 +134,7 @@ def compile_item_system():
     import os
     dir_path = os.path.dirname(os.path.realpath(__file__))
     compiled_item_system = open(os.path.join(dir_path, '..', 'item_system.py'), 'w')
-    item_system_base = open(os.path.join(dir_path, 'item_system_base.py'), 'r')
+    item_system_base = open(os.path.join(dir_path, 'item_system_base.txt'), 'r')
 
     # write warning msg
     compiled_item_system.writelines(get_codegen_header())

@@ -178,7 +178,7 @@ def compile_skill_system():
     compiled_skill_system = open(os.path.join(
         dir_path, '..', 'skill_system.py'), 'w')
     skill_system_base = open(os.path.join(
-        dir_path, 'skill_system_base.py'), 'r')
+        dir_path, 'skill_system_base.txt'), 'r')
 
     # write warning msg
     compiled_skill_system.writelines(get_codegen_header())
