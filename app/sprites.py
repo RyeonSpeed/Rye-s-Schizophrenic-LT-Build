@@ -41,8 +41,8 @@ def load_sprites(root):
         for name in files:
             if name.endswith('.png'):
                 full_name = os.path.join(root, name)
-                if 'threequel' in full_name:
-                    full_name = re.sub(r'^.*?threequel', 'threequel', full_name)
+                if 'ltproj' in full_name:
+                    full_name = re.sub(r'^.*?(\w)\.ltproj', '\1\.ltproj', full_name)
                 SPRITES[name[:-4]] = BasicSprite(full_name)
 
 def load_special_sprites():
