@@ -106,8 +106,8 @@ class Database(object):
         if data_path.exists(): # data type is a directory, browse within
             data_fnames = os.listdir(data_path)
             ordering = []
-            if '.orderkeys' in data_fnames:
-                ordering = parse_order_keys_file(Path(data_dir, key, '.orderkeys'))
+            if 'orderkeys' in data_fnames:
+                ordering = parse_order_keys_file(Path(data_dir, key, 'orderkeys'))
             data_fnames: List[Path] = [Path(data_dir, key, fname) for fname in data_fnames if fname.endswith('.json')]
             data_fnames = sorted(data_fnames, key=lambda fname: ordering.index(fname.stem) if fname.stem in ordering else 99999)
             full_data = []
@@ -187,7 +187,7 @@ class Database(object):
                         save_loc = Path(save_dir, name + '.json')
                         # logging.info("Serializing %s to %s" % ('%s/%s.json' % (key, name), save_loc))
                         save_json(save_loc, [subvalue])
-                    save_json(Path(save_dir, '.orderkeys'), orderkeys)
+                    save_json(Path(save_dir, 'orderkeys'), orderkeys)
                 else:  # Save as a single file
                     # Which means deleting the old directory
                     save_dir = Path(data_dir, key)
