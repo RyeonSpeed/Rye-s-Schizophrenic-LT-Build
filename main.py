@@ -64,8 +64,7 @@ if __name__ == '__main__':
                     print('Python: {}{}/'.format(indent, os.path.basename(root)))
                     subindent = ' ' * 4 * (level + 1)
                     for f in files:
-                        if 'py' in f and not 'pyc' in f:
-                            print('Python: {}{}'.format(subindent, f))
+                        print('Python: {}{}'.format(subindent, f))
         list_files(os.getcwd())
         source_generator.generate_all()
 
