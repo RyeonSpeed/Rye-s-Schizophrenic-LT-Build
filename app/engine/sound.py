@@ -8,7 +8,7 @@ from app.data.resources.resources import RESOURCES
 from app.engine import engine
 
 import logging
-import re
+import os, re
 
 class Song():
     def __init__(self, prefab):
