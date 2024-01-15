@@ -174,7 +174,7 @@ def {hook_name}({func_signature}):
 
 def compile_skill_system():
     import os
-    dir_path = os.path.dirname(os.path.abspath(__file__))
+    dir_path = os.path.dirname(__file__)
     compiled_skill_system = open(os.path.join(
         dir_path, '..', 'skill_system.py'), 'w')
     skill_system_base = open(os.path.join(
