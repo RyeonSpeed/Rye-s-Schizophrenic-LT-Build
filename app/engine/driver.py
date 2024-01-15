@@ -14,7 +14,7 @@ def start(title, from_editor=False):
     if from_editor:
         engine.constants['standalone'] = False
     engine.init()
-    icon = engine.image_load('favicon.ico')
+    icon = engine.image_load('favicon.png')
     engine.set_icon(icon)
 
     from app.engine import sprites
