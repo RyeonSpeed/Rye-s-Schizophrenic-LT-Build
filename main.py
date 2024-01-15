@@ -16,8 +16,9 @@ def main(name: str = 'threequel'):
     # init_locale()
     if not os.path.exists(name + '.ltproj'):
         raise ValueError("Could not locate LT project %s" % (name + '.ltproj'))
-    RESOURCES.load(name + '.ltproj')
-    DB.load(name + '.ltproj')
+    proj_path = os.path.dirname(os.path.realpath(__file__)) + name + '.ltproj'
+    RESOURCES.load(proj_path)
+    DB.load(proj_path)
     title = DB.constants.value('title')
     driver.start(title)
     game = game_state.start_game()
