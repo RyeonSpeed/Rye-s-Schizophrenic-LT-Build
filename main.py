@@ -9,7 +9,7 @@ from app.engine import driver
 from app.engine import game_state
 from app.engine.codegen import source_generator
 
-def main(name: str = 'testing_proj'):
+def main(name: str = 'threequel'):
     # Translation currently unused within engine proper
     # If you need to use translation, remember to copy the locale folder to your build.
     # from app.editor.editor_locale import init_locale
@@ -23,7 +23,7 @@ def main(name: str = 'testing_proj'):
     game = game_state.start_game()
     driver.run(game)
 
-def test_play(name: str = 'testing_proj'):
+def test_play(name: str = 'threequel'):
     if not os.path.exists(name + '.ltproj'):
         raise ValueError("Could not locate LT project %s" % (name + '.ltproj'))
     RESOURCES.load(name + '.ltproj')
