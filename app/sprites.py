@@ -42,7 +42,7 @@ def load_sprites(root):
             if name.endswith('.png'):
                 full_name = os.path.join(root, name)
                 if 'ltproj' in full_name:
-                    full_name = re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>\.ltproj', full_name)
+                    full_name = re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>.ltproj', full_name)
                 SPRITES[name[:-4]] = BasicSprite(full_name)
 
 def load_special_sprites():
