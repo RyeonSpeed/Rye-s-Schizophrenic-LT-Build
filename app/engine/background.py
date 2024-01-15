@@ -51,7 +51,7 @@ class PanoramaBackground():
         self.panorama = panorama
         if not self.panorama.images:
             for path in self.panorama.get_all_paths():
-                path_fixed = re.sub(r'^.*?(\w)\.ltproj', '\1\.ltproj', path)
+                path_fixed = re.sub(r'^.*?(\w+)\.ltproj', '\1.ltproj', path)
                 image = engine.image_load(path_fixed)
                 if image.get_size() != (WINWIDTH, WINHEIGHT):
                     image = engine.transform_scale(image, (WINWIDTH, WINHEIGHT))
