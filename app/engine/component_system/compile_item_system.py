@@ -134,8 +134,8 @@ def {hook_name}({func_signature}):
 def compile_item_system():
     import os
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    compiled_item_system = open(os.path.join(dir_path, '..', 'item_system.py'), 'w')
-    item_system_base = open(os.path.join(dir_path, 'item_system_base.py'), 'r')
+    compiled_item_system = open('/home/sigmaraven/lt-maker/.buildozer/android/app/app/engine/item_system.py', 'w')
+    item_system_base = open('/home/sigmaraven/lt-maker/.buildozer/android/app/app/engine/component_system/item_system_base.py', 'r')
 
     # write warning msg
     compiled_item_system.writelines(get_codegen_header())

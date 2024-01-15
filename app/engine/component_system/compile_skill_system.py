@@ -174,11 +174,8 @@ def {hook_name}({func_signature}):
 
 def compile_skill_system():
     import os
-    dir_path = os.getcwd()
-    compiled_skill_system = open(os.path.join(
-        dir_path, '..', 'skill_system.py'), 'w')
-    skill_system_base = open(os.path.join(
-        dir_path, 'skill_system_base.py'), 'r')
+    compiled_skill_system = open('/home/sigmaraven/lt-maker/.buildozer/android/app/app/engine/skill_system.py', 'w')
+    skill_system_base = open('/home/sigmaraven/lt-maker/.buildozer/android/app/app/engine/component_system/skill_system_base.py', 'r')
 
     # write warning msg
     compiled_skill_system.writelines(get_codegen_header())
