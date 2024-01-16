@@ -17,8 +17,8 @@ class SongObject(HasNid):
     def __init__(self, prefab: SongPrefab):
         self.nid = prefab.nid
         self.song = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.full_path))
-        self.battle = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.prefab.battle_full_path)) if prefab.battle_full_path else None
-        self.intro = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.prefab.intro_full_path)) if prefab.intro_full_path else None
+        self.battle = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.battle_full_path)) if prefab.battle_full_path else None
+        self.intro = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?threequel', 'threequel', prefab.intro_full_path)) if prefab.intro_full_path else None
 
         self.channel = None
 
