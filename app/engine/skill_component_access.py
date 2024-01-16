@@ -5,6 +5,8 @@ from app.data.database.skill_components import SkillComponent, SkillTags
 from app.utilities.class_utils import recursive_subclasses
 from app.utilities.data import Data
 
+import importlib, inspect
+
 
 @lru_cache(1)
 def get_cached_skill_components(proj_dir: str):

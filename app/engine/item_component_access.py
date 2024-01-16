@@ -6,6 +6,8 @@ from app.data.database.item_components import ItemComponent, ItemTags
 from app.utilities.class_utils import recursive_subclasses
 from app.utilities.data import Data
 
+import importlib, inspect
+
 
 @lru_cache(1)
 def get_cached_item_components(proj_dir: str):
