@@ -3,8 +3,9 @@ from collections import OrderedDict
 
 from app.utilities import str_utils
 from appdirs import AppDirs
+from app.data.database.database import DB
 
-dirs = AppDirs(GAME_NID(), "Lex Talionis")
+dirs = AppDirs(str(DB.constants.value('game_nid')), "Lex Talionis")
 
 def read_config_file():
     lines = OrderedDict([('debug', 0),
