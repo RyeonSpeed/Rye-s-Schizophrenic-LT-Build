@@ -145,7 +145,7 @@ class InputManager():
                         self.key_down_events.append(button)
                     elif key_move:
                         for b in self.buttons:
-                            if b == button:
+                            if b == button and not self.keys_pressed[b]:
                                 self.keys_pressed[b] = True
                                 self.key_down_events.append(b)
                             elif self.keys_pressed[b]:
