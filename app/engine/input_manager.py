@@ -106,20 +106,19 @@ class InputManager():
     def process_input(self, events):
         self.key_up_events.clear()
         self.key_down_events.clear()
-        button = None
-        # Check keyboard
+        # Check fingers
         for event in events:
-            if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN:
+            if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN or event.type == engine.FINGERMOTION:
                 #button = self.map_keys.get(event.key)
-                if 0.04 <= event.x <= 0.095 and 0.78 <= event.y <= 0.85:
+                if 0.06 <= event.x <= 0.117 and 0.74 <= event.y <= 0.81:
                     button = 'UP'
-                elif 0.04 < event.x <= 0.095 and 0.92 < event.y <= 0.99:
+                elif 0.06 < event.x <= 0.117 and 0.92 < event.y <= 0.99:
                     button = 'DOWN'
-                elif 0.095 < event.x <= 0.15 and 0.85 < event.y <= 0.92:
+                elif 0.12 < event.x <= 0.18 and 0.82 < event.y <= 0.91:
                     button = 'RIGHT'
-                elif 0.00 <= event.x < 0.04 and 0.85 < event.y <= 0.92:
+                elif 0.00 <= event.x < 0.06 and 0.82 < event.y <= 0.91:
                     button = 'LEFT'
-                elif 0.91 <= event.x <= 0.97 and 0.81 <= event.y <= 0.89:
+                elif 0.91 <= event.x <= 0.97 and 0.83 <= event.y <= 0.92:
                     button = 'SELECT'
                 elif 0.79 <= event.x <= 0.86 and 0.81 <= event.y <= 0.89:
                     button = 'AUX'
@@ -129,15 +128,28 @@ class InputManager():
                     button = 'BACK'
                 elif 0.82 <= event.x <= 1 and 0.06 <= event.y <= 0.12:
                     button = 'START'
+                else:
+                    button = 'NA'
                 key_up = event.type == engine.FINGERUP
-
+                key_down = event.type == engine.FINGERDOWN
+                key_move = event.type == engine.FINGERMOTION
                 if button:
                     # Update keys pressed
-                    self.keys_pressed[button] = not key_up
                     if key_up:
-                        self.key_up_events.append(button)
-                    else:
+                        if button != 'NA':
+                            self.key_up_events.append(button)
+                        for b in self.buttons:
+                            self.keys_pressed[button] = False
+                    elif key_down and button != 'NA':
+                        self.keys_pressed[button] = True
                         self.key_down_events.append(button)
+                    elif key_move:
+                        for b in self.buttons:
+                            if b == button:
+                                self.keys_pressed[b] = True
+                                self.key_down_events.append(b)
+                            elif self.keys_pressed[b]:
+                                self.keys_pressed[b] = False
 
         # Return the correct event for this frame
         # Gives priority to later inputs
