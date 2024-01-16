@@ -147,7 +147,7 @@ def subsurface(surf, rect) -> pygame.Surface:
     return surf.subsurface(tx, ty, twidth, theight)
 
 def image_load(fn, convert=False, convert_alpha=False):
-    if 'lt_proj' in fn:
+    if 'ltproj' in fn:
         fn_fixed = os.path.join(os.path.dirname(__file__), '..', '..', re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>.ltproj', fn))
     else:
         fn_fixed = os.path.join(os.path.dirname(__file__), '..', '..', fn)
