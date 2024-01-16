@@ -110,15 +110,15 @@ class InputManager():
         for event in events:
             if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN or event.type == engine.FINGERMOTION:
                 #button = self.map_keys.get(event.key)
-                if 0.04 <= event.x <= 0.095 and 0.78 <= event.y <= 0.85:
+                if 0.06 <= event.x <= 0.117 and 0.74 <= event.y <= 0.81:
                     button = 'UP'
-                elif 0.04 < event.x <= 0.095 and 0.92 < event.y <= 0.99:
+                elif 0.06 < event.x <= 0.117 and 0.92 < event.y <= 0.99:
                     button = 'DOWN'
-                elif 0.095 < event.x <= 0.15 and 0.85 < event.y <= 0.92:
+                elif 0.12 < event.x <= 0.18 and 0.82 < event.y <= 0.91:
                     button = 'RIGHT'
-                elif 0.00 <= event.x < 0.04 and 0.85 < event.y <= 0.92:
+                elif 0.00 <= event.x < 0.06 and 0.82 < event.y <= 0.91:
                     button = 'LEFT'
-                elif 0.91 <= event.x <= 0.97 and 0.81 <= event.y <= 0.89:
+                elif 0.91 <= event.x <= 0.97 and 0.83 <= event.y <= 0.92:
                     button = 'SELECT'
                 elif 0.79 <= event.x <= 0.86 and 0.81 <= event.y <= 0.89:
                     button = 'AUX'
