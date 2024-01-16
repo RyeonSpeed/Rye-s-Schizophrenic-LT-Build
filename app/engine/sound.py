@@ -54,7 +54,7 @@ class SoundDict(dict):
         if val not in self:
             sfx = RESOURCES.sfx.get(val)
             if sfx:
-                self[val] = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>.ltproj', sfx.full_path))
+                self[val] = pygame.mixer.Sound(os.path.dirname(__file__), '..' ,'..', re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>.ltproj', sfx.full_path))
             else:
                 return None
         return self[val]
