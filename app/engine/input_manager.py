@@ -1,10 +1,6 @@
-from __future__ import annotations
-
-from typing import Tuple
-
-from app.constants import WINWIDTH, WINHEIGHT
 from app.engine import engine
 from app.engine import config as cf
+from app.constants import WINWIDTH, WINHEIGHT
 
 class InputManager():
     def __init__(self):
@@ -22,26 +18,20 @@ class InputManager():
             self.keys_pressed[button] = False
             self.joys_pressed[button] = False
 
-        self.update_joystick_control()
+        #self.update_joystick_control()
 
         self.key_up_events = []
         self.key_down_events = []
         self.change_keymap_mode = False
         self.current_mouse_position = None
-
+        self.finger_down_time = 0
+        self.finger_down_position = (1,1)
         self.unavailable_button = None
 
     # The joystick needs be plugged in before this method is called
     def init_joystick(self):
-        if engine.joystick_avail():
-            joystick = engine.get_joystick()
-            joystick.init()
-            self.joystick = joystick
-            self.joystick_name = joystick.get_name()
-            print("Joystick Controller: %s" % self.joystick_name)
-        else:
-            self.joystick = None
-            self.joystick_name = None
+        self.joystick = None
+        self.joystick_name = None
 
     def get_joystick_init(self) -> bool:
         return self.joystick and self.joystick.get_init()
@@ -54,23 +44,11 @@ class InputManager():
 
     def just_pressed(self, button):
         return button in self.key_down_events
-    
-    def directional_input_pressed(self):
-        directional_inputs = ('UP', 'DOWN', 'LEFT', 'RIGHT')
-        return any([input_pressed for input_pressed in directional_inputs if self.is_pressed(input_pressed)])
-
-    def screen_denominator(self) -> Tuple[float, float]:
-        if cf.SETTINGS['fullscreen']:  # Fullscreen
-            x, y = engine.get_screen_size()
-            return (x / WINWIDTH, y / WINHEIGHT)
-        else:
-            return float(cf.SETTINGS['screen_size']), float(cf.SETTINGS['screen_size'])
 
     def get_mouse_position(self):
         if self.current_mouse_position:
-            x, y = self.screen_denominator()
-            return (self.current_mouse_position[0] // x,
-                    self.current_mouse_position[1] // y)
+            return (self.current_mouse_position[0] / engine.DISPLAYSURF.get_size()[0] * WINWIDTH,
+                    self.current_mouse_position[1] / engine.DISPLAYSURF.get_size()[1] * WINHEIGHT)
         else:
             return None
 
@@ -81,9 +59,8 @@ class InputManager():
         if not cf.SETTINGS['mouse']:
             return None
         mouse_pos = engine.get_mouse_pos()
-        x, y = self.screen_denominator()
-        mouse_pos = (mouse_pos[0] // x,
-                     mouse_pos[1] // y)
+        mouse_pos = (mouse_pos[0] / engine.DISPLAYSURF.get_size()[0] * WINWIDTH,
+                     mouse_pos[1] / engine.DISPLAYSURF.get_size()[1] * WINHEIGHT)
         if engine.get_mouse_focus():
             return mouse_pos
         else:  # Returns None if mouse is not in screen
@@ -129,12 +106,30 @@ class InputManager():
     def process_input(self, events):
         self.key_up_events.clear()
         self.key_down_events.clear()
-
+        button = None
         # Check keyboard
         for event in events:
-            if event.type == engine.KEYUP or event.type == engine.KEYDOWN:
-                button = self.map_keys.get(event.key)
-                key_up = event.type == engine.KEYUP
+            if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN:
+                #button = self.map_keys.get(event.key)
+                if 0.04 <= event.x <= 0.095 and 0.78 <= event.y <= 0.85:
+                    button = 'UP'
+                elif 0.04 < event.x <= 0.095 and 0.92 < event.y <= 0.99:
+                    button = 'DOWN'
+                elif 0.095 < event.x <= 0.15 and 0.85 < event.y <= 0.92:
+                    button = 'RIGHT'
+                elif 0.00 <= event.x < 0.04 and 0.85 < event.y <= 0.92:
+                    button = 'LEFT'
+                elif 0.91 <= event.x <= 0.97 and 0.81 <= event.y <= 0.89:
+                    button = 'SELECT'
+                elif 0.79 <= event.x <= 0.86 and 0.81 <= event.y <= 0.89:
+                    button = 'AUX'
+                elif 0.86 < event.x <= 0.92 and 0.72 <= event.y <= 0.80:
+                    button = 'INFO'
+                elif 0.86 <= event.x <= 0.92 and 0.91 <= event.y <= 0.97:
+                    button = 'BACK'
+                elif 0.82 <= event.x <= 1 and 0.06 <= event.y <= 0.12:
+                    button = 'START'
+                key_up = event.type == engine.FINGERUP
 
                 if button:
                     # Update keys pressed
@@ -143,50 +138,6 @@ class InputManager():
                         self.key_up_events.append(button)
                     else:
                         self.key_down_events.append(button)
-                elif self.change_keymap_mode and event.type == engine.KEYDOWN:
-                    self.unavailable_button = event.key
-                    return 'NEW'
-
-        # Check mouse
-        if not self.change_keymap_mode and cf.SETTINGS['mouse']:
-            self.current_mouse_position = None
-            for event in events:
-                if event.type == engine.MOUSEBUTTONDOWN:
-                    lmb = event.button == 1
-                    if lmb:
-                        self.key_down_events.append('SELECT')
-                    rmb = event.button == 3
-                    if rmb:
-                        self.key_down_events.append('BACK')
-                    mmb = event.button == 2
-                    if mmb:
-                        self.key_down_events.append('INFO')
-                    wheel_up = event.button == 4
-                    wheel_down = event.button == 5
-                    if wheel_up:
-                        self.key_down_events.append('UP')
-                    else:
-                        self.key_up_events.append('UP')
-                    if wheel_down:
-                        self.key_down_events.append('DOWN')
-                    else:
-                        self.key_up_events.append('DOWN')
-                    position = event.pos
-                    self.current_mouse_position = position
-                elif event.type == engine.MOUSEMOTION:
-                    position = event.pos
-                    self.current_mouse_position = position
-
-        # Check game pad
-        if not self.joystick:
-            self.init_joystick()
-        # Need to re-init joystick if we closed and then
-        # re-opened the engine from the editor
-        if self.joystick and not self.get_joystick_init():
-            self.init_joystick()
-
-        if self.joystick and not self.change_keymap_mode:
-            self.handle_joystick()
 
         # Return the correct event for this frame
         # Gives priority to later inputs
@@ -244,3 +195,4 @@ def get_input_manager() -> InputManager:
     if not INPUT:
         INPUT = InputManager()
     return INPUT
+
