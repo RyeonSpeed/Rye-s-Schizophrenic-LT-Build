@@ -84,7 +84,7 @@ class McostDeletionDialog(DeletionDialog):
         dialog = DeletionDialog(tabs, swap_box, parent)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            text = dialog.box.edit.currentText()
+            text = dialog.swap_box.edit.currentText()
             return text, True
         else:
             return None, False
@@ -135,7 +135,7 @@ class ColumnHeaderView(QHeaderView):
                     for klass in affected_classes:
                         klass.movement_group = swap
                 else:
-                    return # User cancelled swap
+                    return  # User cancelled swap
             self.parent().model().delete_col(idx)
         else:
             QMessageBox.critical(self.parent(), 'Error', 'Cannot delete when only one column left!')

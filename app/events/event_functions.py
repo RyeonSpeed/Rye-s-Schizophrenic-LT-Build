@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import ast
 import random
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
 from app.data.database.level_units import GenericUnit, UniqueUnit
 from app.data.resources.resources import RESOURCES
+from app.data.resources.sounds import SFXPrefab, SongPrefab
 from app.engine import (action, background, banner, base_surf, dialog, engine,
                         icons, image_mods, item_funcs, item_system,
                         save, skill_system, unit_funcs)
@@ -30,7 +31,7 @@ from app.engine.objects.region import RegionObject
 from app.engine.objects.tilemap import TileMapObject
 from app.engine.objects.unit import UnitObject
 from app.engine.persistent_records import RECORDS
-from app.engine.sound import get_sound_thread
+from app.engine.sound import SongObject, get_sound_thread
 from app.events import event_commands, regions, triggers
 from app.events.event_portrait import EventPortrait
 from app.events.screen_positions import parse_screen_position
@@ -60,13 +61,14 @@ def end_skip(self: Event, flags=None):
     if not self.super_skip:
         self.do_skip = False
 
-def music(self: Event, music, fade_in=400, flags=None):
+def music(self: Event, music: SongPrefab | SongObject | NID, fade_in=400, flags=None):
+    music_nid = self._resolve_nid(music)
     if self.do_skip:
         fade_in = 0
-    if music == 'None':
+    if music_nid == 'None':
         get_sound_thread().fade_to_pause(fade_out=fade_in)
     else:
-        get_sound_thread().fade_in(music, fade_in=fade_in)
+        get_sound_thread().fade_in(music_nid, fade_in=fade_in)
 
 def music_fade_back(self: Event, fade_out=400, flags=None):
     if self.do_skip:
@@ -81,45 +83,37 @@ def music_clear(self: Event, fade_out=0, flags=None):
     else:
         get_sound_thread().clear()
 
-def sound(self: Event, sound, volume: float=1.0, flags=None):
-    get_sound_thread().play_sfx(sound, volume=volume)
+def sound(self: Event, sound: SFXPrefab | NID, volume: float=1.0, flags=None):
+    sound_nid = self._resolve_nid(sound)
+    get_sound_thread().play_sfx(sound_nid, volume=volume)
 
-def stop_sound(self: Event, sound, flags=None):
-    get_sound_thread().stop_sfx(sound)
+def stop_sound(self: Event, sound: SFXPrefab | NID, flags=None):
+    sound_nid = self._resolve_nid(sound)
+    get_sound_thread().stop_sfx(sound_nid)
 
-def change_music(self: Event, phase, music, flags=None):
-    if music == 'None':
+def change_music(self: Event, phase, music: SongPrefab | SongObject | NID, flags=None):
+    music_nid = self._resolve_nid(music)
+    if music_nid == 'None':
         action.do(action.ChangePhaseMusic(phase, None))
     else:
-        action.do(action.ChangePhaseMusic(phase, music))
+        action.do(action.ChangePhaseMusic(phase, music_nid))
 
-def change_special_music(self: Event, special_music_type: str, music: str, flags=None):
+def change_special_music(self: Event, special_music_type: str, music: SongPrefab | SongObject | NID, flags=None):
+    music_nid = self._resolve_nid(music)
     if special_music_type == 'title_screen':
         # title screen must persist past the current game
-        RECORDS.replace('_music_title_screen', music)
+        RECORDS.replace('_music_title_screen', music_nid)
     elif special_music_type == 'promotion':
-        action.do(action.SetGameVar('_music_promotion', music))
+        action.do(action.SetGameVar('_music_promotion', music_nid))
     elif special_music_type == 'class_change':
-        action.do(action.SetGameVar('_music_class_change', music))
+        action.do(action.SetGameVar('_music_class_change', music_nid))
     elif special_music_type == 'game_over':
-        action.do(action.SetGameVar('_music_game_over', music))
+        action.do(action.SetGameVar('_music_game_over', music_nid))
 
 def add_portrait(self: Event, portrait, screen_position: Tuple, slide=None, expression_list: Optional[List[str]]=None, speed_mult: float=1.0, flags=None):
     flags = flags or set()
 
-    name = portrait
-    unit = self._get_unit(name)
-    if unit:
-        name = unit.nid
-    if unit and unit.portrait_nid:
-        portrait = RESOURCES.portraits.get(unit.portrait_nid)
-    elif name in DB.units.keys():
-        portrait = RESOURCES.portraits.get(DB.units.get(name).portrait_nid)
-    else:
-        portrait = RESOURCES.portraits.get(name)
-    if not portrait:
-        self.logger.error("add_portrait: Couldn't find portrait %s" % name)
-        return False
+    portrait_prefab, name = self._get_portrait(portrait)
     # If already present, don't add
     if name in self.portraits and not self.portraits[name].remove:
         return False
@@ -139,13 +133,12 @@ def add_portrait(self: Event, portrait, screen_position: Tuple, slide=None, expr
         transition = False
     speed_mult = 1 / max(speed_mult, 0.001)
 
-    new_portrait = EventPortrait(portrait, position, priority, transition,
+    new_portrait = EventPortrait(portrait_prefab, position, priority, transition,
                                  slide, mirror, name, speed_mult=speed_mult)
     self.portraits[name] = new_portrait
 
 
-    if expression_list:
-        new_portrait.set_expression(expression_list)
+    new_portrait.set_expression(expression_list or set())
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
         pass
@@ -173,25 +166,22 @@ def multi_add_portrait(self: Event, portrait1, screen_position1, portrait2, scre
 def remove_portrait(self: Event, portrait, speed_mult: float=1.0, flags=None):
     flags = flags or set()
 
-    name = portrait
-    unit = self._get_unit(name)
-    if unit:
-        name = unit.nid
+    _, name = self._get_portrait(portrait)
     if name not in self.portraits:
         return False
 
     speed_mult = 1 / max(speed_mult, 0.001)
 
     if 'immediate' in flags or self.do_skip:
-        portrait = self.portraits.pop(name)
+        event_portrait = self.portraits.pop(name)
     else:
-        portrait = self.portraits[name]
-        portrait.end(speed_mult)
+        event_portrait = self.portraits[name]
+        event_portrait.end(speed_mult)
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
         pass
     else:
-        self.wait_time = engine.get_time() + portrait.transition_speed + 33
+        self.wait_time = engine.get_time() + event_portrait.transition_speed + 33
         self.state = 'waiting'
 
 def multi_remove_portrait(self: Event, portrait1, portrait2, portrait3=None, portrait4=None, flags=None):
@@ -209,45 +199,39 @@ def multi_remove_portrait(self: Event, portrait1, portrait2, portrait3=None, por
 def move_portrait(self: Event, portrait, screen_position: Tuple, speed_mult: float=1.0, flags=None):
     flags = flags or set()
 
-    name = portrait
-    unit = self._get_unit(name)
-    if unit:
-        name = unit.nid
-    portrait = self.portraits.get(name)
-    if not portrait:
+    _, name = self._get_portrait(portrait)
+    event_portrait = self.portraits.get(name)
+    if not event_portrait:
         return False
 
     position, _ = parse_screen_position(screen_position)
 
     if 'immediate' in flags or self.do_skip:
-        portrait.quick_move(position)
+        event_portrait.quick_move(position)
     else:
-        portrait.move(position, speed_mult)
+        event_portrait.move(position, speed_mult)
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
         pass
     else:
-        self.wait_time = engine.get_time() + portrait.travel_time + 66
+        self.wait_time = engine.get_time() + event_portrait.travel_time + 66
         self.state = 'waiting'
 
 def mirror_portrait(self: Event, portrait, flags=None):
     flags = flags or set()
 
-    name = portrait
-    unit = self._get_unit(name)
-    if unit:
-        name = unit.nid
-    portrait = self.portraits.get(name)
-    if not portrait:
+    _, name = self._get_portrait(portrait)
+    event_portrait = self.portraits.get(name)
+    if not event_portrait:
         return False
 
     flipped_portrait = \
         EventPortrait(
-            portrait.portrait,
-            portrait.position,
-            portrait.priority,
-            False, None, not portrait.mirror, name)
-    if self.text_boxes and self.text_boxes[-1].portrait == portrait:
+            event_portrait.portrait,
+            event_portrait.position,
+            event_portrait.priority,
+            False, None, not event_portrait.mirror, name)
+    if self.text_boxes and self.text_boxes[-1].portrait == event_portrait:
         self.text_boxes[-1].portrait = flipped_portrait
 
     if self.do_skip:
@@ -258,11 +242,12 @@ def mirror_portrait(self: Event, portrait, flags=None):
             commands = []
             commands.append(event_commands.RemovePortrait({'Portrait': name}, {'no_block'}))
             command_flags = set()
-            if not self.portraits[name].mirror:
+
+            if (not event_portrait.mirror) ^ (event_portrait.position[0] < WINWIDTH // 2):
                 command_flags.add("mirror")
             if 'no_block' in flags:
                 command_flags.add("no_block")
-            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': str(self.portraits[name].position)}, command_flags))
+            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': event_portrait.position}, command_flags))
             self.command_queue += commands
         else:
             # Immediate removal followed by a transition in
@@ -270,20 +255,17 @@ def mirror_portrait(self: Event, portrait, flags=None):
             if 'no_block' in flags:
                 pass
             else:
-                self.wait_time = engine.get_time() + portrait.transition_speed + 33
+                self.wait_time = engine.get_time() + event_portrait.transition_speed + 33
                 self.state = 'waiting'
 
 def bop_portrait(self: Event, portrait, flags=None):
     flags = flags or set()
 
-    name = portrait
-    unit = self._get_unit(name)
-    if unit:
-        name = unit.nid
-    _portrait = self.portraits.get(name)
-    if not _portrait:
+    _, name = self._get_portrait(portrait)
+    event_portrait = self.portraits.get(name)
+    if not event_portrait:
         return False
-    _portrait.bop()
+    event_portrait.bop()
     if 'no_block' in flags:
         pass
     else:
@@ -291,54 +273,24 @@ def bop_portrait(self: Event, portrait, flags=None):
         self.state = 'waiting'
 
 def expression(self: Event, portrait, expression_list: List[str], flags=None):
-    name = portrait
-    unit = self._get_unit(name)
-    if unit:
-        name = unit.nid
-    _portrait = self.portraits.get(name)
-    if not _portrait:
+    _, name = self._get_portrait(portrait)
+    event_portrait = self.portraits.get(name)
+    if not event_portrait:
         return False
-    _portrait.set_expression(expression_list)
+    event_portrait.set_expression(expression_list)
 
-def speak_style(self: Event, style, speaker=None, position: Point | Alignments=None, width=None, speed=None,
-                font_color=None, font_type=None, background=None, num_lines=None, draw_cursor=None,
-                message_tail=None, transparency=None, name_tag_bg=None, flags=None):
+def speak_style(self: Event, style: NID, speaker: NID=None, position: Alignments | Point=None,
+                width: int=None, speed: float=None, font_color: NID=None, font_type: NID=None,
+                background: NID=None, num_lines: int=None, draw_cursor: bool=None,
+                message_tail: NID=None, transparency: float=None, name_tag_bg: NID=None, flags=None):
     flags = flags or set()
-    style_nid = style
-    if style_nid in self.game.speak_styles:
-        style = self.game.speak_styles[style_nid]
-    else:
-        style = SpeakStyle(nid=style_nid)
-    # parse everything
-    if speaker:
-        style.speaker = speaker
-    style.position = position
+    style_obj = SpeakStyle(style, speaker, position, width, speed, font_color, font_type, background,
+                           num_lines, draw_cursor, message_tail, transparency, name_tag_bg, flags)
+    if style in self.game.speak_styles:
+        style_obj = self.game.speak_styles[style].update(style_obj)
+    self.game.speak_styles[style] = style_obj
 
-    if width:
-        style.width = width
-    if speed:
-        style.speed = speed
-    if font_color:
-        style.font_color = font_color
-    if font_type:
-        style.font_type = font_type
-    if background:
-        style.background = background
-    if num_lines:
-        style.num_lines = num_lines
-    if draw_cursor:
-        style.draw_cursor = draw_cursor.lower() in self.true_vals
-    if message_tail:
-        style.message_tail = message_tail
-    if transparency is not None:
-        style.transparency = transparency
-    if name_tag_bg:
-        style.name_tag_bg = name_tag_bg
-    if flags:
-        style.flags = flags
-    self.game.speak_styles[style.nid] = style
-
-def speak(self: Event, speaker_or_style: str, text, text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
+def speak(self: Event, speaker_or_style: str | UnitObject | SpeakStyle, text, text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
           message_tail=None, transparency=None, name_tag_bg=None, flags=None):
     flags = flags or set()
@@ -406,7 +358,8 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
         if self.do_skip:
             # Which means we must have held, so just process the whole dialog immediately
             new_dialog.warp_speed()
-            action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
+            if self.game.action_log:
+                action.do(action.LogDialog(new_dialog.speaker, new_dialog.plain_text))
         elif 'no_block' in flags:
             pass
         else:  # Usually we go to a dialog state
@@ -1088,6 +1041,11 @@ def kill_unit(self: Event, unit, flags=None):
     if DB.constants.value('initiative'):
         action.do(action.RemoveInitiative(unit))
 
+    # Separate from their rescuer if currently rescued
+    if self.game.get_rescuer(unit):
+        rescuer = self.game.get_rescuer(unit)
+        action.execute(action.Separate(rescuer, unit, rescuer.position))
+
     if not unit.position:
         unit.dead = True
     elif 'immediate' in flags:
@@ -1167,6 +1125,10 @@ def recruit_generic(self: Event, unit, nid, name, flags=None):
     action.do(action.SetPersistent(unit))
     action.do(action.SetNid(unit, nid))
     action.do(action.SetName(unit, name))
+    for item in unit.items:
+        action.do(action.SetItemOwner(item, nid))
+    for skill in unit.all_skills:
+        action.do(action.SetSkillOwner(skill, nid))
 
 def set_name(self: Event, unit, string, flags=None):
     actor = self._get_unit(unit)
@@ -1204,7 +1166,7 @@ def set_unit_field(self: Event, unit, key, value, flags=None):
         self.logger.error("set_unit_field: Couldn't find unit %s" % unit)
         return
     try:
-        value = self.text_evaluator.direct_eval(value)
+        value = self._eval_expr(value, 'from_python' in flags)
     except:
         self.logger.error("set_unit_field: Could not evaluate {%s}" % value)
         return
@@ -1953,19 +1915,19 @@ def remove_skill(self: Event, global_unit, skill, count=-1, flags=None):
     flags = flags or set()
 
     unit = self._get_unit(global_unit)
-    if not unit:
-        self.logger.error("remove_skill: Couldn't find unit with nid %s" % global_unit)
-        return
-    skill_nid = skill
-    if skill_nid not in [skill.nid for skill in unit.skills]:
-        self.logger.error("remove_skill: Couldn't find skill with nid %s" % skill)
+    unit, found_skill = self._get_skill(global_unit, skill)
+    if not unit or not found_skill:
+        self.logger.error("add_skill_component: Either unit or skill was invalid, see above")
         return
     banner_flag = 'no_banner' not in flags
 
-    action.do(action.RemoveSkill(unit, skill_nid, count))
+    if count == 1 or str_utils.is_int(skill):
+        # use the object if we specifically requested it as a uid OR we only remove 1
+        action.do(action.RemoveSkill(unit, found_skill, count))
+    else:
+        action.do(action.RemoveSkill(unit, skill, count))
     if banner_flag:
-        skill = DB.skills.get(skill_nid)
-        b = banner.TakeSkill(unit, skill)
+        b = banner.TakeSkill(unit, found_skill)
         self.game.alerts.append(b)
         self.game.state.change('alert')
         self.state = 'paused'
@@ -1973,13 +1935,9 @@ def remove_skill(self: Event, global_unit, skill, count=-1, flags=None):
 def set_skill_data(self: Event, global_unit, skill, nid, expression, flags=None):
     flags = flags or set()
 
-    unit = self._get_unit(global_unit)
-    if not unit:
-        self.logger.error("set_skill_data: Couldn't find unit with nid %s" % global_unit)
-        return
-    found_skill = unit.get_skill(skill)
-    if not found_skill:
-        self.logger.error("set_skill_data: Couldn't find skill with nid %s on unit selected" % skill)
+    unit, found_skill = self._get_skill(global_unit, skill)
+    if not unit or not found_skill:
+        self.logger.error("add_skill_component: Either unit or skill was invalid, see above")
         return
     data_value = self._eval_expr(expression, 'from_python' in flags)
 
@@ -2685,11 +2643,12 @@ def arrange_formation(self: Event, flags=None):
             action.execute(action.ArriveOnMap(unit, position))
             action.execute(action.Reset(unit))
 
-def prep(self: Event, pick_units_enabled: bool = False, music: str = None, other_options: List[str] = None,
+def prep(self: Event, pick_units_enabled: bool = False, music: SongPrefab | SongObject | NID = None, other_options: List[str] = None,
          other_options_enabled: List[Optional[bool]] = None, other_options_on_select: List[Optional[bool]] = None, flags=None):
     action.do(action.SetLevelVar('_prep_pick', pick_units_enabled))
-    if music:
-        action.do(action.SetGameVar('_prep_music', music))
+    music_nid = self._resolve_nid(music)
+    if music_nid:
+        action.do(action.SetGameVar('_prep_music', music_nid))
 
     if other_options:
         options_list = other_options or []
@@ -2718,15 +2677,16 @@ def prep(self: Event, pick_units_enabled: bool = False, music: str = None, other
     self.game.state.change('prep_main')
     self.state = 'paused'  # So that the message will leave the update loop
 
-def base(self: Event, background: str, music: str = None, other_options: List[str] = None,
+def base(self: Event, background: str, music: SongPrefab | SongObject | NID = None, other_options: List[str] = None,
          other_options_enabled: List[bool] = None, other_options_on_select: List[bool] = None, flags=None):
     flags = flags or set()
 
     # set panorama
     action.do(action.SetGameVar('_base_bg_name', background))
     # set music
-    if music:
-        action.do(action.SetGameVar('_base_music', music))
+    music_nid = self._resolve_nid(music)
+    if music_nid:
+        action.do(action.SetGameVar('_base_music', music_nid))
 
     if other_options:
         options_list = other_options or []
@@ -2842,7 +2802,7 @@ def choice(self: Event, nid: NID, title: str, choices: str, row_width: int = 0, 
             ast.parse(choices)
             def tryexcept(callback_expr):
                 try:
-                    val = self.text_evaluator.direct_eval(self.text_evaluator._evaluate_all(callback_expr))
+                    val = self._eval_expr(self.text_evaluator._evaluate_all(callback_expr), 'from_python' in flags)
                     if isinstance(val, list):
                         return val or ['']
                     else:
@@ -2885,9 +2845,9 @@ def choice(self: Event, nid: NID, title: str, choices: str, row_width: int = 0, 
         'local_args': self.local_args
     }
     self.game.memory['player_choice'] = (nid, header, data, row_width,
-                                    orientation, entry_type, should_persist,
-                                    alignment, bg, event_nid, size, no_cursor,
-                                    arrows, scroll_bar, text_align, backable, event_context)
+                                         orientation, entry_type, should_persist,
+                                         alignment, bg, event_nid, size, no_cursor,
+                                         arrows, scroll_bar, text_align, backable, event_context)
     self.game.state.change('player_choice')
     self.state = 'paused'
 
@@ -2976,7 +2936,7 @@ def textbox(self: Event, nid: str, text: str, box_position: Point | Alignments=N
             ast.parse(text)
             def tryexcept(callback_expr) -> str:
                 try:
-                    val = self.text_evaluator.direct_eval(self.text_evaluator._evaluate_all(callback_expr))
+                    val = self._eval_expr(self.text_evaluator._evaluate_all(callback_expr), 'from_python' in flags)
                     return str(val)
                 except:
                     self.logger.error("textbox: failed to eval %s", callback_expr)
@@ -3023,7 +2983,7 @@ def table(self: Event, nid: NID, table_data: str, title: str = None,
             ast.parse(table_data)
             def tryexcept(callback_expr):
                 try:
-                    val = self.text_evaluator.direct_eval(self.text_evaluator._evaluate_all(callback_expr))
+                    val = self._eval_expr(self.text_evaluator._evaluate_all(callback_expr), 'from_python' in flags)
                     if isinstance(val, list):
                         return val or ['']
                     else:
@@ -3059,9 +3019,9 @@ def text_entry(self: Event, nid, string, positive_integer: int=16, illegal_chara
     self.game.state.change('text_entry')
     self.state = 'paused'
 
-def chapter_title(self: Event, music=None, string=None, flags=None):
+def chapter_title(self: Event, music: SongPrefab | SongObject | NID=None, string=None, flags=None):
     custom_string = string
-    self.game.memory['chapter_title_music'] = music
+    self.game.memory['chapter_title_music'] = self._resolve_nid(music)
     self.game.memory['chapter_title_title'] = custom_string
     # End the skip here
     self.do_skip = False
@@ -3076,7 +3036,7 @@ def draw_overlay_sprite(self: Event, nid, sprite_id, position=None, z_level=0, a
     sprite_nid = sprite_id
     pos = (0, 0)
     if position:
-        pos = tuple(str_utils.intify(position))
+        pos = tuple(position)
     anim_dir = animation
 
     anim_dur = speed
@@ -3268,6 +3228,30 @@ def ending(self: Event, portrait, title, text, flags=None):
     self.text_boxes.append(new_ending)
     self.state = 'dialog'
 
+def paired_ending(self: Event, left_portrait, right_portrait, left_title, right_title, text, flags=None):
+    left_unit = self._get_unit(left_portrait)
+    if left_unit and left_unit.portrait_nid:
+        left_portrait, _ = icons.get_portrait(left_unit)
+        left_portrait = engine.flip_horiz(left_portrait)
+        left_portrait = left_portrait.convert_alpha()
+        left_portrait = image_mods.make_translucent(left_portrait, 0.5)
+    else:
+        self.logger.error("ending: Couldn't find unit or portrait %s" % left_portrait)
+        return False
+
+    right_unit = self._get_unit(right_portrait)
+    if right_unit and right_unit.portrait_nid:
+        right_portrait, _ = icons.get_portrait(right_unit)
+        right_portrait = right_portrait.convert_alpha()
+        right_portrait = image_mods.make_translucent(right_portrait, 0.5)
+    else:
+        self.logger.error("ending: Couldn't find unit or portrait %s" % right_portrait)
+        return False
+
+    new_ending = dialog.PairedEnding(left_portrait, right_portrait, left_title, right_title, text, left_unit, right_unit)
+    self.text_boxes.append(new_ending)
+    self.state = 'dialog'
+
 def pop_dialog(self: Event, flags=None):
     if self.text_boxes:
         self.text_boxes.pop()
@@ -3379,7 +3363,7 @@ def trigger_script_with_args(self: Event, event: str, arg_list: Dict[str, str] =
 def loop_units(self: Event, expression, event, flags=None):
     unit_list_str = expression
     try:
-        unit_list = self.text_evaluator.direct_eval(unit_list_str)
+        unit_list = self._eval_expr(unit_list_str, 'from_python' in flags)
     except Exception as e:
         self.logger.error("loop_units: %s: Could not evalute {%s}" % (e, unit_list_str))
         return
@@ -3443,11 +3427,17 @@ def pair_up(self: Event, unit1, unit2, flags=None):
         self.logger.error("pair_up: Couldn't find unit with nid %s" % unit1)
         return
     follower = new_unit1
+    if self.game.get_rescuers_position(follower) or follower.traveler:
+        self.logger.error("pair_up: Rescuee is already traveling with somebody else")
+        return
     new_unit2 = self._get_unit(unit2)
     if not new_unit2:
         self.logger.error("pair_up: Couldn't find unit with nid %s" % unit2)
         return
     leader = new_unit2
+    if self.game.get_rescuers_position(leader) or leader.traveler:
+        self.logger.error("pair_up: Rescuer is already traveling with somebody else")
+        return
     if unit_funcs.can_pairup(leader, follower):
         action.do(action.PairUp(follower, leader))
     else:
@@ -3459,7 +3449,13 @@ def separate(self: Event, unit, flags=None):
         self.logger.error("separate: Couldn't find unit with nid %s" % unit)
         return
     unit = new_unit
-    action.do(action.RemovePartner(unit))
+    if not unit.traveler:
+        self.logger.error("separate: Unit is not traveling with anybody")
+        return
+    if DB.constants.value('pairup'):
+        action.do(action.Separate(unit, unit.traveler, None))
+    else:
+        action.do(action.RemovePartner(unit))
 
 def create_achievement(self: Event, nid: str, name: str, description: str, flags=None):
     flags = flags or set()
@@ -3533,23 +3529,23 @@ def complete_achievement(self: Event, achievement: str, completed: bool, flags=N
 def clear_achievements(self: Event, flags=None):
     ACHIEVEMENTS.clear_achievements()
 
-def create_record(self: Event, nid: str, expression: str, flags=None):
+def create_record(self: Event, nid: str, expression: str | Any, flags=None):
     try:
-        val = self.text_evaluator.direct_eval(expression)
+        val = self._eval_expr(expression, 'from_python' in flags)
         RECORDS.create(nid, val)
     except Exception as e:
         self.logger.error("create_record: Could not evaluate %s (%s)" % (expression, e))
 
-def update_record(self: Event, nid: str, expression: str, flags=None):
+def update_record(self: Event, nid: str, expression: str | Any, flags=None):
     try:
-        val = self.text_evaluator.direct_eval(expression)
+        val = self._eval_expr(expression, 'from_python' in flags)
         RECORDS.update(nid, val)
     except Exception as e:
         self.logger.error("update_record: Could not evaluate %s (%s)" % (expression, e))
 
-def replace_record(self: Event, nid: str, expression: str, flags=None):
+def replace_record(self: Event, nid: str, expression: str | Any, flags=None):
     try:
-        val = self.text_evaluator.direct_eval(expression)
+        val = self._eval_expr(expression, 'from_python' in flags)
         RECORDS.replace(nid, val)
     except Exception as e:
         self.logger.error("replace_record: Could not evaluate %s (%s)" % (expression, e))

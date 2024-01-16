@@ -119,7 +119,7 @@ class EventState(State):
             if game.level_vars.get('_level_end_triggered'):
                 self.level_end()
             else:
-                did_trigger = game.events.trigger(triggers.LevelEnd())
+                did_trigger = game.events.trigger(triggers.LevelEnd(), game.level.nid)
                 if did_trigger:
                     game.level_vars['_level_end_triggered'] = True
                 else:
@@ -154,6 +154,7 @@ class EventState(State):
                 game.memory['force_turnwheel'] = True
             else:
                 game.memory['force_turnwheel'] = False
+            game.memory['event_turnwheel'] = True
             self.event.turnwheel_flag = False
 
         else:

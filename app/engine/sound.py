@@ -1,3 +1,5 @@
+from app.data.resources.sounds import SongPrefab
+from app.utilities.data import HasNid
 from app.utilities.typing import NID
 from enum import Enum
 from typing import Set, List
@@ -10,8 +12,8 @@ from app.engine import engine
 import logging
 import os, re
 
-class Song():
-    def __init__(self, prefab):
+class SongObject(HasNid):
+    def __init__(self, prefab: SongPrefab):
         self.nid = prefab.nid
         self.song = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>.ltproj', prefab.full_path))
         self.battle = pygame.mixer.Sound(os.path.dirname(__file__)+'/../../'+re.sub(r'^.*?(\w+)\.ltproj', r'\g<1>.ltproj', prefab.prefab.battle_full_path)) if prefab.battle_full_path else None
@@ -30,7 +32,7 @@ class MusicDict(dict):
             prefab = RESOURCES.music.get(val)
             if prefab:
                 try:
-                    self[val] = Song(prefab)
+                    self[val] = SongObject(prefab)
                 except pygame.error as e:
                     logging.warning(e)
                     return None
@@ -365,7 +367,7 @@ class SoundController():
         self.channel4 = ChannelPair(6)
 
         self.channel_stack = [self.channel1, self.channel2, self.channel3, self.channel4]
-        self.song_stack: List[Song] = []
+        self.song_stack: List[SongObject] = []
 
         self._state = GlobalMusicState.STOPPED
 
@@ -379,7 +381,7 @@ class SoundController():
     def state(self, value: GlobalMusicState):
         logging.info("Changing State to %s" % value)
         self._state = value
-    
+
     # === Volume ===
     def mute(self):
         self.current_channel.set_volume(0)
@@ -489,7 +491,7 @@ class SoundController():
             return self.song_stack[-1]
         return None
 
-    def fade_in(self, next_song, num_plays=-1, fade_in=DEFAULT_FADE_TIME_MS, from_start=False):
+    def fade_in(self, next_song: NID, num_plays=-1, fade_in=DEFAULT_FADE_TIME_MS, from_start=False):
         logging.info("Fade in %s" % next_song)
         next_song = MUSIC.get(next_song)
         if not next_song:
@@ -553,7 +555,7 @@ class SoundController():
             if oldest_channel.is_fading_out():
                 logging.debug("Oldest Channel %s is fading out" % oldest_channel.nid)
                 any_music_is_playing = False
-            self._set_next_song(next_song, num_plays, fade_in)            
+            self._set_next_song(next_song, num_plays, fade_in)
             if any_music_is_playing:
                 pass
             else:
