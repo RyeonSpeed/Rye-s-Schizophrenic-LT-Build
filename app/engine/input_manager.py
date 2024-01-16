@@ -129,15 +129,24 @@ class InputManager():
                 elif 0.82 <= event.x <= 1 and 0.06 <= event.y <= 0.12:
                     button = 'START'
                 key_up = event.type == engine.FINGERUP
-
+                key_down = event.type == engine.FINGERDOWN
+                key_move = event.type == engine.FINGERMOTION
                 if button:
                     # Update keys pressed
                     if key_up:
                         self.key_up_events.append(button)
-                        for button in self.buttons:
+                        for b in self.buttons:
                             self.keys_pressed[button] = False
-                    else:
+                    elif key_down:
+                        self.keys_pressed[button] = True
                         self.key_down_events.append(button)
+                    elif key_move:
+                        for b in self.buttons:
+                            if b == button:
+                                self.keys_pressed[b] = True
+                                self.key_down_events.append(b)
+                            elif self.keys_pressed[b]:
+                                self.keys_pressed[b] = False
 
         # Return the correct event for this frame
         # Gives priority to later inputs
