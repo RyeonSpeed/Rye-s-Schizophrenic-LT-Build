@@ -106,8 +106,7 @@ class InputManager():
     def process_input(self, events):
         self.key_up_events.clear()
         self.key_down_events.clear()
-        button = None
-        # Check keyboard
+        # Check fingers
         for event in events:
             if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN:
                 #button = self.map_keys.get(event.key)
@@ -133,9 +132,10 @@ class InputManager():
 
                 if button:
                     # Update keys pressed
-                    self.keys_pressed[button] = not key_up
                     if key_up:
                         self.key_up_events.append(button)
+                        for button in self.buttons:
+                            self.keys_pressed[button] = False
                     else:
                         self.key_down_events.append(button)
 
