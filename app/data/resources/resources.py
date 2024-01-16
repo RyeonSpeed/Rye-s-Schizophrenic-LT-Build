@@ -112,7 +112,7 @@ class Resources():
             self.loaded_custom_components_path = None
             return
 
-        module_path = os.path.join(cc_path, '__init__.py')
+        module_path = os.path.join(cc_path, '__init__.pyc')
         if module_path != self.loaded_custom_components_path and os.path.exists(module_path):
             self.loaded_custom_components_path = module_path
             print("Importing Custom Components")
