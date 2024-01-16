@@ -108,7 +108,7 @@ class InputManager():
         self.key_down_events.clear()
         # Check fingers
         for event in events:
-            if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN:
+            if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN or event.type == engine.FINGERMOTION:
                 #button = self.map_keys.get(event.key)
                 if 0.04 <= event.x <= 0.095 and 0.78 <= event.y <= 0.85:
                     button = 'UP'
@@ -128,16 +128,19 @@ class InputManager():
                     button = 'BACK'
                 elif 0.82 <= event.x <= 1 and 0.06 <= event.y <= 0.12:
                     button = 'START'
+                else:
+                    button = 'NA'
                 key_up = event.type == engine.FINGERUP
                 key_down = event.type == engine.FINGERDOWN
                 key_move = event.type == engine.FINGERMOTION
                 if button:
                     # Update keys pressed
                     if key_up:
-                        self.key_up_events.append(button)
+                        if button != 'NA':
+                            self.key_up_events.append(button)
                         for b in self.buttons:
                             self.keys_pressed[button] = False
-                    elif key_down:
+                    elif key_down and button != 'NA':
                         self.keys_pressed[button] = True
                         self.key_down_events.append(button)
                     elif key_move:
