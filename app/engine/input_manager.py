@@ -109,7 +109,7 @@ class InputManager():
         button = None
         # Check keyboard
         for event in events:
-            if event.type == engine.FINGERDOWN:
+            if event.type == engine.FINGERUP or event.type == engine.FINGERDOWN:
                 #button = self.map_keys.get(event.key)
                 if 0.04 <= event.x <= 0.095 and 0.78 <= event.y <= 0.85:
                     button = 'UP'
