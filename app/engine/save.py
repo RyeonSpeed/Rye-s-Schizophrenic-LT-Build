@@ -120,8 +120,8 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
         preload_saves = glob.glob(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-*.p'))
         nids = [p.split('-')[-1][:-2] for p in preload_saves]
         unique_nid = str(str_utils.get_next_int('0', nids))
-        preload_save = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-', unique_nid + '.p')
-        preload_save_meta = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-', unique_nid + '.pmeta')
+        preload_save = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.p')
+        preload_save_meta = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.pmeta')
 
         shutil.copy(save_loc, preload_save)
         shutil.copy(meta_loc, preload_save_meta)
