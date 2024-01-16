@@ -253,7 +253,10 @@ class Resources():
 
     def get_custom_components_path(self):
         if self.main_folder:
+            print(':)')
+            print(self.main_folder)
             return os.path.join(self.main_folder, 'custom_components')
+        print(':(')
         return None
 
 
