@@ -5,7 +5,7 @@ from app.data.database.components import ComponentType
 from app.data.database.item_components import ItemComponent, ItemTags
 from app.utilities.class_utils import recursive_subclasses
 from app.utilities.data import Data
-
+import importlib, inspect
 
 @lru_cache(1)
 def get_cached_item_components(proj_dir: str):
@@ -18,7 +18,18 @@ def get_cached_item_components(proj_dir: str):
         # defined here
         import custom_components
 
-    subclasses = recursive_subclasses(ItemComponent)
+    #subclasses = recursive_subclasses(ItemComponent)
+    subclasses = ItemComponent.__subclasses__()
+    import os
+    from glob import glob
+
+    for file in glob(os.path.join(os.path.dirname(__file__), 'item_components', "*.pyc")):
+        name = 'app.engine.item_components.'+os.path.splitext(os.path.basename(file))[0]
+
+        # add package prefix to name, if required
+        for name2, cls in inspect.getmembers(importlib.import_module(name)):
+            if inspect.isclass(cls) and cls.__name__ not in 'ComponentType, ItemComponent, ItemTags' and hasattr(cls, 'tag'):
+                subclasses.append(cls)
     # Sort by tag
     subclasses = sorted(subclasses, key=lambda x: list(ItemTags).index(x.tag) if x.tag in list(ItemTags) else 100)
     return Data(subclasses)
