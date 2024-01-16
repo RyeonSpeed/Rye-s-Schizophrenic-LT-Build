@@ -2,10 +2,6 @@ import os
 from collections import OrderedDict
 
 from app.utilities import str_utils
-from appdirs import AppDirs
-from app.data.database.database import DB
-
-dirs = AppDirs(str(DB.constants.value('game_nid')), "Lex Talionis")
 
 def read_config_file():
     lines = OrderedDict([('debug', 0),
@@ -50,7 +46,7 @@ def read_config_file():
                 lines[split_line[0]] = split_line[1]
 
     try:
-        parse_ini(os.path.join(dirs.user_data_dir, 'saves', 'config.ini'))
+        parse_ini(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', 'config.ini'))
     except OSError:
         if os.path.exists('data/config.ini'):
             parse_ini('data/config.ini')
@@ -76,19 +72,19 @@ def read_config_file():
     return lines
 
 def save_settings():
-    with open(os.path.join(dirs.user_data_dir, 'saves', 'config.ini'), 'w') as fp:
+    with open(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', 'config.ini'), 'w') as fp:
         write_out = '\n'.join([k + '=' + str(v) for k, v in SETTINGS.items()])
         fp.write(write_out)
 
 def save_debug_commands(commands):
-    with open(os.path.join(dirs.user_data_dir, 'saves', 'debug_commands.txt'), 'w') as fp:
+    with open(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', 'debug_commands.txt'), 'w') as fp:
         write_out = '\n'.join(commands)
         fp.write(write_out)
 
 def get_debug_commands() -> list:
     commands = []
-    if os.path.exists(os.path.join(dirs.user_data_dir, 'saves', 'debug_commands.txt')):
-        with open(os.path.join(dirs.user_data_dir, 'saves', 'debug_commands.txt'), 'r') as fp:
+    if os.path.exists(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', 'debug_commands.txt')):
+        with open(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'saves', 'debug_commands.txt'), 'r') as fp:
             for line in fp.readlines():
                 commands.append(line.strip())
     return commands
