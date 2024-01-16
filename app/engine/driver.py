@@ -90,6 +90,8 @@ def run(game):
 
     _error_mode = False
     _error_msg = ''
+    overlay = engine.image_load('overlay.png')
+
     while True:
         # start = time.time_ns()
         engine.update_time()
@@ -137,7 +139,7 @@ def run(game):
                     raise e
 
         get_sound_thread().update(raw_events)
-
+        engine.blit(surf, overlay)
         engine.push_display(surf, engine.SCREENSIZE, engine.DISPLAYSURF)
 
         save_screenshot(raw_events, surf)
