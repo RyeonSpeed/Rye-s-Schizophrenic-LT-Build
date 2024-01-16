@@ -48,7 +48,7 @@ requirements = python3,kivy,altgraph==0.17,future==0.18.2,pefile==2019.4.18,pyga
 #presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = %(source.dir)s/loonie.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
