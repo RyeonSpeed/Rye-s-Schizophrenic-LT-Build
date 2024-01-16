@@ -15,7 +15,17 @@ def get_cached_skill_components(proj_dir: str):
         # defined here
         import custom_components
 
-    subclasses = recursive_subclasses(SkillComponent)
+    #subclasses = recursive_subclasses(SkillComponent)
+    subclasses = SkillComponent.__subclasses__()
+    import os
+    from glob import glob
+    for file in glob(os.path.join(os.path.dirname(__file__), 'skill_components', "*.pyc")):
+        name = 'app.engine.skill_components.'+os.path.splitext(os.path.basename(file))[0]
+
+        # add package prefix to name, if required
+        for name2, cls in inspect.getmembers(importlib.import_module(name)):
+            if inspect.isclass(cls) and cls.__name__ not in 'ComponentType, SkillComponent, SkillTags' and hasattr(cls, 'tag'):
+                subclasses.append(cls)
     # Sort by tag
     subclasses = sorted(subclasses, key=lambda x: list(SkillTags).index(x.tag) if x.tag in list(SkillTags) else 100)
     return Data(subclasses)
