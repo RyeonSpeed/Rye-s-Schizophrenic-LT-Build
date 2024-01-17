@@ -38,7 +38,7 @@ version = 1.0.2
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 #requirements = python3,kivy,pygame-ce==2.3.2,typing-extensions==4.8.0
-requirements = python3,kivy,altgraph==0.17,future==0.18.2,pefile==2019.4.18,pygame,PyInstaller==3.6,pywin32-ctypes==0.2.0,typing-extensions>=4.0.1,tk
+requirements = python3,kivy,altgraph==0.17,future==0.18.2,pefile==2019.4.18,pygame,PyInstaller==3.6,pywin32-ctypes==0.2.0,typing-extensions>=4.0.1,tk,platformdirs
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -96,7 +96,7 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-#android.permissions = (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=20), (name=android.permission.READ_EXTERNAL_STORAGE;maxSdkVersion=20)
+android.permissions = (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=20), (name=android.permission.READ_EXTERNAL_STORAGE;maxSdkVersion=20)
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
