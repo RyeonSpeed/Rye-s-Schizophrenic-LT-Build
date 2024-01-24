@@ -123,8 +123,8 @@ SKILL_HOOKS: Dict[str, HookInfo] = {
     'start_combat':                         HookInfo(['playback', 'unit', 'item', 'target', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
     'cleanup_combat':                       HookInfo(['playback', 'unit', 'item', 'target', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
     'end_combat':                           HookInfo(['playback', 'unit', 'item', 'target', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
-    'pre_combat':                           HookInfo(['playback', 'unit', 'item', 'target', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
-    'post_combat':                          HookInfo(['playback', 'unit', 'item', 'target', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
+    'pre_combat':                           HookInfo(['playback', 'unit', 'item', 'target', 'item2', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
+    'post_combat':                          HookInfo(['playback', 'unit', 'item', 'target', 'item2', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
     'test_on':                              HookInfo(['playback', 'unit', 'item', 'target', 'item2', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
     'test_off':                             HookInfo(['playback', 'unit', 'item', 'target', 'item2', 'mode'], ResolvePolicy.NO_RETURN, has_unconditional=True),
     # list hooks (returns a list of all hook return values)
