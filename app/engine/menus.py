@@ -1656,7 +1656,7 @@ class Market(Convoy):
         else:
             convoy = game.party.convoy
             all_items = []
-            all_items += convoy
+            all_items += [i for i in convoy if not (i.locked or i.special_locked)]
             for unit in game.get_units_in_party():
                 items = item_funcs.get_all_tradeable_items(unit)
                 all_items += items
