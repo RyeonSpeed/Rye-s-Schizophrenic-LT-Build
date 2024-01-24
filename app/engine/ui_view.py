@@ -579,8 +579,8 @@ class UIView():
 
     def draw_attack_info(self, surf, attacker, weapon, defender, a_assist=None, d_assist=None):
         # Turns on appropriate combat conditionals to get an accurate read
-        skill_system.test_on([], attacker, weapon, defender, 'attack')
-        skill_system.test_on([], defender, defender.get_weapon(), attacker, 'defense')
+        skill_system.test_on([], attacker, weapon, defender, defender.get_weapon(), 'attack')
+        skill_system.test_on([], defender, defender.get_weapon(), attacker, weapon, 'defense')
 
         def has_attacker_strike_partner() -> bool:
             return DB.constants.value('pairup') and \
@@ -691,8 +691,8 @@ class UIView():
                     surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy_partner)
 
         # Turns off combat conditionals
-        skill_system.test_off([], defender, defender.get_weapon(), attacker, 'defense')
-        skill_system.test_off([], attacker, weapon, defender, 'attack')
+        skill_system.test_off([], defender, defender.get_weapon(), attacker, weapon, 'defense')
+        skill_system.test_off([], attacker, weapon, defender, defender.get_weapon(), 'attack')
 
         return surf
 
@@ -799,7 +799,7 @@ class UIView():
 
     def draw_spell_info(self, surf, attacker, spell, defender):
         # Turns on appropriate combat conditionals to get accurate stats
-        skill_system.test_on([], attacker, spell, defender, 'attack')
+        skill_system.test_on([], attacker, spell, defender, defender.get_weapon(), 'attack')
 
         if not self.spell_info_disp:
             self.spell_info_disp = self.create_spell_info(attacker, spell, defender)
@@ -829,7 +829,7 @@ class UIView():
             surf.blit(icon, (topleft[0] + 8, topleft[1] + self.spell_info_disp.get_height() - 20))
 
         # Turns off combat conditionals
-        skill_system.test_off([], attacker, spell, defender, 'attack')
+        skill_system.test_off([], attacker, spell, defender, defender.get_weapon(), 'attack')
 
         return surf
 

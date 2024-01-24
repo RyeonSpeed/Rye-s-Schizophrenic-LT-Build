@@ -183,7 +183,7 @@ class SimpleCombat():
     def start_combat(self):
         self.initial_random_state = static_random.get_combat_random_state()
 
-        skill_system.pre_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
+        skill_system.pre_combat(self.full_playback, self.attacker, self.main_item, self.defender, self.def_item, 'attack')
 
         already_pre = [self.attacker]
         for idx, defender in enumerate(self.defenders):
@@ -191,9 +191,9 @@ class SimpleCombat():
             if defender and defender not in already_pre:
                 already_pre.append(defender)
                 def_item = self.def_items[idx]
-                skill_system.pre_combat(self.full_playback, defender, def_item, self.attacker, 'defense')
+                skill_system.pre_combat(self.full_playback, defender, def_item, self.attacker, self.main_item, 'defense')
         for unit in self.all_splash:
-            skill_system.pre_combat(self.full_playback, unit, None, self.attacker, 'defense')
+            skill_system.pre_combat(self.full_playback, unit, None, self.attacker, self.main_item, 'defense')
 
         skill_system.start_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
         item_system.start_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
@@ -245,15 +245,15 @@ class SimpleCombat():
 
         skill_system.deactivate_all_combat_arts(self.attacker)
 
-        skill_system.post_combat(self.full_playback, self.attacker, self.main_item, self.defender, 'attack')
+        skill_system.post_combat(self.full_playback, self.attacker, self.main_item, self.defender, self.def_item,'attack')
         already_pre = [self.attacker]
         for idx, defender in enumerate(self.defenders):
             if defender and defender not in already_pre:
                 already_pre.append(defender)
                 def_item = self.def_items[idx]
-                skill_system.post_combat(self.full_playback, defender, def_item, self.attacker, 'defense')
+                skill_system.post_combat(self.full_playback, defender, def_item, self.attacker, self.main_item, 'defense')
         for unit in self.all_splash:
-            skill_system.post_combat(self.full_playback, unit, None, self.attacker, 'defense')
+            skill_system.post_combat(self.full_playback, unit, None, self.attacker, self.main_item, 'defense')
 
         self.final_random_state = static_random.get_combat_random_state()
         action.do(action.RecordRandomState(self.initial_random_state, self.final_random_state))

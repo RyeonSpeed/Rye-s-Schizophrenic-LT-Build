@@ -215,7 +215,7 @@ class Armsthrift(SkillComponent):
             self._did_something = True
             self._after_strike(actions, unit, item)
 
-    def post_combat(self, playback, unit, item, target, mode):
+    def post_combat(self, playback, unit, item, target, item2, mode):
         # handles one loss per combat + armsthift interaction
         if not item:
             return
@@ -223,7 +223,7 @@ class Armsthrift(SkillComponent):
         if self._did_something:
             if item.parent_item:
                 self.post_combat(
-                    playback, unit, item.parent_item, target, mode)
+                    playback, unit, item.parent_item, target, item2, mode)
             if (item.uses_options and item.uses_options.one_loss_per_combat()):
                 self._post_combat(unit, item)
 
