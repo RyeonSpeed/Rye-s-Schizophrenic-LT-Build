@@ -1181,7 +1181,7 @@ def interact_unit(self: Event, unit, position, combat_script=None, ability=None,
     if ability:
         item_nid = ability
         for i in items:
-            if item_nid == i.nid:
+            if item_nid == i.nid or item_nid == str(i.uid):
                 item = i
                 break
         else:  # Create item on the fly

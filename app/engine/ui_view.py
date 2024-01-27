@@ -663,11 +663,11 @@ class UIView():
         if weapon.mana_cost_per_use:
             my_num = min(my_num, attacker.get_mana() // weapon.mana_cost_per_use.value)
 
-        if my_num != 1:
+        if my_num > 1:
             surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player)
 
         if a_assist:
-            if my_num != 1 and not DB.constants.value('limit_attack_stance'):
+            if my_num > 1 and not DB.constants.value('limit_attack_stance'):
                 surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player_partner)
 
         # Enemy doubling
@@ -683,11 +683,11 @@ class UIView():
             if eweapon.mana_cost_per_use:
                 e_num = min(e_num, defender.get_mana() // eweapon.mana_cost_per_use.value)
 
-            if e_num != 1:
+            if e_num > 1:
                 surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy)
 
             if d_assist:
-                if e_num != 1 and not DB.constants.value('limit_attack_stance'):
+                if e_num > 1 and not DB.constants.value('limit_attack_stance'):
                     surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy_partner)
 
         # Turns off combat conditionals
