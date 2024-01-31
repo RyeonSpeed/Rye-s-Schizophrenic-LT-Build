@@ -171,7 +171,6 @@ class Move(Action):
     def do(self):
         if self.path is None:
             self.path = game.cursor.path[:]
-        game.boundary.frozen = True
         game.movement.begin_move(self.unit, self.path, self.event, self.follow, speed=self.speed)
 
     def execute(self):
@@ -1732,6 +1731,29 @@ class SetObjData(Action):
         if self.keyword in self.obj.data:
             self.obj.data[self.keyword] = self.old_value
 
+class SetItemOwner(Action):
+    def __init__(self, obj: ItemObject, nid: NID):
+        self.obj = obj
+        self.new_nid = nid
+        self.old_nid = self.obj.owner_nid
+
+    def do(self):
+        self.obj.change_owner(self.new_nid)
+
+    def reverse(self):
+        self.obj.change_owner(self.old_nid)
+
+class SetSkillOwner(Action):
+    def __init__(self, obj: SkillObject, nid: NID):
+        self.obj = obj
+        self.new_nid = nid
+        self.old_nid = self.obj.owner_nid
+
+    def do(self):
+        self.obj.owner_nid = self.new_nid
+
+    def reverse(self):
+        self.obj.owner_nid = self.old_nid
 
 class GainMoney(Action):
     def __init__(self, party_nid, money):
@@ -2278,6 +2300,53 @@ class ChangeField(Action):
 
     def reverse(self):
         self.unit.set_field(self.key, self.old_value)
+
+class SetUnitNote(Action):
+    def __init__(self, unit: UnitObject, key: str, value: str):
+        self.unit = unit
+        self.key = key
+        self.value = value
+        categories = [cat for cat, note in self.unit.notes]
+        if key in categories:
+            self.idx = categories.index(key)
+            self.old_note = self.unit.notes[self.idx]
+        else:
+            self.idx = None
+            self.old_note = None
+
+    def do(self):
+        if self.idx is not None:
+            self.unit.notes.pop(self.idx)
+            self.unit.notes.insert((self.key, self.value))
+        else:
+            self.unit.notes.append((self.key, self.value))
+
+    def reverse(self):
+        if self.old_note:
+            self.unit.notes.pop(self.idx)
+            self.unit.notes.insert(self.old_note)
+        else:
+            self.unit.notes.pop()
+
+class RemoveUnitNote(Action):
+    def __init__(self, unit: UnitObject, key: str):
+        self.unit = unit
+        self.key = key
+        categories = [cat for cat, note in self.unit.notes]
+        if key in categories:
+            self.deletion_idx = categories.index(key)
+            self.old_note = self.unit.notes[self.deletion_idx]
+        else:
+            self.deletion_idx = None
+            self.old_note = None        
+
+    def do(self):
+        if self.deletion_idx is not None:
+            self.unit.notes.pop(self.deletion_idx)
+
+    def reverse(self):
+        if self.old_note:
+            self.unit.notes.insert(self.deletion_idx, self.old_note)
 
 class Die(Action):
     def __init__(self, unit):
@@ -3340,7 +3409,7 @@ class AddSkill(Action):
         self.source_type = source_type
         self.subactions = []
         self.reset_action = ResetUnitVars(self.unit)
-        
+
         self.did_something = False
 
     @recalculate_unit
@@ -3349,7 +3418,7 @@ class AddSkill(Action):
         if not self.skill_obj:
             return
         logging.debug("AddSkill.do: Adding Skill %s to %s", self.skill_obj, self.unit)
-            
+
         popped_skill_obj = self.unit.add_skill(self.skill_obj, self.source, self.source_type, test=True)
         # Skill failed to add due to not displacing another skill and itself being displaceable
         if popped_skill_obj and popped_skill_obj == self.skill_obj:
@@ -3371,10 +3440,10 @@ class AddSkill(Action):
             game.boundary.register_unit_auras(self.unit)
 
         skill_system.after_add(self.unit, self.skill_obj)
-        
+
         for action in self.subactions:
             action.execute()
-        
+
         self.did_something = True
 
         # Handle affects movement
@@ -3440,7 +3509,7 @@ class RemoveSkill(Action):
         skill_system.after_remove(self.unit, skill)
         if true_remove:
             skill_system.after_true_remove(self.unit, skill)
-            
+
         return True
 
     def _remove(self, true_remove=True):

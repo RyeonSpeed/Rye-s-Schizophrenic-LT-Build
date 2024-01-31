@@ -140,8 +140,8 @@ def save_surface(surf, fn):
 
 def subsurface(surf, rect) -> pygame.Surface:
     x, y, width, height = rect
-    twidth = min(surf.get_width() - x, width)
-    theight = min(surf.get_height() - y, height)
+    twidth = max(0, min(surf.get_width() - x, width))
+    theight = max(0, min(surf.get_height() - y, height))
     tx = max(0, x)
     ty = max(0, y)
     return surf.subsurface(tx, ty, twidth, theight)
@@ -274,7 +274,7 @@ def get_mouse_focus():
 
 # === loop functions ===
 DISPLAYSURF = None
-SCREENSIZE = (WINWIDTH * cf.SETTINGS['screen_size'], WINHEIGHT * cf.SETTINGS['screen_size'])
+SCREENSIZE = (WINWIDTH * min(cf.SETTINGS['screen_size'], 5), WINHEIGHT * min(cf.SETTINGS['screen_size'], 5))
 
 class Clock():
     def __init__(self) -> None:
@@ -285,13 +285,9 @@ class Clock():
 
 # === System Messages
 
-_SYSTEM_FONT = None
 SYSTEM_FONT_SIZE = 14
 def get_system_font():
-    global _SYSTEM_FONT
-    if not _SYSTEM_FONT:
-        _SYSTEM_FONT = pygame.font.Font(None, SYSTEM_FONT_SIZE)
-    return _SYSTEM_FONT
+    return pygame.font.Font(None, SYSTEM_FONT_SIZE)
 
 def write_system_msg(surf, msg: str):
     """Writes a message to the screen.

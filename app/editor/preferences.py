@@ -23,6 +23,7 @@ class PreferencesDialog(Dialog):
         self.window = parent
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
+        self.setWindowTitle("Preferences")
 
         self.awaiting_button_bind = False
 
@@ -175,7 +176,7 @@ class PreferencesDialog(Dialog):
     def autosave_time_changed(self, val):
         t = timer.get_timer()
         t.autosave_timer.stop()
-        t.autosave_timer.setInterval(val * 60 * 1000)
+        t.autosave_timer.setInterval(int(val * 60 * 1000))
         t.autosave_timer.start()
 
     def accept(self):

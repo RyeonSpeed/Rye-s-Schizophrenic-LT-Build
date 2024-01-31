@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import shutil
-import os
+import os, sys
 import traceback
 
 from app import sprites
@@ -187,6 +187,7 @@ class Resources():
         import time
         start = time.time_ns()/1e6
 
+        # Make the directory to save this resource pack in
         # Make the directory to save this resource pack in
         if not os.path.exists(autosave_dir):
             os.mkdir(autosave_dir)

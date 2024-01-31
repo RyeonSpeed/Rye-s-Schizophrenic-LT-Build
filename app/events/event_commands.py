@@ -826,26 +826,13 @@ Sets the next chapter the player will go to
 
     keywords = ["Chapter"]
 
-class SetFogOfWar(EventCommand):
-    nid = 'set_fog_of_war'
-    tag = Tags.LEVEL_VARS
+class EnableConvoy(EventCommand):
+    nid = 'enable_convoy'
+    tag = Tags.GAME_VARS
 
     desc = \
         """
-Sets the fog of war state for the current level.
-        """
-
-    keywords = ["FogOfWarType", "Radius"]
-    optional_keywords = ["AIRadius", "OtherRadius"]
-    keyword_types = ["FogOfWarType", "PositiveInteger", "PositiveInteger", "PositiveInteger"]
-
-class EnableFogOfWar(EventCommand):
-    nid = 'enable_fog_of_war'
-    tag = Tags.LEVEL_VARS
-
-    desc = \
-        """
-Activates or deactivates base level of fog of war. Does not affect presence of fog or vision regions
+Activates or deactivates convoy access.
         """
 
     keywords = ["Activated"]
@@ -875,6 +862,31 @@ checked to see the turnwheel option in your menu.
 
     keywords = ["Activated"]
     keyword_types = ['Bool']
+
+class EnableFogOfWar(EventCommand):
+    nid = 'enable_fog_of_war'
+    tag = Tags.LEVEL_VARS
+
+    desc = \
+        """
+Activates or deactivates base level of fog of war. Does not affect presence of fog or vision regions
+        """
+
+    keywords = ["Activated"]
+    keyword_types = ['Bool']
+
+class SetFogOfWar(EventCommand):
+    nid = 'set_fog_of_war'
+    tag = Tags.LEVEL_VARS
+
+    desc = \
+        """
+Sets the fog of war state for the current level.
+        """
+
+    keywords = ["FogOfWarType", "Radius"]
+    optional_keywords = ["AIRadius", "OtherRadius"]
+    keyword_types = ["FogOfWarType", "PositiveInteger", "PositiveInteger", "PositiveInteger"]
 
 class EndTurn(EventCommand):
     nid = 'end_turn'
@@ -1313,17 +1325,39 @@ class SetUnitField(EventCommand):
     tag = Tags.MODIFY_UNIT_PROPERTIES
 
     desc = \
-    """
+        """
 Set arbitrary property on _Unit_. **Note**: This cannot be used to set unit stats; if you try, you will simply set
 a property called, for example, "STR", that has nothing to do with the unit's stats. This is for enabling unit-level
 vars that are persisted across events.
 
 If the flag `increment_mode` is supplied, this will add the value to the existing value instead instead of setting it.
 Please try to avoid using `increment_mode` with non-numerical fields. That would erase your field and then nobody will be happy.
-    """
+        """
     keywords = ["Unit", "Key", "Value"]
     keyword_types = ['Unit', 'UnitField', 'String']
     _flags = ['increment_mode']
+
+class SetUnitNote(EventCommand):
+    nid = 'set_unit_note'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Add or modify a note on _Unit_. These notes appear in the info menu when enabled in the Constants editor.
+        """
+    keywords = ["Unit", "Key", "Value"]
+    keyword_types = ['Unit', 'String', 'String']
+
+class RemoveUnitNote(EventCommand):
+    nid = 'remove_unit_note'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Remove a note from _Unit_. These notes appear in the info menu when enabled in the Constants editor.
+        """
+    keywords = ["Unit", "Key"]
+    keyword_types = ['Unit', 'String']
 
 class Resurrect(EventCommand):
     nid = 'resurrect'
@@ -2300,7 +2334,7 @@ Adds *Item* to the list of purchaseable goods in the base's market. If the optio
 
     keywords = ["Item"]
     optional_keywords = ["Stock"]
-    keywords_types = ["Item", "WholeNumber"]
+    keyword_types = ["Item", "Integer"]
 
 class RemoveMarketItem(EventCommand):
     nid = 'remove_market_item'
@@ -2313,7 +2347,7 @@ Removes *Item* from the list of purchaseable goods in the base's market. If the 
 
     keywords = ["Item"]
     optional_keywords = ["Stock"]
-    keywords_types = ["Item", "WholeNumber"]
+    keyword_types = ["Item", "WholeNumber"]
 
 class ClearMarketItems(EventCommand):
     nid = 'clear_market_items'
@@ -2558,7 +2592,7 @@ Optional args:
         """
 
     optional_keywords = ['PickUnitsEnabled', 'Music', 'OtherOptions', 'OtherOptionsEnabled', 'OtherOptionsOnSelect']
-    keyword_types = ["Bool", "Music", "StringList", "StringList", "StringList"]
+    keyword_types = ["Bool", "Music", "StringList", "BoolList", "StringList"]
 
 
 class Base(EventCommand):
@@ -2581,7 +2615,7 @@ Flags:
 
     keywords = ["Background"]
     optional_keywords = ["Music", 'OtherOptions', 'OtherOptionsEnabled', 'OtherOptionsOnSelect']
-    keyword_types = ['Panorama', 'Music', "StringList", "StringList", "StringList"]
+    keyword_types = ['Panorama', 'Music', "StringList", "BoolList", "StringList"]
     _flags = ["show_map"]
 
 class SetCustomOptions(EventCommand):
@@ -2602,7 +2636,7 @@ Args:
 
     keywords = ["CustomOptions"]
     optional_keywords = ["CustomOptionsEnabled", "CustomOptionsDesc", "CustomOptionsOnSelect"]
-    keyword_types = ["StringList", "StringList", "StringList", "StringList"]
+    keyword_types = ["StringList", "BoolList", "StringList", "StringList"]
 
 
 class Shop(EventCommand):
@@ -2929,6 +2963,39 @@ The (*Scroll*) flag determines whether the background image will move.
     keyword_types = ['Panorama']
     _flags = ["scroll", "immediate"]
 
+class OpenTrade(EventCommand):
+    nid = 'open_trade'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Opens the trade screen for the two given units, allowing the player to trade items between them as desired.
+        """
+
+    keywords = ['Unit1', 'Unit2']
+    keyword_types = ['Unit', 'Unit']
+
+class ShowMinimap(EventCommand):
+    nid = 'show_minimap'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Opens the minimap and gives the player control over the screen until they close the minimap.
+        """
+
+class OpenAcheivements(EventCommand):
+    nid = 'open_achievements'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Opens the achivements screen with the given background.
+        """
+
+    keywords = ["Background"]
+    keyword_types = ['Panorama']
+
 class LocationCard(EventCommand):
     nid = 'location_card'
     tag = Tags.DIALOGUE_TEXT
@@ -2964,6 +3031,18 @@ Displays the epilogue text for a character. *Portrait* is the portrait to be dis
 
     keywords = ["Portrait", "Title", "Text"]
     keyword_types = ["Portrait", "String", "String"]
+
+class PairedEnding(EventCommand):
+    nid = 'paired_ending'
+    tag = Tags.DIALOGUE_TEXT
+
+    desc = \
+        """
+Displays paired epilogue text for two characters. *LeftPortrait* and *RightPortrait* are the portraits to be displayed, *LeftTitle* and *RightTitle* are the names displayed (ex: "Marcus, Badass Paladin"), the *Text* is the block of text describing what happened to the characters.
+        """
+
+    keywords = ["LeftPortrait", "RightPortrait", "LeftTitle", "RightTitle", "Text"]
+    keyword_types = ["Portrait", "Portrait", "String", "String", "String"]
 
 class PopDialog(EventCommand):
     nid = 'pop_dialog'
@@ -3313,7 +3392,7 @@ def restore_command(dat) -> EventCommand:
     else:
         return Comment(display_values=[nid + ';' + str.join(';', display_values)])
 
-evaluables = ('Expression', 'String', 'StringList', 'PointList', 'DashList', 'Nid', 'Text')
+evaluables = ('Expression', 'String', 'StringList', 'PointList', 'Nid', 'Text')
 
 ALL_EVENT_COMMANDS: Dict[NID, Type[EventCommand]] = {
     command.nid: command for command in EventCommand.__subclasses__()
@@ -3496,7 +3575,6 @@ def convert_parse(command: EventCommand, _eval_evals: Callable[[str], str] = Non
     parameters = command.parameters
     if _eval_evals:
         parameters = {k: _eval_evals(v) if isinstance(v, str) else v for k, v in parameters.items()}
-
     for keyword, value in parameters.items():
         if keyword in command.keywords:
             idx = command.keywords.index(keyword)
@@ -3507,7 +3585,7 @@ def convert_parse(command: EventCommand, _eval_evals: Callable[[str], str] = Non
             continue
         keyword_type = command.get_keyword_types()[idx]
         parameters[keyword] = convert(keyword_type, value)
-
+    parameters = {k: v for k, v in parameters.items() if (v is not None or k in command.keywords)}
     return parameters, command.chosen_flags
 
 def parse_event_line(line: str) -> EventCommandTokens:

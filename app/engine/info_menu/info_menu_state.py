@@ -4,8 +4,8 @@ from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
 from app.data.resources.resources import RESOURCES
 from app.engine import (background, combat_calcs, engine, equations, gui,
-                        help_menu, icons, image_mods, item_funcs, skill_system,
-                        text_funcs, unit_funcs)
+                        help_menu, icons, image_mods, item_funcs, item_system, 
+                        skill_system, text_funcs, unit_funcs)
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.game_menus import menu_options
 from app.engine.game_menus.icon_options import BasicItemOption, ItemOptionModes
@@ -738,7 +738,7 @@ class InfoMenuState(State):
 
     def create_equipment_surf(self):
         def create_item_option(idx, item):
-            return BasicItemOption.from_item(idx, item, width=120, mode=ItemOptionModes.FULL_USES)
+            return BasicItemOption.from_item(idx, item, width=120, mode=ItemOptionModes.FULL_USES, text_color=item_system.text_color(None, item))
 
         surf = engine.create_surface((WINWIDTH - 96, WINHEIGHT), transparent=True)
 
@@ -876,7 +876,7 @@ class InfoMenuState(State):
                 skill_counter[skill.nid] += 1
         for idx, skill in enumerate(unique_skills[:6]):
             left_pos = idx * 24
-            icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False, grey=skill_system.is_grey(skill, self.unit))
+            icons.draw_skill(surf, skill, (left_pos + 8, 8), compact=False, grey=skill_system.is_grey(skill, self.unit))
             if skill_counter[skill.nid] > 1:
                 text = str(skill_counter[skill.nid])
                 render_text(surf, ['small'], [text], ['white'], (left_pos + 20 - 4 * len(text), 6))
