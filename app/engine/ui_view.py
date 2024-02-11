@@ -219,7 +219,7 @@ class UIView():
 
     def create_unit_info(self, unit):
         font = FONT['info-grey']
-        dimensions = (112, 40)
+        dimensions = (112, 77)
         width, height = dimensions
         surf = SPRITES.get('unit_info_bg').copy()
         top, left = 4, 6
@@ -229,24 +229,23 @@ class UIView():
             portrait_nid = unit.portrait_nid
             icons.draw_chibi(surf, portrait_nid, (left + 1, top + 4))
 
-        name = unit.name
-        if unit.generic:
-            short_name = DB.classes.get(unit.klass).name
-            name = short_name + ' ' + str(unit.level)
-        pos = (left + width//2 + 6 - font.width(name)//2, top + 4)
-        font.blit(name, surf, pos)
-
         # Health text
-        surf.blit(SPRITES.get('unit_info_hp'), (left + 34, top + height - 20))
-        surf.blit(SPRITES.get('unit_info_slash'), (left + 66, top + height - 19))
+        surf.blit(SPRITES.get('unit_info_hp'), (left + 1, top + 37))
+        surf.blit(SPRITES.get('unit_info_slash'), (left + 34, top + 38))
         current_hp = unit.get_hp()
         max_hp = equations.parser.hitpoints(unit)
-        font.blit_right(str(current_hp), surf, (left + 66, top + 16))
-        font.blit_right(str(max_hp), surf, (left + 90, top + 16))
+        if current_hp > 99:
+            font.blit_right('??', surf, (left + 33, top + 33))
+        else:
+            font.blit_right(str(current_hp), surf, (left + 33, top + 33))
+        if max_hp > 99:
+            font.blit_right('??', surf, (left + 57, top + 33))
+        else:
+            font.blit_right(str(max_hp), surf, (left + 57, top + 33))
 
         # Health BG
         bg_surf = SPRITES.get('health_bar2_bg')
-        surf.blit(bg_surf, (left + 36, top + height - 10))
+        surf.blit(bg_surf, (left + 57, top + 39))
 
         # Health Bar
         hp_ratio = utils.clamp(current_hp / float(max_hp), 0, 1)
@@ -254,15 +253,27 @@ class UIView():
             hp_surf = SPRITES.get('health_bar2')
             idx = int(hp_ratio * hp_surf.get_width())
             hp_surf = engine.subsurface(hp_surf, (0, 0, idx, 2))
-            surf.blit(hp_surf, (left + 37, top + height - 9))
+            surf.blit(hp_surf, (left + 58, top + 40))
 
         # Weapon Icon
-        weapon = unit.get_weapon()
-        icon = icons.get_icon(weapon)
-        if icon:
-            pos = (left + width - 20, top + height//2 - 8)
-            # icon = item_system.item_icon_mod(unit, weapon, defender, icon)
-            surf.blit(icon, pos)
+        itNum = 0
+        for item in unit.items:
+            icon = icons.get_icon(item) 
+            if icon:
+                if item is unit.get_weapon():
+                    surf.blit(SPRITES.get('info_equipment_highlight'), (left + (itNum) * 16 + 32, top + 14))
+                pos = (left + (itNum) * 16 + 32, top + 4)
+                surf.blit(icon, pos)
+                itNum += 1
+                
+        #Name
+        name = unit.name
+        pos = (left + 49, top + 20)
+        if unit.generic:
+            short_name = DB.classes.get(unit.klass).name
+            name = short_name + ' ' + str(unit.level)
+        font.blit(name, surf, pos)
+        
         return surf
 
     def create_tile_info(self, coord):
