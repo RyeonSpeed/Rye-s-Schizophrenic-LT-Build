@@ -832,8 +832,10 @@ class InfoMenuState(State):
         surf.blit(battle_surf, (left, top))
         # Populate battle info
         surf.blit(SPRITES.get('equipment_logo'), (14, top + 4))
-        render_text(surf, ['text'], [text_funcs.translate('Rng')], ['yellow'], (78, top))
-        self.info_graph.register((96 + 78, top, 56, 16), 'Rng_desc', 'equipment')
+        #render_text(surf, ['text'], [text_funcs.translate('Rng')], ['yellow'], (78, top))
+        #self.info_graph.register((96 + 78, top, 56, 16), 'Rng_desc', 'equipment')
+        render_text(surf, ['text'], [text_funcs.translate('AS')], ['yellow'], (78, top))
+        self.info_graph.register((96 + 78, top, 56, 16), 'AS_desc', 'equipment')
         render_text(surf, ['text'], [text_funcs.translate('Atk')], ['yellow'], (22, top + 16))
         self.info_graph.register((96 + 14, top + 16, 64, 16), 'Atk_desc', 'equipment')
         render_text(surf, ['text'], [text_funcs.translate('Hit')], ['yellow'], (22, top + 32))
@@ -861,7 +863,8 @@ class InfoMenuState(State):
 
         avo = str(combat_calcs.avoid(self.unit, weapon))
         attack_speed = str(combat_calcs.attack_speed(self.unit, weapon))
-        render_text(surf, ['text'], [rng], ['blue'], (127, top), HAlignment.RIGHT)
+        #render_text(surf, ['text'], [rng], ['blue'], (127, top), HAlignment.RIGHT)
+        render_text(surf, ['text'], [attack_speed], ['blue'], (127, top), HAlignment.RIGHT)
         render_text(surf, ['text'], [dam], ['blue'], (71, top + 16), HAlignment.RIGHT)
         render_text(surf, ['text'], [acc], ['blue'], (71, top + 32), HAlignment.RIGHT)
         if DB.constants.value('crit'):
