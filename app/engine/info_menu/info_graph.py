@@ -114,19 +114,20 @@ class InfoGraph():
             self.current_bb = closest_box
             self.current_bb._page = 0
 
-    def move_left(self):
-        if self.current_bb and self.current_bb.is_multiple():
-            if self.current_bb._page > 0:
-                self.current_bb._page -= 1
-                return
-        boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[0] < self.current_bb.aabb[0]]
-        self._move(boxes, horiz=True)
-
-    def move_right(self):
+    def switch_info(self):
         if self.current_bb and self.current_bb.is_multiple():
             if self.current_bb._page < len(self.current_bb._help_box) - 1:
                 self.current_bb._page += 1
                 return
+            else:
+                self.current_bb._page = 0
+                return
+    
+    def move_left(self):
+        boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[0] < self.current_bb.aabb[0]]
+        self._move(boxes, horiz=True)
+
+    def move_right(self):
         boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[0] > self.current_bb.aabb[0]]
         self._move(boxes, horiz=True)
 

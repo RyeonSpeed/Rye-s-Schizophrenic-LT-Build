@@ -149,6 +149,10 @@ class InfoMenuState(State):
             elif 'DOWN' in directions:
                 get_sound_thread().play_sfx('Select 6')
                 self.info_graph.move_down()
+            
+            if event == 'AUX':
+                get_sound_thread().play_sfx('Select 6')
+                self.info_graph.switch_info()
 
         elif not self.transition:  # Only takes input when not transitioning
 
@@ -765,11 +769,12 @@ class InfoMenuState(State):
         help_boxes = []
         dupes = []
         for color, word in colortext_pattern.findall(some_desc):
-            lore_entry = [lore for lore in DB.lore if lore.nid not in dupes and (lore.nid == word or lore.name == word)]
+            lore_entry = [lore for lore in DB.lore if lore.nid not in dupes and (lore.nid == word or lore.name == word or word in lore.aliases.split(','))]
             if lore_entry:
                 text = lore_entry[0].text
+                name = lore_entry[0].title
                 dupes.append(lore_entry[0].nid)
-                help_boxes.append(help_menu.HelpDialog(text,'<%s>%s</>' % (color, word)))
+                help_boxes.append(help_menu.HelpDialog(text,'<%s>%s</>' % (color, name)))
         return help_boxes
 
 

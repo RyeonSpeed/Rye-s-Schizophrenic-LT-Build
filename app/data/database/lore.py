@@ -9,6 +9,7 @@ class Lore(Prefab):
     name: str = None
     title: str = None
     category: str = "Character"
+    aliases: str = ""
     text: str = ""
 
 class LoreCatalog(Data[Lore]):
