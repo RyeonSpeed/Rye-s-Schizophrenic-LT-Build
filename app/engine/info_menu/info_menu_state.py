@@ -4,7 +4,7 @@ from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
 from app.data.resources.resources import RESOURCES
 from app.engine import (background, combat_calcs, engine, equations, gui,
-                        help_menu, icons, image_mods, item_funcs, item_system, 
+                        help_menu, icons, image_mods, item_funcs, item_system,
                         skill_system, text_funcs, unit_funcs)
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.game_menus import menu_options
@@ -20,7 +20,9 @@ from app.engine.sprites import SPRITES
 from app.engine.state import State
 from app.utilities import utils
 from app.utilities.enums import HAlignment
+import re
 
+colortext_pattern = re.compile("<.*?>([^<>]*?)<\/>")
 
 class InfoMenuState(State):
     name = 'info_menu'
@@ -227,7 +229,7 @@ class InfoMenuState(State):
             self.rescuer = None
         elif len(self.scroll_units) > 1:
             index = self.scroll_units.index(self.unit)
-            new_index = (index + 1) % len(self.scroll_units)    
+            new_index = (index + 1) % len(self.scroll_units)
         else:
             return
         self.next_unit = self.scroll_units[new_index]
@@ -245,7 +247,7 @@ class InfoMenuState(State):
             index = self.scroll_units.index(self.unit)
             new_index = (index - 1) % len(self.scroll_units)
         else:
-            return        
+            return
         self.next_unit = self.scroll_units[new_index]
         if self.state == 'notes' and not (DB.constants.value('unit_notes')):
             self.state = 'personal_data'
@@ -671,7 +673,7 @@ class InfoMenuState(State):
                         counter += 1
                     if counter >= max_length:
                         break
-                
+
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'Type_desc', state)
                 render_text(surf, ['text'], [text_funcs.translate('Type')], ['yellow'], (72, 16 * true_idx + 24))
 
@@ -686,7 +688,7 @@ class InfoMenuState(State):
                 render_text(surf, ['text'], [gge], ['blue'], (111, 16 * true_idx + 24), HAlignment.RIGHT)
                 render_text(surf, ['text'], [text_funcs.translate('GAUGE')], ['yellow'], (72, 16 * true_idx + 24))
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'GAUGE_desc', state)
-                
+
             elif stat == 'TALK':
                 if (len([talk for talk in game.talk_options if talk[0] == self.unit.nid]) != 0):
                     talkee = [talk for talk in game.talk_options if talk[0] == self.unit.nid][0][1]
@@ -759,6 +761,16 @@ class InfoMenuState(State):
     def draw_wexp_surf(self, surf):
         surf.blit(self.wexp_surf, (96, 24))
 
+    def get_help_boxes(self, some_desc):
+        help_boxes = []
+        for word in colortext_pattern.findall(some_desc):
+            lore_entry = [lore for lore in DB.lore if lore.nid == word or lore.name == word]
+            if lore_entry:
+                text = lore_entry[0].text
+                help_boxes.append(help_menu.HelpDialog(text, lore_entry[0].name))
+        return help_boxes
+
+
     def create_equipment_surf(self):
         def create_item_option(idx, item):
             return BasicItemOption.from_item(idx, item, width=120, mode=ItemOptionModes.FULL_USES, text_color=item_system.text_color(None, item))
@@ -783,7 +795,8 @@ class InfoMenuState(State):
                     surf.blit(SPRITES.get('equipment_highlight'), (8, idx * 16 + 24 + 8))
                 item_option = create_item_option(idx, item)
             item_option.draw(surf, 8, idx * 16 + 24)
-            self.info_graph.register((96 + 8, idx * 16 + 24, 120, 16), item_option.get_help_box(), 'equipment', first=(idx == 0))
+            help_boxes = [item_option.get_help_box()] + self.get_help_boxes(item.desc)
+            self.info_graph.register((96 + 8, idx * 16 + 24, 120, 16), help_boxes, 'equipment', first=(idx == 0))
 
         # Blit accessories
         for idx, item in enumerate(self.unit.accessories):
@@ -803,7 +816,8 @@ class InfoMenuState(State):
                 item_option = create_item_option(aidx, item)
             item_option.draw(surf, 8, y_pos)
             first = (idx == 0 and not self.unit.nonaccessories)
-            self.info_graph.register((96 + 8, y_pos, 120, 16), item_option.get_help_box(), 'equipment', first=first)
+            help_boxes = [item_option.get_help_box()] + self.get_help_boxes(item.desc)
+            self.info_graph.register((96 + 8, y_pos, 120, 16), help_boxes, 'equipment', first=first)
 
         # Battle stats
         battle_surf = SPRITES.get('battle_info')
@@ -877,7 +891,8 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((96 + left_pos + 2, 108 + vert_pos, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+            help_boxes = [help_menu.HelpDialog(skill.desc, name=skill.name + charge)] + self.get_help_boxes(skill.desc)
+            self.info_graph.register((96 + left_pos + 2, 108 + vert_pos, 16, 16), help_boxes, 'notes')
 
         return surf
 
@@ -908,7 +923,8 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((96 + left_pos + 2, 36 + vert_pos, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+            help_boxes = [help_menu.HelpDialog(skill.desc, name=skill.name + charge)] + self.get_help_boxes(skill.desc)
+            self.info_graph.register((96 + left_pos + 2, 36 + vert_pos, 16, 16), help_boxes, 'notes')
 
         return surf
 
