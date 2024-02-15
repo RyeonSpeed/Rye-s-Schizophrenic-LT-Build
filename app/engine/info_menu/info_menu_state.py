@@ -638,7 +638,7 @@ class InfoMenuState(State):
                 #rat = str(equations.parser.rating(self.unit))
                 #render_text(surf, ['text'], [rat], ['blue'], (111, 16 * true_idx + 24), HAlignment.RIGHT)
                 # Type Symbols
-                max_length = 5
+                max_length = 8
                 counter = 0
                 for tag in self.unit.tags:
                     if tag in ['Beast', 'Horse', 'Flying', 'Armor', 'Monster', 'Infantry', 'Wyvern', 'Dragon', 'Magical']:
@@ -662,7 +662,9 @@ class InfoMenuState(State):
                             type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 144, 16, 16))
                         else:
                             type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 0, 16, 16))
-                        if counter >= 3:
+                        if counter >= 6:
+                            surf.blit(type_surf, (96 + (16 * (counter - 6)), 16 * true_idx + 56))
+                        elif counter >= 3:
                             surf.blit(type_surf, (96 + (16 * (counter - 3)), 16 * true_idx + 40))
                         else:
                             surf.blit(type_surf, (96 + (16 * counter), 16 * true_idx + 24))

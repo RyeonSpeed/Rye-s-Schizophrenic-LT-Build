@@ -268,7 +268,7 @@ class UIView():
                 
         #Name
         name = unit.name
-        pos = (left + 49, top + 20)
+        pos = (left + 32, top + 20)
         if unit.generic:
             short_name = DB.classes.get(unit.klass).name
             name = short_name + ' ' + str(unit.level)
