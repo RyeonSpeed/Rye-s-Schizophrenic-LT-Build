@@ -22,7 +22,7 @@ from app.utilities import utils
 from app.utilities.enums import HAlignment
 import re
 
-colortext_pattern = re.compile("<.*?>([^<>]*?)<\/>")
+colortext_pattern = re.compile("<(.*?)>([^<>]*?)<\/>")
 
 class InfoMenuState(State):
     name = 'info_menu'
@@ -763,11 +763,11 @@ class InfoMenuState(State):
 
     def get_help_boxes(self, some_desc):
         help_boxes = []
-        for word in colortext_pattern.findall(some_desc):
+        for color, word in colortext_pattern.findall(some_desc):
             lore_entry = [lore for lore in DB.lore if lore.nid == word or lore.name == word]
             if lore_entry:
                 text = lore_entry[0].text
-                help_boxes.append(help_menu.HelpDialog(text, lore_entry[0].name))
+                help_boxes.append(help_menu.HelpDialog(text,'<%s>%s</>' % (color, word)))
         return help_boxes
 
 
