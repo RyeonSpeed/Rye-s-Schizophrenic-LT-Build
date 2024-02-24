@@ -439,7 +439,7 @@ class ExpState(State):
         ExpState._give_skills(unit, unit_klass.learned_skills, compare, source_type=SourceType.KLASS)
         
 class LevelUpScreen():
-    bg = SPRITES.get('level_screen')
+    bg = SPRITES.get('LevelScreen2')
     bg = bg.convert_alpha()
     width = bg.get_width()
     height = bg.get_height()
@@ -453,7 +453,7 @@ class LevelUpScreen():
         self.parent = parent
         self.unit = unit
         self.stat_list = [stat_changes.get(nid, 0) for nid in DB.stats.keys()]
-        self.stat_list = self.stat_list[:8]  # Can only show first 8 stats on level up
+        self.stat_list = self.stat_list[:10]  # Can only show first 8 stats on level up
         self.old_level = old_level
         self.new_level = new_level
 
@@ -483,8 +483,8 @@ class LevelUpScreen():
         tl_offset = (0, 0)
         if absolute:
             tl_offset = self.topleft()
-        if i >= 4:
-            position = (self.width//2 + 8 + tl_offset[0], (i - 4) * 16 + 35 + tl_offset[1])
+        if i >= 5:
+            position = (self.width//2 + 8 + tl_offset[0], (i - 5) * 16 + 35 + tl_offset[1])
         else:
             position = (10 + tl_offset[0], i * 16 + 35 + tl_offset[1])
         return position
