@@ -223,7 +223,7 @@ class Armsthrift(SkillComponent):
         if self._did_something:
             if item.parent_item:
                 self.post_combat(
-                    playback, unit, item.parent_item, target, mode)
+                    playback, unit, item.parent_item, target, item2, mode)
             if (item.uses_options and item.uses_options.one_loss_per_combat()):
                 self._post_combat(unit, item)
 

@@ -1641,20 +1641,26 @@ def add_item_to_multiitem(self: Event, global_unit_or_convoy, multi_item, child_
         self.logger.error("add_item_to_muliitem: Item %s is not a multi-item!" % item.nid)
         return
     subitem_prefab = DB.items.get(child_item)
-    if not subitem_prefab:
-        self.logger.error("add_item_to_multiitem: Couldn't find item with nid %s" % child_item)
+    if not subitem_prefab and not (str_utils.is_int(child_item) and int(child_item) in self.game.item_registry):
+        self.logger.error("add_item_to_multiitem: Couldn't find item with nid or uid %s" % child_item)
         return
     if 'no_duplicate' in flags:
         children = {item.nid for item in item.subitems}
         if child_item in children:
             self.logger.info("add_item_to_multiitem: Item %s already exists on multi-item %s on unit %s" % (child_item, item.nid, unit.nid))
             return
-    # Create subitem
     owner_nid = None
-    if unit:
-        owner_nid = unit.nid
-    subitem = item_funcs.create_item(unit, subitem_prefab.nid, assign_ownership=False)
-    self.game.register_item(subitem)
+    #If we are using an item object...
+    if str_utils.is_int(child_item) and int(child_item) in self.game.item_registry:
+        subitem = self.game.get_item(int(child_item))
+        if unit:
+            owner_nid = unit.nid
+    else:
+        # Create subitem
+        if unit:
+            owner_nid = unit.nid
+        subitem = item_funcs.create_item(unit, subitem_prefab.nid, assign_ownership=False)
+        self.game.register_item(subitem)
     action.do(action.AddItemToMultiItem(owner_nid, item, subitem))
     if 'equip' in flags and owner_nid:
         if unit.can_equip(subitem):
