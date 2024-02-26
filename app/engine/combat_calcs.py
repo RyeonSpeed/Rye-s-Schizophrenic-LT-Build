@@ -502,6 +502,8 @@ def compute_damage(unit, target, item, def_item, mode, attack_info, crit=False, 
         thracia_crit = equations.parser.get(equation, unit)
         if thracia_crit:
             might += total_might * thracia_crit
+            might -= defense(unit, target, def_item, item)
+            might -= skill_system.dynamic_resist(target, resolve_weapon(target), unit, item, mode, attack_info, might)
 
     might *= skill_system.damage_multiplier(unit, item, target, resolve_weapon(target), mode, attack_info, might)
     might *= skill_system.resist_multiplier(target, resolve_weapon(target), unit, item, mode, attack_info, might)
