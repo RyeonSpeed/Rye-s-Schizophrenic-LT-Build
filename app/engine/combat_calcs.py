@@ -3,6 +3,7 @@ from app.utilities import utils
 from app.data.database.database import DB
 from app.data.database import weapons
 from app.engine import equations, item_system, item_funcs, skill_system, line_of_sight
+from app.engine.combat.utils import resolve_weapon
 
 def get_weapon_rank_bonus(unit, item):
     weapon_type = item_system.weapon_type(unit, item)
@@ -356,7 +357,7 @@ def compute_hit(unit, target, item, def_item, mode, attack_info):
         return 10000
 
     # Handles things like effective accuracy
-    hit += item_system.dynamic_accuracy(unit, item, target, mode, attack_info, hit)
+    hit += item_system.dynamic_accuracy(unit, item, target, resolve_weapon(target), mode, attack_info, hit)
 
     # Weapon Triangle
     triangle_bonus = 0
@@ -390,8 +391,8 @@ def compute_hit(unit, target, item, def_item, mode, attack_info):
 
     hit -= avoid(target, def_item, item)
 
-    hit += skill_system.dynamic_accuracy(unit, item, target, mode, attack_info, hit)
-    hit -= skill_system.dynamic_avoid(target, item, unit, mode, attack_info, hit)
+    hit += skill_system.dynamic_accuracy(unit, item, target, resolve_weapon(target), mode, attack_info, hit)
+    hit -= skill_system.dynamic_avoid(target, resolve_weapon(target), unit, item, mode, attack_info, hit)
 
     return utils.clamp(hit, 0, 100)
 
@@ -404,7 +405,7 @@ def compute_crit(unit, target, item, def_item, mode, attack_info):
         return None
 
     # Handles things like effective accuracy
-    crit += item_system.dynamic_crit_accuracy(unit, item, target, mode, attack_info, crit)
+    crit += item_system.dynamic_crit_accuracy(unit, item, target, resolve_weapon(target), mode, attack_info, crit)
 
     # Weapon Triangle
     triangle_bonus = 0
@@ -438,10 +439,10 @@ def compute_crit(unit, target, item, def_item, mode, attack_info):
 
     crit -= crit_avoid(target, def_item, item)
 
-    crit += skill_system.dynamic_crit_accuracy(unit, item, target, mode, attack_info, crit)
-    crit -= skill_system.dynamic_crit_avoid(target, item, unit, mode, attack_info, crit)
+    crit += skill_system.dynamic_crit_accuracy(unit, item, target, resolve_weapon(target), mode, attack_info, crit)
+    crit -= skill_system.dynamic_crit_avoid(target, resolve_weapon(target), unit, item, mode, attack_info, crit)
 
-    crit *= skill_system.crit_multiplier(unit, item, target, mode, attack_info, crit)
+    crit *= skill_system.crit_multiplier(unit, item, target, resolve_weapon(target), mode, attack_info, crit)
     crit = int(crit)
 
     return utils.clamp(crit, 0, 100)
@@ -455,8 +456,8 @@ def compute_damage(unit, target, item, def_item, mode, attack_info, crit=False, 
         return None
 
     # Handles things like effective damage
-    might += item_system.dynamic_damage(unit, item, target, mode, attack_info, might)
-    might += skill_system.dynamic_damage(unit, item, target, mode, attack_info, might)
+    might += item_system.dynamic_damage(unit, item, target, def_item, mode, attack_info, might)
+    might += skill_system.dynamic_damage(unit, item, target, def_item, mode, attack_info, might)
 
     # Weapon Triangle
     triangle_bonus = 0
@@ -491,7 +492,7 @@ def compute_damage(unit, target, item, def_item, mode, attack_info, crit=False, 
     total_might = might
 
     might -= defense(unit, target, def_item, item)
-    might -= skill_system.dynamic_resist(target, item, unit, mode, attack_info, might)
+    might -= skill_system.dynamic_resist(target, resolve_weapon(target), unit, item, mode, attack_info, might)
 
     if assist:
         might //= 2
@@ -516,8 +517,8 @@ def compute_damage(unit, target, item, def_item, mode, attack_info, crit=False, 
         if thracia_crit:
             might += total_might * thracia_crit
 
-    might *= skill_system.damage_multiplier(unit, item, target, mode, attack_info, might)
-    might *= skill_system.resist_multiplier(target, item, unit, mode, attack_info, might)
+    might *= skill_system.damage_multiplier(unit, item, target, resolve_weapon(target), mode, attack_info, might)
+    might *= skill_system.resist_multiplier(target, resolve_weapon(target), unit, item, mode, attack_info, might)
 
     return int(max(DB.constants.get('min_damage').value, might))
 
@@ -528,7 +529,7 @@ def compute_true_speed(unit, target, item, def_item, mode, attack_info) -> int:
     speed = attack_speed(unit, item)
 
     # Handles things like effective damage
-    speed += item_system.dynamic_attack_speed(unit, item, target, mode, attack_info, speed)
+    speed += item_system.dynamic_attack_speed(unit, item, target, resolve_weapon(target), mode, attack_info, speed)
 
     # Weapon Triangle
     triangle_bonus = 0
@@ -562,8 +563,8 @@ def compute_true_speed(unit, target, item, def_item, mode, attack_info) -> int:
 
     speed -= defense_speed(target, def_item, item)
 
-    speed += skill_system.dynamic_attack_speed(unit, item, target, mode, attack_info, speed)
-    speed -= skill_system.dynamic_defense_speed(target, item, unit, mode, attack_info, speed)
+    speed += skill_system.dynamic_attack_speed(unit, item, target, resolve_weapon(target), mode, attack_info, speed)
+    speed -= skill_system.dynamic_defense_speed(target, resolve_weapon(target), unit, item, mode, attack_info, speed)
     return speed
 
 def outspeed(unit, target, item, def_item, mode, attack_info) -> bool:
@@ -583,7 +584,7 @@ def compute_multiattacks(unit, target, item, mode, attack_info):
         return None
 
     num_attacks = 1
-    num_attacks += item_system.dynamic_multiattacks(unit, item, target, mode, attack_info, num_attacks)
-    num_attacks += skill_system.dynamic_multiattacks(unit, item, target, mode, attack_info, num_attacks)
+    num_attacks += item_system.dynamic_multiattacks(unit, item, target, resolve_weapon(target), mode, attack_info, num_attacks)
+    num_attacks += skill_system.dynamic_multiattacks(unit, item, target, resolve_weapon(target), mode, attack_info, num_attacks)
 
     return num_attacks

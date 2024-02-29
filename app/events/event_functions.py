@@ -15,7 +15,6 @@ from app.engine import (action, background, banner, base_surf, dialog, engine,
 from app.engine.achievements import ACHIEVEMENTS
 from app.engine.animations import MapAnimation
 from app.engine.combat import interaction
-from app.engine.fonts import FONT
 from app.engine.game_menus.menu_components.generic_menu.simple_menu_wrapper import \
     SimpleMenuUI
 from app.engine.graphics.text.text_renderer import rendered_text_width, text_width
@@ -26,6 +25,7 @@ from app.engine.graphics.ui_framework.premade_components.plain_text_component im
 from app.engine.graphics.ui_framework.ui_framework import UIComponent
 from app.engine.graphics.ui_framework.ui_framework_animation import \
     InterpolationType
+from app.engine import exp_funcs
 from app.engine.objects.item import ItemObject
 from app.engine.objects.region import RegionObject
 from app.engine.objects.tilemap import TileMapObject
@@ -110,12 +110,15 @@ def change_special_music(self: Event, special_music_type: str, music: SongPrefab
     elif special_music_type == 'game_over':
         action.do(action.SetGameVar('_music_game_over', music_nid))
 
-def add_portrait(self: Event, portrait, screen_position: Tuple, slide=None, expression_list: Optional[List[str]]=None, speed_mult: float=1.0, flags=None):
+def add_portrait(self: Event, portrait, screen_position: Tuple | str, slide=None, expression_list: Optional[List[str]]=None, speed_mult: float=1.0, flags=None):
     flags = flags or set()
 
     portrait_prefab, name = self._get_portrait(portrait)
     # If already present, don't add
     if name in self.portraits and not self.portraits[name].remove:
+        return False
+    if not portrait_prefab:
+        self.logger.error("add_portrait: Couldn't find portrait %s" % name)
         return False
 
     position, mirror = parse_screen_position(screen_position)
@@ -162,7 +165,7 @@ def multi_add_portrait(self: Event, portrait1, screen_position1, portrait2, scre
         commands.append(event_commands.AddPortrait({'Portrait': portrait4, 'ScreenPosition': screen_position4}, set()))
     self.command_queue += commands
 
-def remove_portrait(self: Event, portrait, speed_mult: float=1.0, flags=None):
+def remove_portrait(self: Event, portrait, speed_mult: float = 1.0, slide=None, flags=None):
     flags = flags or set()
 
     _, name = self._get_portrait(portrait)
@@ -175,7 +178,7 @@ def remove_portrait(self: Event, portrait, speed_mult: float=1.0, flags=None):
         event_portrait = self.portraits.pop(name)
     else:
         event_portrait = self.portraits[name]
-        event_portrait.end(speed_mult)
+        event_portrait.end(speed_mult, slide)
 
     if 'immediate' in flags or 'no_block' in flags or self.do_skip:
         pass
@@ -216,7 +219,7 @@ def move_portrait(self: Event, portrait, screen_position: Tuple, speed_mult: flo
         self.wait_time = engine.get_time() + event_portrait.travel_time + 66
         self.state = 'waiting'
 
-def mirror_portrait(self: Event, portrait, flags=None):
+def mirror_portrait(self: Event, portrait, speed_mult: float = 1.0, flags=None):
     flags = flags or set()
 
     _, name = self._get_portrait(portrait)
@@ -224,12 +227,15 @@ def mirror_portrait(self: Event, portrait, flags=None):
     if not event_portrait:
         return False
 
+    speed_mult_calc = 1 / max(speed_mult, 0.001)
+
     flipped_portrait = \
         EventPortrait(
             event_portrait.portrait,
             event_portrait.position,
             event_portrait.priority,
-            False, None, not event_portrait.mirror, name)
+            False, None, not event_portrait.mirror,
+            name, speed_mult=speed_mult_calc)
     if self.text_boxes and self.text_boxes[-1].portrait == event_portrait:
         self.text_boxes[-1].portrait = flipped_portrait
 
@@ -239,14 +245,14 @@ def mirror_portrait(self: Event, portrait, flags=None):
         if 'fade' in flags:
             # Removal of portrait also happens
             commands = []
-            commands.append(event_commands.RemovePortrait({'Portrait': name}, {'no_block'}))
-            command_flags = set()
+            commands.append(event_commands.RemovePortrait({'Portrait': name, 'SpeedMult': speed_mult}, {'no_block'}))
 
+            command_flags = set()
             if (not event_portrait.mirror) ^ (event_portrait.position[0] < WINWIDTH // 2):
                 command_flags.add("mirror")
             if 'no_block' in flags:
                 command_flags.add("no_block")
-            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': event_portrait.position}, command_flags))
+            commands.append(event_commands.AddPortrait({'Portrait': name, 'ScreenPosition': event_portrait.position, 'SpeedMult': speed_mult}, command_flags))
             self.command_queue += commands
         else:
             # Immediate removal followed by a transition in
@@ -289,7 +295,14 @@ def speak_style(self: Event, style: NID, speaker: NID=None, position: Alignments
         style_obj = self.game.speak_styles[style].update(style_obj)
     self.game.speak_styles[style] = style_obj
 
-def speak(self: Event, speaker_or_style: str | UnitObject | SpeakStyle, text, text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
+def say(self: Event, speaker_or_style: str, text: List[str], text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
+          font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
+          message_tail=None, transparency=None, name_tag_bg=None, flags=None):
+    joined_text = '{sub_break}'.join(text)
+    speak(self, speaker_or_style, joined_text, text_position, width, style_nid, text_speed, font_color, font_type, dialog_box, num_lines, draw_cursor,
+          message_tail, transparency, name_tag_bg, flags)
+
+def speak(self: Event, speaker_or_style: str, text, text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
           message_tail=None, transparency=None, name_tag_bg=None, flags=None):
     flags = flags or set()
@@ -317,10 +330,11 @@ def speak(self: Event, speaker_or_style: str | UnitObject | SpeakStyle, text, te
         speaker = unit.nid
     portrait = self.portraits.get(speaker)
 
-    if portrait and style.num_lines == 0: # should auto choose 1 or 2 lines
+    if style.num_lines == 0: # should auto choose 1 or 2 lines
         style.num_lines = 2
-        if '{br}' not in text and '{clear}' not in text and text_width(style.font_type, text) < WINWIDTH // 2:
-            style.num_lines = 1
+        if portrait:
+            if '{br}' not in text and '{clear}' not in text and text_width(style.font_type, text) < WINWIDTH // 2:
+                style.num_lines = 1
 
     # Process text for commands
     blocks = str_utils.matched_block_expr(text, '{', '}')
@@ -532,7 +546,8 @@ def screen_shake(self: Event, duration: int, shake_type=None, flags=None):
         self.logger.error("shake mode %s not recognized by screen shake command.", shake_type)
         return
 
-    self.game.camera.set_shake(shake_offset, duration)
+    if self.game.camera:
+        self.game.camera.set_shake(shake_offset, duration)
     if self.background:
         self.background.set_shake(shake_offset, duration)
     if 'no_block' in flags:
@@ -542,7 +557,8 @@ def screen_shake(self: Event, duration: int, shake_type=None, flags=None):
         self.state = 'waiting'
 
 def screen_shake_end(self: Event, flags=None):
-    self.game.camera.reset_shake()
+    if self.game.camera:
+        self.game.camera.reset_shake()
     if self.background:
         self.background.reset_shake()
 
@@ -1183,7 +1199,7 @@ def set_unit_note(self: Event, unit, key: str, value: str, flags=None):
         self.logger.error("set_unit_note: Couldn't find unit %s" % unit)
         return
 
-    action.do(action.SetUnitNote(actor, key, value))    
+    action.do(action.SetUnitNote(actor, key, value))
 
 def remove_unit_note(self: Event, unit, key: str, flags=None):
     actor = self._get_unit(unit)
@@ -1303,11 +1319,11 @@ def spawn_group(self: Event, group, cardinal_direction, starting_group, movement
         position = self._get_position(next_pos, unit, group, unit_nid)
         if not position:
             continue
-
         if self._add_unit_from_direction(unit, position, cardinal_direction, placement):
             if DB.constants.value('initiative'):
                 action.do(action.InsertInitiative(unit))
-            self._move_unit(movement_type, placement, follow, unit, position)
+            if unit.position != tuple(position):  # Only move unit if we aren't already there
+                self._move_unit(movement_type, placement, follow, unit, position)
         else:
             self.logger.error("spawn_group: Couldn't add unit %s to position %s" % (unit.nid, position))
 
@@ -1402,7 +1418,7 @@ def give_item(self: Event, global_unit_or_convoy, item, party=None, flags=None):
                     self.state = 'paused'
             else:
                 action.do(action.GiveItem(unit, item))
-                self.game.cursor.cur_unit = unit
+                self.game.memory['item_discard_current_unit'] = unit
                 self.game.state.change('item_discard')
                 self.state = 'paused'
                 if banner_flag:
@@ -1588,6 +1604,16 @@ def set_item_data(self: Event, global_unit_or_convoy, item, nid, expression, fla
     data_value = self._eval_expr(expression, 'from_python' in flags)
     action.do(action.SetObjData(item, nid, data_value))
 
+def set_item_droppable(self: Event, global_unit, item, droppable, flags=None):
+    flags = flags or set()
+
+    unit, item = self._get_item_in_inventory(global_unit, item)
+    if not unit or not item:
+        self.logger.error("set_item_droppable: Either unit or item was invalid, see above")
+        return
+
+    action.do(action.SetDroppable(item, droppable))
+
 def break_item(self: Event, global_unit_or_convoy, item, flags=None):
     flags = flags or set()
     global_unit = global_unit_or_convoy
@@ -1613,7 +1639,6 @@ def break_item(self: Event, global_unit_or_convoy, item, flags=None):
         self.game.alerts.append(banner.BrokenItem(unit, item))
         self.game.state.change('alert')
         self.state = 'paused'
-
 
 def change_item_name(self: Event, global_unit_or_convoy, item, string, flags=None):
     unit, item = self._get_item_in_inventory(global_unit_or_convoy, item)
@@ -1864,10 +1889,13 @@ def give_exp(self: Event, global_unit, experience: int, flags=None):
         self.logger.error("give_exp: Couldn't find unit with nid %s" % global_unit)
         return
     exp = utils.clamp(experience, -100, 100)
+    klass = DB.classes.get(unit.klass)
+    max_exp = 100 * (klass.max_level - unit.level) - unit.exp
+    exp = min(exp, max_exp)
     if 'silent' in flags:
         old_exp = unit.exp
         if old_exp + exp >= 100:
-            if unit.level < DB.classes.get(unit.klass).max_level:
+            if exp_funcs.can_give_exp(unit, exp):
                 action.do(action.GainExp(unit, exp))
                 # Since autolevel also fills current hp and current mana to max
                 # We keep track of HP to reset back
@@ -1876,14 +1904,19 @@ def give_exp(self: Event, global_unit, experience: int, flags=None):
                 action.do(action.SetHP(unit, old_hp))
                 action.do(action.SetMana(unit, old_mana))
             else:
-                action.do(action.SetExp(unit, 99))
+                self.logger.info("give_exp: Cannot raise exp of unit %s" % unit.nid)
         elif old_exp + exp < 0:
             if unit.level > 1:
                 action.do(action.SetExp(unit, 100 + old_exp + exp))
                 autolevel_to(self, global_unit, unit.level - 1)
             else:
                 action.do(action.SetExp(unit, 0))
-        else:
+        elif exp > 0:
+            if exp_funcs.can_give_exp(unit, exp):
+                action.do(action.SetExp(unit, old_exp + exp))
+            else:
+                self.logger.info("give_exp: Cannot raise exp of unit %s" % unit.nid)
+        else:  # Negative
             action.do(action.SetExp(unit, old_exp + exp))
     else:
         self.game.exp_instance.append((unit, exp, None, 'init'))
@@ -2565,14 +2598,14 @@ def remove_weather(self: Event, weather, position=None, flags=None):
     pos = self._parse_pos(position) if position else None
     action.do(action.RemoveWeather(nid, pos))
 
-def change_objective_simple(self: Event, string, flags=None):
-    action.do(action.ChangeObjective('simple', string))
+def change_objective_simple(self: Event, evaluable_string, flags=None):
+    action.do(action.ChangeObjective('simple', evaluable_string))
 
-def change_objective_win(self: Event, string, flags=None):
-    action.do(action.ChangeObjective('win', string))
+def change_objective_win(self: Event, evaluable_string, flags=None):
+    action.do(action.ChangeObjective('win', evaluable_string))
 
-def change_objective_loss(self: Event, string, flags=None):
-    action.do(action.ChangeObjective('loss', string))
+def change_objective_loss(self: Event, evaluable_string, flags=None):
+    action.do(action.ChangeObjective('loss', evaluable_string))
 
 def set_position(self: Event, position, flags=None):
     pos = self._parse_pos(position)
@@ -3410,11 +3443,11 @@ def spend_unlock(self: Event, unit, flags=None):
 
     actions, playback = [], []
     # In order to proc uses, c_uses etc.
-    item_system.start_combat(playback, unit, chosen_item, unit, None)
-    item_system.on_hit(actions, playback, unit, chosen_item, unit, self.position, None, (0, 0), True)
+    item_system.start_combat(playback, unit, chosen_item, unit, chosen_item, None)
+    item_system.on_hit(actions, playback, unit, chosen_item, unit, chosen_item, self.position, None, (0, 0), True)
     for act in actions:
         action.do(act)
-    item_system.end_combat(playback, unit, chosen_item, unit, None)
+    item_system.end_combat(playback, unit, chosen_item, unit, chosen_item, None)
 
     if unit.get_hp() <= 0:
         # Force can't die unlocking stuff, because I don't want to deal with that nonsense

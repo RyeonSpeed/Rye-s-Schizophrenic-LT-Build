@@ -9,6 +9,8 @@ from app.engine.movement import movement_funcs
 from app.engine.game_state import GameState
 from app.utilities import utils
 from app.utilities.typing import Pos
+from app.engine.combat.utils import resolve_weapon
+
 
 if TYPE_CHECKING:
     from app.engine.objects.unit import UnitObject
@@ -186,11 +188,14 @@ class TargetSystem():
         if not item_range:
             return set()
         max_range = max(item_range)
-
+        
+        manhattan_restriction = item_system.range_restrict(unit, item)
         if max_range >= 99:
             attacks = self.game.board.get_all_positions_in_bounds()
+            if manhattan_restriction:
+                x, y = unit.position
+                attacks = {(a, b) for (a, b) in attacks if (a - x, b - y) in manhattan_restriction}
         else:
-            manhattan_restriction = item_system.range_restrict(unit, item)
             attacks = self.get_shell({unit.position}, item_range, self.game.board.bounds, manhattan_restriction)
 
         # Filter away those that aren't in line of sight
@@ -236,10 +241,16 @@ class TargetSystem():
             else:
                 moves = valid_moves
 
+            manhattan_restriction = item_system.range_restrict(unit, item)
             if max_range >= 99:
                 item_attacks = self.game.board.get_all_positions_in_bounds()
+                if manhattan_restriction:
+                    attacks = set()
+                    for move in moves:
+                        x, y = move
+                        attacks |= {(a, b) for (a, b) in item_attacks if (a - x, b - y) in manhattan_restriction}
+                    item_attacks = attacks
             else:
-                manhattan_restriction = item_system.range_restrict(unit, item)
                 item_attacks = self.get_shell(moves, item_range, self.game.board.bounds, manhattan_restriction)
 
             if DB.constants.value('line_of_sight') and not item_system.ignore_line_of_sight(unit, item):
@@ -514,8 +525,8 @@ class TargetSystem():
         """This is the formula for the best choice to make when autoselecting strike partners"""
         if not allies:
             return None
-        damage = [combat_calcs.compute_assist_damage(ally, defender, ally.get_weapon(), defender.get_weapon(), mode, attack_info) for ally in allies]
-        accuracy = [utils.clamp(combat_calcs.compute_hit(ally, defender, ally.get_weapon(), defender.get_weapon(), mode, attack_info)/100., 0, 1) for ally in allies]
+        damage = [combat_calcs.compute_assist_damage(ally, defender, ally.get_weapon(), resolve_weapon(defender), mode, attack_info) for ally in allies]
+        accuracy = [utils.clamp(combat_calcs.compute_hit(ally, defender, ally.get_weapon(), resolve_weapon(defender), mode, attack_info)/100., 0, 1) for ally in allies]
         score = [dam * acc for dam, acc in zip(damage, accuracy)]
         max_score = max(score)
         max_index = score.index(max_score)

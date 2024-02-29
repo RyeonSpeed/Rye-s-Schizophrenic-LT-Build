@@ -160,7 +160,7 @@ class LostOnEndCombat2(SkillComponent):
             self.value.update(value)
         self.marked_for_delete = False
 
-    def cleanup_combat_unconditional(self, playback, unit, item, target, mode):
+    def cleanup_combat_unconditional(self, playback, unit, item, target, item2, mode):
         self.marked_for_delete = True
 
     def post_combat_unconditional(self, playback, unit, item, target, item2, mode):
