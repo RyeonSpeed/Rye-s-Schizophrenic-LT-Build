@@ -87,4 +87,6 @@ Temporary Items
 *.pyd
 
 threequel.ltproj/
+the_lost_players.ltproj/
+*.spec
 metadata.txt
