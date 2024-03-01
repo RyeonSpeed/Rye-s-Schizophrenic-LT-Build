@@ -231,7 +231,7 @@ def mirror_portrait(self: Event, portrait, speed_mult: float = 1.0, flags=None):
             event_portrait.portrait,
             event_portrait.position,
             event_portrait.priority,
-            False, None, not event_portrait.mirror, 
+            False, None, not event_portrait.mirror,
             name, speed_mult=speed_mult_calc)
     if self.text_boxes and self.text_boxes[-1].portrait == event_portrait:
         self.text_boxes[-1].portrait = flipped_portrait
@@ -1186,7 +1186,7 @@ def set_unit_note(self: Event, unit, key: str, value: str, flags=None):
         self.logger.error("set_unit_note: Couldn't find unit %s" % unit)
         return
 
-    action.do(action.SetUnitNote(actor, key, value))    
+    action.do(action.SetUnitNote(actor, key, value))
 
 def remove_unit_note(self: Event, unit, key: str, flags=None):
     actor = self._get_unit(unit)
@@ -3195,6 +3195,11 @@ def open_library(self: Event, flags=None):
             self.game.state.change('transition_to')
     else:
         self.logger.warning("open_library: Skipping opening library because there is no unlocked lore")
+
+def show_dex(self: Event, flags=None):
+    self.state = "paused"
+    self.game.memory['next_state'] = 'base_info_menu'
+    self.game.state.change('transition_to')
 
 def open_guide(self: Event, flags=None):
     flags = flags or set()
