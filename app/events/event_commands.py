@@ -3358,7 +3358,7 @@ class UnlockDifficulty(EventCommand):
     keyword_types = ['DifficultyMode']
 
 class ShowPokedex(EventCommand):
-    nid = 'show_dex'
+    nid = 'show_pokedex'
     tag = Tags.DIALOGUE_TEXT
     desc = ("Opens the national dex")
 

@@ -3196,7 +3196,7 @@ def open_library(self: Event, flags=None):
     else:
         self.logger.warning("open_library: Skipping opening library because there is no unlocked lore")
 
-def show_dex(self: Event, flags=None):
+def show_pokedex(self: Event, flags=None):
     self.state = "paused"
     self.game.memory['next_state'] = 'base_info_menu'
     self.game.state.change('transition_to')
