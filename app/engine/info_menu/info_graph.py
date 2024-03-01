@@ -48,6 +48,8 @@ class InfoGraph():
 
     def set_current_state(self, state):
         self.current_state = state
+        if state not in self.registry:
+            self.registry[state] = []
 
     def register(self, aabb, help_box: help_menu.HelpDialog, state, first=False):
         if isinstance(help_box, str):
@@ -58,6 +60,8 @@ class InfoGraph():
                 idx = len(self.registry[s])
                 self.registry[s].append(BoundingBox(idx, aabb, help_box, s, first))
         else:
+            if state not in self.registry:
+                self.registry[state] = []
             idx = len(self.registry[state])
             self.registry[state].append(BoundingBox(idx, aabb, help_box, state, first))
 
@@ -122,7 +126,7 @@ class InfoGraph():
             else:
                 self.current_bb._page = 0
                 return
-    
+
     def move_left(self):
         boxes = [bb for bb in self.registry[self.current_state] if bb.aabb[0] < self.current_bb.aabb[0]]
         self._move(boxes, horiz=True)

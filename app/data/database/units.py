@@ -44,7 +44,7 @@ class UnitPrefab(Prefab):
     def get_items(self):
         return [i[0] for i in self.starting_items]
 
-    def get_skills(self):
+    def get_skills(self) -> List[NID]:
         return [i[1] for i in self.learned_skills]
 
     def replace_item_nid(self, old_nid, new_nid):

@@ -42,7 +42,7 @@ class StateMachine():
                                 title_screen, trade, transitions, turnwheel,
                                 victory_screen)
         from app.engine.game_menus.menu_states import unit_menu_state
-        from app.engine.info_menu import info_menu_state
+        from app.engine.info_menu import info_menu_state, base_copy_info_menu
         from app.engine.overworld import overworld_states
         from app.engine.roam import free_roam_state, free_roam_rationalize
         from app.events import event_state
@@ -75,6 +75,7 @@ class StateMachine():
              'objective_menu': objective_menu.ObjectiveMenuState,
              'unit_menu': unit_menu_state.UnitMenuState,
              'info_menu': info_menu_state.InfoMenuState,
+             'base_info_menu': base_copy_info_menu.BaseCopyInfoMenu,
              'phase_change': general_states.PhaseChangeState,
              'move': general_states.MoveState,
              'movement': general_states.MovementState,
