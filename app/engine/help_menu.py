@@ -222,13 +222,14 @@ class StatDialog(HelpDialog):
 class ItemHelpDialog(HelpDialog):
     text_font: NID = 'text'
 
-    def __init__(self, item):
+    def __init__(self, item, display_name=False):
         self.last_time = self.start_time = 0
         self.transition_in = False
         self.transition_out = 0
 
         self.item = item
         self.unit = game.get_unit(item.owner_nid) if item.owner_nid else None
+        self.display_name = display_name
 
         weapon_rank = item_system.weapon_rank(self.unit, self.item)
         if not weapon_rank:
@@ -260,6 +261,10 @@ class ItemHelpDialog(HelpDialog):
             height = 48 + font_height(self.font) * len(self.lines)
         else:
             height = 32 + font_height(self.font) * len(self.lines)
+        self.v_offset = 0
+        if self.display_name:
+            height += 16
+            self.v_offset = 16
 
         self.create_dialog(self.item.desc)
 
@@ -306,8 +311,8 @@ class ItemHelpDialog(HelpDialog):
         help_surf = engine.copy_surface(self.help_surf)
         weapon_type = item_system.weapon_type(self.unit, self.item)
         if weapon_type:
-            icons.draw_weapon(help_surf, weapon_type, (8, 6))
-        render_text(help_surf, [self.text_font], [str(self.vals[0])], ['blue'], (50, 6), HAlignment.RIGHT)
+            icons.draw_weapon(help_surf, weapon_type, (8, 6 + self.v_offset))
+        render_text(help_surf, [self.text_font], [str(self.vals[0])], ['blue'], (50, 6 + self.v_offset), HAlignment.RIGHT)
 
         name_positions = [(56, 6), (106, 6), (8, 22), (56, 22), (106, 22)]
         name_positions.reverse()
@@ -316,10 +321,13 @@ class ItemHelpDialog(HelpDialog):
         names = ['Rng', 'Wt', 'Mt', 'Hit', 'Crit']
         for v, n in zip(self.vals[1:], names):
             if v is not None:
-                name_pos = name_positions.pop()
-                render_text(help_surf, [self.text_font], [n], ['yellow'], name_pos)
-                val_pos = val_positions.pop()
-                render_text(help_surf, [self.text_font], [str(v)], ['blue'], val_pos, HAlignment.RIGHT)
+                x, y = name_positions.pop()
+                render_text(help_surf, [self.text_font], [n], ['yellow'], (x, y + self.v_offset))
+                vx, vy = val_positions.pop()
+                render_text(help_surf, [self.text_font], [str(v)], ['blue'], (vx, vy + self.v_offset), HAlignment.RIGHT)
+
+        if self.display_name:
+            render_text(help_surf, ['text'], [self.item.name], ['blue'], (8, 6))
 
         if self.dlg:
             self.dlg.update()
