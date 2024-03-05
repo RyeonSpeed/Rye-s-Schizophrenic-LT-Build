@@ -36,6 +36,7 @@ CHOICE_TYPES: Dict[str, Type[IMenuOption]] = {
     'type_base_item': BasicItemOption,
     'type_game_item': BasicItemOption,
     'type_unit': BasicUnitOption,
+    'type_dex_unit': BasicUnitOption,
     'type_class': BasicKlassOption,
     'type_icon': BasicIconOption,
     'type_portrait': BasicPortraitOption,

@@ -136,6 +136,16 @@ class PlayerChoiceState(MapState):
 
         elif event == 'INFO':
             if self.data_type == 'type_unit':
+                unit = game.get_unit(self.menu.get_selected())
+                if not unit:
+                    get_sound_thread().play_sfx('Error')
+                else:
+                    all_units = [game.get_unit(unid) for unid in self._resolved_data if game.get_unit(unid)]
+                    game.memory['scroll_units'] = all_units
+                    game.memory['current_unit'] = unit
+                    game.memory['next_state'] = 'info_menu'
+                    game.state.change('transition_to')
+            elif self.data_type == 'type_dex_unit':
                 unit = self.menu.get_selected()
                 if not unit:
                     get_sound_thread().play_sfx('Error')

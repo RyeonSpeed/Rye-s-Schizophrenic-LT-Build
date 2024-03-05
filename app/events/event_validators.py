@@ -657,7 +657,7 @@ class ShopFlavor(Validator):
         return valids
 
 class TableEntryType(OptionValidator):
-    valid = ['type_skill', 'type_base_item', 'type_game_item', 'type_unit', 'type_class', 'type_icon', 'type_portrait', 'type_chibi']
+    valid = ['type_skill', 'type_base_item', 'type_game_item', 'type_unit', 'type_dex_unit', 'type_class', 'type_icon', 'type_portrait', 'type_chibi']
 
 class Chapter(Validator):
     desc = "accepts a chapter's nid."
