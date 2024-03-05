@@ -91,6 +91,7 @@ class BaseCopyInfoWindow():
         self.bg = background.PanoramaBackground(RESOURCES.panoramas.get('info_menu_background')).panorama.images[0]
         self.sprite = None
         self.is_hidden = is_hidden_func
+        self.mode = 'Stat'
 
     def page(self):
         return self.PAGE_ORDER[self.page_idx]
@@ -154,6 +155,9 @@ class BaseCopyInfoWindow():
                         get_sound_thread().play_sfx('Info In')
                         self.info_graph.set_transition_in()
                         self.info_flag = True
+                if event == 'AUX':
+                    get_sound_thread().play_sfx('Select 6')
+                    self.change_mode()
         return False
 
     def scroll_right(self):
@@ -163,6 +167,13 @@ class BaseCopyInfoWindow():
     def scroll_left(self):
         self.page_idx = (self.page_idx - 1) % len(self.PAGE_ORDER)
         self.info_graph.set_current_state(self.page())
+    
+    def change_mode(self):
+        if self.mode == 'Stat':
+            self.mode = 'Growth'
+        else:
+            self.mode = 'Stat'
+        self.create_detail_surf.cache_clear()
 
     def update(self):
         self.transition_time = max(self.transition_time - frames2ms(1), 0)
@@ -192,13 +203,20 @@ class BaseCopyInfoWindow():
         render_text(surf, ['text'], [name], ['white'], (48, 80), HAlignment.CENTER)
 
         class_obj = DB.classes.get(unit.klass)
-        klass = ' ???' if hidden else class_obj.name
-        render_text(surf, ['text'], [klass], ['white'], (8, 104))
+        klass = '???' if hidden else class_obj.name
+        render_text(surf, ['text'], [klass], ['white'], (5, 104))
+        unit_fields = {key: value for (key, value) in unit.fields}
+        creator = unit_fields['Creator'] if 'Creator' in unit_fields else '???'
+        render_text(surf, ['text'], [creator], ['white'], (5, 120))
+        if unit_nid in RECORDS.get('Available_Units'):
+            render_text(surf, ['text'], ['Recruited!'], ['green'], (5, 136))
+        else:
+            render_text(surf, ['text'], ['Not Recruited'], ['red'], (5, 136))
         # Blit affinity
         if not hidden:
             affinity = DB.affinities.get(unit.affinity)
             if affinity:
-                icons.draw_item(surf, affinity, (78, 81))
+                icons.draw_item(surf, affinity, (78, 80))
         return surf
 
     @lru_cache(16)
@@ -207,7 +225,7 @@ class BaseCopyInfoWindow():
         klass = DB.classes.get(unit_prefab.klass)
         if not self.is_hidden(unit_nid):
             if page == Page.VITAL:
-                return self.create_vital_surf(unit_prefab, klass)
+                return self.create_vital_surf(unit_prefab, klass, self.mode)
             elif page == Page.UPGRADE:
                 return self.create_upgrade_surf(unit_prefab, klass)
         return self.create_unknown_page()
@@ -215,27 +233,56 @@ class BaseCopyInfoWindow():
     def create_unknown_page(self):
         menu_size = 96, WINHEIGHT
         surf = engine.create_surface(menu_size, transparent=True)
-        render_text(surf, ['text'], ["Wouldn't you"], ['red'], (48, WINHEIGHT // 2 - 16), HAlignment.CENTER)
-        render_text(surf, ['text'], ["like to know?"], ['red'], (48, WINHEIGHT // 2), HAlignment.CENTER)
+        render_text(surf, ['text'], ["Identity"], ['red'], (48, WINHEIGHT // 2 - 16), HAlignment.CENTER)
+        render_text(surf, ['text'], ["unknown"], ['red'], (48, WINHEIGHT // 2), HAlignment.CENTER)
         return surf
 
-    def create_vital_surf(self, unit: UnitPrefab, klass: Klass) -> engine.Surface:
+    def create_vital_surf(self, unit: UnitPrefab, klass: Klass, mode='Stat') -> engine.Surface:
         menu_size = 96, WINHEIGHT
         surf = engine.create_surface(menu_size, transparent=True)
         def write(text, color, pos):
             render_text(surf, ['text'], [str(text)], [color], pos)
 
         base_stats = unit.get_stat_lists()[0]
+        base_growths = unit.get_stat_lists()[1]
         def render_stat(stat_nid: NID, pos: Point):
             num_pos = pos[0] + 24, pos[1]
             write(stat_nid, 'blue', pos)
-            write(base_stats.get(stat_nid), 'white', num_pos)
+            if mode == 'Stat':
+                write(base_stats.get(stat_nid, 0), 'white', num_pos)
+            else:
+                write(base_growths.get(stat_nid, 0), 'white', num_pos)
         write("Stat Info", "yellow", (5, 5))
-        render_stat('HP', (5, 21));  render_stat('LCK', (45, 21))
-        render_stat('STR', (5, 37)); render_stat('MAG', (45, 37))
-        render_stat('SKL', (5, 53)); render_stat('DEF', (45, 53))
-        render_stat('SPD', (5, 69)); render_stat('RES', (45, 69))
-        render_stat('CON', (5, 85)); render_stat('MOV', (45, 85))
+        render_stat('HP', (5, 21));  render_stat('LCK', (46, 21))
+        render_stat('STR', (5, 37)); render_stat('MAG', (46, 37))
+        render_stat('SKL', (5, 53)); render_stat('DEF', (46, 53))
+        render_stat('SPD', (5, 69)); render_stat('RES', (46, 69))
+        render_stat('CON', (5, 85)); render_stat('MOV', (46, 85))
+        
+        
+        unit_fields = {key: value for (key, value) in unit.fields}
+        start_weapons = unit_fields['Base_Weapons'] if 'Base_Weapons' in unit_fields else None
+        end_weapons = unit_fields['Upgrade_Weapons'] if 'Upgrade_Weapons' in unit_fields else None
+        offset = 5
+        count = 0
+        if start_weapons and end_weapons:
+            #for weapon, wexp in unit.wexp_gain.items():
+            for weapon in ['Sword','Lance','Axe','Bow','Knife','Anima','Light','Dark','Staff','Stone']:
+                if weapon in start_weapons.split(','):
+                    icons.draw_weapon(surf, weapon, (offset, 105 + (16 * (count // 5))))
+                elif weapon in end_weapons.split(','):
+                    icons.draw_icon_by_alias(surf, 'promoted_' + weapon, (offset, 105 + (16 * (count // 5))))
+                else:
+                    image = icons.get_icon_by_name(weapon)
+                    image = image_mods.make_black_colorkey(image, 0.5)
+                    surf.blit(image, (offset, 105 + (16 * (count // 5))))
+                
+                count += 1
+                if count % 5 == 0:
+                    offset = 5
+                else:
+                    offset += 16
+        
         return surf
 
     def create_upgrade_surf(self, unit: UnitPrefab, klass: Klass):
@@ -253,11 +300,27 @@ class BaseCopyInfoWindow():
             help_boxes = [help_menu.HelpDialog(skill.desc, name=skill.name)] + self.get_help_boxes(skill.desc)
             self.info_graph.register((self.DETAIL_LEFT + x + 2, y + 4, 16, 16), help_boxes, page)
         write("Base Skills", 'yellow', (5, 5))
-        for idx, skill in enumerate(unit.get_skills() + klass.get_skills()):
-            x = (idx % 6) * 24 + 5
-            y = (idx // 6) * 24 + 21
+        write("Upgrade Skills", 'yellow', (5, 72))
+        count = 0
+        for skill in unit.get_skills():
+            if 'hidden' not in [c.nid for c in DB.skills.get(skill).components]:
+                x = (count % 4) * 24 + 1
+                y = (count // 4) * 24 + 21
+                add_skill(skill, (x, y))
+                count += 1
+        upgraded_skills = self.get_upgrade_skills(self.curr_unit_nid)
+        for idx, skill in enumerate(upgraded_skills):
+            x = (idx % 4) * 24 + 1
+            y = (idx // 4) * 24 + 93
             add_skill(skill, (x, y))
         return surf
+    
+    def get_upgrade_skills(self, unit_nid):
+        upgrade_skills = []
+        raw_set = [x for x in game.get_data('Character_Upgrades') if x.unit_nid == unit_nid and x.upgrade_type == 'Skill']
+        for y in raw_set:
+            upgrade_skills.append(y.value_1)
+        return upgrade_skills
 
     def expand(self):
         if self.state == 'inactive':
@@ -346,8 +409,10 @@ class BaseCopyInfoMenu(State):
     def is_hidden(self, unit_nid: NID):
         if unit_nid == self.initial_unit:
             return False
-        if RECORDS.get('Seen_Units'):
-            return unit_nid not in RECORDS.get('Seen_Units')
+        if RECORDS.get('Available_Units') and unit_nid in RECORDS.get('Available_Units'):
+            return False
+        if RECORDS.get('Seen_Units') and unit_nid in RECORDS.get('Seen_Units'):
+            return False
         return True
 
     def back(self):
