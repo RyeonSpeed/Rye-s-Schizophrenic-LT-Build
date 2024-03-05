@@ -149,7 +149,7 @@ class InfoMenuState(State):
             elif 'DOWN' in directions:
                 get_sound_thread().play_sfx('Select 6')
                 self.info_graph.move_down()
-            
+
             if event == 'AUX':
                 get_sound_thread().play_sfx('Select 6')
                 self.info_graph.switch_info()
@@ -771,11 +771,28 @@ class InfoMenuState(State):
         help_boxes = []
         dupes = []
         for color, word in colortext_pattern.findall(some_desc):
-            lore_entry = [lore for lore in DB.lore if lore.nid not in dupes and (lore.nid == word or lore.name == word or word in lore.aliases.split(','))]
-            if lore_entry:
-                text = lore_entry[0].text
-                name = lore_entry[0].title
-                dupes.append(lore_entry[0].nid)
+            text = ''
+            name = ''
+            nid = ''
+            if color in ('green', 'brown'):
+                lore_entry = [lore for lore in DB.lore if lore.nid not in dupes and (lore.nid == word or lore.name == word or word in lore.aliases.split(','))]
+                if lore_entry:
+                    text = lore_entry[0].text
+                    name = lore_entry[0].title
+                    nid = lore_entry[0].nid
+            elif color in ('red', 'indigo'):
+                item_entry = [item for item in DB.items if item.nid not in dupes and (item.nid == word or item.name == word)]
+                if item_entry:
+                    dupes.append(item_entry[0].nid)
+                    help_boxes.append(help_menu.ItemHelpDialog(item_entry[0], True))
+            elif color == 'blue':
+                skill_entry = [skill for skill in DB.skills if skill.nid not in dupes and (skill.nid == word or skill.name == word)]
+                if skill_entry:
+                    text = skill_entry[0].desc
+                    name = skill_entry[0].name
+                    nid = skill_entry[0].nid
+            if nid:
+                dupes.append(nid)
                 help_boxes.append(help_menu.HelpDialog(text,'<%s>%s</>' % (color, name)))
         return help_boxes
 
