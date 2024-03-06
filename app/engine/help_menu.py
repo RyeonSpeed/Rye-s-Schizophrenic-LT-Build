@@ -279,7 +279,7 @@ class ItemHelpDialog(HelpDialog):
                 dialog.Dialog.from_style(game.speak_styles.get('__default_help'), desc,
                                          width=160)
             y_height = 32 if self.num_present > 3 else 16
-            self.dlg.position = (0, y_height)
+            self.dlg.position = (0, y_height + self.v_offset)
         else:
             self.dlg = None
 

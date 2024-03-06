@@ -68,6 +68,8 @@ class SlidingWindowUnitList():
 
 class Page(StrEnum):
     VITAL = auto()
+    ITEMS = auto()
+    SKILL = auto()
     UPGRADE = auto()
 
 
@@ -79,7 +81,7 @@ class BaseCopyInfoWindow():
     EXPANDED_LEFT = WINWIDTH - 192
     DETAIL_LEFT = WINWIDTH - 96
 
-    PAGE_ORDER = [Page.VITAL, Page.UPGRADE]
+    PAGE_ORDER = [Page.VITAL, Page.ITEMS, Page.SKILL, Page.UPGRADE]
 
     def __init__(self, is_hidden_func) -> None:
         self.curr_unit_nid = None
@@ -102,16 +104,33 @@ class BaseCopyInfoWindow():
         self.curr_unit_nid = unit_nid
         self.sprite = load_map_sprite(DB.units.get(unit_nid))
         self.create_detail_surf.cache_clear()
-
+    
     def get_help_boxes(self, some_desc):
         help_boxes = []
         dupes = []
         for color, word in colortext_pattern.findall(some_desc):
-            lore_entry = [lore for lore in DB.lore if lore.nid not in dupes and (lore.nid == word or lore.name == word or word in lore.aliases.split(','))]
-            if lore_entry:
-                text = lore_entry[0].text
-                name = lore_entry[0].title
-                dupes.append(lore_entry[0].nid)
+            text = ''
+            name = ''
+            nid = ''
+            if color in ('green', 'brown'):
+                lore_entry = [lore for lore in DB.lore if lore.nid not in dupes and (lore.nid == word or lore.name == word or word in lore.aliases.split(','))]
+                if lore_entry:
+                    text = lore_entry[0].text
+                    name = lore_entry[0].title
+                    nid = lore_entry[0].nid
+            elif color in ('red', 'indigo'):
+                item_entry = [item for item in DB.items if item.nid not in dupes and (item.nid == word or item.name == word)]
+                if item_entry:
+                    dupes.append(item_entry[0].nid)
+                    help_boxes.append(help_menu.ItemHelpDialog(item_entry[0], True))
+            elif color == 'blue':
+                skill_entry = [skill for skill in DB.skills if skill.nid not in dupes and (skill.nid == word or skill.name == word)]
+                if skill_entry:
+                    text = skill_entry[0].desc
+                    name = skill_entry[0].name
+                    nid = skill_entry[0].nid
+            if nid:
+                dupes.append(nid)
                 help_boxes.append(help_menu.HelpDialog(text,'<%s>%s</>' % (color, name)))
         return help_boxes
 
@@ -208,7 +227,8 @@ class BaseCopyInfoWindow():
         unit_fields = {key: value for (key, value) in unit.fields}
         creator = unit_fields['Creator'] if 'Creator' in unit_fields else '???'
         render_text(surf, ['text'], [creator], ['white'], (5, 120))
-        if unit_nid in RECORDS.get('Available_Units'):
+        
+        if unit_nid in RECORDS.get('Available_Units') or (unit_nid == 'Yasukage' and RECORDS.get('yasukage_unlocked')):
             render_text(surf, ['text'], ['Recruited!'], ['green'], (5, 136))
         else:
             render_text(surf, ['text'], ['Not Recruited'], ['red'], (5, 136))
@@ -226,6 +246,10 @@ class BaseCopyInfoWindow():
         if not self.is_hidden(unit_nid):
             if page == Page.VITAL:
                 return self.create_vital_surf(unit_prefab, klass, self.mode)
+            elif page == Page.ITEMS:
+                return self.create_item_surf(unit_prefab, klass)
+            elif page == Page.SKILL:
+                return self.create_skill_surf(unit_prefab, klass)
             elif page == Page.UPGRADE:
                 return self.create_upgrade_surf(unit_prefab, klass)
         return self.create_unknown_page()
@@ -265,12 +289,12 @@ class BaseCopyInfoWindow():
         end_weapons = unit_fields['Upgrade_Weapons'] if 'Upgrade_Weapons' in unit_fields else None
         offset = 5
         count = 0
-        if start_weapons and end_weapons:
+        if start_weapons or end_weapons:
             #for weapon, wexp in unit.wexp_gain.items():
             for weapon in ['Sword','Lance','Axe','Bow','Knife','Anima','Light','Dark','Staff','Stone']:
-                if weapon in start_weapons.split(','):
+                if start_weapons and weapon in start_weapons.split(','):
                     icons.draw_weapon(surf, weapon, (offset, 105 + (16 * (count // 5))))
-                elif weapon in end_weapons.split(','):
+                elif end_weapons and weapon in end_weapons.split(','):
                     icons.draw_icon_by_alias(surf, 'promoted_' + weapon, (offset, 105 + (16 * (count // 5))))
                 else:
                     image = icons.get_icon_by_name(weapon)
@@ -285,10 +309,46 @@ class BaseCopyInfoWindow():
         
         return surf
 
-    def create_upgrade_surf(self, unit: UnitPrefab, klass: Klass):
+    def create_item_surf(self, unit: UnitPrefab, klass: Klass):
         menu_size = 96, WINHEIGHT
         surf = engine.create_surface(menu_size, transparent=True)
-        page = Page.UPGRADE
+        page = Page.ITEMS
+        def write(text, color, pos):
+            render_text(surf, ['text'], [str(text)], [color], pos)
+
+        dummy_unit = UnitObject('dummy')
+        def add_item(item_nid: NID, pos: Point):
+            x, y = pos
+            item = item_funcs.create_item(dummy_unit, item_nid, False, None, False)
+            icons.draw_item(surf, item, (x + 2, y + 4), cooldown=False)
+            help_boxes = [help_menu.ItemHelpDialog(item, True)] + self.get_help_boxes(item.desc)
+            self.info_graph.register((self.DETAIL_LEFT + x + 2, y + 4, 16, 16), help_boxes, page)
+        write("Base Items", 'yellow', (5, 5))
+        write("Upgrade Items", 'yellow', (5, 72))
+        count = 0
+        for item in unit.get_items():
+            x = (count % 4) * 24 + 1
+            y = (count // 4) * 24 + 21
+            add_item(item, (x, y))
+            count += 1
+        upgraded_items = self.get_upgrade_items(self.curr_unit_nid)
+        for idx, item in enumerate(upgraded_items):
+            x = (idx % 4) * 24 + 1
+            y = (idx // 4) * 24 + 93
+            add_item(item, (x, y))
+        return surf
+    
+    def get_upgrade_items(self, unit_nid):
+        upgrade_items = []
+        raw_set = [x for x in game.get_data('Character_Upgrades') if x.unit_nid == unit_nid and x.upgrade_type == 'Item']
+        for y in raw_set:
+            upgrade_items.append(y.value_1)
+        return upgrade_items
+
+    def create_skill_surf(self, unit: UnitPrefab, klass: Klass):
+        menu_size = 96, WINHEIGHT
+        surf = engine.create_surface(menu_size, transparent=True)
+        page = Page.SKILL
         def write(text, color, pos):
             render_text(surf, ['text'], [str(text)], [color], pos)
 
@@ -309,10 +369,13 @@ class BaseCopyInfoWindow():
                 add_skill(skill, (x, y))
                 count += 1
         upgraded_skills = self.get_upgrade_skills(self.curr_unit_nid)
-        for idx, skill in enumerate(upgraded_skills):
-            x = (idx % 4) * 24 + 1
-            y = (idx // 4) * 24 + 93
-            add_skill(skill, (x, y))
+        count2 = 0
+        for skill in upgraded_skills:
+            if 'hidden' not in [c.nid for c in DB.skills.get(skill).components]:
+                x = (count2 % 4) * 24 + 1
+                y = (count2 // 4) * 24 + 93
+                add_skill(skill, (x, y))
+                count2 += 1
         return surf
     
     def get_upgrade_skills(self, unit_nid):
@@ -321,6 +384,28 @@ class BaseCopyInfoWindow():
         for y in raw_set:
             upgrade_skills.append(y.value_1)
         return upgrade_skills
+    
+    def create_upgrade_surf(self, unit: UnitPrefab, klass: Klass):
+        menu_size = 96, WINHEIGHT
+        surf = engine.create_surface(menu_size, transparent=True)
+        page = Page.UPGRADE
+        def write(text, color, pos):
+            render_text(surf, ['text'], [str(text)], [color], pos)
+        def write_narrow(text, color, pos):
+            render_text(surf, ['narrow'], [str(text)], [color], pos)
+        
+        write("Upgrades", "yellow", (5, 5))
+        ms_icon = icons.get_icon_by_name('Master_Seal')
+        raw_set = [x for x in game.get_data('Character_Upgrades') if x.unit_nid == unit.nid]
+        for offset, y in enumerate(raw_set):
+            write_narrow(y.upgrade_name, 'white', (5, 21 + (16 * offset)))
+            surf.blit(ms_icon, (66, 21 + (16 * offset)))
+            if RECORDS.get(y.nid):
+                write_narrow('B', 'green', (82, 21 + (16 * offset)))
+            else:
+                write_narrow('x' + y.cost, 'red', (82, 21 + (16 * offset)))
+        
+        return surf
 
     def expand(self):
         if self.state == 'inactive':
@@ -377,8 +462,10 @@ class BaseCopyInfoMenu(State):
         self.glow_timer = [utils.clamp(2 * sin(radians(i)), -1, 1) / 2 + 0.5 for i in range(0, 360, 3)]
         self.glow_idx = 0
 
-        # all_units = [unit for unit in DB.units if 'playable' in unit.tags]
-        all_units = [unit.nid for unit in DB.units if 'Playable' in unit.tags]
+        if not RECORDS.get('Density_10_Cleared'):
+            all_units = [unit.nid for unit in DB.units if 'Playable' in unit.tags and unit.nid != 'Libra_P']
+        else:
+            all_units = [unit.nid for unit in DB.units if 'Playable' in unit.tags]
         self.all_units = SlidingWindowUnitList(all_units)
         # Unit to be displayed
         self.initial_unit = game.memory.get('curr_unit_info')
@@ -405,13 +492,14 @@ class BaseCopyInfoMenu(State):
     def current_unit(self):
         return self.all_units[self.selected_idx]
 
-    # FIXME: change this
     def is_hidden(self, unit_nid: NID):
         if unit_nid == self.initial_unit:
             return False
         if RECORDS.get('Available_Units') and unit_nid in RECORDS.get('Available_Units'):
             return False
         if RECORDS.get('Seen_Units') and unit_nid in RECORDS.get('Seen_Units'):
+            return False
+        if RECORDS.get('yasukage_unlocked') and unit_nid == 'Yasukage':
             return False
         return True
 
@@ -478,8 +566,9 @@ class BaseCopyInfoMenu(State):
             return self.faded_unit_surf_cache[unit_nid]
         unit_prefab = DB.units.get(unit_nid)
         hidden = self.is_hidden(unit_nid)
-
-        option = BasicUnitOption.from_nid(0, unit_nid, display_value=' ???' if hidden else unit_prefab.name, text_color='grey' if hidden else 'white')
+        
+        id_num = self.all_units.index(unit_nid) + 1
+        option = BasicUnitOption.from_nid(0, unit_nid, display_value=str(id_num) + ': ???' if hidden else str(id_num) + ': ' + unit_prefab.name, text_color='grey' if hidden else 'white')
         surf = engine.create_surface((option.width(), UNIT_CHOICE_HEIGHT), True)
 
         option.draw_option(surf, 0, UNIT_CHOICE_BONUS_HEIGHT, stationary=True, darkened_icon=hidden)
@@ -528,7 +617,8 @@ class BaseCopyInfoMenu(State):
 
     def draw_active_unit(self, surf, unit_nid, point):
         hidden = self.is_hidden(unit_nid)
-        option = BasicUnitOption.from_nid(0, unit_nid, " ???" if hidden else None)
+        unit_prefab = DB.units.get(unit_nid)
+        option = BasicUnitOption.from_nid(0, unit_nid, str(self.selected_idx + 1) +  ": ???" if hidden else str(self.selected_idx + 1) + ': ' + unit_prefab.name)
         x, y = point
         option.draw_option(surf, x, y + UNIT_CHOICE_BONUS_HEIGHT, True, darkened_icon = hidden)
 
