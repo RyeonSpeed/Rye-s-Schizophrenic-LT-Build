@@ -22,10 +22,10 @@ class TerrainSkill(SkillComponent):
     desc = 'Skill is hidden and will not affect fliers'
     tag = SkillTags.ATTRIBUTE
 
-    ignore_conditional = True
+    #ignore_conditional = True
 
-    def condition(self, unit, item):
-        return not 'Flying' in unit.tags
+    #def condition(self, unit, item):
+        #return not 'Flying' in unit.tags
 
 class ClassSkill(SkillComponent):
     nid = 'class_skill'
