@@ -572,10 +572,13 @@ def outspeed(unit, target, item, def_item, mode, attack_info) -> bool:
         return 1
     if skill_system.no_double(unit):
         return 1
-
+    
+    num_attacks = 1
     speed = compute_true_speed(unit, target, item, def_item, mode, attack_info)
+    num_attacks += item_system.dynamic_multiattacks(unit, item, target, resolve_weapon(target), mode, attack_info, num_attacks)
+    num_attacks += skill_system.dynamic_multiattacks(unit, item, target, resolve_weapon(target), mode, attack_info, num_attacks)
 
-    return 2 if speed >= equations.parser.speed_to_double(unit) else 1
+    return num_attacks + 1 if speed >= equations.parser.speed_to_double(unit) else num_attacks
 
 def compute_multiattacks(unit, target, item, mode, attack_info):
     if not item:
@@ -585,4 +588,4 @@ def compute_multiattacks(unit, target, item, mode, attack_info):
     num_attacks += item_system.dynamic_multiattacks(unit, item, target, resolve_weapon(target), mode, attack_info, num_attacks)
     num_attacks += skill_system.dynamic_multiattacks(unit, item, target, resolve_weapon(target), mode, attack_info, num_attacks)
 
-    return num_attacks
+    return 1
