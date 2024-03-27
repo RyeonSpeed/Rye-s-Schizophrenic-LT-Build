@@ -192,6 +192,44 @@ Example usage:
             bool: True if unit has skill, else false
         """
         return bool(self.get_skill(unit, skill))
+    
+    @categorize(QueryType.SKILL)
+    def get_charge(self, unit, skill) -> int:
+        """Returns a skill object's current charge.
+
+        Args:
+            unit: unit in question
+            skill: nid of skill
+
+        Returns:
+            Number of charges if there are charges, else 0
+        """
+        unit = self._resolve_to_unit(unit)
+        skill = self._resolve_to_nid(skill)
+        if unit:
+            for sk in reversed(unit.all_skills):
+                if sk.nid == skill and sk.data.get['charge']:
+                    return sk.data.get['charge']
+        return 0
+    
+    @categorize(QueryType.SKILL)
+    def get_total_charge(self, unit, skill) -> int:
+        """Returns a skill object's total charge.
+
+        Args:
+            unit: unit in question
+            skill: nid of skill
+
+        Returns:
+            Number of max charge if there are charges, else 0
+        """
+        unit = self._resolve_to_unit(unit)
+        skill = self._resolve_to_nid(skill)
+        if unit:
+            for sk in reversed(unit.all_skills):
+                if sk.nid == skill and sk.data.get['total_charge']:
+                    return sk.data.get['total_charge']
+        return 0
 
     @categorize(QueryType.CLASS)
     def get_klass(self, unit) -> Optional[Klass]:
