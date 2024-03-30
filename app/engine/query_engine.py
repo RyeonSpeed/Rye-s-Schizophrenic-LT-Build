@@ -208,8 +208,8 @@ Example usage:
         skill = self._resolve_to_nid(skill)
         if unit:
             for sk in reversed(unit.all_skills):
-                if sk.nid == skill and sk.data.get['charge']:
-                    return sk.data.get['charge']
+                if sk.nid == skill and sk.data.get('charge'):
+                    return sk.data.get('charge')
         return 0
     
     @categorize(QueryType.SKILL)
@@ -227,8 +227,8 @@ Example usage:
         skill = self._resolve_to_nid(skill)
         if unit:
             for sk in reversed(unit.all_skills):
-                if sk.nid == skill and sk.data.get['total_charge']:
-                    return sk.data.get['total_charge']
+                if sk.nid == skill and sk.data.get('total_charge'):
+                    return sk.data.get('total_charge')
         return 0
 
     @categorize(QueryType.CLASS)
