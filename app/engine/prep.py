@@ -536,12 +536,15 @@ class PrepManageState(State):
 
         if event == 'SELECT':
             unit = self.menu.get_current()
-            game.memory['current_unit'] = unit
-            if self.name == 'base_manage':
-                game.state.change('base_manage_select')
+            if not 'Temporary' in unit.tags:
+                game.memory['current_unit'] = unit
+                if self.name == 'base_manage':
+                    game.state.change('base_manage_select')
+                else:
+                    game.state.change('prep_manage_select')
+                get_sound_thread().play_sfx('Select 1')
             else:
-                game.state.change('prep_manage_select')
-            get_sound_thread().play_sfx('Select 1')
+                get_sound_thread().play_sfx('Error')
         elif event == 'BACK':
             game.state.change('transition_pop')
             get_sound_thread().play_sfx('Select 4')
@@ -646,6 +649,8 @@ class PrepManageSelectState(State):
                 ignore[2] = False  # Give all
             if any(convoy_funcs.can_restock(item) for item in tradeable_items):
                 ignore[1] = False  # Restock
+            if 'Temporary' in self.unit.tags:
+                ignore[4] = True  # Disable convoy access for temp units
         else:  # Handle Use
             if any((item_funcs.can_be_used_in_base(self.unit, item) for item in self.unit.items)):
                 ignore[4] = False
@@ -762,10 +767,13 @@ class PrepTradeSelectState(State):
 
         if event == 'SELECT':
             unit2 = self.menu.get_current()
-            game.memory['unit1'] = self.unit
-            game.memory['unit2'] = unit2
-            game.memory['next_state'] = 'prep_trade'
-            game.state.change('transition_to')
+            if not 'Temporary' in unit2.tags:
+                game.memory['unit1'] = self.unit
+                game.memory['unit2'] = unit2
+                game.memory['next_state'] = 'prep_trade'
+                game.state.change('transition_to')
+            else:
+                get_sound_thread().play_sfx('Error')
 
         elif event == 'BACK':
             get_sound_thread().play_sfx('Select 4')
