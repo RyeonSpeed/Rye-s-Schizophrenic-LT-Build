@@ -1,7 +1,7 @@
 import os, shutil, glob, re
 from datetime import datetime
 from typing import Optional
-import threading
+# import threading
 
 try:
     import cPickle as pickle
@@ -101,15 +101,26 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
         # Then rename it to restart file
         if meta_dict['kind'] == 'start':
             if save_loc != r_save:
-                shutil.copy(save_loc, r_save)
-                shutil.copy(meta_loc, r_save_meta)
+                try:
+                    shutil.copy(save_loc, r_save)
+                except shutil.SameFileError:
+                    pass
+                try:
+                    shutil.copy(meta_loc, r_save_meta)
+                except shutil.SameFileError:
+                    pass
         elif old_slot is not None:
             old_name = 'saves/' + GAME_NID() + '-restart' + str(old_slot) + '.p'
             old_name_meta = old_name + 'meta'
             if old_name != r_save and os.path.exists(old_name):
-                shutil.copy(old_name, r_save)
-                shutil.copy(old_name_meta, r_save_meta)
-
+                try:
+                    shutil.copy(old_name, r_save)
+                except shutil.SameFileError:
+                    pass
+                try:
+                    shutil.copy(old_name_meta, r_save_meta)
+                except shutil.SameFileError:
+                    pass
     # For preload
     if meta_dict['kind'] == 'start':
         preload_saves = glob.glob('saves/' + GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-*.p')
@@ -117,9 +128,14 @@ def save_io(s_dict, meta_dict, old_slot, slot, force_loc=None, name=None):
         unique_nid = str(str_utils.get_next_int('0', nids))
         preload_save = 'saves/' + GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.p'
         preload_save_meta = 'saves/' + GAME_NID() + '-preload-' + str(meta_dict['level_nid']) + '-' + unique_nid + '.pmeta'
-
-        shutil.copy(save_loc, preload_save)
-        shutil.copy(meta_loc, preload_save_meta)
+        try:
+            shutil.copy(save_loc, preload_save)
+        except shutil.SameFileError:
+            pass
+        try:
+            shutil.copy(meta_loc, preload_save_meta)
+        except shutil.SameFileError:
+            pass
 
 def suspend_game(game_state, kind, slot: int = None, name=None):
     """
@@ -140,9 +156,10 @@ def suspend_game(game_state, kind, slot: int = None, name=None):
     else:
         force_loc = None
 
-    global SAVE_THREAD
-    SAVE_THREAD = threading.Thread(target=save_io, args=(s_dict, meta_dict, old_save_slot, slot, force_loc, name))
-    SAVE_THREAD.start()
+    # global SAVE_THREAD
+    # SAVE_THREAD = threading.Thread(target=save_io, args=(s_dict, meta_dict, old_save_slot, slot, force_loc, name))
+    # SAVE_THREAD.start()
+    save_io(*(s_dict, meta_dict, old_save_slot, slot, force_loc, name))
 
 def load_game(game_state, save_slot: SaveSlot):
     """
