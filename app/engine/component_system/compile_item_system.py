@@ -67,6 +67,7 @@ ITEM_HOOKS: Dict[str, HookInfo] = {
     'modify_avoid':                                    HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_ACCUM),
     'modify_crit_accuracy':                            HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_ACCUM),
     'modify_crit_avoid':                               HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_ACCUM),
+    'modify_crit_addition':                            HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_ACCUM),
     'modify_attack_speed':                             HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_ACCUM),
     'modify_defense_speed':                            HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_ACCUM),
     'modify_weapon_triangle':                          HookInfo(['unit', 'item'], ResolvePolicy.NUMERIC_MULTIPLY, has_default_value=True),
