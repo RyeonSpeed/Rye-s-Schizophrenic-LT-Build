@@ -85,4 +85,5 @@ Temporary Items
 # Cython compilation results
 *.c
 *.pyd
-
+*.spec
+metadata.txt
