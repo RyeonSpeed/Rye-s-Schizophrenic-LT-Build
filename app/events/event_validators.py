@@ -402,7 +402,7 @@ class Music(Validator):
 
 class Sound(Validator):
     def validate(self, text, level):
-        if text in self._resources.sfx.keys():
+        if text in self._resources.sfx:
             return text
         return None
 
@@ -419,7 +419,7 @@ class SpecialMusicType(OptionValidator):
 
 class PortraitNid(Validator):
     def validate(self, text, level):
-        if text in self._resources.portraits.keys():
+        if text in self._resources.portraits:
             return text
         return None
 
@@ -431,9 +431,9 @@ class Portrait(Validator):
     desc = "can be a unit's nid, a portrait's nid, or one of (`{unit}`, `{unit1}`, `{unit2}`)."
 
     def validate(self, text, level):
-        if text in self._db.units.keys():
+        if text in self._db.units:
             return text
-        elif text in self._resources.portraits.keys():
+        elif text in self._resources.portraits:
             return text
         elif text in ('{unit}', '{unit1}', '{unit2}'):
             return text
@@ -449,7 +449,7 @@ class Portrait(Validator):
 
 class Affinity(Validator):
     def validate(self, affinity, level):
-        if affinity in self._db.affinities.keys():
+        if affinity in self._db.affinities:
             return affinity
         return None
 
@@ -459,7 +459,7 @@ class Affinity(Validator):
 
 class AI(Validator):
     def validate(self, text, level):
-        if text in self._db.ai.keys():
+        if text in self._db.ai:
             return text
         return None
 
@@ -469,7 +469,7 @@ class AI(Validator):
 
 class Team(Validator):
     def validate(self, text, level):
-        if text in self._db.teams.keys():
+        if text in self._db.teams:
             return text
         return None
 
@@ -479,7 +479,7 @@ class Team(Validator):
 
 class Tag(Validator):
     def validate(self, text, level):
-        if text in self._db.tags.keys():
+        if text in self._db.tags:
             return text
         return None
 
@@ -537,7 +537,7 @@ class Slide(OptionValidator):
 
 class Font(Validator):
     def validate(self, text, level):
-        if text in RESOURCES.fonts.keys():
+        if text in RESOURCES.fonts:
             return text
 
     def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
@@ -545,7 +545,7 @@ class Font(Validator):
 
 class FontColor(Validator):
     def validate(self, text, level):
-        if text in RESOURCES.fonts.get('convo').palettes.keys():
+        if text in RESOURCES.fonts.get('convo').palettes:
             return text
 
     # Must be done this way to delay grabbing what is valid until we've loaded in our resources
@@ -637,7 +637,7 @@ class Speaker(Validator):
 
 class Panorama(Validator):
     def validate(self, text, level):
-        if text in self._resources.panoramas.keys():
+        if text in self._resources.panoramas:
             return text
         return None
 
@@ -685,7 +685,7 @@ class Chapter(Validator):
     desc = "accepts a chapter's nid."
 
     def validate(self, text, level):
-        if text in self._db.levels.keys():
+        if text in self._db.levels:
             return text
         return None
 
@@ -706,12 +706,12 @@ class Position(Validator):
         text = text.split(',')
         if len(text) == 1:
             text = text[0]
-            if level and text in level.units.keys():
+            if level and text in level.units:
                 return text
             elif text in ('{unit}', '{unit1}', '{unit2}', '{position}'):
                 return text
             if level and level.regions:
-                if text in level.regions.keys():
+                if text in level.regions:
                     return text
             return None
         if len(text) > 2:
@@ -757,7 +757,7 @@ class FloatPosition(Validator):
         text = text.split(',')
         if len(text) == 1:
             text = text[0]
-            if level and text in level.units.keys():
+            if level and text in level.units:
                 return text
             elif text in ('{unit}', '{unit1}', '{unit2}', '{position}'):
                 return text
@@ -876,7 +876,7 @@ class StartingGroup(Validator):
 
 class UniqueUnit(Validator):
     def validate(self, text, level):
-        if text in self._db.units.keys():
+        if text in self._db.units:
             return text
         return None
 
@@ -892,7 +892,7 @@ class GlobalUnit(Validator):
             nids = [u.nid for u in level.units]
             if text in nids:
                 return text
-        if text in self._db.units.keys():
+        if text in self._db.units:
             return text
         elif text in ('{unit}', '{unit1}', '{unit2}'):
             return True
@@ -915,7 +915,7 @@ class GlobalUnitOrConvoy(Validator):
                 return text
         if text.lower() == 'convoy':
             return text
-        elif text in self._db.units.keys():
+        elif text in self._db.units:
             return text
         elif text in ('{unit}', '{unit1}', '{unit2}'):
             return True
@@ -1007,9 +1007,9 @@ class CombatScript(SequenceValidator):
 
 class Ability(Validator):
     def validate(self, text, level):
-        if text in self._db.items.keys():
+        if text in self._db.items:
             return text
-        elif text in self._db.skills.keys():
+        elif text in self._db.skills:
             return text
         return None
 
@@ -1022,7 +1022,7 @@ class Item(Validator):
     desc = "accepts an item's nid or uid."
 
     def validate(self, text, level):
-        if text in self._db.items.keys():
+        if text in self._db.items:
             return text
         return None
 
@@ -1035,7 +1035,7 @@ class ItemList(SequenceValidator):
 
     def validate(self, text, level):
         items = self.convert(text)
-        if all(item in self._db.items.keys() for item in items):
+        if all(item in self._db.items for item in items):
             return text
         return None
 
@@ -1048,7 +1048,7 @@ class ItemComponent(Validator):
 
     def validate(self, text, level):
         from app.engine import item_component_access as ICA
-        if text in ICA.get_item_components().keys():
+        if text in ICA.get_item_components():
             return text
         return None
 
@@ -1062,7 +1062,7 @@ class SkillComponent(Validator):
 
     def validate(self, text, level):
         from app.engine import skill_component_access as SCA
-        if text in SCA.get_skill_components().keys():
+        if text in SCA.get_skill_components():
             return text
         return None
 
@@ -1081,7 +1081,7 @@ class StatList(DictValidator):
         for idx in range(len(s_l)//2):
             stat_nid = s_l[idx*2]
             stat_value = s_l[idx*2 + 1]
-            if stat_nid not in self._db.stats.keys():
+            if stat_nid not in self._db.stats:
                 return None
             elif not str_utils.is_int(stat_value):
                 return None
@@ -1100,7 +1100,7 @@ class KlassList(SequenceValidator):
     def validate(self, text, level):
         s_l = self.convert(text)
         for entry in s_l:
-            if entry not in self._db.classes.keys():
+            if entry not in self._db.classes:
                 return None
         return text
 
@@ -1113,7 +1113,7 @@ class ArgList(DictValidator):
 
 class Skill(Validator):
     def validate(self, text, level):
-        if text in self._db.skills.keys():
+        if text in self._db.skills:
             return text
         return None
 
@@ -1138,7 +1138,7 @@ class Party(Validator):
     desc = "accepts the nid of an existing Party"
 
     def validate(self, text, level):
-        if text in self._db.parties.keys():
+        if text in self._db.parties:
             return text
         return None
 
@@ -1148,7 +1148,7 @@ class Party(Validator):
 
 class Faction(Validator):
     def validate(self, text, level):
-        if text in self._db.factions.keys():
+        if text in self._db.factions:
             return text
         return None
 
@@ -1158,7 +1158,7 @@ class Faction(Validator):
 
 class Klass(Validator):
     def validate(self, text, level):
-        if text in self._db.classes.keys():
+        if text in self._db.classes:
             return text
         return None
 
@@ -1168,7 +1168,7 @@ class Klass(Validator):
 
 class Lore(Validator):
     def validate(self, text, level):
-        if text in self._db.lore.keys():
+        if text in self._db.lore:
             return text
         return None
 
@@ -1178,7 +1178,7 @@ class Lore(Validator):
 
 class WeaponType(Validator):
     def validate(self, text, level):
-        if text in self._db.weapons.keys():
+        if text in self._db.weapons:
             return text
         return None
 
@@ -1188,7 +1188,7 @@ class WeaponType(Validator):
 
 class SupportRank(Validator):
     def validate(self, text, level):
-        if text in self._db.support_ranks.keys():
+        if text in self._db.support_ranks:
             return text
         return None
 
@@ -1200,7 +1200,7 @@ class Layer(Validator):
     def validate(self, text, level):
         if level:
             tilemap_prefab = self._resources.tilemaps.get(level.tilemap)
-            if text in tilemap_prefab.layers.keys():
+            if text in tilemap_prefab.layers:
                 return text
         return None
 
@@ -1217,7 +1217,7 @@ class LayerTransition(OptionValidator):
 
 class MapAnim(Validator):
     def validate(self, text, level):
-        if text in self._resources.animations.keys():
+        if text in self._resources.animations:
             return text
         return None
 
@@ -1227,7 +1227,7 @@ class MapAnim(Validator):
 
 class Tilemap(Validator):
     def validate(self, text, level):
-        if text in self._resources.tilemaps.keys():
+        if text in self._resources.tilemaps:
             return text
         return None
 
@@ -1339,19 +1339,19 @@ class Sprite(Validator):
     desc = 'accepts the filename of any sprite resource in the project.'
 
     def validate(self, text: NID, level: NID):
-        if text in SPRITES.keys():
+        if text in SPRITES:
             return text
         return None
 
     def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
-        valids = [(sprite_name, sprite_name) for sprite_name in SPRITES.keys()]
+        valids = [(sprite_name, sprite_name) for sprite_name in SPRITES]
         return valids
 
 class MaybeSprite(Validator):
     desc = 'accepts the name of any sprite resource in the project, or None'
 
     def validate(self, text: NID, level: NID):
-        if text in SPRITES.keys():
+        if text in SPRITES:
             return text
         if text == 'None':
             return text
@@ -1366,7 +1366,7 @@ class DifficultyMode(Validator):
     desc = 'accepts the nid of a difficulty mode.'
 
     def validate(self, text, level):
-        if text in self._db.difficulty_modes.keys():
+        if text in self._db.difficulty_modes:
             return text
         return None
 

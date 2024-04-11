@@ -620,7 +620,7 @@ class UIView():
         # Attacker Item
         icon = icons.get_icon(weapon)
         if icon:
-            icon = item_system.item_icon_mod(attacker, weapon, defender, icon)
+            icon = item_system.item_icon_mod(attacker, weapon, defender, defender.get_weapon(), icon)
             surf.blit(icon, (topleft[0] + 26, topleft[1] + 4))
 
         # Defender Item
@@ -628,7 +628,7 @@ class UIView():
             eweapon = defender.get_weapon()
             icon = icons.get_icon(eweapon)
             if icon:
-                icon = item_system.item_icon_mod(defender, eweapon, attacker, icon)
+                icon = item_system.item_icon_mod(defender, eweapon, attacker, weapon, icon)
                 y_pos = topleft[1] + 83
                 if not crit_flag:
                     y_pos -= 16
@@ -827,7 +827,7 @@ class UIView():
 
         icon = icons.get_icon(spell)
         if icon:
-            icon = item_system.item_icon_mod(attacker, spell, defender, icon)
+            icon = item_system.item_icon_mod(attacker, spell, defender, defender.get_weapon(), icon)
             surf.blit(icon, (topleft[0] + 8, topleft[1] + self.spell_info_disp.get_height() - 20))
 
         # Turns off combat conditionals
