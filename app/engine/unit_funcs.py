@@ -45,6 +45,53 @@ def growth_rate(unit: UnitObject, nid: NID) -> int:
     growth = unit.growths[nid] + unit.growth_bonus(nid) + klass.growth_bonus.get(nid, 0) + difficulty_growth_bonus.get(nid, 0)
     return growth
 
+def growth_contribution(unit: UnitObject, nid: NID) -> Dict[str, int]:
+    """
+    Calculates the growth rate of a unit for a given stat and returns it individually as dict elements.
+
+    Args:
+        unit (UnitObject): The unit for which to calculate the growth rate.
+        nid (NID): The NID (Name IDentifier) of the stat.
+
+    Returns:
+        Dict[str, int]: The calculated growth rates
+    """
+    growth_rates = {}
+    klass = DB.classes.get(unit.klass)
+    base_growths = unit.growths[nid]
+    klass_growths = klass.growth_bonus.get(nid, 0)
+    if DB.constants.value('alt_growth_format'):
+        growth_rates["Base Value"] = base_growths + klass_growths
+    else:
+        growth_rates["Base Value"] = base_growths
+        if klass_growths != 0:
+            growth_rates["Class Bonus"] = klass_growths
+    difficulty_growths = game.mode.get_growth_bonus(unit, DB).get(nid, 0)
+    if difficulty_growths != 0:
+        growth_rates["Difficulty Bonus"] = difficulty_growths
+    other_growths = unit.growth_bonus(nid)
+    if other_growths != 0:
+        growth_rates["Other Bonuses"] = other_growths
+    return growth_rates
+
+def base_growth_rate(unit: UnitObject, nid: NID) -> int:
+    """
+    Calculates the base growth rate of a unit for a given stat.
+    Base growth rate can either be unit growths or unit growths + klass growths depending on DB settings.
+
+    Args:
+        unit (UnitObject): The unit for which to calculate the base growth rate.
+        nid (NID): The NID (Name IDentifier) of the stat.
+
+    Returns:
+        int: The calculated base growth rate.
+    """
+    if DB.constants.value('alt_growth_format'):
+        klass = DB.classes.get(unit.klass)
+        return unit.growths[nid] + klass.growth_bonus.get(nid, 0)
+    else:
+        return unit.growths[nid]
+
 def difficulty_growth_rate(unit: UnitObject, nid: NID) -> int:
     """
     Calculates the additional growth rate that comes from the difficulty mode for a unit for a given stat.

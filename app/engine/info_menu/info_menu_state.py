@@ -84,8 +84,8 @@ class InfoMenuState(State):
         game.state.change('transition_in')
         return 'repeat'
 
-    def reset_surfs(self):
-        self.info_graph.clear()
+    def reset_surfs(self, keep_last_info_graph_aabb=False):
+        self.info_graph.clear(keep_last_aabb=keep_last_info_graph_aabb)
         self.portrait_surf = None
         self.current_portrait = None
 
@@ -212,6 +212,7 @@ class InfoMenuState(State):
             if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
                 new_index = (new_index - 1) % len(info_states)
                 self.next_state = info_states[new_index]
+            self.info_graph.last_bb = None
             self.transition = 'LEFT'
             self.left_arrow.pulse()
             self.switch_logo(self.next_state)
@@ -225,6 +226,7 @@ class InfoMenuState(State):
             if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
                 new_index = (new_index + 1) % len(info_states)
                 self.next_state = info_states[new_index]
+            self.info_graph.last_bb = None
             self.transition = 'RIGHT'
             self.right_arrow.pulse()
             self.switch_logo(self.next_state)
@@ -319,7 +321,7 @@ class InfoMenuState(State):
                     self.scroll_offset_y = 160 if self.transition == 'DOWN' else -160
                 else:
                     self.unit = self.next_unit  # Now transition in
-                    self.reset_surfs()
+                    self.reset_surfs(keep_last_info_graph_aabb=True)
                     self.transition_counter = 0
 
         # Left and Right
@@ -582,11 +584,14 @@ class InfoMenuState(State):
             if DB.stats.get(stat_nid).growth_colors and self.unit.team == 'player':
                 color = self.growth_colors(unit_funcs.growth_rate(self.unit, stat_nid))
             render_text(surf, ['text'], [name], [color], (8, 16 * idx + 24))
-            base_value = self.unit.stats.get(stat_nid, 0)
-            subtle_stat_bonus = self.unit.subtle_stat_bonus(stat_nid)
-            base_value += subtle_stat_bonus
-            contribution = self.unit.stat_contribution(stat_nid)
-            contribution['Base Value'] = base_value
+            if growths:
+                contribution = unit_funcs.growth_contribution(self.unit, stat_nid)
+            else:
+                base_value = self.unit.stats.get(stat_nid, 0)
+                subtle_stat_bonus = self.unit.subtle_stat_bonus(stat_nid)
+                base_value += subtle_stat_bonus
+                contribution = self.unit.stat_contribution(stat_nid)
+                contribution['Base Value'] = base_value
             desc_text = curr_stat.desc
             help_box = help_menu.StatDialog(desc_text or ('%s_desc' % stat_nid), contribution)
             self.info_graph.register((96 + 8, 16 * idx + 24, 64, 16), help_box, state, first=(idx == 0))
@@ -604,9 +609,14 @@ class InfoMenuState(State):
             if DB.stats.get(stat_nid).growth_colors and self.unit.team == 'player':
                 color = self.growth_colors(unit_funcs.growth_rate(self.unit, stat_nid))
             render_text(surf, ['text'], [name], [color], (72, 16 * idx + 24))
-            base_value = self.unit.stats.get(stat_nid, 0)
-            contribution = self.unit.stat_contribution(stat_nid)
-            contribution['Base Value'] = base_value
+            if growths:
+                contribution = unit_funcs.growth_contribution(self.unit, stat_nid)
+            else:
+                base_value = self.unit.stats.get(stat_nid, 0)
+                subtle_stat_bonus = self.unit.subtle_stat_bonus(stat_nid)
+                base_value += subtle_stat_bonus
+                contribution = self.unit.stat_contribution(stat_nid)
+                contribution['Base Value'] = base_value
             desc_text = curr_stat.desc
             help_box = help_menu.StatDialog(desc_text or ('%s_desc' % stat_nid), contribution)
             self.info_graph.register((96 + 72, 16 * idx + 24, 64, 16), help_box, state)
@@ -678,7 +688,7 @@ class InfoMenuState(State):
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'MANA_desc', state)
 
             elif stat == 'GAUGE':
-                gge = str(self.unit.get_guard_gauge()) + '/' + str(self.unit.get_max_guard_gauge())
+                gge = str(self.unit.get_guard_gauge())
                 render_text(surf, ['text'], [gge], ['blue'], (111, 16 * true_idx + 24), HAlignment.RIGHT)
                 render_text(surf, ['text'], [text_funcs.translate('GAUGE')], ['yellow'], (72, 16 * true_idx + 24))
                 self.info_graph.register((96 + 72, 16 * true_idx + 24, 64, 16), 'GAUGE_desc', state)
