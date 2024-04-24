@@ -889,6 +889,7 @@ class MoveState(MapState):
                     cur_unit.wait()
             else:
                 cur_unit.sprite.change_state('normal')
+            game.events.trigger(triggers.UnitDeselect(cur_unit, cur_unit.position))
 
         elif event == 'SELECT':
             if game.cursor.position == cur_unit.position:
