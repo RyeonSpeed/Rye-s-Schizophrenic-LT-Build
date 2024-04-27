@@ -647,7 +647,7 @@ class InfoMenuState(State):
                 max_length = 8
                 counter = 0
                 for tag in self.unit.tags:
-                    if tag in ['Beast', 'Horse', 'Flying', 'Armor', 'Monster', 'Infantry', 'Wyvern', 'Dragon', 'Magical','Female']:
+                    if tag in ['Beast', 'Horse', 'Flying', 'Armor', 'Monster', 'Infantry', 'Wyvern', 'Dragon', 'Magical','Female', 'Chess', 'Mech']:
                         if tag == 'Beast':
                             type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 16, 16, 16))
                         elif tag == 'Horse':
@@ -668,6 +668,10 @@ class InfoMenuState(State):
                             type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 144, 16, 16))
                         elif tag == 'Female':
                             type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 160, 16, 16))
+                        elif tag == 'Chess':
+                            type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 176, 16, 16))
+                        elif tag == 'Mech':
+                            type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 192, 16, 16))
                         else:
                             type_surf = engine.subsurface(SPRITES.get('type_icons'), (0, 0, 16, 16))
                         if counter >= 6:
