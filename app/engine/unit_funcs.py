@@ -369,3 +369,10 @@ def get_weapon_cap(unit, weapon_type: NID) -> int:
         return cap
     else:
         return DB.weapon_ranks.get_highest_rank().requirement
+
+def get_level_cap(unit) -> int:
+    klass = DB.classes.get(unit.klass)
+    klass_cap = klass.max_level
+    game_level = game.level_cap_modifier
+    unit_level = unit.level_cap_modifier
+    return klass_cap + game_level + unit_level

@@ -62,6 +62,7 @@ class UnitObject(Prefab):
     _tags: List[str] = field(default_factory=list)
     party: NID = None
     level: int = 1
+    level_cap_modifier: int = 0
     exp: int = 0
     stats: Dict[NID, int] = field(default_factory=dict)
     growths: Dict[NID, int] = field(default_factory=dict)
@@ -162,6 +163,7 @@ class UnitObject(Prefab):
                 self.position = self.previous_position = None
         self.starting_position = self.position
         self.level = prefab.level
+        self.level_cap_modifier = 0 # Default level cap increase to 0, will not be adding to editor
 
         self.exp = 0
 

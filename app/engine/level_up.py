@@ -69,7 +69,7 @@ class ExpState(State):
         self.level_up_screen = None
 
         if not self.auto_promote:
-            max_exp = 100 * (self.unit_klass.max_level - self.old_level) - self.old_exp
+            max_exp = 100 * (unit_funcs.get_level_cap(self.unit) - self.old_level) - self.old_exp
             self.exp_gain = min(self.exp_gain, max_exp)
 
         self.total_time_for_exp = max(1, utils.frames2ms(abs(self.exp_gain)))  # 1 frame per exp
@@ -106,7 +106,7 @@ class ExpState(State):
     @staticmethod
     def can_give_exp(unit, exp: int) -> bool:
         unit_klass = DB.classes.get(unit.klass)
-        if unit.level < unit_klass.max_level:
+        if unit.level < unit_funcs.get_level_cap(unit):
             return True
         if exp < 0:
             return True
@@ -182,7 +182,7 @@ class ExpState(State):
                 get_sound_thread().stop_sfx('Experience Gain')
 
             if exp_set >= 100:
-                max_level = self.unit_klass.max_level
+                max_level = unit_funcs.get_level_cap(self.unit)
                 if self.unit.level >= max_level:  # Do I promote?
                     get_sound_thread().stop_sfx('Experience Gain')
                     if self.auto_promote:

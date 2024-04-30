@@ -63,6 +63,7 @@ class GameState():
         self.level_vars: Counter = None
         self.playtime: int = 0
         self.current_save_slot: int = None
+        self.level_cap_modifier: int = 0
 
         # global registries
         self.unit_registry: Dict[NID, UnitObject] = {}
@@ -132,6 +133,7 @@ class GameState():
         self.state = state_machine.StateMachine()
 
         self.playtime = 0
+        self.level_cap_modifier = 0
 
         self.alerts = []
         self.cursor = None
@@ -154,6 +156,7 @@ class GameState():
         from app.engine import records, supports
         logging.info("Building New Game")
         self.playtime = 0
+        self.level_cap_modifier = 0
 
         self.unit_registry = {}
         self.item_registry = {}
@@ -359,6 +362,7 @@ class GameState():
                   'overworlds': [overworld.save() for overworld in self.overworld_registry.values()],
                   'turncount': self.turncount,
                   'playtime': self.playtime,
+                  'level_cap_modifier': self.level_cap_modifier,
                   'game_vars': self.game_vars,
                   'level_vars': self.level_vars,
                   'current_mode': self.current_mode.save(),
@@ -421,6 +425,7 @@ class GameState():
         else:
             self.current_mode = self.default_mode()
         self.playtime = float(s_dict['playtime'])
+        self.level_cap_modifier = int(s_dict['level_cap_modifier'])
         self.current_party = s_dict['current_party']
         self.turncount = int(s_dict['turncount'])
 
@@ -1122,6 +1127,12 @@ class GameState():
 
     def set_bexp(self, amount):
         self.parties[self.current_party].bexp = amount
+    
+    def set_level_cap_modifier(self, val):
+        self.level_cap_modifier = val
+    
+    def change_level_cap_modifier(self, val):
+        self.level_cap_modifier += val
 
     # Random funcs
     def get_random(self, a: int, b: int) -> int:

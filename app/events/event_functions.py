@@ -1854,7 +1854,7 @@ def give_exp(self: Event, global_unit, experience: int, flags=None):
     if 'silent' in flags:
         old_exp = unit.exp
         if old_exp + exp >= 100:
-            if unit.level < DB.classes.get(unit.klass).max_level:
+            if unit.level < unit_funcs.get_level_cap(unit):
                 action.do(action.GainExp(unit, exp))
                 # Since autolevel also fills current hp and current mana to max
                 # We keep track of HP to reset back
@@ -1884,6 +1884,22 @@ def set_exp(self: Event, global_unit, experience: int, flags=None):
         return
     exp = utils.clamp(experience, 0, 100)
     action.do(action.SetExp(unit, exp))
+
+def change_unit_level_cap(self: Event, global_unit, integer: int, flags=None):
+    flags = flags or set()
+    
+    unit = self._get_unit(global_unit)
+    if not unit:
+        self.logger.error("give_wexp: Couldn't find unit with nid %s" % global_unit)
+        return
+    adjustment = integer
+    action.do(action.ChangePersonalLevelCap(unit, adjustment))
+
+def change_global_level_cap(self: Event, integer: int, flags=None):
+    flags = flags or set()
+    
+    adjustment = integer
+    action.do(action.ChangeGlobalLevelCap(adjustment))
 
 def give_wexp(self: Event, global_unit, weapon_type, integer: int, flags=None):
     flags = flags or set()

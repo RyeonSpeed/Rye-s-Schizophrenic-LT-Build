@@ -1838,6 +1838,28 @@ class SetLevel(Action):
     def reverse(self):
         self.unit.level = self.old_level
 
+class ChangePersonalLevelCap(Action):
+    def __init__(self, unit, amount):
+        self.unit = unit
+        self.old_level_cap = unit.level_cap_modifier
+        self.new_level_cap = unit.level_cap_modifier + amount
+
+    def do(self):
+        self.unit.level_cap_modifier = self.new_level_cap
+
+    def reverse(self):
+        self.unit.level_cap_modifier = self.old_level_cap
+
+class ChangeGlobalLevelCap(Action):
+    def __init__(self, amount):
+        self.old_level_cap = game.level_cap_modifier
+        self.amount = amount
+
+    def do(self):
+        game.change_level_cap_modifier(self.amount)
+
+    def reverse(self):
+        game.set_level_cap_modifier(self.old_level_cap)
 
 class AutoLevel(Action):
     def __init__(self, unit, diff, growth_method=None):

@@ -1853,6 +1853,28 @@ Sets *GlobalUnit*'s current experience to *Experience*.
     keywords = ["GlobalUnit", "Experience"]
     keyword_types = ["GlobalUnit", "WholeNumber"]
 
+class ChangeUnitLevelCap(EventCommand):
+    nid = 'change_unit_level_cap'
+    tag = Tags.MODIFY_UNIT_PROPERTIES
+
+    desc = \
+        """
+Changes *GlobalUnit*'s level cap by *Integer*.
+        """
+
+    keywords = ["GlobalUnit", "Integer"]
+
+class ChangeGlobalLevelCap(EventCommand):
+    nid = 'change_global_level_cap'
+    tag = Tags.GAME_VARS
+
+    desc = \
+        """
+Changes the current game's level cap by *Integer*.
+        """
+
+    keywords = ["Integer"]
+
 class GiveWexp(EventCommand):
     nid = 'give_wexp'
     tag = Tags.MODIFY_UNIT_PROPERTIES
