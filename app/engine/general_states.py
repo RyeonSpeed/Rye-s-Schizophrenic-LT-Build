@@ -25,8 +25,10 @@ from app.engine.selection_helper import SelectionHelper
 from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES
 from app.engine.input_manager import get_input_manager
 from app.engine.fluid_scroll import FluidScroll
-import threading
+from app.engine.graphics.text.text_renderer import render_text
+from app.utilities.enums import HAlignment
 
+import threading
 import logging
 
 class LoadingState(State):
@@ -518,8 +520,8 @@ class OptionMenuState(MapState):
             elif selection == 'Memo':
                 game.memory['next_state'] = 'objective_menu'
                 game.state.change('transition_to')
-            elif selection == 'Guide':
-                game.memory['next_state'] = 'base_guide'
+            elif selection == 'Notes':
+                game.memory['next_state'] = 'library'
                 game.state.change('transition_to')
             elif selection == 'Options':
                 game.memory['next_state'] = 'settings_menu'
@@ -623,6 +625,207 @@ class OptionChildState(State):
 
     def draw(self, surf):
         self.menu.draw(surf)
+        return surf
+        
+class LoreDisplay():
+    def __init__(self):
+        self.lore = None
+        self.topleft = (84, 4)
+        self.width = WINWIDTH - 84
+        self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT - 8, 'menu_bg_brown')
+        shimmer = SPRITES.get('menu_shimmer3')
+        self.bg_surf.blit(shimmer, (
+            self.bg_surf.get_width() - shimmer.get_width() - 1, self.bg_surf.get_height() - shimmer.get_height() - 5))
+        self.bg_surf = image_mods.make_translucent(self.bg_surf, .1)
+
+        self.left_arrow = gui.ScrollArrow('left', (self.topleft[0] + 4, 8))
+        self.right_arrow = gui.ScrollArrow('right', (self.topleft[0] + self.width - 11, 8), 0.5)
+
+        self.dialogs = []
+
+    def update_entry(self, lore_nid):
+        from app.engine import dialog
+
+        if self.lore and lore_nid == self.lore.nid:
+            return  # No need to update
+
+        self.lore = DB.lore.get(lore_nid)
+        text = self.lore.text.split('\n')
+        self.page_num = 0
+        self.dialogs.clear()
+        for idx, line in enumerate(text):
+            dlg = dialog.Dialog(text[idx], num_lines=8, draw_cursor=False)
+            dlg.position = self.topleft[0], self.topleft[1] + 12
+            dlg.text_width = WINWIDTH - 100
+            dlg.font = FONT['text']
+            dlg.font_type = 'text'
+            dlg.font_color = 'white'
+            dlg.reformat()
+            self.dialogs.append(dlg)
+        self.num_pages = len(text)
+
+    def page_right(self, first_push=False) -> bool:
+        if self.page_num < self.num_pages - 1:
+            self.page_num += 1
+            self.right_arrow.pulse()
+            return True
+        elif first_push:
+            self.page_num = (self.page_num + 1) % self.num_pages
+            self.right_arrow.pulse()
+            return True
+        return False
+
+    def page_left(self, first_push=False) -> bool:
+        if self.page_num > 0:
+            self.page_num -= 1
+            self.left_arrow.pulse()
+            return True
+        elif first_push:
+            self.page_num = (self.page_num - 1) % self.num_pages
+            self.left_arrow.pulse()
+            return True
+        return False
+
+    def draw(self, surf):
+        if self.lore:
+            image = self.bg_surf.copy()
+            if game.get_unit(self.lore.nid):
+                unit = game.get_unit(self.lore.nid)
+                icons.draw_portrait(image, unit, (self.width - 96, WINHEIGHT - 12 - 80))
+            elif self.lore.nid in DB.units:
+                portrait, offset = icons.get_portrait_from_nid(DB.units.get(self.lore.nid).portrait_nid)
+                image.blit(portrait, (self.width - 96, WINHEIGHT - 12 - 80))
+
+            render_text(image, ['text'], [self.lore.title], ['blue'], (self.width // 2, 4), HAlignment.CENTER)
+
+            if self.num_pages > 1:
+                text = '%d / %d' % (self.page_num + 1, self.num_pages)
+                render_text(image, ['text'], [text], ['yellow'], (self.width - 8, WINHEIGHT - 12 - 16), HAlignment.RIGHT)
+
+            surf.blit(image, self.topleft)
+
+            if self.dialogs and self.page_num < len(self.dialogs):
+                self.dialogs[self.page_num].update()
+                self.dialogs[self.page_num].draw(surf)
+
+            if self.num_pages > 1:
+                self.left_arrow.draw(surf)
+                self.right_arrow.draw(surf)
+
+        return surf
+        
+class LibraryState(State):
+    name = 'library'
+
+    def __init__(self, name=None):
+        super().__init__(name)
+        self.fluid = FluidScroll()
+
+    def _build_menu(self, unlocked_lore, ignore=None):
+        topleft = 4, 4
+        self.options = unlocked_lore
+        self.menu = menus.Choice(None, self.options, topleft=topleft, background='menu_bg_brown')
+        self.menu.shimmer = 3
+        self.menu.gem = 'brown'
+        self.menu.set_limit(9)
+        self.menu.set_hard_limit(True)
+        if ignore:
+            self.menu.set_ignore(ignore)
+
+    def start(self):
+        self.bg = background.create_background('rune_background')
+
+        unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore and lore.category != 'Guide']
+        sorted_lore = sorted(unlocked_lore, key=lambda x: x.category)
+        self.categories = []
+        options = []
+        ignore = []
+        for lore in sorted_lore:
+            if lore.category not in self.categories:
+                self.categories.append(lore.category)
+                options.append(lore)
+                ignore.append(True)
+            options.append(lore)
+            ignore.append(False)
+        self._build_menu(options, ignore)
+
+        self.display = LoreDisplay()
+        self.display.update_entry(self.menu.get_current().nid)
+
+        game.state.change('transition_in')
+        return 'repeat'
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        self.menu.handle_mouse()
+        if not self.display.lore or self.display.lore.nid != self.menu.get_current().nid:
+            self.display.update_entry(self.menu.get_current().nid)
+
+        if 'DOWN' in directions:
+            if self.menu.move_down(first_push):
+                get_sound_thread().play_sfx('Select 6')
+            self.display.update_entry(self.menu.get_current().nid)
+        elif 'UP' in directions:
+            if self.menu.move_up(first_push):
+                get_sound_thread().play_sfx('Select 6')
+            self.display.update_entry(self.menu.get_current().nid)
+        elif 'RIGHT' in directions:
+            if self.display.page_right():
+                get_sound_thread().play_sfx('Status_Page_Change')
+        elif 'LEFT' in directions:
+            if self.display.page_left():
+                get_sound_thread().play_sfx('Status_Page_Change')
+
+        if event == 'BACK':
+            get_sound_thread().play_sfx('Select 4')
+            game.state.change('transition_pop')
+
+        elif event == 'SELECT':
+            if self.display.page_right(True):
+                get_sound_thread().play_sfx('Status_Page_Change')
+
+        elif event == 'AUX':
+            get_sound_thread().play_sfx('Info')
+            lore = self.menu.get_current()
+            # Go to previous category
+            cidx = self.categories.index(lore.category)
+            new_category = self.categories[(cidx + 1) % len(self.categories)]
+            if new_category in self.options:
+                idx = self.options.index(new_category)
+                if len(self.option) > idx + 1:
+                    get_sound_thread().play_sfx('Info')
+                    option = self.options[idx + 1]
+                    self.display.update_entry(option.nid)
+            else:
+                pass  # Doesn't do anything if that category is not present
+
+        elif event == 'INFO':
+            lore = self.menu.get_current()
+            # Go to next category
+            cidx = self.categories.index(lore.category)
+            new_category = self.categories[(cidx - 1) % len(self.categories)]
+            if new_category in self.options:
+                idx = self.options.index(new_category)
+                if len(self.option) > idx + 1:
+                    get_sound_thread().play_sfx('Info')
+                    option = self.options[idx + 1]
+                    self.display.update_entry(option.nid)
+            else:
+                pass  # Doesn't do anything if that category is not present
+
+    def update(self):
+        if self.menu:
+            self.menu.update()
+
+    def draw(self, surf):
+        if self.bg:
+            self.bg.draw(surf)
+        if self.menu:
+            self.menu.draw(surf)
+        if self.display:
+            self.display.draw(surf)
         return surf
 
 class MoveState(MapState):
