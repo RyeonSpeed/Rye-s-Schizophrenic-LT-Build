@@ -408,17 +408,9 @@ class OptionMenuState(MapState):
         # 2: whether to gray out these options
         # 3: What event nid to call when you click this option
         """
-        options = ['Unit', 'Objective', 'Options']
-        info_desc = ['Unit_desc', 'Objective_desc', 'Options_desc']
-        ignore = [False, False, False]
-        if game.current_mode.permadeath:
-            options.append('Suspend')
-            info_desc.append('Suspend_desc')
-            ignore.append(False)
-        else:
-            options.append('Save')
-            info_desc.append('Save_desc')
-            ignore.append(False)
+        options = ['Party', 'Memo', 'Options', 'Suspend']
+        info_desc = ['Party_desc', 'Memo_desc', 'Options_desc', 'Suspend_desc']
+        ignore = [False, False, False, False]
 
         if cf.SETTINGS['fullscreen']:
             options.append('Quit Game')
@@ -430,17 +422,11 @@ class OptionMenuState(MapState):
             info_desc.append('End_desc')
             ignore.append(False)
 
-        unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore and lore.category == 'Guide']
+        unlocked_lore = [lore for lore in DB.lore if lore.nid in game.unlocked_lore]
         if unlocked_lore:
-            options.insert(2, 'Guide')
-            info_desc.insert(2, 'Guide_desc')
+            options.insert(2, 'Notes')
+            info_desc.insert(2, 'Notes_desc')
             ignore.insert(2, False)
-
-        if DB.constants.get('turnwheel').value and game.game_vars.get('_turnwheel') and \
-                not game.is_roam():
-            options.insert(1, 'Turnwheel')
-            info_desc.insert(1, 'Turnwheel_desc')
-            ignore.insert(1, False)
 
         if cf.SETTINGS['debug']:
             options.insert(0, 'Debug')
@@ -529,7 +515,7 @@ class OptionMenuState(MapState):
                 game.memory['option_owner'] = selection
                 game.memory['option_menu'] = self.menu
                 game.state.change('option_child')
-            elif selection == 'Objective':
+            elif selection == 'Memo':
                 game.memory['next_state'] = 'objective_menu'
                 game.state.change('transition_to')
             elif selection == 'Guide':
