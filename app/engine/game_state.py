@@ -415,7 +415,7 @@ class GameState():
                      }
         if self._current_level:
             meta_dict['level_nid'] = self._current_level.nid
-            meta_dict['level_title'] = self._current_level.name
+            meta_dict['level_title'] = self.game_vars.get('save_file_date') or self._current_level.name
         elif self.game_vars.get('_next_level_nid') is not None:
             fake_level = DB.levels.get(self.game_vars.get('_next_level_nid'))
             meta_dict['level_nid'] = fake_level.nid
