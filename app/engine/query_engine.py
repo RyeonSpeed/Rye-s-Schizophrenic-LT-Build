@@ -23,6 +23,7 @@ class QueryType():
     ACHIEVEMENT = 'Achievements'
     VARIABLES = 'VARIABLES'
     CLASS = 'Class'
+    OTHER = 'Other'
 
 def categorize(tag):
     def deco(func):
@@ -519,3 +520,22 @@ Example usage:
         """
         from app.engine.achievements import ACHIEVEMENTS
         return ACHIEVEMENTS.check_achievement(nid)
+
+    @categorize(QueryType.OTHER)
+    def check_pivot(self, unit_to_move, anchor_pos, magnitude):
+        from app.engine.movement import movement_funcs
+        from app.engine import equations
+        offset_x = utils.clamp(unit_to_move.position[0] - anchor_pos[0], -1, 1)
+        offset_y = utils.clamp(unit_to_move.position[1] - anchor_pos[1], -1, 1)
+        new_position = (anchor_pos[0] + offset_x * -magnitude,
+                        anchor_pos[1] + offset_y * -magnitude)
+
+        mcost = movement_funcs.get_mcost(unit_to_move, new_position)
+        #If we could pass through it if we had movement, allow the action to occur
+        if mcost != 99:
+            mcost = -999
+        if self.game.board.check_bounds(new_position) and \
+                not self.game.board.get_unit(new_position) and \
+                mcost <= equations.parser.movement(unit_to_move):
+            return new_position
+        return False

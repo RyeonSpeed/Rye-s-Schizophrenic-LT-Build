@@ -245,6 +245,12 @@ class ItemHelpDialog(HelpDialog):
         else:
             crit = None
         weight = self.item.weight.value if self.item.weight else None
+        if self.item.eval_weight:
+            from app.engine import evaluate
+            try:
+                weight = int(evaluate.evaluate(self.item.eval_weight.value, self.unit, local_args={'item': self.item}))
+            except Exception as e:
+                weight = None
         # Get range
         rng = item_funcs.get_range_string(self.unit, self.item)
 
