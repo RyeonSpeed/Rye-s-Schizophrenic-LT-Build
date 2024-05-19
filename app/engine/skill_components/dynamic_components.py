@@ -140,7 +140,7 @@ class DynamicMultiattacks(SkillComponent):
 
     def dynamic_multiattacks(self, unit, item, target, item2, mode, attack_info, base_value) -> int:
         from app.engine import evaluate
-        if 'NoMulti' in item.tags or 'NoMulti' in target.tags:
+        if 'NoMulti' in item.tags or (target and 'NoMulti' in target.tags):
             return 0
         try:
             local_args = {'item': item, 'item2': item2, 'mode': mode, 'skill': self.skill, 'attack_info': attack_info, 'base_value': base_value}
