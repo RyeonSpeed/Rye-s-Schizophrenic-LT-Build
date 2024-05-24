@@ -674,6 +674,10 @@ class AnimationCombat(BaseCombat, MockCombat):
         if not any(brush.nid in hp_brushes for brush in self.playback):
             self.current_battle_anim.resume()
 
+        # If damage is 0 and this is a damaging spell
+        if self.get_damage() <= 0 and any(brush.nid in ('damage_hit', 'damage_crit') for brush in self.playback):
+            self.no_damage()
+
     def _handle_playback(self, sound=True):
         hp_brushes = ('damage_hit', 'damage_crit', 'heal_hit')
         hit_brushes = ('defense_hit_proc', 'attack_hit_proc')
@@ -1200,6 +1204,10 @@ class AnimationCombat(BaseCombat, MockCombat):
 
         self.cleanup_combat()
 
+        self.handle_records(self.full_playback, all_units)
+
+        self.handle_combat_death(all_units)
+
         # handle wexp & skills
         if not self.attacker.is_dying:
             self.handle_wexp(self.attacker, self.main_item, self.defender)
@@ -1225,7 +1233,6 @@ class AnimationCombat(BaseCombat, MockCombat):
 
         pairs = self.handle_supports(all_units)
         self.handle_support_pairs(pairs)
-        self.handle_records(self.full_playback, all_units)
 
         asp = self.attacker.strike_partner
         dsp = None

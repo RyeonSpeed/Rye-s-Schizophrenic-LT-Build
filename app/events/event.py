@@ -502,7 +502,7 @@ class Event():
             elif placement == 'stack':
                 return position
             elif placement == 'closest':
-                position = self.game.target_system.get_nearest_open_tile(unit, position)
+                position = self.game.target_system.get_closest_reachable_tile(unit, position)
                 if not position:
                     self.logger.warning("Somehow wasn't able to find a nearby open tile")
                     return None
@@ -606,7 +606,7 @@ class Event():
     def _apply_growth_changes(self, unit, growth_changes):
         action.do(action.ApplyGrowthChanges(unit, growth_changes))
 
-    def _parse_pos(self, pos: str | Point, is_float=False):
+    def _parse_pos(self, pos: str | Point, is_float=False) -> Optional[Point]:
         if isinstance(pos, tuple):
             return pos
         position = None
