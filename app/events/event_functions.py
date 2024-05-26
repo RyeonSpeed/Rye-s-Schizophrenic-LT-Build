@@ -2657,7 +2657,7 @@ def add_unit_map_anim(self: Event, map_anim: NID, unit: NID, speed: float=1.0, o
     if not offset:
         offset = (-16,-16)
     else:
-        offset = (int(offset.split(",")[0]), int(offset.split(",")[1]))
+        offset = (int(offset[0]), int(offset[1]))
     if 'permanent' in flags:
         action.do(action.AddAnimToUnit(map_anim, unit, speed, 'blend' in flags, offset))
     else:
@@ -2682,7 +2682,7 @@ def remove_unit_map_anim(self: Event, map_anim, unit, offset=None, flags=None):
     if not offset:
         offset = (-16,-16)
     else:
-        offset = (int(offset.split(",")[0]), int(offset.split(",")[1]))
+        offset = (int(offset[0]), int(offset[1]))
     action.do(action.RemoveAnimFromUnit(map_anim, unit, offset))
 
 def merge_parties(self: Event, party1, party2, flags=None):
