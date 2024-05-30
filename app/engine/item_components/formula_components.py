@@ -10,7 +10,10 @@ class AlternateDamageFormula(ItemComponent):
     value = 'DAMAGE'
 
     def damage_formula(self, unit, item):
-        return self.value
+        if 'TrueDamage' in item.tags:
+            return 'ZERO'
+        else:
+            return self.value
 
 class AlternateResistFormula(ItemComponent):
     nid = 'alternate_resist_formula'
@@ -21,7 +24,10 @@ class AlternateResistFormula(ItemComponent):
     value = 'DEFENSE'
 
     def resist_formula(self, unit, item):
-        return self.value
+        if 'TrueDamage' in item.tags:
+            return 'ZERO'
+        else:
+            return self.value
 
 class AlternateAccuracyFormula(ItemComponent):
     nid = 'alternate_accuracy_formula'
