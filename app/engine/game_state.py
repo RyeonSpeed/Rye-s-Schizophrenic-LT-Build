@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 from app.constants import VERSION
 from app.data.database.database import DB
-from app.data.database.difficulty_modes import GrowthOption, PermadeathOption
+from app.data.database.difficulty_modes import GrowthOption, PermadeathOption, RNGOption
 from app.events.regions import RegionType
 from app.events import speak_style
 from app.engine import config as cf
@@ -64,6 +64,7 @@ class GameState():
         self.playtime: int = 0
         self.current_save_slot: int = None
         self.level_cap_modifier: int = 0
+        self.current_rng_mode: RNGOption = None
 
         # global registries
         self.unit_registry: Dict[NID, UnitObject] = {}
@@ -134,6 +135,7 @@ class GameState():
 
         self.playtime = 0
         self.level_cap_modifier = 0
+        self.current_rng_mode = None
 
         self.alerts = []
         self.cursor = None
@@ -157,6 +159,7 @@ class GameState():
         logging.info("Building New Game")
         self.playtime = 0
         self.level_cap_modifier = 0
+        self.current_rng_mode = None
 
         self.unit_registry = {}
         self.item_registry = {}
@@ -363,6 +366,7 @@ class GameState():
                   'turncount': self.turncount,
                   'playtime': self.playtime,
                   'level_cap_modifier': self.level_cap_modifier,
+                  'current_rng_mode': self.current_rng_mode,
                   'game_vars': self.game_vars,
                   'level_vars': self.level_vars,
                   'current_mode': self.current_mode.save(),
@@ -426,6 +430,7 @@ class GameState():
             self.current_mode = self.default_mode()
         self.playtime = float(s_dict['playtime'])
         self.level_cap_modifier = int(s_dict['level_cap_modifier'])
+        self.current_rng_mode = s_dict['current_rng_mode']
         self.current_party = s_dict['current_party']
         self.turncount = int(s_dict['turncount'])
 
@@ -681,6 +686,13 @@ class GameState():
     def mode(self):
         return DB.difficulty_modes.get(self.current_mode.nid)
 
+    @property
+    def rng_mode(self):
+        if self.current_rng_mode:
+            return self.current_rng_mode
+        else:
+            return self.mode.rng_choice
+    
     def default_mode(self):
         from app.engine.objects.difficulty_mode import DifficultyModeObject
         first_mode = DB.difficulty_modes[0]

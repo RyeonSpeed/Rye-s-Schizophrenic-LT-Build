@@ -2162,6 +2162,18 @@ Changes the number of additional levels that enemy units gain from the difficult
     # Whether to actually change the unit's level
     _flags = ["hidden", "boss"]
 
+class SetModeRNG(EventCommand):
+    nid = 'set_mode_rng'
+    tag = Tags.GAME_VARS
+
+    desc = \
+        """
+Changes the RNG type used by the game.
+        """
+
+    keywords = ["rng"]
+    keyword_types = ["RNGType"]
+
 class Promote(EventCommand):
     nid = 'promote'
     tag = Tags.MODIFY_UNIT_PROPERTIES

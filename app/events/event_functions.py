@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 from app.constants import WINHEIGHT, WINWIDTH
 from app.data.database.database import DB
 from app.data.database.level_units import GenericUnit, UniqueUnit
+from app.data.database.difficulty_modes import RNGOption
 from app.data.resources.resources import RESOURCES
 from app.data.resources.sounds import SFXPrefab, SongPrefab
 from app.engine import (action, background, banner, base_surf, dialog, engine,
@@ -2203,6 +2204,20 @@ def set_mode_autolevels(self: Event, level: int, flags=None):
         else:
             self.game.current_mode.enemy_truelevels = autolevel
 
+def set_mode_rng(self: Event, rng: str, flags=None):
+    flags = flags or set()
+    new_mode = rng
+    if new_mode == 'Classic':
+        self.game.current_rng_mode = RNGOption.CLASSIC
+    elif new_mode == 'True Hit':
+        self.game.current_rng_mode = RNGOption.TRUE_HIT
+    elif new_mode == 'True Hit Plus':
+        self.game.current_rng_mode = RNGOption.TRUE_HIT_PLUS
+    elif new_mode == 'Fates Hit':
+        self.game.current_rng_mode = RNGOption.FATES_HIT
+    elif new_mode == 'Grandmaster':
+        self.game.current_rng_mode = RNGOption.GRANDMASTER
+    
 def promote(self: Event, global_unit, klass_list: Optional[List[NID]]=None, flags=None):
     flags = flags or set()
     unit = self._get_unit(global_unit)

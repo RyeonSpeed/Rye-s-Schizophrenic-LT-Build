@@ -1352,6 +1352,9 @@ class DifficultyMode(Validator):
         valids = [(difficulty.name, difficulty.nid) for difficulty in self._db.difficulty_modes.values()]
         return valids
 
+class RNGType(OptionValidator):
+    valid = ['Classic', 'True Hit', 'True Hit Plus', 'Fates Hit', 'Grandmaster']
+
 class SaveSlot(Validator):
     desc = 'accepts an integer for the save slot, or "suspend" for the suspend slot'
 
