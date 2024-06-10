@@ -3508,7 +3508,7 @@ class RemoveSkill(Action):
         self.reset_action = ResetUnitVars(self.unit)
 
     def _remove_skill(self, skill, true_remove):
-        if not self.unit.remove_skill(skill, self.source, self.source_type, test=True):
+        if not self.unit.remove_skill(skill, self.source, self.source_type, test=True) and not skill.nid == 'Weight':
             logging.warning("No removable instance of Skill %s in %s's skills", self.skill, self.unit)
             return False
 

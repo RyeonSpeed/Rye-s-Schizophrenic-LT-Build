@@ -458,7 +458,7 @@ class UnitObject(Prefab):
         for s in self._skills:
             same_source = s.source == source and s.source_type == source_type
             if s.skill_obj.uid == skill.uid and \
-                    (s.source_type.removable or same_source):
+                    (s.source_type.removable or same_source or s.skill_obj.nid == 'Weight'):
                 removed_skill_info = (s.source, s.source_type)
                 to_remove = s
         if not test and to_remove:
