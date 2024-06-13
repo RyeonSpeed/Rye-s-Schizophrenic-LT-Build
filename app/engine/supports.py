@@ -165,12 +165,15 @@ class SupportController():
         """
         Return False if either of the units is already at their limit
         """
+        print("check rank limit")
         rank_limit = DB.support_constants.value('rank_limit')
         highest_rank_limit = DB.support_constants.value('highest_rank_limit')
         rank1 = self.get_num_ranks(support_pair.unit1)
         rank2 = self.get_num_ranks(support_pair.unit2)
+        print(support_pair.unit1, support_pair.unit2, rank1, rank2)
         highest_rank1 = self.get_num_highest_ranks(support_pair.unit1)
         highest_rank2 = self.get_num_highest_ranks(support_pair.unit2)
+        print(highest_rank1, highest_rank2, highest_rank_limit)
         if rank_limit and (rank1 >= rank_limit or rank2 >= rank_limit):
             return False
         if highest_rank_limit and (highest_rank1 >= highest_rank_limit or highest_rank2 >= highest_rank_limit):
