@@ -71,6 +71,7 @@ class Page(StrEnum):
     ITEMS = auto()
     SKILL = auto()
     UPGRADE = auto()
+    SEALS = auto()
 
 
 colortext_pattern = re.compile("<(.*?)>([^<>]*?)<\/>")
@@ -81,7 +82,7 @@ class BaseCopyInfoWindow():
     EXPANDED_LEFT = WINWIDTH - 192
     DETAIL_LEFT = WINWIDTH - 96
 
-    PAGE_ORDER = [Page.VITAL, Page.ITEMS, Page.SKILL, Page.UPGRADE]
+    PAGE_ORDER = [Page.VITAL, Page.ITEMS, Page.SKILL, Page.UPGRADE, Page.SEALS]
 
     def __init__(self, is_hidden_func) -> None:
         self.curr_unit_nid = None
@@ -252,6 +253,8 @@ class BaseCopyInfoWindow():
                 return self.create_skill_surf(unit_prefab, klass)
             elif page == Page.UPGRADE:
                 return self.create_upgrade_surf(unit_prefab, klass)
+            elif page == Page.SEALS:
+                return self.create_seal_surf(unit_prefab, klass)
         return self.create_unknown_page()
 
     def create_unknown_page(self):
@@ -407,6 +410,37 @@ class BaseCopyInfoWindow():
         
         return surf
 
+    def create_seal_surf(self, unit: UnitPrefab, klass: Klass):
+        menu_size = 96, WINHEIGHT
+        surf = engine.create_surface(menu_size, transparent=True)
+        page = Page.SEALS
+        def write(text, color, pos):
+            render_text(surf, ['text'], [str(text)], [color], pos)
+        def write_narrow(text, color, pos):
+            render_text(surf, ['narrow'], [str(text)], [color], pos)
+        
+        write("Earned Seals", "yellow", (5, 5))
+        ms_icon = icons.get_icon_by_name('Master_Seal')
+        boss_names = ['Bootes', 'Canes', 'Lovers', 'Loreia', 'Savior', 'Trinity', 'Serpens', 'Solfrid', '???', 'Libra']
+        boss_nids = ['Bootes', 'Canes', 'Fabien', 'Loreia', 'Machine', 'Trinity', 'Serpens', 'Solfrid', '???', 'Final']
+        for offset, y in enumerate(boss_nids):
+            if (y == 'Bootes' and RECORDS.get('forename')) or (y == 'Canes' and RECORDS.get('original_name')) or (y == 'Fabien' and RECORDS.get('fog_gate_opening')) or (y == 'Loreia' and RECORDS.get('loreia_defeated')) or (y == 'Machine' and RECORDS.get('sydney_assimilation')) or (y == 'Trinity' and RECORDS.get('trinity_boss')) or (y == 'Serpens' and RECORDS.get('serpens_defeated')) or (y == 'Solfrid' and RECORDS.get('solfrid_defeated')) or (y == 'Final' and RECORDS.get('game_clear')):
+                if offset % 2 == 0:
+                    write_narrow(boss_names[offset], 'white', (5, 21 + (10 * offset)))
+                else:
+                    write_narrow(boss_names[offset], 'white', (50, 21 + (10 * (offset - 1))))
+            else:
+                if offset % 2 == 0:
+                    write_narrow('???', 'white', (5, 21 + (10 * offset)))
+                else:
+                    write_narrow('???', 'white', (50, 21 + (10 * (offset - 1))))
+            if RECORDS.get(unit.nid + y):
+                if offset % 2 == 0:
+                    surf.blit(ms_icon, (33, 21 + (10 * offset)))
+                else:
+                    surf.blit(ms_icon, (70, 21 + (10 * (offset - 1))))
+        return surf
+    
     def expand(self):
         if self.state == 'inactive':
             self.transition_time = TRANSITION_DURATION
