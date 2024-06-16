@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum, IntEnum, StrEnum, auto
 from functools import lru_cache
 from math import cos, radians, sin
@@ -9,6 +10,7 @@ from app.engine.game_menus.icon_options import ItemOptionUtils
 
 
 from app.data.database.units import UnitPrefab
+from app.engine.menus import Choice
 from app.engine.persistent_records import RECORDS
 from app.engine.unit_sprite import UnitSprite, load_map_sprite
 
@@ -76,6 +78,53 @@ class Page(StrEnum):
 
 colortext_pattern = re.compile("<(.*?)>([^<>]*?)<\/>")
 
+class DexOptionMenu():
+    OPTIONS = ["Toggle Favorite"]
+    INFO_DESC = ["Favorite a unit"]
+
+    def __init__(self, parent: BaseCopyInfoMenu) -> None:
+        self.option_menu = Choice(None, self.OPTIONS, info=self.INFO_DESC)
+        self.state = 'inactive'
+        self.parent: BaseCopyInfoWindow = parent
+
+    def open(self):
+        self.state = 'active'
+
+    def update(self):
+        self.option_menu.update()
+
+    def take_input(self, event, first_push, directions):
+        if self.state == 'inactive':
+            return True
+        if self.state == 'active':
+            if event == 'INFO':
+                self.option_menu.toggle_info()
+            elif 'RIGHT' in directions:
+                get_sound_thread().play_sfx('Select 6')
+                self.option_menu.move_down(first_push)
+            elif 'LEFT' in directions:
+                get_sound_thread().play_sfx('Select 6')
+                self.option_menu.move_up(first_push)
+            elif 'UP' in directions:
+                get_sound_thread().play_sfx('Select 6')
+                self.option_menu.move_up(first_push)
+            elif 'DOWN' in directions:
+                get_sound_thread().play_sfx('Select 6')
+                self.option_menu.move_down(first_push)
+            elif event == 'BACK':
+                get_sound_thread().play_sfx('Info Out')
+                self.state = 'inactive'
+            elif event == 'SELECT':
+                if self.option_menu.get_current() == 'Toggle Favorite':
+                    unit_nid = self.parent.curr_unit_nid
+                    game.set_favorited(unit_nid, not game.is_favorited(unit_nid))
+                    self.parent.refresh()
+
+    def draw(self, surf):
+        if self.state == 'inactive':
+            return
+        self.option_menu.draw(surf)
+
 class BaseCopyInfoWindow():
     TRANSITION_DURATION = 250
     MINIMIZED_LEFT = WINWIDTH - 96
@@ -96,6 +145,8 @@ class BaseCopyInfoWindow():
         self.is_hidden = is_hidden_func
         self.mode = 'Stat'
 
+        self.option_menu = DexOptionMenu(self)
+
     def page(self):
         return self.PAGE_ORDER[self.page_idx]
 
@@ -105,7 +156,7 @@ class BaseCopyInfoWindow():
         self.curr_unit_nid = unit_nid
         self.sprite = load_map_sprite(DB.units.get(unit_nid))
         self.create_detail_surf.cache_clear()
-    
+
     def get_help_boxes(self, some_desc):
         help_boxes = []
         dupes = []
@@ -136,6 +187,8 @@ class BaseCopyInfoWindow():
         return help_boxes
 
     def take_input(self, event, first_push, directions):
+        if not self.option_menu.take_input(event, first_push, directions):
+            return
         if self.state == 'active':
             if self.info_flag:
                 if 'RIGHT' in directions:
@@ -170,14 +223,17 @@ class BaseCopyInfoWindow():
                     return True
                 if event == 'BACK':
                     self.retract()
-                if event == 'INFO':
+                elif event == 'INFO':
                     if self.info_graph.registry.get(self.page(), None):
                         get_sound_thread().play_sfx('Info In')
                         self.info_graph.set_transition_in()
                         self.info_flag = True
-                if event == 'AUX':
+                elif event == 'AUX':
                     get_sound_thread().play_sfx('Select 6')
                     self.change_mode()
+                elif event == 'SELECT':
+                    self.option_menu.open()
+                    get_sound_thread().play_sfx('Select 6')
         return False
 
     def scroll_right(self):
@@ -187,7 +243,7 @@ class BaseCopyInfoWindow():
     def scroll_left(self):
         self.page_idx = (self.page_idx - 1) % len(self.PAGE_ORDER)
         self.info_graph.set_current_state(self.page())
-    
+
     def change_mode(self):
         if self.mode == 'Stat':
             self.mode = 'Growth'
@@ -196,6 +252,7 @@ class BaseCopyInfoWindow():
         self.create_detail_surf.cache_clear()
 
     def update(self):
+        self.option_menu.update()
         self.transition_time = max(self.transition_time - frames2ms(1), 0)
         if self.state == 'expand':
             self.left_side = int(interpolation.lerp(self.EXPANDED_LEFT, self.MINIMIZED_LEFT, self.transition_time / TRANSITION_DURATION))
@@ -205,6 +262,10 @@ class BaseCopyInfoWindow():
             self.left_side = int(interpolation.lerp(self.MINIMIZED_LEFT, self.EXPANDED_LEFT, self.transition_time / TRANSITION_DURATION))
             if self.transition_time == 0:
                 self.state = 'inactive'
+
+    def refresh(self):
+        self.create_portrait_surf.cache_clear()
+        self.create_detail_surf.cache_clear()
 
     @lru_cache(1)
     def create_portrait_surf(self, unit_nid):
@@ -228,7 +289,7 @@ class BaseCopyInfoWindow():
         unit_fields = {key: value for (key, value) in unit.fields}
         creator = unit_fields['Creator'] if 'Creator' in unit_fields else '???'
         render_text(surf, ['text'], [creator], ['white'], (5, 120))
-        
+
         if unit_nid in RECORDS.get('Available_Units') or (unit_nid == 'Yasukage' and RECORDS.get('yasukage_unlocked')):
             render_text(surf, ['text'], ['Recruited!'], ['green'], (5, 136))
         else:
@@ -238,6 +299,11 @@ class BaseCopyInfoWindow():
             affinity = DB.affinities.get(unit.affinity)
             if affinity:
                 icons.draw_item(surf, affinity, (78, 80))
+        # Blit if it's favorited
+        if not hidden:
+            is_favorited = game.is_favorited(unit_nid)
+            if is_favorited:
+                icons.draw_icon_by_alias(surf, 'event_hp', (5, 80))
         return surf
 
     @lru_cache(16)
@@ -285,8 +351,8 @@ class BaseCopyInfoWindow():
         render_stat('SKL', (5, 53)); render_stat('DEF', (46, 53))
         render_stat('SPD', (5, 69)); render_stat('RES', (46, 69))
         render_stat('CON', (5, 85)); render_stat('MOV', (46, 85))
-        
-        
+
+
         unit_fields = {key: value for (key, value) in unit.fields}
         start_weapons = unit_fields['Base_Weapons'] if 'Base_Weapons' in unit_fields else None
         end_weapons = unit_fields['Upgrade_Weapons'] if 'Upgrade_Weapons' in unit_fields else None
@@ -303,13 +369,13 @@ class BaseCopyInfoWindow():
                     image = icons.get_icon_by_name(weapon)
                     image = image_mods.make_black_colorkey(image, 0.5)
                     surf.blit(image, (offset, 105 + (16 * (count // 5))))
-                
+
                 count += 1
                 if count % 5 == 0:
                     offset = 5
                 else:
                     offset += 16
-        
+
         return surf
 
     def create_item_surf(self, unit: UnitPrefab, klass: Klass):
@@ -340,7 +406,7 @@ class BaseCopyInfoWindow():
             y = (idx // 4) * 24 + 93
             add_item(item, (x, y))
         return surf
-    
+
     def get_upgrade_items(self, unit_nid):
         upgrade_items = []
         raw_set = [x for x in game.get_data('Character_Upgrades') if x.unit_nid == unit_nid and x.upgrade_type == 'Item']
@@ -380,14 +446,14 @@ class BaseCopyInfoWindow():
                 add_skill(skill, (x, y))
                 count2 += 1
         return surf
-    
+
     def get_upgrade_skills(self, unit_nid):
         upgrade_skills = []
         raw_set = [x for x in game.get_data('Character_Upgrades') if x.unit_nid == unit_nid and x.upgrade_type == 'Skill']
         for y in raw_set:
             upgrade_skills.append(y.value_1)
         return upgrade_skills
-    
+
     def create_upgrade_surf(self, unit: UnitPrefab, klass: Klass):
         menu_size = 96, WINHEIGHT
         surf = engine.create_surface(menu_size, transparent=True)
@@ -396,7 +462,7 @@ class BaseCopyInfoWindow():
             render_text(surf, ['text'], [str(text)], [color], pos)
         def write_narrow(text, color, pos):
             render_text(surf, ['narrow'], [str(text)], [color], pos)
-        
+
         write("Upgrades", "yellow", (5, 5))
         ms_icon = icons.get_icon_by_name('Master_Seal')
         raw_set = [x for x in game.get_data('Character_Upgrades') if x.unit_nid == unit.nid]
@@ -407,7 +473,7 @@ class BaseCopyInfoWindow():
                 write_narrow('B', 'green', (82, 21 + (16 * offset)))
             else:
                 write_narrow('x' + y.cost, 'red', (82, 21 + (16 * offset)))
-        
+
         return surf
 
     def create_seal_surf(self, unit: UnitPrefab, klass: Klass):
@@ -418,7 +484,7 @@ class BaseCopyInfoWindow():
             render_text(surf, ['text'], [str(text)], [color], pos)
         def write_narrow(text, color, pos):
             render_text(surf, ['narrow'], [str(text)], [color], pos)
-        
+
         write("Earned Seals", "yellow", (5, 5))
         ms_icon = icons.get_icon_by_name('Master_Seal')
         boss_names = ['Bootes', 'Canes', 'Lovers', 'Loreia', 'Savior', 'Trinity', 'Serpens', 'Solfrid', '???', 'Libra']
@@ -440,7 +506,7 @@ class BaseCopyInfoWindow():
                 else:
                     surf.blit(ms_icon, (70, 21 + (10 * (offset - 1))))
         return surf
-    
+
     def expand(self):
         if self.state == 'inactive':
             self.transition_time = TRANSITION_DURATION
@@ -468,6 +534,7 @@ class BaseCopyInfoWindow():
         if self.info_flag:
             if self.info_graph.current_bb:
                 self.info_graph.draw(surf)
+        self.option_menu.draw(surf)
 
 UNIT_CHOICE_HEIGHT = 41
 UNIT_CHOICE_BONUS_HEIGHT = 25
@@ -600,7 +667,7 @@ class BaseCopyInfoMenu(State):
             return self.faded_unit_surf_cache[unit_nid]
         unit_prefab = DB.units.get(unit_nid)
         hidden = self.is_hidden(unit_nid)
-        
+
         id_num = self.all_units.index(unit_nid) + 1
         option = BasicUnitOption.from_nid(0, unit_nid, display_value=str(id_num) + ': ???' if hidden else str(id_num) + ': ' + unit_prefab.name, text_color='grey' if hidden else 'white')
         surf = engine.create_surface((option.width(), UNIT_CHOICE_HEIGHT), True)
