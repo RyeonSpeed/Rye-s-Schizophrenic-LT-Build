@@ -555,11 +555,14 @@ class PrepManageState(State):
             game.memory['next_state'] = 'info_menu'
             game.state.change('transition_to')
         elif event == 'AUX':
-            get_sound_thread().play_sfx('Select 1')
-            game.memory['scroll_units'] = game.get_units_in_party()
-            game.memory['curr_unit_info'] = self.menu.get_current().nid
-            game.memory['next_state'] = 'base_info_menu'
-            game.state.change('transition_to')
+            if 'Playable' in self.menu.get_current().tags:
+                get_sound_thread().play_sfx('Select 1')
+                game.memory['scroll_units'] = game.get_units_in_party()
+                game.memory['curr_unit_info'] = self.menu.get_current().nid
+                game.memory['next_state'] = 'base_info_menu'
+                game.state.change('transition_to')
+            else:
+                get_sound_thread().play_sfx('Error')
         elif event == 'START':
             get_sound_thread().play_sfx('Select 1')
             # convoy_funcs.optimize_all()
