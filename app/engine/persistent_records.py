@@ -17,10 +17,10 @@ class PersistentRecordManager(Data):
         super().__init__()
         self.location = location
 
-    def get(self, nid):
+    def get(self, nid, default=None):
         if nid in self.keys():
             return super().get(nid).value
-        return None
+        return default
 
     def create(self, nid, value=None):
         if nid in self.keys():
@@ -37,6 +37,12 @@ class PersistentRecordManager(Data):
         else:
             logging.info("Record with nid of %s doesn't exist")
 
+    def create_or_update(self, nid, value):
+        if nid in self.keys():
+            self.update(nid, value)
+        else:
+            self.create(nid, value)
+
     def replace(self, nid, value):
         if nid in self.keys():
             record = super().get(nid)
@@ -51,7 +57,7 @@ class PersistentRecordManager(Data):
             persistent_data.serialize(self.location, self.save())
         else:
             logging.info("Record with nid of %s doesn't exist")
-    
+
     def unlock_difficulty(self, difficultyMode: str):
         if difficultyMode in self.keys():
             logging.info("Difficulty with nid of %s already unlocked")
@@ -59,7 +65,7 @@ class PersistentRecordManager(Data):
         else:
             self.append(PersistentRecord(difficultyMode, True))
         persistent_data.serialize(self.location, self.save())
-    
+
     def check_difficulty_unlocked(self, difficultyMode: str):
         if difficultyMode in self.keys():
             return super().get(difficultyMode).value

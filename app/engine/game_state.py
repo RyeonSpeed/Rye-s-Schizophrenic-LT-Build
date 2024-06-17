@@ -6,6 +6,7 @@ import time
 from collections import Counter
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
+from app.engine.persistent_records import RECORDS
 from app.engine.query_engine import GameQueryEngine
 
 if TYPE_CHECKING:
@@ -692,7 +693,7 @@ class GameState():
             return self.current_rng_mode
         else:
             return self.mode.rng_choice
-    
+
     def default_mode(self):
         from app.engine.objects.difficulty_mode import DifficultyModeObject
         first_mode = DB.difficulty_modes[0]
@@ -1139,10 +1140,10 @@ class GameState():
 
     def set_bexp(self, amount):
         self.parties[self.current_party].bexp = amount
-    
+
     def set_level_cap_modifier(self, val):
         self.level_cap_modifier = val
-    
+
     def change_level_cap_modifier(self, val):
         self.level_cap_modifier += val
 
@@ -1195,6 +1196,14 @@ class GameState():
         new = static_random.get_other_random_state()
         action.do(action.RecordOtherRandomState(old, new))
         return choices[idx]
+
+    def is_favorited(self, unit_nid) -> bool:
+        fav_str = f"__is_favorited__{unit_nid}__"
+        return RECORDS.get(fav_str, False)
+
+    def set_favorited(self, unit_nid, is_favorited: bool):
+        fav_str = f"__is_favorited__{unit_nid}__"
+        RECORDS.create_or_update(fav_str, is_favorited)
 
 game = GameState()
 
