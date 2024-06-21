@@ -57,14 +57,9 @@ class AttackerState(SolverState):
 
         if solver.attacker_alive() and (not solver.defender or solver.defender_alive()):
             if command == '--':
-                if solver.defender:
-                    if DB.constants.value('def_double') or skill_system.def_double(solver.defender):
-                        defender_outspeed = combat_calcs.outspeed(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
-                    else:
-                        defender_outspeed = 1
-                    attacker_outspeed = combat_calcs.outspeed(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
-                else:
-                    attacker_outspeed = defender_outspeed = 1
+
+                attacker_num_phases = combat_calcs.compute_attack_phases(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
+                defender_num_phases = combat_calcs.compute_attack_phases(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
 
                 if solver.attacker.strike_partner and \
                         (solver.num_attacks == 1 or can_double_in_pairup) and \
@@ -77,17 +72,15 @@ class AttackerState(SolverState):
                     return 'attacker'
                 elif solver.item_has_uses() and \
                         solver.attacker_has_desperation() and \
-                        solver.num_attacks < attacker_outspeed and \
-                        solver.can_followup():
+                        solver.num_attacks < attacker_num_phases:
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_num_phases:
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed and \
-                        solver.can_followup():
+                        solver.num_attacks < attacker_num_phases:
                     solver.num_subattacks = 0
                     return 'attacker'
                 return None
@@ -153,31 +146,24 @@ class AttackerPartnerState(SolverState):
 
         if solver.attacker_alive() and (not solver.defender or solver.defender_alive()):
             if command == '--':
-                if solver.defender:
-                    if DB.constants.value('def_double') or skill_system.def_double(solver.defender):
-                        defender_outspeed = \
-                            combat_calcs.outspeed(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
-                    else:
-                        defender_outspeed = 1
-                    attacker_outspeed = \
-                        combat_calcs.outspeed(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
-                else:
-                    attacker_outspeed = defender_outspeed = 1
+                
+                attacker_num_phases = combat_calcs.compute_attack_phases(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
+                defender_num_phases = combat_calcs.compute_attack_phases(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
 
                 if solver.item_has_uses() and \
                         solver.num_subattacks < self.num_multiattacks:
                     return 'attacker_partner'
                 elif solver.item_has_uses() and \
                         solver.attacker_has_desperation() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_num_phases:
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_num_phases:
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_num_phases:
                     solver.num_subattacks = 0
                     return 'attacker'
                 return None
@@ -225,12 +211,9 @@ class DefenderState(SolverState):
 
         if solver.attacker_alive() and solver.defender_alive():
             if command == '--':
-                if DB.constants.value('def_double') or skill_system.def_double(solver.defender):
-                    defender_outspeed = combat_calcs.outspeed(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
-                else:
-                    defender_outspeed = 1
 
-                attacker_outspeed = combat_calcs.outspeed(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
+                attacker_num_phases = combat_calcs.compute_attack_phases(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
+                defender_num_phases = combat_calcs.compute_attack_phases(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
 
                 if solver.defender.strike_partner and \
                         (solver.num_defends == 1 or can_double_in_pairup) and \
@@ -242,16 +225,15 @@ class DefenderState(SolverState):
                     return 'defender'
                 elif solver.allow_counterattack() and \
                         solver.defender_has_desperation() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_num_phases:
                     solver.num_subdefends = 0
                     return 'defender'
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed and \
-                        solver.can_followup():
+                        solver.num_attacks < attacker_num_phases:
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_num_phases:
                     solver.num_subdefends = 0
                     return 'defender'
                 return None
@@ -291,28 +273,24 @@ class DefenderPartnerState(SolverState):
         command = solver.get_script()
         if solver.attacker_alive() and solver.defender_alive():
             if command == '--':
-                if DB.constants.value('def_double') or skill_system.def_double(solver.defender):
-                    defender_outspeed = \
-                        combat_calcs.outspeed(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
-                else:
-                    defender_outspeed = 1
-                attacker_outspeed = \
-                    combat_calcs.outspeed(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
+                
+                attacker_num_phases = combat_calcs.compute_attack_phases(solver.attacker, solver.defender, solver.main_item, solver.def_item, 'attack', solver.get_attack_info())
+                defender_num_phases = combat_calcs.compute_attack_phases(solver.defender, solver.attacker, solver.def_item, solver.main_item, 'defense', solver.get_defense_info())
 
                 if solver.allow_counterattack() and \
                         solver.num_subdefends < self.num_multiattacks:
                     return 'defender_partner'
                 elif solver.allow_counterattack() and \
                         solver.defender_has_desperation() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_num_phases:
                     solver.num_subdefends = 0
                     return 'defender'    
                 elif solver.item_has_uses() and \
-                        solver.num_attacks < attacker_outspeed:
+                        solver.num_attacks < attacker_num_phases:
                     solver.num_subattacks = 0
                     return 'attacker'
                 elif solver.allow_counterattack() and \
-                        solver.num_defends < defender_outspeed:
+                        solver.num_defends < defender_num_phases:
                     solver.num_subdefends = 0
                     return 'defender'
                 return None
@@ -420,7 +398,7 @@ class CombatPhaseSolver():
         return self.current_command
 
     def generate_roll(self):
-        rng_mode = game.mode.rng_choice
+        rng_mode = game.rng_mode
         if rng_mode == RNGOption.CLASSIC:
             roll = static_random.get_combat()
         elif rng_mode == RNGOption.TRUE_HIT:
@@ -432,14 +410,14 @@ class CombatPhaseSolver():
         elif rng_mode == RNGOption.GRANDMASTER:
             roll = 0
         else:  # Default to True Hit
-            logging.error("Not a valid rng_mode: %s (defaulting to true hit)", game.mode.rng_choice)
+            logging.error("Not a valid rng_mode: %s (defaulting to true hit)", game.rng_mode)
             roll = (static_random.get_combat() + static_random.get_combat()) // 2
         return roll
 
     def generate_crit_roll(self):
         return static_random.get_combat()
     
-    def calculate_fates_hit(self, hit):
+    def calculate_fates_hit(self, hit: int) -> int:
         """
         Modified slightly from the actual Fates formula to instead compare against values from 0 - 100, 
         rather than from 0 - 10000. This is so we can use the existing functions in the engine that
@@ -455,7 +433,7 @@ class CombatPhaseSolver():
             item = attacker.get_weapon()
 
         to_hit = combat_calcs.compute_hit(attacker, defender, item, def_item, mode, attack_info)
-        if game.mode.rng_choice == RNGOption.FATES_HIT:
+        if game.rng_mode == RNGOption.FATES_HIT:
             to_hit = self.calculate_fates_hit(to_hit)
 
         if self.current_command.lower() in ('hit1', 'hit2', 'crit1', 'crit2'):

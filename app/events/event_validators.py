@@ -8,7 +8,7 @@ import re
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from app.data.database.database import Database
-from app.engine.fonts import FONT
+from app.data.database.difficulty_modes import RNGOption
 from app.utilities.class_utils import recursive_subclasses
 from app.utilities.enums import HAlignment, VAlignment
 from app.events import event_commands
@@ -595,7 +595,7 @@ class IllegalCharacterList(SequenceValidator):
         return valids
 
 class DialogVariant(Validator):
-    built_in = ["thought_bubble", "noir", "hint", "narration", "narration_top", "cinematic", "clear", "boss_convo_left", "boss_convo_right"]
+    built_in = ["thought_bubble", "noir", "hint", "narration", "narration_top", "cinematic", "clear", "boss_convo_left", "boss_convo_right", "overworld_narration"]
 
     def validate(self, text, level):
         slots = self.built_in.copy()
@@ -1373,6 +1373,14 @@ class DifficultyMode(Validator):
     def valid_entries(self, level: Optional[NID] = None, text: Optional[str] = None) -> List[Tuple[Optional[str], NID]]:
         valids = [(difficulty.name, difficulty.nid) for difficulty in self._db.difficulty_modes.values()]
         return valids
+
+class RNGType(OptionValidator):
+    valid = [r.value for r in RNGOption]
+
+    def validate(self, text, level):
+        if text in self.valid:
+            return text
+        return None
 
 class SaveSlot(Validator):
     desc = 'accepts an integer for the save slot, or "suspend" for the suspend slot'
