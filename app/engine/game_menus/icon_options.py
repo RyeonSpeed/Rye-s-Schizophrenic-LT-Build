@@ -56,7 +56,7 @@ class ItemOptionUtils():
             ItemOptionUtils.draw_icon(surf, x, y, item)
         render_text(surf, [font], [display_text], [color], blit_loc, align)
         uses_string = '--'
-        if item.uses:
+        if item.uses or item.uses_gun:
             uses_string = str(item.data['uses'])
         elif item.parent_item and item.parent_item.uses and item.parent_item.data['uses']:
             uses_string = str(item.parent_item.data['uses'])

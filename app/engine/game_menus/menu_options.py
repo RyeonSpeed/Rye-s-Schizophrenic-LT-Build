@@ -331,7 +331,7 @@ class ItemOption(BasicOption):
         uses_font = 'text'
         render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
         uses_string = '--'
-        if self.item.uses:
+        if self.item.uses or self.item.uses_gun:
             uses_string = str(self.item.data['uses'])
         elif self.item.parent_item and self.item.parent_item.uses and self.item.parent_item.data['uses']:
             uses_string = str(self.item.parent_item.data['uses'])
