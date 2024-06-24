@@ -38,8 +38,7 @@ def check_traversable(unit_to_move: UnitObject, pos: Tuple[int, int]) -> bool:
     if not game.board.check_bounds(pos):
         return False
     mcost = get_mcost(unit_to_move, pos)
-    movement = equations.parser.movement(unit_to_move)
-    return mcost <= movement
+    return mcost <= 90
 
 def check_weakly_traversable(unit_to_move: UnitObject, pos: Tuple[int, int]) -> bool:
     if not game.board.check_bounds(pos):
