@@ -37,7 +37,9 @@ def read_config_file():
                          ('key_LEFT', 'K_LEFT'),
                          ('key_RIGHT', 'K_RIGHT'),
                          ('key_UP', 'K_UP'),
-                         ('key_DOWN', 'K_DOWN')])
+                         ('key_DOWN', 'K_DOWN'),
+                         ('key_RESET1', 'K_LCTRL'),
+                         ('key_RESET2', 'K_r')])
 
     def parse_ini(fn):
         with open(fn) as fp:
@@ -54,7 +56,7 @@ def read_config_file():
     float_vals = ('music_volume', 'sound_volume')
     string_vals = ('animation', 'hp_map_team', 'hp_map_cull')
     key_vals = ('key_SELECT', 'key_BACK', 'key_INFO', 'key_AUX',
-                'key_START', 'key_LEFT', 'key_RIGHT', 'key_UP', 'key_DOWN')
+                'key_START', 'key_LEFT', 'key_RIGHT', 'key_UP', 'key_DOWN', 'key_RESET1', 'key_RESET2')
     for k, v in lines.items():
         if k in float_vals:
             lines[k] = float(v)

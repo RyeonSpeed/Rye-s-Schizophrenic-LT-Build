@@ -10,7 +10,7 @@ class InputManager():
     def __init__(self):
         self.init_joystick()
 
-        self.buttons = ('UP', 'DOWN', 'LEFT', 'RIGHT', 'SELECT', 'BACK', 'INFO', 'AUX', 'START')
+        self.buttons = ('UP', 'DOWN', 'LEFT', 'RIGHT', 'SELECT', 'BACK', 'INFO', 'AUX', 'START', 'RESET1', 'RESET2')
         self.toggle_buttons = self.buttons[4:]  # These buttons cause state to change
 
         self.update_key_map()
@@ -104,6 +104,8 @@ class InputManager():
         self.key_map['BACK'] = cf.SETTINGS['key_BACK']
         self.key_map['AUX'] = cf.SETTINGS['key_AUX']
         self.key_map['INFO'] = cf.SETTINGS['key_INFO']
+        self.key_map['RESET1'] = cf.SETTINGS['key_RESET1']
+        self.key_map['RESET2'] = cf.SETTINGS['key_RESET2']
 
         self.map_keys = {v: k for k, v in self.key_map.items()}
 

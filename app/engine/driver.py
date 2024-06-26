@@ -87,8 +87,7 @@ def draw_soft_reset(surf, remaining_time: int):
 
 def check_soft_reset(game, inp) -> bool:
     return game.state.current() != 'title_start' and \
-        inp.is_pressed('SELECT') and inp.is_pressed('BACK') and \
-        inp.is_pressed('START')
+        inp.is_pressed('RESET1') and inp.is_pressed('RESET2')
 
 def run(game):
     from app.engine.sound import get_sound_thread
@@ -109,7 +108,7 @@ def run(game):
     _error_mode = False
     _error_msg = ''
     _soft_reset_start_time: int = None  # UTC time.time()
-    SOFT_RESET_TIME = 3  # seconds
+    SOFT_RESET_TIME = 0  # seconds
     while True:
         start = time.perf_counter_ns()
 

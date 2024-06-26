@@ -18,8 +18,10 @@ controls = {'key_SELECT': engine.subsurface(SPRITES.get('buttons'), (0, 66, 14, 
             'key_LEFT': engine.subsurface(SPRITES.get('buttons'), (1, 4, 13, 12)),
             'key_RIGHT': engine.subsurface(SPRITES.get('buttons'), (1, 19, 13, 12)),
             'key_DOWN': engine.subsurface(SPRITES.get('buttons'), (1, 34, 12, 13)),
-            'key_UP': engine.subsurface(SPRITES.get('buttons'), (1, 50, 12, 13))}
-control_order = ('key_SELECT', 'key_BACK', 'key_INFO', 'key_AUX', 'key_LEFT', 'key_RIGHT', 'key_UP', 'key_DOWN', 'key_START')
+            'key_UP': engine.subsurface(SPRITES.get('buttons'), (1, 50, 12, 13)),
+            'key_RESET1': engine.subsurface(SPRITES.get('buttons'), (0, 197, 36, 9)),
+            'key_RESET2': engine.subsurface(SPRITES.get('buttons'), (0, 213, 36, 9))}
+control_order = ('key_SELECT', 'key_BACK', 'key_INFO', 'key_AUX', 'key_LEFT', 'key_RIGHT', 'key_UP', 'key_DOWN', 'key_START', 'key_RESET1', 'key_RESET2')
 
 config = [('animation', ['Always', 'Your Turn', 'Combat Only', 'Never'], 0),
           ('screen_size', [1, 2, 3, 4, 5, 6], 18),
