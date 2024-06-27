@@ -802,7 +802,7 @@ class UnitObject(Prefab):
         """
         klass = DB.classes.get(self.klass)
         if klass.tier == 0:
-            return self.level - klass.max_level
+            return self.level - 4
         elif klass.tier == 1:
             return self.level
         else:
@@ -814,7 +814,7 @@ class UnitObject(Prefab):
                 promotes_from = klass.promotes_from
                 if promotes_from:
                     klass = DB.classes.get(promotes_from)
-                    running_total += klass.max_level
+                    running_total += 4
                 else:
                     return running_total
                 if klass.tier <= 0:
