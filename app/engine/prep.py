@@ -456,14 +456,17 @@ class PrepFormationSelectState(MapState):
 
         return surf
 
-def draw_funds(surf):
+def draw_funds(surf, unit):
     # Draw R: Info display
     helper = engine.get_key_name(cf.SETTINGS['key_INFO']).upper()
     FONT['text-yellow'].blit(helper, surf, (123, 143))
     FONT['text'].blit(': Info', surf, (123 + FONT['text-blue'].width(helper), 143))
     # Draw Funds display
     surf.blit(SPRITES.get('funds_display'), (168, 137))
-    money = str(game.get_money())
+    if not unit:
+        money = '0'
+    else:
+        money = str(unit.get_field('funds') or 0)
     FONT['text-blue'].blit_right(money, surf, (219, 141))
 
 class PrepManageState(State):
@@ -565,7 +568,7 @@ class PrepManageState(State):
         self.menu.draw(surf)
         menus.draw_unit_items(surf, (6, 72), self.menu.get_current(), include_face=True, shimmer=2)
         surf.blit(self.quick_disp, (WINWIDTH//2 + 10, WINHEIGHT//2 + 9))
-        draw_funds(surf)
+        draw_funds(surf, self.menu.get_current())
         return surf
 
 class OptimizeAllChoiceState(State):
@@ -625,38 +628,27 @@ class PrepManageSelectState(State):
         self.unit = game.memory['current_unit']
         self.current_index = self.menu.current_index
 
-        options = ['Trade', 'Restock', 'Give all', 'Optimize', 'Use', 'Market']
-        # Replace Optimize with Repair when the repair shop is available
-        if DB.constants.value('repair_shop'):
-            options[3] = 'Repair'
-        # Replace Use with Items when the convoy is available
-        if game.game_vars.get('_convoy'):
-            options[4] = 'Items'
+        options = ['Inventory', 'Vending', 'Pawn', 'Vehicle', 'Use', 'TBD']
         ignore = self.get_ignore()
         self.select_menu = menus.Table(self.unit, options, (3, 2), (120, 80))
         self.select_menu.set_ignore(ignore)
 
     def get_ignore(self) -> list:
         ignore = [False, True, True, True, True, True]
-        if game.game_vars.get('_convoy'):
-            # Turn Optimize and Items on
-            ignore = [False, True, True, False, False, True]
-            tradeable_items = item_funcs.get_all_tradeable_items(self.unit)
-            if tradeable_items:
-                ignore[2] = False  # Give all
-            if any(convoy_funcs.can_restock(item) for item in tradeable_items):
-                ignore[1] = False  # Restock
-        else:  # Handle Use
-            if any((item_funcs.can_be_used_in_base(self.unit, item) for item in self.unit.items)):
-                ignore[4] = False
-        if self.name == 'base_manage_select':
-            if game.game_vars.get('_base_market') and game.market_items:
-                ignore[5] = False
-        else:
-            if game.game_vars.get('_prep_market') and game.market_items:
-                ignore[5] = False
-        if DB.constants.value('repair_shop'):
-            ignore[3] = not item_funcs.has_repair(self.unit)
+        # Vend if Alanzo is recruited/alive and unit satisfies conditions
+        if any([x.nid == 'Alanzo' and not x.dead for x in game.get_all_units_in_party()]) and \
+                not 'Blacklist' in self.unit.tags and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Alanzo':
+            ignore[1] = False
+        # Pawn if Ignis is recruited/alive etc etc
+        if any([x.nid == 'Ignis' and not x.dead for x in game.get_all_units_in_party()]) and \
+                not 'Blacklist' in self.unit.tags and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Ignis':
+            ignore[2] = False
+        # Vehicle enabled for vehicles (duh) that can be deployed
+        if 'Vehicle' in self.unit.tags and 'Blacklist' not in self.unit.tags:
+            ignore[3] = False
+        # Use if usables can be used
+        if any((item_funcs.can_be_used_in_base(self.unit, item) for item in self.unit.items)):
+            ignore[4] = False
         return ignore
 
     def begin(self):
@@ -685,28 +677,42 @@ class PrepManageSelectState(State):
         if event == 'SELECT':
             get_sound_thread().play_sfx('Select 1')
             choice = self.select_menu.get_current()
-            if choice == 'Trade':
-                game.state.change('prep_trade_select')
-            elif choice == 'Give all':
-                tradeable_items = item_funcs.get_all_tradeable_items(self.unit)
-                for item in tradeable_items:
-                    convoy_funcs.store_item(item, self.unit)
-            elif choice == 'Items':
-                if self.name.startswith('base'):
-                    game.memory['next_state'] = 'base_items'
-                else:
-                    game.memory['next_state'] = 'prep_items'
+            if choice == 'Inventory':
+                game.memory['unit1'] = self.unit
+                game.memory['unit2'] = self.unit
+                game.memory['next_state'] = 'prep_trade'
                 game.state.change('transition_to')
-            elif choice == 'Restock':
-                game.state.change('prep_restock')
-            elif choice == 'Optimize':
-                convoy_funcs.optimize(self.unit)
-            elif choice == 'Market':
-                game.memory['next_state'] = 'prep_market'
-                game.state.change('transition_to')
-            elif choice == 'Repair':
-                game.memory['next_state'] = 'repair_shop'
-                game.state.change('transition_to')
+            elif choice == 'Vending':
+                game.game_vars['prep_vend'] = self.unit.nid
+                valid_events = DB.events.get_by_nid_or_name('Global Ability_Vending_Sub', game.level.nid)
+                local_args = {}
+                local_args['guy1'] = self.unit.nid
+                local_args['guy2'] = 'Alanzo'
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
+                    self.state = 'paused'
+                if not valid_events:
+                    self.logger.error("trigger_script_with_args: Couldn't find any valid events matching name %s" % trigger_script)
+            elif choice == 'Pawn':
+                game.game_vars['prep_pawn'] = self.unit.nid
+                action.do(action.RemoveSkill(self.unit, 'Shop_Curse'))
+                valid_events = DB.events.get_by_nid_or_name('Global Ability_Pawnbroker', game.level.nid)
+                local_args = {}
+                local_args['guy1'] = self.unit.nid
+                local_args['guy2'] = 'Ignis'
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
+                    self.state = 'paused'
+                if not valid_events:
+                    self.logger.error("trigger_script_with_args: Couldn't find any valid events matching name %s" % trigger_script)
+            elif choice == 'Vehicle':
+                game.game_vars['prep_vehicle'] = self.unit.nid
+                valid_events = DB.events.get_by_nid_or_name('Global Z_Prep_Unit_Vehicle', game.level.nid)
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid, local_args=None)
+                    self.state = 'paused'
+                if not valid_events:
+                    self.logger.error("trigger_script_with_args: Couldn't find any valid events matching name %s" % trigger_script)
             elif choice == 'Use':
                 game.state.change('prep_use')
 
@@ -724,7 +730,7 @@ class PrepManageSelectState(State):
         self.menu.draw(surf)
         menus.draw_unit_items(surf, (6, 72), self.unit, include_face=True, include_top=True, shimmer=2)
         self.select_menu.draw(surf)
-        draw_funds(surf)
+        draw_funds(surf, self.unit)
         return surf
 
 class PrepTradeSelectState(State):

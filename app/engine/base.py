@@ -56,8 +56,8 @@ class BaseMainState(State):
         """return (options, ignore, events), which should all be the same size
         """
         # basic options
-        options = ['Manage', 'Convos', 'Codex', 'Options', 'Save', 'Continue']
-        ignore = [True, True, False, False, False, self.is_from_overworld]
+        options = ['Convos', 'Options', 'Save', 'Continue']
+        ignore = [True, False, False, self.is_from_overworld]
 
         # options from environment
         # Make sure there's at least one unit before turning on Manage
