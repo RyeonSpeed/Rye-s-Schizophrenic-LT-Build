@@ -44,7 +44,7 @@ class SpriteBackground():
         self.state = 'out'
 
 class PanoramaBackground():
-    def __init__(self, panorama, speed=320, loop=True):
+    def __init__(self, panorama, speed=30, loop=True):
         self.counter = 0
         self.panorama = panorama
         if not self.panorama.images:
