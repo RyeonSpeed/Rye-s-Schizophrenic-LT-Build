@@ -392,7 +392,7 @@ def compute_hit(unit, target, item, def_item, mode, attack_info):
     hit += skill_system.dynamic_accuracy(unit, item, target, resolve_weapon(target), mode, attack_info, hit)
     hit -= skill_system.dynamic_avoid(target, resolve_weapon(target), unit, item, mode, attack_info, hit)
     if any([s.nid == 'A_Vestrian_Fail' for s in unit.skills]):
-        return utils.clamp(hit, 7, 93)
+        return utils.clamp(hit, 1, 99)
     else:
         return utils.clamp(hit, 0, 100)
 
