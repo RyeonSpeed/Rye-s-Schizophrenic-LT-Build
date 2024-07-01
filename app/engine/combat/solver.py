@@ -410,9 +410,9 @@ class CombatPhaseSolver():
             self.current_command = '--'
         return self.current_command
 
-    def generate_roll(self):
+    def generate_roll(self, meme=False):
         rng_mode = game.rng_mode
-        if rng_mode == RNGOption.CLASSIC:
+        if rng_mode == RNGOption.CLASSIC or meme:
             roll = static_random.get_combat()
         elif rng_mode == RNGOption.TRUE_HIT:
             roll = (static_random.get_combat() + static_random.get_combat()) // 2
@@ -444,6 +444,8 @@ class CombatPhaseSolver():
         first_item = item in (self.main_item, self.def_item, self.items[0])
         if assist:
             item = attacker.get_weapon()
+            
+        meme = attacker.nid == 'Roze' or defender.nid == 'Roze'
 
         to_hit = combat_calcs.compute_hit(attacker, defender, item, def_item, mode, attack_info)
         if game.rng_mode == RNGOption.FATES_HIT:
@@ -454,7 +456,7 @@ class CombatPhaseSolver():
         elif self.current_command.lower() in ('miss1', 'miss2'):
             roll = 100
         else:
-            roll = self.generate_roll()
+            roll = self.generate_roll(meme=meme)
 
         guard_hit = False
         if DB.constants.value('pairup') and item_system.is_weapon(attacker, item) and skill_system.check_enemy(attacker, defender):
