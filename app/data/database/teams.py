@@ -51,7 +51,7 @@ class TeamCatalog(Data[Team]):
 
     def save(self):
         vals: list = super().save()
-        return (vals, list(self.alliance_pairs))
+        return (vals, sorted(list(self.alliance_pairs)))
         
     def restore(self, vals):
         if not vals:
