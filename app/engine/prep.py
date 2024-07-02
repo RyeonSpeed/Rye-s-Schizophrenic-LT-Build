@@ -600,7 +600,7 @@ class PrepFormationMenuState(MapState):
         surf = self.menu.draw(surf)
         return surf
 
-def draw_funds(surf):
+def draw_funds(surf, unit):
     # Draw R: Info display
     helper = engine.get_key_name(cf.SETTINGS['key_INFO']).upper()
     FONT['text-yellow'].blit(helper, surf, (123, 143))
