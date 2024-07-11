@@ -32,7 +32,7 @@ class TrueMiracle(SkillComponent):
     def after_take_strike(self, actions, playback, unit, item, target, item2, mode, attack_info, strike):
         did_something = False
         for act in reversed(actions):
-            if isinstance(act, action.ChangeHP) and -act.num >= act.old_hp and act.unit == unit:
+            if isinstance(act, action.ChangeHP) and -act.num >= act.old_hp and act.unit == unit and not 'IgnoringDamage' in unit.tags:
                 act.num = -act.old_hp + 1
                 did_something = True
                 playback.append(pb.DefenseHitProc(unit, self.skill))
@@ -56,6 +56,9 @@ class IgnoreDamage(SkillComponent):
 
         if did_something:
             actions.append(action.TriggerCharge(unit, self.skill))
+
+    def additional_tags(self, unit, skill):
+        return ['IgnoringDamage']
 
 
 class LiveToServe(SkillComponent):
