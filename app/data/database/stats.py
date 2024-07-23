@@ -9,6 +9,7 @@ class StatPrefab(Prefab):
     name: str = None
     maximum: int = 30
     desc: str = ""
+    desc_2: str = ""
     position: str = "left"
     
     growth_colors: bool = False

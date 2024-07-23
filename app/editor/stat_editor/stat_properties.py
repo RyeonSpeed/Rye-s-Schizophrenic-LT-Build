@@ -37,6 +37,10 @@ class StatTypeProperties(QWidget):
         self.desc_box = PropertyBox(_("Description"), QLineEdit, self)
         self.desc_box.edit.textChanged.connect(self.desc_changed)
         name_section.addWidget(self.desc_box)
+        
+        self.desc_2_box = PropertyBox(_("Description Bobby"), QLineEdit, self)
+        self.desc_2_box.edit.textChanged.connect(self.desc_2_changed)
+        name_section.addWidget(self.desc_2_box)
 
         self.position_box = PropertyBox(_("Position"), ComboBox, self)
         self.position_box.edit.addItems(["hidden", "left", "right"])
@@ -110,6 +114,9 @@ class StatTypeProperties(QWidget):
 
     def desc_changed(self, text):
         self.current.desc = text
+        
+    def desc_2_changed(self, text):
+        self.current.desc_2 = text
 
     def position_changed(self, val):
         self.current.position = val
@@ -127,4 +134,5 @@ class StatTypeProperties(QWidget):
         self.max_box.edit.setValue(current.maximum)
         self.growth_colors_box.edit.setChecked(bool(current.growth_colors))
         self.desc_box.edit.setText(current.desc)
+        self.desc_2_box.edit.setText(current.desc_2)
         self.position_box.edit.setValue(current.position)
