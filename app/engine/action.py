@@ -1458,13 +1458,13 @@ class RepairItem(Action):
         self.old_c_uses = self.item.data.get('c_uses')
 
     def do(self):
-        if self.old_uses is not None and self.item.uses:
+        if self.old_uses is not None and (self.item.uses or self.item.uses_gun):
             self.item.data['uses'] = self.item.data['starting_uses']
         if self.old_c_uses is not None and self.item.c_uses:
             self.item.data['c_uses'] = self.item.data['starting_c_uses']
 
     def reverse(self):
-        if self.old_uses is not None and self.item.uses:
+        if self.old_uses is not None and (self.item.uses or self.item.uses_gun):
             self.item.data['uses'] = self.old_uses
         if self.old_c_uses is not None and self.item.c_uses:
             self.item.data['c_uses'] = self.old_c_uses
