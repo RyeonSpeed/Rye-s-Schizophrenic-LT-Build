@@ -644,14 +644,8 @@ def end_turn(self: Event, team: NID = None, flags=None):
         while self.game.phase.get_next() != team:
             self.game.phase.next()
 
-    if self.game.phase.get_next() == 'player':
-        self.game.state.change('turn_change')
-        self.game.state.change('status_endstep')
-    else:
-        self.game.state.change('turn_change')
-        self.game.state.change('status_endstep')
-        self.game.state.change('ai')
-        self.game.ui_view.remove_unit_display()
+    self.end()
+    self.end_turn_flag = True
 
 def win_game(self: Event, flags=None):
     self.game.level_vars['_win_game'] = True
@@ -1144,12 +1138,19 @@ def recruit_generic(self: Event, unit, nid, name, flags=None):
     for skill in unit.all_skills:
         action.do(action.SetSkillOwner(skill, nid))
 
-def set_name(self: Event, unit, string, flags=None):
+def set_name(self: Event, unit: NID, string: str, flags=None):
     actor = self._get_unit(unit)
     if not actor:
         self.logger.error("set_name: Couldn't find unit %s" % unit)
         return
     action.do(action.SetName(actor, string))
+
+def set_variant(self: Event, unit: NID, string: str = None, flags=None):
+    actor = self._get_unit(unit)
+    if not actor:
+        self.logger.error("set_variant: Couldn't find unit %s" % unit)
+        return
+    action.do(action.SetVariant(actor, string))
 
 def set_current_hp(self: Event, unit, hp: int, flags=None):
     actor = self._get_unit(unit)
