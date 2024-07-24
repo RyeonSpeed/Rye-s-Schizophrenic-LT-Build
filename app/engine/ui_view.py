@@ -860,7 +860,9 @@ class ItemDescriptionPanel():
                 FONT['text-blue'].blit('--', bg_surf, (left + width//2 - 16//2 + affin_width + 8, top + 4))
 
         else:
-            if self.item.desc:
+            if item_system.hover_description(self.unit, self.item):
+                desc = item_system.hover_description(self.unit, self.item)
+            elif self.item.desc:
                 desc = self.item.desc
             elif not available:
                 desc = "Cannot wield."
