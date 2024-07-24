@@ -11,6 +11,14 @@ class HiddenIfInactive(SkillComponent):
     nid = 'hidden_if_inactive'
     desc = 'Skill will not show up on info menu if condition is not fulfilled'
     tag = SkillTags.ATTRIBUTE
+    
+class HiddenEval(SkillComponent):
+    nid = 'hidden_eval'
+    desc = 'Skill will not show up on info menu if eval is true'
+    tag = SkillTags.ATTRIBUTE
+    
+    expose = ComponentType.String
+    value = 'False'
 
 class GreyIfInactive(SkillComponent):
     nid = 'grey_if_inactive'

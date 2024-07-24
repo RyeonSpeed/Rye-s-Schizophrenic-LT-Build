@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from app.engine.component_system import utils
+from app.engine import evaluate
 
 if TYPE_CHECKING:
     from app.engine.objects.item import ItemObject
@@ -179,7 +180,7 @@ def is_grey(skill, unit) -> bool:
     return (not condition(skill, unit) and skill.grey_if_inactive)
 
 def hidden(skill, unit) -> bool:
-    return skill.hidden or skill.is_terrain or (skill.hidden_if_inactive and not condition(skill, unit))
+    return skill.hidden or skill.is_terrain or (skill.hidden_if_inactive and not condition(skill, unit)) or (skill.hidden_eval and evaluate.evaluate(skill.hidden_eval.value, unit, None, unit.equipped_weapon, local_args={}))
 
 def stat_change(unit, stat_nid) -> int:
     bonus = 0
