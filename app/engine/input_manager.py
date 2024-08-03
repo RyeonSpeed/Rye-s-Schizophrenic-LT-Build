@@ -125,6 +125,8 @@ class InputManager():
         self.joystick_control['RIGHT'] = [('is_hat', 0, 'x', 1, 1), ('is_axis', 0, 0.5, 1)]
         self.joystick_control['UP'] = [('is_hat', 0, 'y', 1, 2), ('is_axis', 1, -0.5, 2)]
         self.joystick_control['DOWN'] = [('is_hat', 0, 'y', -1, 3), ('is_axis', 1, 0.5, 3)]
+        self.joystick_control['RESET1'] = [('is_button', 8)]
+        self.joystick_control['RESET2'] = [('is_button', 9)]
 
         # handle buttons that need to know when they were last pressed
         self.button_state = {k: False for k in range(10)}
