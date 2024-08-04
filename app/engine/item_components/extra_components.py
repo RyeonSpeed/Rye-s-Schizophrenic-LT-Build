@@ -143,17 +143,18 @@ class DamageOnMiss(ItemComponent):
     value = 0.5
 
     def on_miss(self, actions, playback, unit, item, target, item2, target_pos, mode, attack_info):
-        damage = combat_calcs.compute_damage(unit, target, item, target.get_weapon(), mode, attack_info)
-        damage = int(damage * self.value)
+        if item_system.damage(unit, item) is not None:
+            damage = combat_calcs.compute_damage(unit, target, item, target.get_weapon(), mode, attack_info)
+            damage = int(damage * self.value)
 
-        true_damage = min(damage, target.get_hp())
-        actions.append(action.ChangeHP(target, -damage))
+            true_damage = min(damage, target.get_hp())
+            actions.append(action.ChangeHP(target, -damage))
 
-        # For animation
-        playback.append(pb.DamageHit(unit, item, target, damage, true_damage))
-        if true_damage == 0:
-            playback.append(pb.HitSound('No Damage'))
-            playback.append(pb.HitAnim('MapNoDamage', target))
+            # For animation
+            playback.append(pb.DamageHit(unit, item, target, damage, true_damage))
+            if true_damage == 0:
+                playback.append(pb.HitSound('No Damage'))
+                playback.append(pb.HitAnim('MapNoDamage', target))
 
 class Eclipse(ItemComponent):
     nid = 'eclipse'
