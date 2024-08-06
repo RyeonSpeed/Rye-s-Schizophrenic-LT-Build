@@ -118,9 +118,12 @@ class Lifelink(SkillComponent):
         playbacks = [p for p in playback if p.nid in (
             'damage_hit', 'damage_crit') and p.attacker == unit]
         for p in playbacks:
-            total_damage_dealt += p.true_damage
+            total_damage_dealt += p.damage
         if self.value > 0:
             damage = utils.clamp(total_damage_dealt, 0, target.get_hp())
+        else:
+            damage = utils.clamp(total_damage_dealt, 0, 9999)
+        print(damage)
         true_damage = int(damage * self.value)
         actions.append(action.ChangeHP(unit, true_damage))
 
