@@ -140,10 +140,7 @@ class InfoMenuState(State):
                 self.info_graph.set_transition_out()
                 self.info_flag = False
                 return
-                
-            if event == 'AUX' and isinstance(self.info_graph.current_bb.help_box, ItemHelpDialog):
-                get_sound_thread().play_sfx('Info In')
-                self.multi_item_flag = True
+
             if 'RIGHT' in directions:
                 get_sound_thread().play_sfx('Select 6')
                 self.info_graph.move_right()
