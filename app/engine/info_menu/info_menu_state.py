@@ -585,7 +585,11 @@ class InfoMenuState(State):
                 base_value += subtle_stat_bonus
                 contribution = self.unit.stat_contribution(stat_nid)
                 contribution['Base Value'] = base_value
-            desc_text = curr_stat.desc
+            if game.level_vars.get('deployed') and 'BobbyAsaka' in game.level_vars.get('deployed'):
+                desc_text = curr_stat.desc_2 or ''
+            else:
+                desc_text = curr_stat.desc
+
             help_box = help_menu.StatDialog(desc_text or ('%s_desc' % stat_nid), contribution)
             self.info_graph.register((96 + 8, 16 * idx + 24, 64, 16), help_box, state, first=(idx == 0))
 
