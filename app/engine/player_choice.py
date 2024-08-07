@@ -41,7 +41,6 @@ class PlayerChoiceState(MapState):
             else:
                 nrows = len(self._resolved_data)
                 self.size = (1, nrows)
-
         values, display_values = self.process_data(self._resolved_data)
         self.menu = GridChoiceMenu(values, display_values, self.header, self.data_type, self.size,
                                    self.row_width, self.alignment, self.orientation,

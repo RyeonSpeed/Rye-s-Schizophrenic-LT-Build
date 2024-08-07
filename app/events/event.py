@@ -698,12 +698,12 @@ class Event():
             try:
                 val = self._eval_expr(self.text_evaluator._evaluate_all(func_as_str), False)
                 if isinstance(val, list):
-                    return val or ['']
+                    return val or []
                 else:
                     return [self._object_to_str(val)]
             except Exception as e:
                 self.logger.error("Failed to evaluate expression %s with error %s", func_as_str, str(e))
-                return [""]
+                return []
         return try_eval_str
 
     def _get_rows_of_table(self, rows: TableRows, expression: bool = False) -> Callable[[], List[str]] | List[str]:
