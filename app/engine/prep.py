@@ -796,7 +796,7 @@ class PrepManageSelectState(State):
                 not 'Blacklist' in self.unit.tags and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Ignis':
             ignore[2] = False
         # Vehicle enabled for vehicles (duh) that can be deployed
-        if 'Vehicle' in self.unit.tags and 'Blacklist' not in self.unit.tags:
+        if 'Vehicle' in self.unit.tags and 'Blacklist' not in self.unit.tags and game.level.nid not in ['4w']:
             ignore[3] = False
         # Use if usables can be used
         if any((item_funcs.can_be_used_in_base(self.unit, item) for item in self.unit.items)):
