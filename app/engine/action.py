@@ -2671,18 +2671,6 @@ class ChangeFaction(Action):
         self.unit.faction = self.old_faction_nid
         self.unit.name = self.old_name
         self.unit.desc = self.old_desc
-        
-class ChangeDrawInfo(Action):
-    def __init__(self, unit, draw_info: bool):
-        self.unit = unit
-        self.draw_info = draw_info
-        self.old_draw_info = self.unit.draw_info
-
-    def do(self):
-        self.unit.draw_info = self.draw_info
-
-    def reverse(self):
-        self.unit.draw_info = self.old_draw_info
 
 class ChangeTeam(Action):
     def __init__(self, unit, team):

@@ -1495,13 +1495,11 @@ You will have to rename this generic with a unique NID and a name.
 Be extremely careful with this function. The new NID *must* be unique across every level.
 
 Otherwise extremely undefined behavior can occur.
-
-If the *display* flag is set, the unit's minibox display will be changed to that of a non-generic unit (using the unit's name and minimug).
 """
 
-    keywords = ['Unit', 'Nid', 'Name']
+    keywords = ['Unit', 'Nid']
+    optional_keywords = ['Name']
     keyword_types = ['Unit', 'Nid', 'String']
-    _flags = ["display"]
 
 class AddGroup(EventCommand):
     nid = 'add_group'

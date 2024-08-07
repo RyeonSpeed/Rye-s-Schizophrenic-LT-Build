@@ -56,7 +56,6 @@ class UnitObject(Prefab):
     nid: NID  #: Unique identifier
     prefab_nid: NID = None  #: NID of this unit's prefab (usually the same as it's *nid*)
     generic: bool = False  #: Whether the unit is a generic
-    draw_info: bool = False # If True, the unit's minibox contains faction/class or name and minimug even when generic
     persistent: bool = True  #: If unit is persistent, unit will not be removed between levels. Generic units start off without persistence.
     ai: NID = None  #: NID of this unit's base combat AI (skills might modify this)
     ai_group: NID = None
