@@ -1128,8 +1128,6 @@ def interact_unit(self: Event, unit, position, combat_script: Optional[List[str]
     self.state = "paused"
 
 def recruit_generic(self: Event, unit, nid, name=None, flags=None):
-    flags = flags or set()
-
     new_unit = self._get_unit(unit)
     if not new_unit:
         self.logger.error("recruit_generic: Couldn't find unit %s" % unit)
