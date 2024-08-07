@@ -1128,6 +1128,8 @@ def interact_unit(self: Event, unit, position, combat_script: Optional[List[str]
     self.state = "paused"
 
 def recruit_generic(self: Event, unit, nid, name, flags=None):
+    flags = flags or set()
+
     new_unit = self._get_unit(unit)
     if not new_unit:
         self.logger.error("recruit_generic: Couldn't find unit %s" % unit)
@@ -1140,6 +1142,10 @@ def recruit_generic(self: Event, unit, nid, name, flags=None):
         action.do(action.SetItemOwner(item, nid))
     for skill in unit.all_skills:
         action.do(action.SetSkillOwner(skill, nid))
+
+    display = 'display' in flags
+    if display:
+        action.do(action.ChangeDrawInfo(unit, True))
 
 def set_name(self: Event, unit: NID, string: str, flags=None):
     actor = self._get_unit(unit)
