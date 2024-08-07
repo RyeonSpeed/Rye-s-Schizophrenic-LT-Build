@@ -721,4 +721,4 @@ class Event():
             data = [self._object_to_str(s) for s in rows]
         else: # is a callable function
             data = rows
-        return data or ['']
+        return data or []
