@@ -794,11 +794,11 @@ class PrepManageSelectState(State):
         ignore = [False, True, True, True, True, True]
         # Vend if Alanzo is recruited/alive and unit satisfies conditions
         if any([x.nid == 'Alanzo' and not x.dead for x in game.get_all_units_in_party()]) and \
-                not 'Blacklist' in self.unit.tags and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Alanzo':
+                not ('Blacklist' in self.unit.tags and not 'InVehicle' in self.unit.tags) and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Alanzo':
             ignore[1] = False
         # Pawn if Ignis is recruited/alive etc etc
         if any([x.nid == 'Ignis' and not x.dead for x in game.get_all_units_in_party()]) and \
-                not 'Blacklist' in self.unit.tags and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Ignis':
+                not ('Blacklist' in self.unit.tags and not 'InVehicle' in self.unit.tags) and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Ignis':
             ignore[2] = False
         # Vehicle enabled for vehicles (duh) that can be deployed
         if 'Vehicle' in self.unit.tags and 'Blacklist' not in self.unit.tags and game.level.nid not in ['4w']:
