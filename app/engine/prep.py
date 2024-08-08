@@ -189,7 +189,8 @@ class PrepPickUnitsState(State):
         player_units = game.get_units_in_party()
         stuck_units = [unit for unit in player_units if unit.position and not game.check_for_region(unit.position, 'formation')]
         unstuck_units = [unit for unit in player_units if unit not in stuck_units]
-
+        unstuck_units = sorted(unstuck_units, key=lambda unit: bool('Blacklist' in unit.tags), reverse=False)
+        unstuck_units = sorted(unstuck_units, key=lambda unit: bool('InVehicle' in unit.tags), reverse=True)
         self.units = stuck_units + sorted(unstuck_units, key=lambda unit: bool(unit.position), reverse=True)
         self.menu = menus.Table(None, self.units, (6, 2), (110, 24))
         self.menu.set_mode('position')
@@ -207,7 +208,9 @@ class PrepPickUnitsState(State):
         '''Run on exiting the prep menu. Saves the order for future levels with the party.
         Saved order is unique to current party - will not effect other parties'''
         party = game.parties[game.current_party]
-        party.party_prep_manage_sort_order = [u.nid for u in sorted(self.units, key=lambda unit: bool(unit.position), reverse=True)]
+        units = sorted(self.units, key=lambda unit: bool('Blacklist' in unit.tags), reverse=False)
+        units = sorted(units, key=lambda unit: bool('InVehicle' in unit.tags), reverse=True)
+        party.party_prep_manage_sort_order = [u.nid for u in sorted(units, key=lambda unit: bool(unit.position), reverse=True)]
 
     def take_input(self, event):
         first_push = self.fluid.update()
@@ -627,6 +630,8 @@ class PrepManageState(State):
         self.fluid = FluidScroll()
 
         units = game.get_units_in_party()
+        units = sorted(units, key=lambda unit: bool('Blacklist' in unit.tags), reverse=False)
+        units = sorted(units, key=lambda unit: bool('InVehicle' in unit.tags), reverse=True)
         self.units = sorted(units, key=lambda unit: bool(unit.position), reverse=True)
         self.menu = menus.Table(None, self.units, (4, 3), (6, 0))
         if self.name.startswith('base'):

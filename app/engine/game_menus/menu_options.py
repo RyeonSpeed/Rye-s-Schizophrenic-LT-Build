@@ -538,7 +538,9 @@ class UnitOption(BasicOption):
         elif self.color:
             color = self.color
         elif self.mode in ('position', 'prep_manage'):
-            if 'Blacklist' in self.unit.tags:
+            if 'InVehicle' in self.unit.tags:
+                color = 'purple'
+            elif 'Blacklist' in self.unit.tags:
                 color = 'red'
             elif DB.constants.value('fatigue') and game.game_vars.get('_fatigue') and \
                     self.unit.get_fatigue() >= self.unit.get_max_fatigue():
