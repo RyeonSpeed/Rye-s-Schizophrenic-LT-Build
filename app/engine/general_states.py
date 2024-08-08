@@ -2686,12 +2686,21 @@ class ShopState(State):
                         self.buy_menu.decrement_stock()
                         self.money_counter_disp.start(-value)
                         game.register_item(new_item)
-                        if not item_funcs.inventory_full(self.unit, new_item):
-                            action.do(action.GiveItem(self.unit, new_item))
-                            self.current_msg = self.get_dialog(self.buy_again_message)
-                        elif game.game_vars.get('_convoy'):
-                            action.do(action.PutItemInConvoy(new_item))
-                            self.current_msg = self.get_dialog(self.convoy_message)
+                        if new_item.nid == 'Arms_Scroll_V':
+                            for w in self.unit.wexp:
+                                if w not in ['Item', 'Gear'] and self.unit.wexp.get(w) > 0:
+                                    action.do(action.AddWexp(self.unit, w, 30))
+                        elif new_item.nid == 'Medicine':
+                            action.do(action.SetGameVar('medicine', game.game_vars.get('medicine', 0) + 1))
+                        elif new_item.nid == 'Cleanser':
+                            action.do(action.SetGameVar('cleansers', game.game_vars.get('cleansers', 0) + 1))
+                        else:
+                            if not item_funcs.inventory_full(self.unit, new_item):
+                                action.do(action.GiveItem(self.unit, new_item))
+                                self.current_msg = self.get_dialog(self.buy_again_message)
+                            elif game.game_vars.get('_convoy'):
+                                action.do(action.PutItemInConvoy(new_item))
+                                self.current_msg = self.get_dialog(self.convoy_message)
 
                     # How it could fail
                     elif self.buy_menu.get_stock() == 0:
