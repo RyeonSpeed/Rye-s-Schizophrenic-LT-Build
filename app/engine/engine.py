@@ -153,7 +153,8 @@ def _subsurface_fix(
     return tx, ty, twidth, theight
 
 def subsurface(surf: pygame.Surface, rect: Tuple[int, int, int, int]) -> pygame.Surface:
-    tx, ty, twidth, theight = _subsurface_fix((surf.get_width(), surf.get_height()), rect)
+    tx, ty, twidth, theight = _subsurface_fix((surf_width, surf_height), rect)
+
     return surf.subsurface(tx, ty, twidth, theight)
 
 def image_load(fn, convert=False, convert_alpha=False):
