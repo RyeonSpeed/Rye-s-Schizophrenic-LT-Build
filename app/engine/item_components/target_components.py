@@ -166,6 +166,9 @@ class EmptyTileTargetRestrict(ItemComponent):
         if not game.board.get_unit(def_pos):
             return True
         return False
+        
+    def ignore_fog_of_war(self, unit, item) -> bool:
+        return True
 
 class TraversableTargetRestrict(ItemComponent):
     nid = 'traversable_tile_target_restrict'
