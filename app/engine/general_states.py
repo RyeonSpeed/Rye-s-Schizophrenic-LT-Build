@@ -2676,7 +2676,7 @@ class ShopState(State):
                     if game.get_money() - value >= 0 and \
                             self.buy_menu.get_stock() != 0 and \
                             (not item_funcs.inventory_full(self.unit, new_item) or
-                             game.game_vars.get('_convoy')):
+                             game.game_vars.get('_convoy') or new_item.nid == 'Arms_Scroll_V'):
                         action.do(action.HasTraded(self.unit))
                         get_sound_thread().play_sfx('GoldExchange')
                         action.do(action.GainMoney(game.current_party, -value))
