@@ -156,6 +156,9 @@ class EquippableAccessory(ItemComponent):
 
     def equippable(self, unit, item) -> bool:
         return True
+        
+    def available(self, unit, item) -> bool:
+        return not unit.get_weapon() or not 'Morph' in unit.get_weapon().tags
 
 class Transform(ItemComponent):
     nid = 'transform'
