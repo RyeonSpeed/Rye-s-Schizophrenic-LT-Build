@@ -243,7 +243,7 @@ class ItemHelpDialog(HelpDialog):
             crit = item_system.crit(self.unit, self.item)
         else:
             crit = None
-        weight = self.item.weight.value if self.item.weight else None
+        weight = self.item.weight2.value if self.item.weight2 else self.item.weight2_uses.value * self.item.data.get('uses') if self.item.weight2_uses and self.item.data.get('uses') is not None else self.item.weight2_uses.value * self.item.data.get('c_uses') if self.item.weight2_uses and self.item.data.get('c_uses') is not None else None
         # Get range
         rng = item_funcs.get_range_string(self.unit, self.item)
 

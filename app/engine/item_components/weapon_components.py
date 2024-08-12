@@ -222,7 +222,9 @@ class StatChange(ItemComponent):
     expose = (ComponentType.Dict, ComponentType.Stat)
     value = []
 
-    def stat_change(self, unit):
+    def stat_change(self, unit, item):
+        if not item_system.available(unit, item):
+            return None
         return {stat[0]: stat[1] for stat in self.value}
 
 class CannotDS(ItemComponent):

@@ -115,8 +115,8 @@ def stat_change(unit: UnitObject, item: ItemObject, stat_nid) -> int:
     bonus = 0
     all_components = get_all_components(unit, item)
     for component in all_components:
-        if component.defines('stat_change'):
-            d = component.stat_change(unit)
+        if component.defines('stat_change') and component.stat_change(unit, item):
+            d = component.stat_change(unit, item)
             bonus += d.get(stat_nid, 0)
     return bonus
 
@@ -124,8 +124,8 @@ def stat_change_contribution(unit: UnitObject, item: ItemObject, stat_nid) -> li
     contribution = {}
     all_components = get_all_components(unit, item)
     for component in all_components:
-        if component.defines('stat_change'):
-            d = component.stat_change(unit)
+        if component.defines('stat_change') and component.stat_change(unit, item):
+            d = component.stat_change(unit, item)
             val = d.get(stat_nid, 0)
             if val != 0:
                 if item.name in contribution:
