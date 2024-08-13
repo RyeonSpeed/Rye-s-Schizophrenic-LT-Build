@@ -9,7 +9,7 @@ from app.data.resources.resources import RESOURCES
 import app.engine.config as cf
 from app.engine.persistent_records import RECORDS
 from app.engine import engine, item_funcs, item_system, skill_system, \
-    combat_calcs, unit_funcs
+    combat_calcs, unit_funcs, equations
 from app.engine.movement import movement_funcs
 
 """
