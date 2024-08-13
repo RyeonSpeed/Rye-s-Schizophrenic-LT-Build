@@ -1414,6 +1414,8 @@ class ItemDiscardState(MapState):
             self.mode = self.ItemDiscardMode.STORAGE
         elif game.game_vars.get('_convoy') and SupplyAbility.targets(self.cur_unit):
             self.mode = self.ItemDiscardMode.STORAGE
+        elif game.level_vars.get('deployed') and 'Ignis' in game.level_vars.get('deployed') and not game.get_unit('Ignis').dead:
+            self.mode = self.ItemDiscardMode.STORAGE
         else:
             self.mode = self.ItemDiscardMode.DISCARD
 
