@@ -694,6 +694,7 @@ class MoveState(MapState):
             pass
 
         elif event == 'BACK':
+            game.witch_warp_cache = {}
             get_sound_thread().play_sfx('Select 4')
             game.cursor.set_pos(cur_unit.position)
             game.state.clear()
@@ -707,6 +708,7 @@ class MoveState(MapState):
 
         elif event == 'SELECT':
             if game.cursor.position == cur_unit.position:
+                game.witch_warp_cache = {}
                 get_sound_thread().play_sfx('Select 2')
                 if cur_unit.has_attacked or cur_unit.has_traded:
                     game.state.clear()
@@ -737,6 +739,7 @@ class MoveState(MapState):
                     else:
                         cur_unit.current_move = action.Move(cur_unit, game.cursor.position)
                         game.state.change('menu')
+                    game.witch_warp_cache = {}
                     game.state.change('movement')
                     action.do(cur_unit.current_move)
             else:
