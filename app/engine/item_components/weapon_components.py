@@ -56,11 +56,17 @@ class Magic(ItemComponent):
 
     def resist_formula(self, unit, item):
         return 'MAGIC_DEFENSE'
+        
+    def is_magic(self, unit, item, target, item2, mode):
+        return True
 
 class MagicAtRange(ItemComponent):
     nid = 'magic_at_range'
     desc = 'Makes Item use magic damage formula at range'
     tag = ItemTags.WEAPON
+    
+    def is_magic(self, unit, item, target, item2, mode):
+        return utils.calculate_distance(unit.position, target.position) > 1
 
     def dynamic_damage(self, unit, item, target, item2, mode, attack_info, base_value) -> int:
         running_damage = 0

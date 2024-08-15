@@ -7,6 +7,7 @@ ITEM_HOOKS: Dict[str, HookInfo] = {
     # default false, return false if any component returns false
     'is_weapon':                                       HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'is_spell':                                        HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
+    'is_magic':                                        HookInfo(['unit', 'item', 'target', 'item2', 'mode'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'is_accessory':                                    HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'equippable':                                      HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'can_counter':                                     HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_FALSE),

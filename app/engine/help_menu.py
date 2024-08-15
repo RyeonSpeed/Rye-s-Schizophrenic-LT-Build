@@ -181,6 +181,7 @@ class StatDialog(HelpDialog):
         bonuses = sorted(self.bonuses.items(), key=lambda x: x[0] != 'Base Value')
         color = game.speak_styles.get('__default_help').font_color
         for idx, (bonus, val) in enumerate(bonuses):
+            val = int(val)
             if idx == 0:
                 width = text_width(self.text_font, str(val))
                 desc += '{br}<%s><%s>%s</></>' % (self.text_font, color, str(val))

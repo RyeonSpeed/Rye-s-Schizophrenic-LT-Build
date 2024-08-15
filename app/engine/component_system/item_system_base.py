@@ -117,7 +117,7 @@ def stat_change(unit: UnitObject, item: ItemObject, stat_nid) -> int:
     for component in all_components:
         if component.defines('stat_change') and component.stat_change(unit, item):
             d = component.stat_change(unit, item)
-            bonus += d.get(stat_nid, 0)
+            bonus += int(d.get(stat_nid, 0))
     return bonus
 
 def stat_change_contribution(unit: UnitObject, item: ItemObject, stat_nid) -> list:
