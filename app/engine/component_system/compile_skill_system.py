@@ -44,7 +44,6 @@ SKILL_HOOKS: Dict[str, HookInfo] = {
     'change_animation':                     HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'change_ai':                            HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'change_roam_ai':                       HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
-    'witch_warp':                           HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     # formula (as exclusive)
     'damage_formula':                       HookInfo(['unit'], ResolvePolicy.UNIQUE),
     'resist_formula':                       HookInfo(['unit'], ResolvePolicy.UNIQUE),
