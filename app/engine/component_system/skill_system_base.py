@@ -164,6 +164,7 @@ class Defaults():
 
 def reset_cache():
     condition.cache_clear()
+    witch_warp.cache_clear()
 
 @lru_cache(65535)
 def condition(skill, unit: UnitObject, item=None) -> bool:
@@ -174,6 +175,18 @@ def condition(skill, unit: UnitObject, item=None) -> bool:
             if not component.condition(unit, item):
                 return False
     return True
+
+@lru_cache(65535)  
+def witch_warp(unit: UnitObject):
+    values = []
+    for skill in unit.skills[:]:
+        for component in skill.components:
+            if component.defines('witch_warp'):
+                if component.ignore_conditional or condition(skill, unit):
+                    values.append(component.witch_warp(unit))
+
+    result = utils.unique(values)
+    return result if values else []
 
 def is_grey(skill, unit) -> bool:
     return (not condition(skill, unit) and skill.grey_if_inactive)
