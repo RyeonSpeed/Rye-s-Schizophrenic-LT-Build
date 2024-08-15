@@ -271,7 +271,7 @@ class LevelCursor(BaseCursor):
                     draw_unit_sprite = True
                     x_offset = self.path[0][0] - self.path[1][0]
                     y_offset = self.path[0][1] - self.path[1][1]
-                elif self.position in self.game.witch_warp_cache or (not self.game.witch_warp_cache and self.position in set(skill_system.witch_warp(self.cur_unit))):
+                elif self.position in set(skill_system.witch_warp(self.cur_unit)):
                     draw_unit_sprite = True
                     x_offset, y_offset = 0, 0
 

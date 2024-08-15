@@ -145,7 +145,6 @@ class GameState():
 
         self.target_system: TargetSystem = None
         self.path_system: PathSystem = None
-        self.witch_warp_cache: Set = None
 
         self.clear()
 
@@ -267,7 +266,6 @@ class GameState():
         self.ai = ai_controller.AIController()
         self.target_system = TargetSystem()
         self.path_system = PathSystem()
-        self.witch_warp_cache = None
 
         self.alerts.clear()
 

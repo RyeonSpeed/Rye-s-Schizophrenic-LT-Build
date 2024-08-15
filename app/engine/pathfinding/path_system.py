@@ -50,11 +50,8 @@ class PathSystem():
         valid_moves = pathfinder.process(can_move_through, movement_left)
         valid_moves.add(unit.position)
         if witch_warp:
-            if not self.game.witch_warp_cache:
-                self.game.witch_warp_cache = set(skill_system.witch_warp(unit))
-            valid_moves |= self.game.witch_warp_cache
-            if unit.team != 'player':
-                self.game.witch_warp_cache = {}
+            witch_warp = set(skill_system.witch_warp(unit))
+            valid_moves |= witch_warp
         return valid_moves
 
     def get_path(self, unit: UnitObject, position: Pos, ally_block: bool = False, 
