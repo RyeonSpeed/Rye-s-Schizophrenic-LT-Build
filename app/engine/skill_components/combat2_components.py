@@ -119,7 +119,7 @@ class Lifelink(SkillComponent):
             'damage_hit', 'damage_crit') and p.attacker == unit]
         for p in playbacks:
             total_damage_dealt += p.damage
-        if self.value > 0:
+        if not any([x.nid == 'Devil_A' for x in target.skills]):
             damage = utils.clamp(total_damage_dealt, 0, target.get_hp())
         else:
             damage = utils.clamp(total_damage_dealt, 0, 9999)
