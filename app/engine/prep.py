@@ -784,8 +784,11 @@ class PrepManageSelectState(State):
         self.menu = game.memory['manage_menu']
         self.unit = game.memory['current_unit']
         self.current_index = self.menu.current_index
-
         options = ['Inventory', 'Vending', 'Pawn', 'Vehicle', 'Use', 'TBD']
+        if self.unit.nid == 'Alanzo':
+            options = ['Inventory', 'Medicine', 'Pawn', 'Vehicle', 'Use', 'TBD']
+        elif self.unit.nid == 'Ignis':
+            options = ['Inventory', 'Vending', 'Discard', 'Vehicle', 'Use', 'TBD']
         ignore = self.get_ignore()
         self.select_menu = menus.Table(self.unit, options, (3, 2), (120, 80))
         self.select_menu.set_ignore(ignore)
@@ -796,9 +799,15 @@ class PrepManageSelectState(State):
         if any([x.nid == 'Alanzo' and not x.dead for x in game.get_all_units_in_party()]) and \
                 not ('Blacklist' in self.unit.tags and not 'InVehicle' in self.unit.tags) and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Alanzo':
             ignore[1] = False
+        # Medicine if Alanzo has 30 MAG
+        if self.unit.nid == 'Alanzo' and self.unit.stats.get('MAG') >= 30:
+            ignore[1] = False
         # Pawn if Ignis is recruited/alive etc etc
         if any([x.nid == 'Ignis' and not x.dead for x in game.get_all_units_in_party()]) and \
                 not ('Blacklist' in self.unit.tags and not 'InVehicle' in self.unit.tags) and (not 'Vehicle' in self.unit.tags or 'Mounted' in self.unit.tags) and not any([sk.nid == 'Unruly' for sk in self.unit.all_skills]) and not self.unit.nid == 'Ignis':
+            ignore[2] = False
+        # Discard if Ignis has items
+        if self.unit.nid == 'Ignis' and any([item_system.discardable(self.unit, i) for i in self.unit.items]):
             ignore[2] = False
         # Vehicle enabled for vehicles (duh) that can be deployed
         if 'Vehicle' in self.unit.tags and 'Blacklist' not in self.unit.tags and game.level.nid not in ['4w']:
@@ -840,6 +849,14 @@ class PrepManageSelectState(State):
                 game.memory['unit2'] = self.unit
                 game.memory['next_state'] = 'prep_trade'
                 game.state.change('transition_to')
+            elif choice == 'Medicine':
+                valid_events = DB.events.get_by_nid_or_name('Global Z_Prep_Medicine_Special', game.level.nid)
+                local_args = {}
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
+                    self.state = 'paused'
+                if not valid_events:
+                    self.logger.error("trigger_script_with_args: Couldn't find any valid events matching name %s" % trigger_script)
             elif choice == 'Vending':
                 game.game_vars['prep_vend'] = self.unit.nid
                 valid_events = DB.events.get_by_nid_or_name('Global Ability_Vending_Sub', game.level.nid)
@@ -858,6 +875,14 @@ class PrepManageSelectState(State):
                 local_args = {}
                 local_args['guy1'] = self.unit.nid
                 local_args['guy2'] = 'Ignis'
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
+                    self.state = 'paused'
+                if not valid_events:
+                    self.logger.error("trigger_script_with_args: Couldn't find any valid events matching name %s" % trigger_script)
+            elif choice == 'Discard':
+                valid_events = DB.events.get_by_nid_or_name('Global Z_Discard_Special', game.level.nid)
+                local_args = {}
                 for event_prefab in valid_events:
                     game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
                     self.state = 'paused'
