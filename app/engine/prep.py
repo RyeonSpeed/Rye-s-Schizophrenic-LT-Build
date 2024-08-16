@@ -784,11 +784,13 @@ class PrepManageSelectState(State):
         self.menu = game.memory['manage_menu']
         self.unit = game.memory['current_unit']
         self.current_index = self.menu.current_index
-        options = ['Inventory', 'Vending', 'Pawn', 'Vehicle', 'Use', 'TBD']
+        options = ['Inventory', 'Vending', 'Pawn', 'Promote', 'Use', 'TBD']
+        if 'Vehicle' in self.unit.tags:
+            options = ['Inventory', 'Vending', 'Pawn', 'Vehicle', 'Use', 'TBD']
         if self.unit.nid == 'Alanzo':
-            options = ['Inventory', 'Medicine', 'Pawn', 'Vehicle', 'Use', 'TBD']
+            options = ['Inventory', 'Medicine', 'Pawn', '--', 'Use', 'TBD']
         elif self.unit.nid == 'Ignis':
-            options = ['Inventory', 'Vending', 'Discard', 'Vehicle', 'Use', 'TBD']
+            options = ['Inventory', 'Vending', 'Discard', 'Promote', 'Use', 'TBD']
         ignore = self.get_ignore()
         self.select_menu = menus.Table(self.unit, options, (3, 2), (120, 80))
         self.select_menu.set_ignore(ignore)
@@ -809,6 +811,9 @@ class PrepManageSelectState(State):
         # Discard if Ignis has items
         if self.unit.nid == 'Ignis' and any([item_system.discardable(self.unit, i) for i in self.unit.items]):
             ignore[2] = False
+        # Enable promotion option for promotable units
+        if self.unit.nid != 'Retina' and DB.classes.get(self.unit.klass).tier == 1 and 'NoPromo' not in self.unit.tags and not 'Vehicle' in self.unit.tags:
+            ignore[3] = False
         # Vehicle enabled for vehicles (duh) that can be deployed
         if 'Vehicle' in self.unit.tags and 'Blacklist' not in self.unit.tags and game.level.nid not in ['4w']:
             ignore[3] = False
@@ -883,6 +888,15 @@ class PrepManageSelectState(State):
             elif choice == 'Discard':
                 valid_events = DB.events.get_by_nid_or_name('Global Z_Discard_Special', game.level.nid)
                 local_args = {}
+                for event_prefab in valid_events:
+                    game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
+                    self.state = 'paused'
+                if not valid_events:
+                    self.logger.error("trigger_script_with_args: Couldn't find any valid events matching name %s" % trigger_script)
+            elif choice == 'Promote':
+                valid_events = DB.events.get_by_nid_or_name('Global Z_Promote_Special', game.level.nid)
+                local_args = {}
+                local_args['guy1'] = self.unit.nid
                 for event_prefab in valid_events:
                     game.events.trigger_specific_event(event_prefab.nid, local_args=local_args)
                     self.state = 'paused'
