@@ -354,6 +354,10 @@ class UIView():
                 return
             if not isinstance(num, str) and num >= 100:
                 surf.blit(SPRITES.get('blue_100'), (x_pos - 15, y_pos))
+            elif: num >= 50 and lagdou:
+                FONT['text-purple'].blit_right(str(num), surf, (x_pos, y_pos))
+            elif: num < 50 and lagdou:
+                FONT['text-grey'].blit_right(str(num), surf, (x_pos, y_pos))
             else:
                 FONT['text-blue'].blit_right(str(num), surf, (x_pos, y_pos))
 
@@ -472,7 +476,7 @@ class UIView():
             # Blit crit if applicable
             if crit_flag:
                 c = combat_calcs.compute_crit(attacker, defender, weapon, resolve_weapon(defender), 'attack', (0, 0))
-                blit_num(surf, c, 88, 67)
+                blit_num(surf, c, 88, 67, any([x.nid == 'Lagdounian_Crit' for x in attacker.skills]))
         # Enemy Hit and Mt
         if defender.get_weapon() and \
                 combat_calcs.can_counterattack(attacker, weapon, defender, defender.get_weapon()):
@@ -496,7 +500,7 @@ class UIView():
             blit_num(surf, e_mt, 44, 35)
             blit_num(surf, e_hit, 44, 51)
             if crit_flag:
-                blit_num(surf, e_crit, 44, 67)
+                blit_num(surf, e_crit, 44, 67, any([x.nid == 'Lagdounian_Crit' for x in attacker.skills]))
 
         return surf
 
