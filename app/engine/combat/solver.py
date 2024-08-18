@@ -473,9 +473,9 @@ class CombatPhaseSolver():
                     crit = True
                 elif self.current_command.lower() in ('hit1', 'hit2', 'miss1', 'miss2'):
                     crit = False
-                elif any([x.nid == 'Lagdounian_Crit_P' for x in attacker.skills]):
+                elif to_crit is not None and any([x.nid == 'Lagdounian_Crit_P' for x in attacker.skills]):
                     crit = False
-                elif any([x.nid == 'Lagdounian_Crit' for x in attacker.skills]):
+                elif to_crit is not None and any([x.nid == 'Lagdounian_Crit' for x in attacker.skills]):
                     crit = to_crit >= 50
                 elif to_crit is not None:
                     crit_roll = self.generate_crit_roll()
