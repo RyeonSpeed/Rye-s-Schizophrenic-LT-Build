@@ -347,7 +347,7 @@ class UIView():
         self.spell_info_disp = None
 
     def create_attack_info(self, attacker, weapon, defender, a_assist=None, d_assist=None):
-        def blit_num(surf, num, x_pos, y_pos):
+        def blit_num(surf, num, x_pos, y_pos, lagdou=False):
             if num is None or num == '--':
                 # x_pos - 1 to center -- with general center of 2 digit numbers
                 FONT['text-blue'].blit_right('--', surf, (x_pos - 1, y_pos))
