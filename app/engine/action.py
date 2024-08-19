@@ -275,6 +275,11 @@ class Swap(Action):
 
 
 class Warp(SimpleMove):
+    def __init__(self, unit, new_pos, witch_warp=False):
+        self.witch_warp = witch_warp
+        self.witch_warp_actions = []
+        super().__init__(unit, new_pos)
+
     def do(self):
         self.unit.sprite.set_transition('warp_move')
 
@@ -282,7 +287,22 @@ class Warp(SimpleMove):
         self.unit.position = self.new_pos
         game.arrive(self.unit)
         self.update_fow_action.do()
-
+        
+        for skill in self.unit.skills:
+            is_witch_warp_skill = False
+            for component in skill.components:
+                if component.defines('witch_warp'):
+                    is_witch_warp_skill = True
+            if is_witch_warp_skill:
+                self.witch_warp_actions = self.witch_warp_actions + [TriggerCharge(self.unit, skill)]
+        
+        for witch_warp_action in self.witch_warp_actions:
+            witch_warp_action.do()
+                
+    def reverse(self):
+        super().reverse()
+        for witch_warp_action in self.witch_warp_actions:
+            witch_warp_action.reverse()
 
 class Swoosh(SimpleMove):
     def do(self):

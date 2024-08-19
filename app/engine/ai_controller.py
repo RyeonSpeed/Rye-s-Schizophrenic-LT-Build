@@ -107,7 +107,8 @@ class AIController():
             normal_moves = game.path_system.get_valid_moves(self.unit, witch_warp=False)
             witch_warp = set(skill_system.witch_warp(self.unit))
             if self.goal_position in witch_warp and self.goal_position not in normal_moves:
-                action.do(action.Warp(self.unit, self.goal_position))
+                action.do(action.Warp(self.unit, self.goal_position, True))
+                            
             else:
                 path = game.path_system.get_path(self.unit, self.goal_position)
                 game.state.change('movement')
