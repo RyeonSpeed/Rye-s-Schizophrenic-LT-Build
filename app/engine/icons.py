@@ -126,8 +126,11 @@ def draw_faction(surf, faction, topleft):
     surf.blit(image, topleft)
     return surf
 
-def get_portrait(unit) -> tuple:
+def get_portrait(unit, flip=False) -> tuple:
     image = RESOURCES.portraits.get(unit.portrait_nid)
+    if flip and unit.nid == 'Dex':
+        print('here')
+        image = RESOURCES.portraits.get(unit.portrait_nid + 'Mirror')
     if image:
         offset = image.info_offset
         if not image.image:

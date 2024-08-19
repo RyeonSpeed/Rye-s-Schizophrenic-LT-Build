@@ -39,7 +39,7 @@ def make_bg_surf(shimmer):
 
 def draw_unit_face(surf, topleft, unit, right):
     x, y = topleft
-    face_image, offset = icons.get_portrait(unit)
+    face_image, offset = icons.get_portrait(unit, flip=right)
     if right:
         face_image = engine.flip_horiz(face_image)
     face_image = face_image.convert_alpha()

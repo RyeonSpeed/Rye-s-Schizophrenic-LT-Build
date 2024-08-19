@@ -905,7 +905,7 @@ class ItemDescriptionPanel():
             cursor_left = True
             topleft = (8, WINHEIGHT - 8 - self.surf.get_height())
 
-        portrait, _ = icons.get_portrait(self.unit)
+        portrait, _ = icons.get_portrait(self.unit, cursor_left)
         if portrait:
             if cursor_left:
                 portrait = engine.flip_horiz(portrait)
