@@ -457,6 +457,8 @@ class InfoMenuState(State):
 
         # Populate battle info
         render_text(surf, ['text'], [text_funcs.translate('Rng')], ['yellow'], (50, top))
+        if DB.constants.value('fatigue'):
+            render_text(surf, ['text'], [text_funcs.translate('Ftg')], ['yellow'], (2, top))
         render_text(surf, ['text'], [text_funcs.translate('Atk')], ['yellow'], (2, top + 16))
         render_text(surf, ['text'], [text_funcs.translate('Hit')], ['yellow'], (2, top + 32))
         if DB.constants.value('crit'):
@@ -479,7 +481,10 @@ class InfoMenuState(State):
 
         avo = str(combat_calcs.avoid(self.unit, weapon))
         attack_speed = str(combat_calcs.attack_speed(self.unit, weapon))
+        if DB.constants.value('fatigue'):
+            ftg = str(self.unit.get_fatigue()) + '/' + str(max(1, self.unit.get_max_fatigue()))
         render_text(surf, ['text'], [rng], ['blue'], (94, top), HAlignment.RIGHT)
+        render_text(surf, ['text'], [ftg], ['blue'], (46, top), HAlignment.RIGHT)
         render_text(surf, ['text'], [dam], ['blue'], (46, top + 16), HAlignment.RIGHT)
         render_text(surf, ['text'], [acc], ['blue'], (46, top + 32), HAlignment.RIGHT)
         if DB.constants.value('crit'):
