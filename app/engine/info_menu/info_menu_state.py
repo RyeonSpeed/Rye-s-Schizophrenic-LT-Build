@@ -54,7 +54,7 @@ class InfoMenuState(State):
         game.memory['scroll_units'] = None
 
         self.state = game.memory.get('info_menu_state', info_states[0])
-        if self.state == 'notes' and not (DB.constants.value('unit_notes') and self.unit.notes):
+        if self.state == 'notes' and not (DB.constants.value('unit_notes')):
             self.state = 'personal_data'
         self.growth_flag = False
 
@@ -97,7 +97,8 @@ class InfoMenuState(State):
         self.equipment_surf: engine.Surface = None
         self.support_surf: engine.Surface = None
         self.skill_surf: engine.Surface = None
-        self.class_skill_surf: engine.Surface = None
+        self.art_surf: engine.Surface = None
+        self.ability_surf: engine.Surface = None
         self.fatigue_surf: engine.Surface = None
         self.notes_surf: engine.Surface = None
 
@@ -119,7 +120,7 @@ class InfoMenuState(State):
         if self.logo:
             self.logo.switch_image(image)
         else:
-            self.logo = gui.Logo(image, (164, WINHEIGHT - 10))
+            self.logo = gui.Logo(image, (164, WINHEIGHT - 8))
 
     def back(self):
         get_sound_thread().play_sfx('Select 4')
@@ -207,7 +208,7 @@ class InfoMenuState(State):
             index = info_states.index(self.state)
             new_index = (index - 1) % len(info_states)
             self.next_state = info_states[new_index]
-            if self.next_state == 'notes' and not (DB.constants.value('unit_notes') and self.unit.notes):
+            if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
                 new_index = (new_index - 1) % len(info_states)
                 self.next_state = info_states[new_index]
             self.info_graph.last_bb = None
@@ -221,7 +222,7 @@ class InfoMenuState(State):
             index = info_states.index(self.state)
             new_index = (index + 1) % len(info_states)
             self.next_state = info_states[new_index]
-            if self.next_state == 'notes' and not (DB.constants.value('unit_notes') and self.unit.notes):
+            if self.next_state == 'notes' and not (DB.constants.value('unit_notes')):
                 new_index = (new_index + 1) % len(info_states)
                 self.next_state = info_states[new_index]
             self.info_graph.last_bb = None
@@ -386,9 +387,9 @@ class InfoMenuState(State):
             offset = self.current_portrait.portrait.info_offset
         # Draw portrait onto the portrait surf
         if im:
-            x_pos = (im.get_width() - 80)//2
-            im_surf = engine.subsurface(im, (x_pos, offset, 80, 136))
-            portrait_surf.blit(im_surf, (8, 54))
+            x_pos = (im.get_width() - 96)//2
+            im_surf = engine.subsurface(im, (x_pos, offset, 96, 136))
+            portrait_surf.blit(im_surf, (0, 54))
 
         # Stick it on the surface
         if self.transparency:
@@ -456,6 +457,8 @@ class InfoMenuState(State):
 
         # Populate battle info
         render_text(surf, ['text'], [text_funcs.translate('Rng')], ['yellow'], (50, top))
+        if DB.constants.value('fatigue'):
+            render_text(surf, ['text'], [text_funcs.translate('Ftg')], ['yellow'], (2, top))
         render_text(surf, ['text'], [text_funcs.translate('Atk')], ['yellow'], (2, top + 16))
         render_text(surf, ['text'], [text_funcs.translate('Hit')], ['yellow'], (2, top + 32))
         if DB.constants.value('crit'):
@@ -478,7 +481,10 @@ class InfoMenuState(State):
 
         avo = str(combat_calcs.avoid(self.unit, weapon))
         attack_speed = str(combat_calcs.attack_speed(self.unit, weapon))
+        if DB.constants.value('fatigue'):
+            ftg = str(self.unit.get_fatigue()) + '/' + str(max(1, self.unit.get_max_fatigue()))
         render_text(surf, ['text'], [rng], ['blue'], (94, top), HAlignment.RIGHT)
+        render_text(surf, ['text'], [ftg], ['blue'], (46, top), HAlignment.RIGHT)
         render_text(surf, ['text'], [dam], ['blue'], (46, top + 16), HAlignment.RIGHT)
         render_text(surf, ['text'], [acc], ['blue'], (46, top + 32), HAlignment.RIGHT)
         if DB.constants.value('crit'):
@@ -499,7 +505,7 @@ class InfoMenuState(State):
             self.logo.update()
             self.logo.draw(top_surf)
         # Blit page numbers
-        if DB.constants.value('unit_notes') and self.unit.notes:
+        if DB.constants.value('unit_notes'):
             num_states = len(info_states)
         else:
             num_states = len(info_states) - 1
@@ -517,9 +523,6 @@ class InfoMenuState(State):
                 if not self.personal_data_surf:
                     self.personal_data_surf = self.create_personal_data_surf()
                 self.draw_personal_data_surf(main_surf)
-            if not self.class_skill_surf:
-                self.class_skill_surf = self.create_class_skill_surf()
-            self.draw_class_skill_surf(main_surf)
             if DB.constants.value('fatigue') and self.unit.team == 'player' and not [x for x in self.unit.skills if x.nid == 'NoFatigue'] and \
                     game.game_vars.get('_fatigue'):
                 if not self.fatigue_surf:
@@ -532,10 +535,6 @@ class InfoMenuState(State):
             self.draw_equipment_surf(main_surf)
 
         elif self.state == 'support_skills':
-            main_surf.blit(SPRITES.get('status_logo'), (100, WINHEIGHT - 42))
-            if not self.skill_surf:
-                self.skill_surf = self.create_skill_surf()
-            self.draw_skill_surf(main_surf)
             if not self.wexp_surf:
                 self.wexp_surf = self.create_wexp_surf()
             self.draw_wexp_surf(main_surf)
@@ -544,9 +543,18 @@ class InfoMenuState(State):
             self.draw_support_surf(main_surf)
 
         elif self.state == 'notes':
-            if not self.notes_surf:
-                self.notes_surf = self.create_notes_surf()
-            self.draw_notes_surf(main_surf)
+            main_surf.blit(SPRITES.get('arts'), (102, WINHEIGHT - 132))
+            main_surf.blit(SPRITES.get('abilities'), (102, WINHEIGHT - 101))
+            main_surf.blit(SPRITES.get('statuses'), (102, WINHEIGHT - 70))
+            if not self.art_surf:
+                self.art_surf = self.create_art_surf()
+            self.draw_art_surf(main_surf)
+            if not self.ability_surf:
+                self.ability_surf = self.create_ability_surf()
+            self.draw_ability_surf(main_surf)
+            if not self.skill_surf:
+                self.skill_surf = self.create_skill_surf()
+            self.draw_skill_surf(main_surf)
 
         # Now put it in the right place
         offset_x = max(96, 96 - self.scroll_offset_x)
@@ -823,7 +831,7 @@ class InfoMenuState(State):
                 item_option = create_item_option(aidx, item)
             item_option.draw(surf, 8, y_pos)
             first = (idx == 0 and not self.unit.nonaccessories)
-            self.info_graph.register((96 + 8, y_pos, 120, 16), item_option.get_help_box(), 'equipment', first=first)
+            self.info_graph.register((96 + 8, y_pos + 30, 120, 16), item_option.get_help_box(), 'equipment', first=first)
 
 
 
@@ -832,43 +840,14 @@ class InfoMenuState(State):
     def draw_equipment_surf(self, surf):
         surf.blit(self.equipment_surf, (96, 10))
 
-    def create_skill_surf(self):
-        surf = engine.create_surface((WINWIDTH - 96, 24), transparent=True)
-        skills = [skill for skill in self.unit.skills if not (skill.class_skill or skill_system.hidden(skill, self.unit))]
-        # stacked skills appear multiple times, but should be drawn only once
-        skill_counter = {}
-        unique_skills = []
-        for skill in skills:
-            if skill.nid not in skill_counter:
-                skill_counter[skill.nid] = 1
-                unique_skills.append(skill)
-            else:
-                skill_counter[skill.nid] += 1
-        for idx, skill in enumerate(unique_skills[:6]):
-            left_pos = idx * 24
-            icons.draw_skill(surf, skill, (left_pos + 8, 4), compact=False, grey=skill_system.is_grey(skill, self.unit))
-            if skill_counter[skill.nid] > 1:
-                text = str(skill_counter[skill.nid])
-                render_text(surf, ['small'], [text], ['white'], (left_pos + 20 - 4 * len(text), 6))
-            if skill.data.get('total_charge'):
-                charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
-            else:
-                charge = ''
-            self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 28, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'support_skills')
-
-        return surf
-
-    def draw_skill_surf(self, surf):
-        surf.blit(self.skill_surf, (96, WINHEIGHT - 32))
-
-    def create_class_skill_surf(self):
-        surf = engine.create_surface((WINWIDTH - 96, 24), transparent=True)
-        class_skills = [skill for skill in self.unit.skills if skill.class_skill and not skill_system.hidden(skill, self.unit)]
+    def create_art_surf(self):
+        surf = engine.create_surface((WINWIDTH - 94, 62), transparent=True)
+        arts = [skill for skill in self.unit.skills if skill.combat_art_indicator and not skill_system.hidden(skill, self.unit)]
 
         # stacked skills appear multiple times, but should be drawn only once
         skill_counter = {}
         unique_skills = list()
-        for skill in class_skills:
+        for skill in arts:
             if skill.nid not in skill_counter:
                 skill_counter[skill.nid] = 1
                 unique_skills.append(skill)
@@ -884,20 +863,71 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            if self._extra_stat_row:
-                self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 22, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'personal_data')
-                self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 22, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'growths')
-            else:
-                self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 32, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'personal_data')
-                self.info_graph.register((96 + left_pos + 8, WINHEIGHT - 32, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'growths')
+            self.info_graph.register((94 + left_pos + 8, 62, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
 
         return surf
 
-    def draw_class_skill_surf(self, surf):
-        if self._extra_stat_row:
-            surf.blit(self.class_skill_surf, (96, WINHEIGHT - 26))
-        else:
-            surf.blit(self.class_skill_surf, (96, WINHEIGHT - 36))
+    def draw_art_surf(self, surf):
+        surf.blit(self.art_surf, (94, 32))
+        
+    def create_ability_surf(self):
+        surf = engine.create_surface((WINWIDTH - 94, 93), transparent=True)
+        abilities = [skill for skill in self.unit.skills if skill.ability_indicator and not skill_system.hidden(skill, self.unit)][:6]
+
+        # stacked skills appear multiple times, but should be drawn only once
+        skill_counter = {}
+        unique_skills = list()
+        for skill in abilities:
+            if skill.nid not in skill_counter:
+                skill_counter[skill.nid] = 1
+                unique_skills.append(skill)
+            else:
+                skill_counter[skill.nid] += 1
+        for idx, skill in enumerate(unique_skills[:6]):
+            left_pos = idx * 24
+            icons.draw_skill(surf, skill, (left_pos + 8, 8), compact=False, grey=skill_system.is_grey(skill, self.unit))
+            if skill_counter[skill.nid] > 1:
+                render_text(surf, ['small'], [str(skill_counter[skill.nid])], ['white'], (left_pos + 20 - 4 * len(str(skill_counter[skill.nid])), 6))
+            if skill.data.get('total_charge'):
+                charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
+            else:
+                charge = ''
+            self.info_graph.register((94 + left_pos + 8, 93, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+
+        return surf
+
+    def draw_ability_surf(self, surf):
+        surf.blit(self.ability_surf, (94, 63))
+        
+    def create_skill_surf(self):
+        surf = engine.create_surface((WINWIDTH - 94, 124), transparent=True)
+        skills = [skill for skill in self.unit.skills if not (skill.combat_art_indicator or skill.ability_indicator or skill_system.hidden(skill, self.unit))]
+        # stacked skills appear multiple times, but should be drawn only once
+        skill_counter = {}
+        unique_skills = []
+        for skill in skills:
+            if skill.nid not in skill_counter:
+                skill_counter[skill.nid] = 1
+                unique_skills.append(skill)
+            else:
+                skill_counter[skill.nid] += 1
+        for idx, skill in enumerate(unique_skills[:6]):
+            left_pos = (idx % 6) * 24
+            vert_pos = (idx // 6) * 24
+            icons.draw_skill(surf, skill, (left_pos + 8, 8 + vert_pos), compact=False, grey=skill_system.is_grey(skill, self.unit))
+            if skill_counter[skill.nid] > 1:
+                text = str(skill_counter[skill.nid])
+                render_text(surf, ['small'], [text], ['white'], (left_pos + 20 - 4 * len(text), 6 + vert_pos))
+            if skill.data.get('total_charge'):
+                charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
+            else:
+                charge = ''
+            self.info_graph.register((94 + left_pos + 2, 124 + vert_pos, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+
+        return surf
+
+    def draw_skill_surf(self, surf):
+        surf.blit(self.skill_surf, (94, 94))
 
     def create_support_surf(self):
         surf = engine.create_surface((WINWIDTH - 96, WINHEIGHT), transparent=True)
