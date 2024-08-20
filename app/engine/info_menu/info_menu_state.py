@@ -386,8 +386,6 @@ class InfoMenuState(State):
             offset = self.current_portrait.portrait.info_offset
         # Draw portrait onto the portrait surf
         if im:
-            x_pos = (im.get_width() - 80)//2
-            im_surf = engine.subsurface(im, (x_pos, offset, 80, 136))
             portrait_surf.blit(im_surf, (8, 54))
 
         # Stick it on the surface
