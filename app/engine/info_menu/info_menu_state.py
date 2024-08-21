@@ -389,7 +389,7 @@ class InfoMenuState(State):
         if im:
             x_pos = (im.get_width() - 96)//2
             im_surf = engine.subsurface(im, (x_pos, offset, 96, 136))
-            portrait_surf.blit(im_surf, (0, 54))
+            portrait_surf.blit(im_surf, (0, 56))
 
         # Stick it on the surface
         if self.transparency:
