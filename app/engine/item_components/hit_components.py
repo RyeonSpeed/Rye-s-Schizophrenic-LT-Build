@@ -417,7 +417,7 @@ class Steal(ItemComponent):
         for other in game.units:
             if other.position and skill_system.check_enemy(unit, other):
                 for def_item in other.items:
-                    if self.item_restrict(unit, item, other, def_item):
+                    if self.item_restrict(unit, item, other, def_item):                     
                         positions.add(other.position)
                         break
         return positions
@@ -431,6 +431,12 @@ class Steal(ItemComponent):
         if item_funcs.inventory_full(unit, def_item):
             return False
         if def_item is defender.get_weapon():
+            return False
+        if not def_item.weight:
+            return True
+        if def_item.weight.value > unit.get_stat('CON'):
+            return False
+        if defender.get_stat('SPD') > unit.get_stat('SPD'):
             return False
         return True
 
