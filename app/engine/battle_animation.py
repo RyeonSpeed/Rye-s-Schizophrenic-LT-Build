@@ -863,11 +863,11 @@ def get_battle_anim(unit, item, distance=1, klass=None, default_variant=False, a
                 weapon_anim_nid = "Magic" + weapon_anim_nid
             elif ranged and distance > 1:
                 weapon_anim_nid = "Ranged" + weapon_anim_nid
-        elif magic:
-            weapon_anim_nid = "Magic" + weapon_type
         elif ranged:
-            if distance <= 1 and weapon_prefab and weapon_prefab.force_melee_anim and (not weapon_type == 'Axe' or magic or not ranged):
+            if distance <= 1 and weapon_prefab and weapon_prefab.force_melee_anim and (not(weapon_type == 'Axe' and not magic and ranged)):
                 weapon_anim_nid = weapon_type
+            elif magic:
+                weapon_anim_nid = "Magic" + weapon_type
             else:
                 weapon_anim_nid = "Ranged" + weapon_type
         else:
