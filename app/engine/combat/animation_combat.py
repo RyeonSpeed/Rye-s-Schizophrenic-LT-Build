@@ -696,7 +696,7 @@ class AnimationCombat(BaseCombat, MockCombat):
 
     def spell_hit(self):
         self._apply_actions()
-        self._handle_playback(False)
+        self._handle_playback()
 
         hp_brushes = ('damage_hit', 'damage_crit', 'heal_hit')
         if not any(brush.nid in hp_brushes for brush in self.playback):
