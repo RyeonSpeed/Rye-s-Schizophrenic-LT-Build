@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from app import dark_theme
 from app.editor.lib.components.validated_line_edit import NidLineEdit
 import os, glob
@@ -12,6 +10,7 @@ from PyQt5.QtGui import QImage, QPixmap, QPainter
 
 from typing import Set
 from app.utilities.typing import NID
+
 
 from app.constants import WINWIDTH, WINHEIGHT
 from app.data.resources import combat_anims
@@ -95,8 +94,8 @@ class CombatEffectProperties(CombatAnimProperties):
         self.frame_group_box.setLayout(frame_layout)
         self.import_from_lt_button = QPushButton("Import Legacy Effect...")
         self.import_from_lt_button.clicked.connect(self.import_legacy)
-        self.export_to_lt_button = QPushButton("Export as Legacy Effect...")
-        self.export_to_lt_button.clicked.connect(self.export_legacy)
+        self.import_from_gba_button = QPushButton("Import GBA Effect...")
+        self.import_from_gba_button.clicked.connect(self.import_gba)
         self.import_png_button = QPushButton("View Frames...")
         self.import_png_button.clicked.connect(self.select_frame)
 
@@ -107,8 +106,8 @@ class CombatEffectProperties(CombatAnimProperties):
 
         self.window.left_frame.layout().addWidget(self.import_effect_button, 3, 0)
         self.window.left_frame.layout().addWidget(self.export_effect_button, 3, 1)
-        self.window.left_frame.layout().addWidget(self.import_from_lt_button, 4, 0,)
-        self.window.left_frame.layout().addWidget(self.export_to_lt_button, 4, 1)
+        self.window.left_frame.layout().addWidget(self.import_from_lt_button, 4, 0)
+        self.window.left_frame.layout().addWidget(self.import_from_gba_button, 4, 1)
         frame_layout.addWidget(self.import_png_button)
 
     def pose_changed(self, idx):
@@ -189,6 +188,17 @@ class CombatEffectProperties(CombatAnimProperties):
         So return itself
         """
         return self.current
+    
+    def import_gba(self):
+        starting_path = self.settings.get_last_open_path()
+        fns, ok = QFileDialog.getOpenFileNames(self.window, "Select GBA Effect Script Files", starting_path, "Script Files (*.txt);;All Files (*)")
+        if ok and fns:
+            for fn in fns:
+                if fn.endswith('.txt'):
+                    combat_animation_imports.import_effect_from_gba(fn)
+            parent_dir = os.path.split(fns[-1])[0]
+            self.settings.set_last_open_path(parent_dir)
+        self.window.update_list()
 
     def get_child_effects(self) -> Set[NID]:
         """
@@ -352,7 +362,13 @@ class CombatEffectProperties(CombatAnimProperties):
         if not os.path.exists(path):
             os.mkdir(path)
         # Determine which effects are used as subeffects here
-        effects = self.get_child_effects()
+        effects = {self.current.nid}
+        for pose in self.current.poses:
+            for command in pose.timeline:
+                if command.has_effect():
+                    effect_nid = command.value[0]
+                    if effect_nid:
+                        effects.add(effect_nid)
         # For each effect and subeffect:
         for effect_nid in effects:
             print("Exporting %s" % effect_nid)
