@@ -921,7 +921,7 @@ class PrepTradeSelectState(State):
 
         if event == 'SELECT':
             unit2 = self.menu.get_current()
-            if skill_system.no_trade(unit2):
+            if skill_system.no_trade(unit2) or self.unit.nid == unit2.nid:
                 get_sound_thread().play_sfx('Error')
             else:
                 game.memory['unit1'] = self.unit
