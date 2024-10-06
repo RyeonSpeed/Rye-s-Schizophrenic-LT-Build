@@ -184,6 +184,7 @@ anim_commands = Data([
     CombatAnimationCommand('crit_spark', 'Show Crit Spark', None, None, 'aesthetic2'),
     CombatAnimationCommand('darken', 'Darken Background', None, None, 'aesthetic2'),
     CombatAnimationCommand('lighten', 'Lighten Background', None, None, 'aesthetic2'),
+    CombatAnimationCommand('set_dimness', 'Lighten/Darken Background', (int,), (0,), 'aesthetic2'),
 
     CombatAnimationCommand('effect', 'Show Effect On Self', ('effect',), (None,), 'effect'),
     CombatAnimationCommand('under_effect', 'Show Effect Under Self', ('effect',), (None,), 'effect'),
