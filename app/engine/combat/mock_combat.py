@@ -349,6 +349,10 @@ class MockCombat():
     def lighten(self):
         self.target_dark -= 0.5
 
+    def set_dimness(self, value: float):
+        assert 0 <= value <= 1
+        self.target_dark = value
+
     def darken_ui(self):
         self.darken_ui_background = 1
 

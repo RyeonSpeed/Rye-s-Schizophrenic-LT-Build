@@ -1,13 +1,20 @@
+from typing import Dict
+
 import os
 
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
+from app.utilities import str_utils
 from app.data.resources.resources import RESOURCES
-from app.data.resources import combat_anims, combat_commands
-from app.editor.combat_animation_editor.combat_animation_imports import convert_gba, split_doubles, combine_identical_commands
+from app.data.resources import combat_anims, combat_commands, combat_palettes
+from app.editor.combat_animation_editor.animation_import_utils import convert_gba, split_doubles, combine_identical_commands, update_anim_full_image
 from app.editor.combat_animation_editor.combat_effect_sound_table import SOUND_TABLE
 
+from app.editor.settings import MainSettingsController
+from app.editor.file_manager.project_file_backend import DEFAULT_PROJECT
+
+import app.editor.utilities as editor_utilities
 
 import logging
 
@@ -24,9 +31,7 @@ import logging
 
 # Originally prototyped by MKCocoon and DecklynKern
 
-BG_WIDTH, BG_HEIGHT = 480, 160
-
-def parse_spell_txt(fn, pixmaps):
+def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
     with open(fn) as fp:
         script_lines = [line.strip() for line in fp.readlines()]
         # Remove comment lines
@@ -50,6 +55,9 @@ def parse_spell_txt(fn, pixmaps):
     miss_effect_commands = []
     # For the background frames of the miss pose
     miss_under_effect_commands = []
+    # Keeps track of what pixmaps are used for effect
+    effect_pixmaps = {}
+    under_effect_pixmaps = {}
 
     def parse_text(command_text: str, hit_only: bool = False, miss_only: bool = False):
         command = combat_commands.parse_text(command_text)
@@ -126,13 +134,16 @@ def parse_spell_txt(fn, pixmaps):
 
             if object_image_name not in pixmaps:
                 logging.error(f"{object_image_name} not in pixmaps")
+                raise ValueError(f"{object_image_name} not in pixmaps")
             object_frame_command = combat_commands.parse_text(f'f;{num_frames};{object_image_name}')
 
             if background_image_name not in pixmaps:
                 logging.error(f"{background_image_name} not in pixmaps")
+                raise ValueError(f"{background_image_name} not in pixmaps")
             under_background_image_name = background_image_name + '_under'
             if under_background_image_name not in pixmaps:
                 logging.error(f"{under_background_image_name} not in pixmaps")
+                raise ValueError(f"{under_background_image_name} not in pixmaps")
             background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name};{under_background_image_name}')
 
             hit_effect_commands.append(object_frame_command)
@@ -140,6 +151,10 @@ def parse_spell_txt(fn, pixmaps):
 
             hit_under_effect_commands.append(background_frame_command)
             miss_under_effect_commands.append(background_frame_command)
+
+            effect_pixmaps[object_image_name] = pixmaps[object_image_name]
+            under_effect_pixmaps[background_image_name] = pixmaps[background_image_name]
+            under_effect_pixmaps[under_background_image_name] = pixmaps[under_background_image_name]
 
             current_counter += num_frames
 
@@ -152,7 +167,9 @@ def parse_spell_txt(fn, pixmaps):
 
     return global_hit_commands, global_miss_commands, \
         hit_effect_commands, miss_effect_commands, \
-        hit_under_effect_commands, miss_under_effect_commands
+        hit_under_effect_commands, miss_under_effect_commands, \
+        effect_pixmaps, under_effect_pixmaps
+
 
 def import_effect_from_gba(fn: str, effect_name: str):
     """
@@ -188,7 +205,8 @@ def import_effect_from_gba(fn: str, effect_name: str):
     # Split double images into "_under" image
     pixmaps = split_doubles(pixmaps)
 
-    global_hit, global_miss, hit_effect, miss_effect, hit_under_effect, miss_under_effect = \
+    global_hit, global_miss, hit_effect, miss_effect, hit_under_effect, miss_under_effect, \
+        effect_pixmaps, under_effect_pixmaps = \
         parse_spell_txt(fn, pixmaps)
 
     # Place the child effects in the effect animation
@@ -238,6 +256,49 @@ def import_effect_from_gba(fn: str, effect_name: str):
     under_effect.poses.append(hit_pose)
     under_effect.poses.append(miss_pose)
 
+    # === PALETTES ===
+    def assign_palette(pixmaps, effect_anim, name):
+        # Find palettes for effect pixmaps
+        all_palette_colors = editor_utilities.find_palette_from_multiple([pix.toImage() for pix in pixmaps.values()])
+        # Always generate a new palette
+        palette_nid = str_utils.get_next_name("New Palette", RESOURCES.combat_palettes.keys())
+        palette = combat_palettes.Palette(palette_nid)
+        RESOURCES.combat_palettes.append(palette)
+        palette_name = str_utils.get_next_name(name, [name for name, nid in regular_effect.palettes])
+        effect_anim.palettes.append([palette_name, palette.nid])
+        palette.assign_colors(all_palette_colors)
+        return palette
+
+    effect_palette = assign_palette(effect_pixmaps, regular_effect, "FG Effect")
+    under_effect_palette = assign_palette(under_effect_pixmaps, under_effect, "BG Effect")
+
+    # Convert pixmaps to new palette colors
+    effect_convert_dict = editor_utilities.get_color_conversion(effect_palette)
+    effect_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, effect_convert_dict) for name, pix in effect_pixmaps}
+    under_effect_convert_dict = editor_utilities.get_color_conversion(under_effect_palette)
+    under_effect_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, under_effect_convert_dict) for name, pix in under_effect_pixmaps}
+
+    # Actually put the pixmaps into the effect animations
+    for name, pix in effect_pixmaps.items():
+        x, y, width, height = editor_utilities.get_bbox(pix.toImage())
+        frame = combat_anims.Frame(name, (0, 0, width, height), (x, y), pixmap=pix)
+        regular_effect.frames.append(frame)
+    for name, pix in under_effect_pixmaps.items():
+        x, y, width, height = editor_utilities.get_bbox(pix.toImage())
+        frame = combat_anims.Frame(name, (0, 0, width, height), (x, y), pixmap=pix)
+        under_effect.frames.append(frame)
+
+    # Now collate the frames
+    update_anim_full_image(regular_effect)
+    update_anim_full_image(under_effect)
+
     RESOURCES.effect_anims.append(controller_effect)
     RESOURCES.effect_anims.append(regular_effect)
     RESOURCES.effect_anims.append(under_effect)
+
+    # Need to save the full image somewhere
+    settings = MainSettingsController()
+    if os.path.basename(settings.get_current_project()) != DEFAULT_PROJECT:
+        path = os.path.join(settings.get_current_project(), 'resources', 'combat_effects')
+        RESOURCES.combat_effects.save_image(path, regular_effect)
+        RESOURCES.combat_effects.save_image(path, under_effect)
