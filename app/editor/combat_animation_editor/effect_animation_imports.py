@@ -60,6 +60,7 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
     under_effect_pixmaps = {}
 
     def parse_text(command_text: str, hit_only: bool = False, miss_only: bool = False):
+        nonlocal last_global_counter
         command = combat_commands.parse_text(command_text)
         # Add necessary waits to match up with the child effects
         if current_counter > last_global_counter:
@@ -71,7 +72,6 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
             global_hit_commands.append(command)
         if not hit_only:
             global_miss_commands.append(command)
-        nonlocal last_global_counter
         last_global_counter = current_counter
 
     def process_command(line: str):
