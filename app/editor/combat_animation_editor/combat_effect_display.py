@@ -212,9 +212,11 @@ class CombatEffectProperties(CombatAnimProperties):
         starting_path = self.settings.get_last_open_path()
         fn, ok = QFileDialog.getOpenFileName(self.window, "Select GBA Spell.txt File", starting_path, "Effect Files (Spell.txt);;All Files (*)")
         if ok and fn:
-            if fn == 'Spell.txt':
+            if fn.endswith('Spell.txt'):
                 nid = str_utils.get_next_name("New Spell", RESOURCES.combat_effects.keys())
                 effect_animation_imports.import_effect_from_gba(fn, nid)
+            else:
+                QMessageBox.critical(self, "Invalid Filename", f"File {fn} must be named `Spell.txt`")
         parent_dir = os.path.split(fn)[0]
         self.settings.set_last_open_path(parent_dir)
         self.window.update_list()

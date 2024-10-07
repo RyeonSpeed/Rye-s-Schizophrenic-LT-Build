@@ -8,7 +8,9 @@ from PyQt5.QtGui import QPixmap
 from app.utilities import str_utils
 from app.data.resources.resources import RESOURCES
 from app.data.resources import combat_anims, combat_commands, combat_palettes
-from app.editor.combat_animation_editor.animation_import_utils import convert_gba, split_doubles, combine_identical_commands, update_anim_full_image
+from app.editor.combat_animation_editor.animation_import_utils import \
+    convert_gba, split_doubles, combine_identical_commands, update_anim_full_image, \
+    remove_top_right_palette_indicator, find_empty_pixmaps
 from app.editor.combat_animation_editor.combat_effect_sound_table import SOUND_TABLE
 
 from app.editor.settings import MainSettingsController
@@ -31,7 +33,7 @@ import logging
 
 # Originally prototyped by MKCocoon and DecklynKern
 
-def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
+def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap], foreground_effect_name: str, background_effect_name: str):
     with open(fn) as fp:
         script_lines = [line.strip() for line in fp.readlines()]
         # Remove comment lines
@@ -43,21 +45,23 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
 
     last_global_counter = 0  # Keeps track of what frame the last command to the main controller effect was added to
     current_counter = 0  # Keeps track of what frame the main controller effect should be on
+    effect_start = None  # Keeps track of when the first frame is drawn
+    has_panned = False
 
     # This creates six lists of commands
     global_hit_commands = []
     global_miss_commands = []
     # For the object frames of the hit/attack pose
-    hit_effect_commands = []
+    hit_foreground_commands = []
     # For the background frames of the hit/attack pose
-    hit_under_effect_commands = []
+    hit_background_commands = []
     # For the object frames of the miss pose
-    miss_effect_commands = []
+    miss_foreground_commands = []
     # For the background frames of the miss pose
-    miss_under_effect_commands = []
+    miss_background_commands = []
     # Keeps track of what pixmaps are used for effect
-    effect_pixmaps = {}
-    under_effect_pixmaps = {}
+    object_pixmaps = {}
+    background_pixmaps = {}
 
     def parse_text(command_text: str, hit_only: bool = False, miss_only: bool = False):
         nonlocal last_global_counter
@@ -74,13 +78,21 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
             global_miss_commands.append(command)
         last_global_counter = current_counter
 
+    def add_wait(num_frames: int):
+        parse_text(f'wait;{num_frames}')
+        nonlocal last_global_counter, current_counter
+        last_global_counter += num_frames  # Account for wait
+        current_counter += num_frames  # Account for wait
+
     def process_command(line: str):
         arg1 = int(line[1:3], 16)
         arg2 = int(line[3:5], 16)
         command_code = line[5:]
 
         # 00 through 13 (except 08) are ignored
-        if command_code == '08':
+        if command_code == '00':
+            add_wait(1)
+        elif command_code == '08':
             pass  # Attack (becomes critical automatically) with HP stealing
         # 14 through 28: passed to attacker's animation
         elif command_code == '14':
@@ -89,17 +101,15 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
             parse_text('platform_shake')
         elif command_code == '1A':  # Start hit
             parse_text('enemy_flash_white;8', hit_only=True)
-            parse_text('wait;1')
-            nonlocal last_global_counter
-            last_global_counter += 1  # Account for wait
+            add_wait(1)
             parse_text('screen_flash_white;4', hit_only=True)
         elif command_code in ('1F', '20', '21'):  # spell hit or spell miss
             parse_text('spell_hit', hit_only=True)
             parse_text('miss', miss_only=True)
         elif command_code == '29':  # Set brightness and opacity levels
-            dimness = int(arg1 / 0x10 * 255)  # multiply by 255 to get into LT format
-            opacity = int(1.0 - (arg2 / 0x10 / 2) * 255)
-            parse_text(f'set_dimness;{dimness}')
+            brightness = int(arg1 / 0x10 * 255)  # multiply by 255 to get into LT format
+            opacity = int((1.0 - (arg2 / 0x10 / 2)) * 255)
+            parse_text(f'set_brightness;{brightness}')
             parse_text(f'opacity;{opacity}')
         elif command_code == '2A':  # Whether maps 2 and 3 of the GBA screen should be visible
             # display_maps = (arg2 != 0)
@@ -107,6 +117,7 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
         # 2B through 3F: passed to attacker's animation
         elif command_code == '40':  # Scrolls screen from being centered on the attacker to being centered on the defender
             parse_text("pan")
+            has_panned = True
         # 41 through 47: passed to attacker's animation
         elif command_code == '48':  # Plays sound or music whose ID corresponds to those documented in Music List.txt of the nightmare module packages
             sound_id = arg1 * 256 + arg2
@@ -115,6 +126,10 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
         # 49 through 51: passed to attacker's animation
         elif command_code == '53':  # Enable screen stretch
             stretch_foreground = bool(arg2)
+
+    # At the beginning, set the background effect to use blending
+    hit_background_commands.append(combat_commands.parse_text('blend;1'))
+    miss_background_commands.append(combat_commands.parse_text('blend;1'))
 
     for idx, line in enumerate(script_lines):
         logging.info(f"Processing script line: {line}")
@@ -126,6 +141,11 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
             process_command(line)
 
         elif line.startswith('O'):
+            if effect_start is None:
+                effect_start = current_counter
+                parse_text(f"effect;{foreground_effect_name}")
+                parse_text(f"under_effect;{background_effect_name}")
+
             object_image_fn = line.split()[-1]
             object_image_name = object_image_fn[:-4]  # Remove .png
             background_image_fn = script_lines[idx + 1].split()[-1]
@@ -135,26 +155,26 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
             if object_image_name not in pixmaps:
                 logging.error(f"{object_image_name} not in pixmaps")
                 raise ValueError(f"{object_image_name} not in pixmaps")
-            object_frame_command = combat_commands.parse_text(f'f;{num_frames};{object_image_name}')
+            under_object_image_name = object_image_name + '_under'
+            if under_object_image_name not in pixmaps:
+                logging.error(f"{under_object_image_name} not in pixmaps")
+                raise ValueError(f"{under_object_image_name} not in pixmaps")
+            object_frame_command = combat_commands.parse_text(f'f;{num_frames};{object_image_name};{under_object_image_name}')
 
             if background_image_name not in pixmaps:
                 logging.error(f"{background_image_name} not in pixmaps")
                 raise ValueError(f"{background_image_name} not in pixmaps")
-            under_background_image_name = background_image_name + '_under'
-            if under_background_image_name not in pixmaps:
-                logging.error(f"{under_background_image_name} not in pixmaps")
-                raise ValueError(f"{under_background_image_name} not in pixmaps")
-            background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name};{under_background_image_name}')
+            background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name}')
 
-            hit_effect_commands.append(object_frame_command)
-            miss_effect_commands.append(object_frame_command)
+            hit_foreground_commands.append(object_frame_command)
+            miss_foreground_commands.append(object_frame_command)
 
-            hit_under_effect_commands.append(background_frame_command)
-            miss_under_effect_commands.append(background_frame_command)
+            hit_background_commands.append(background_frame_command)
+            miss_background_commands.append(background_frame_command)
 
-            effect_pixmaps[object_image_name] = pixmaps[object_image_name]
-            under_effect_pixmaps[background_image_name] = pixmaps[background_image_name]
-            under_effect_pixmaps[under_background_image_name] = pixmaps[under_background_image_name]
+            object_pixmaps[object_image_name] = pixmaps[object_image_name]
+            object_pixmaps[under_object_image_name] = pixmaps[under_object_image_name]
+            background_pixmaps[background_image_name] = pixmaps[background_image_name]
 
             current_counter += num_frames
 
@@ -162,13 +182,15 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap]):
             miss_terminator_reached = True
 
     # At the end of the parse, break out of the spell
+    if has_panned:  # pan back
+        parse_text('pan')
+        add_wait(4)
     parse_text('end_parent_loop')
-    parse_text('wait;1')
 
     return global_hit_commands, global_miss_commands, \
-        hit_effect_commands, miss_effect_commands, \
-        hit_under_effect_commands, miss_under_effect_commands, \
-        effect_pixmaps, under_effect_pixmaps
+        hit_foreground_commands, miss_foreground_commands, \
+        hit_background_commands, miss_background_commands, \
+        object_pixmaps, background_pixmaps
 
 
 def import_effect_from_gba(fn: str, effect_name: str):
@@ -204,16 +226,16 @@ def import_effect_from_gba(fn: str, effect_name: str):
     pixmaps = {name: convert_gba(pix) for name, pix in pixmaps.items()}
     # Split double images into "_under" image
     pixmaps = split_doubles(pixmaps)
+    # Remove top right palette indicator
+    pixmaps = remove_top_right_palette_indicator(pixmaps)
+    # Determine which pixmaps should be replaced by "wait" commands
+    empty_pixmaps = find_empty_pixmaps(pixmaps)
+    print(pixmaps)
 
-    global_hit, global_miss, hit_effect, miss_effect, hit_under_effect, miss_under_effect, \
-        effect_pixmaps, under_effect_pixmaps = \
-        parse_spell_txt(fn, pixmaps)
-
-    # Place the child effects in the effect animation
-    global_hit.insert(0, combat_commands.parse_text(f"effect;{foreground_effect_name}"))
-    global_hit.insert(1, combat_commands.parse_text(f"under_effect;{background_effect_name}"))
-    global_miss.insert(0, combat_commands.parse_text(f"effect;{foreground_effect_name}"))
-    global_miss.insert(1, combat_commands.parse_text(f"under_effect;{background_effect_name}"))
+    global_hit, global_miss, hit_foreground_effect, miss_foreground_effect, \
+        hit_background_effect, miss_background_effect, \
+        object_pixmaps, background_pixmaps = \
+        parse_spell_txt(fn, pixmaps, foreground_effect_name, background_effect_name)
 
     # Posify
     # Global Controller
@@ -230,75 +252,81 @@ def import_effect_from_gba(fn: str, effect_name: str):
 
     # Regular Effect
     hit_pose = combat_anims.Pose("Attack")
-    for command in hit_effect:
+    for command in hit_foreground_effect:
         hit_pose.timeline.append(command.__class__.copy(command))
     combine_identical_commands(hit_pose)
     miss_pose = combat_anims.Pose("Miss")
-    for command in miss_effect:
+    for command in miss_foreground_effect:
         miss_pose.timeline.append(command.__class__.copy(command))
     combine_identical_commands(miss_pose)
 
-    regular_effect = combat_anims.EffectAnimation(foreground_effect_name)
-    regular_effect.poses.append(hit_pose)
-    regular_effect.poses.append(miss_pose)
+    foreground_effect = combat_anims.EffectAnimation(foreground_effect_name)
+    foreground_effect.poses.append(hit_pose)
+    foreground_effect.poses.append(miss_pose)
 
     # Under Effect
     hit_pose = combat_anims.Pose("Attack")
-    for command in hit_under_effect:
+    for command in hit_background_effect:
         hit_pose.timeline.append(command.__class__.copy(command))
     combine_identical_commands(hit_pose)
     miss_pose = combat_anims.Pose("Miss")
-    for command in miss_under_effect:
+    for command in miss_background_effect:
         miss_pose.timeline.append(command.__class__.copy(command))
     combine_identical_commands(miss_pose)
 
-    under_effect = combat_anims.EffectAnimation(background_effect_name)
-    under_effect.poses.append(hit_pose)
-    under_effect.poses.append(miss_pose)
+    background_effect = combat_anims.EffectAnimation(background_effect_name)
+    background_effect.poses.append(hit_pose)
+    background_effect.poses.append(miss_pose)
 
     # === PALETTES ===
     def assign_palette(pixmaps, effect_anim, name):
         # Find palettes for effect pixmaps
         all_palette_colors = editor_utilities.find_palette_from_multiple([pix.toImage() for pix in pixmaps.values()])
+        print(name, all_palette_colors)
         # Always generate a new palette
         palette_nid = str_utils.get_next_name("New Palette", RESOURCES.combat_palettes.keys())
         palette = combat_palettes.Palette(palette_nid)
         RESOURCES.combat_palettes.append(palette)
-        palette_name = str_utils.get_next_name(name, [name for name, nid in regular_effect.palettes])
+        palette_name = str_utils.get_next_name(name, [name for name, nid in foreground_effect.palettes])
         effect_anim.palettes.append([palette_name, palette.nid])
         palette.assign_colors(all_palette_colors)
         return palette
 
-    effect_palette = assign_palette(effect_pixmaps, regular_effect, "FG Effect")
-    under_effect_palette = assign_palette(under_effect_pixmaps, under_effect, "BG Effect")
+    effect_palette = assign_palette(object_pixmaps, foreground_effect, "FG Effect")
+    under_effect_palette = assign_palette(background_pixmaps, background_effect, "BG Effect")
 
     # Convert pixmaps to new palette colors
     effect_convert_dict = editor_utilities.get_color_conversion(effect_palette)
-    effect_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, effect_convert_dict) for name, pix in effect_pixmaps}
+    object_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, effect_convert_dict) for name, pix in object_pixmaps.items()}
     under_effect_convert_dict = editor_utilities.get_color_conversion(under_effect_palette)
-    under_effect_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, under_effect_convert_dict) for name, pix in under_effect_pixmaps}
+    background_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, under_effect_convert_dict) for name, pix in background_pixmaps.items()}
 
     # Actually put the pixmaps into the effect animations
-    for name, pix in effect_pixmaps.items():
+    for name, pix in object_pixmaps.items():
         x, y, width, height = editor_utilities.get_bbox(pix.toImage())
+        print(name, x, y, width, height)
         frame = combat_anims.Frame(name, (0, 0, width, height), (x, y), pixmap=pix)
-        regular_effect.frames.append(frame)
-    for name, pix in under_effect_pixmaps.items():
+        foreground_effect.frames.append(frame)
+    for name, pix in background_pixmaps.items():
         x, y, width, height = editor_utilities.get_bbox(pix.toImage())
+        print(name, x, y, width, height)
         frame = combat_anims.Frame(name, (0, 0, width, height), (x, y), pixmap=pix)
-        under_effect.frames.append(frame)
+        background_effect.frames.append(frame)
 
     # Now collate the frames
-    update_anim_full_image(regular_effect)
-    update_anim_full_image(under_effect)
+    update_anim_full_image(foreground_effect)
+    update_anim_full_image(background_effect)
 
-    RESOURCES.effect_anims.append(controller_effect)
-    RESOURCES.effect_anims.append(regular_effect)
-    RESOURCES.effect_anims.append(under_effect)
+    # Now add to list of all effects!
+    RESOURCES.combat_effects.append(controller_effect)
+    RESOURCES.combat_effects.append(foreground_effect)
+    RESOURCES.combat_effects.append(background_effect)
 
     # Need to save the full image somewhere
     settings = MainSettingsController()
     if os.path.basename(settings.get_current_project()) != DEFAULT_PROJECT:
         path = os.path.join(settings.get_current_project(), 'resources', 'combat_effects')
-        RESOURCES.combat_effects.save_image(path, regular_effect)
-        RESOURCES.combat_effects.save_image(path, under_effect)
+        RESOURCES.combat_effects.save_image(path, foreground_effect)
+        RESOURCES.combat_effects.save_image(path, background_effect)
+
+    QMessageBox.information(None, "Spell Import Complete", f"Import of {fn} complete as {controller_effect.nid}")

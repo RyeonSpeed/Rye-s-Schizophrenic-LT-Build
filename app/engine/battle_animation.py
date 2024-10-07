@@ -632,9 +632,9 @@ class BattleAnimation():
             self.owner.darken()
         elif command.nid == 'lighten':
             self.owner.lighten()
-        elif command.nid == 'set_dimness':
-            dimness = int(values[0]) / 255
-            self.owner.set_dimness(dimness)
+        elif command.nid == 'set_brightness':
+            brightness = int(values[0]) / 255
+            self.owner.set_brightness(brightness)
         elif command.nid == 'hit_spark':
             self.owner.hit_spark()
         elif command.nid == 'crit_spark':

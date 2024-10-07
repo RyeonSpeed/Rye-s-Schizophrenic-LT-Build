@@ -38,6 +38,22 @@ def find_empty_pixmaps(pixmaps: dict) -> set:
             empty_pixmaps.add(name)
     return empty_pixmaps
 
+def remove_top_right_palette_indicator(pixmaps: dict) -> dict:
+    new_pixmaps = {}
+    for name in pixmaps.keys():
+        pix = pixmaps[name]
+        width = pix.width()
+        image = pix.toImage()
+        # Black out the the 8x2 palette in the top right with the top right color
+        top_right_color = image.pixel(width - 1, 0)
+        for x in range(8):
+            for y in range(2):
+                image.set_pixel(width - x - 1, y, top_right_color)
+        pix = QPixmap(image)
+        new_pixmaps[name] = pix
+    pixmaps.update(new_pixmaps)
+    return pixmaps
+
 def combine_identical_commands(pose):
     """
     The GBA import likes to put identical commands next to one another.
