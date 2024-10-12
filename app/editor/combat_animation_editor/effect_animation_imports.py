@@ -11,7 +11,7 @@ from app.data.resources.resources import RESOURCES
 from app.data.resources import combat_anims, combat_commands, combat_palettes
 from app.editor.combat_animation_editor.animation_import_utils import \
     convert_gba, split_doubles, combine_identical_commands, update_anim_full_image, \
-    remove_top_right_palette_indicator, find_empty_pixmaps
+    remove_top_right_palette_indicator, find_empty_pixmaps, stretch_vertically
 from app.editor.combat_animation_editor.combat_effect_sound_table import SOUND_TABLE
 
 from app.editor.settings import MainSettingsController
@@ -64,6 +64,7 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
     # Keeps track of what pixmaps are used for effect
     object_pixmaps = {}
     background_pixmaps = {}
+    stretch_these_pixmaps = set()  # Ask the caller to stretch these pixmaps out (2x taller)
 
     def parse_text(command_text: str, hit_only: bool = False, miss_only: bool = False):
         nonlocal last_global_counter
@@ -119,6 +120,7 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
         # 2B through 3F: passed to attacker's animation
         elif command_code == '40':  # Scrolls screen from being centered on the attacker to being centered on the defender
             parse_text("pan")
+            nonlocal has_panned
             has_panned = True
         # 41 through 47: passed to attacker's animation
         elif command_code == '48':  # Plays sound or music whose ID corresponds to those documented in Music List.txt of the nightmare module packages
@@ -127,6 +129,7 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
             parse_text(f"sound;{sound_name}")
         # 49 through 51: passed to attacker's animation
         elif command_code == '53':  # Enable screen stretch
+            nonlocal stretch_foreground
             stretch_foreground = bool(arg2)
 
     # At the beginning, set the background effect to use blending
@@ -183,6 +186,10 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
                 background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name}')
                 background_pixmaps[background_image_name] = pixmaps[background_image_name]
 
+            for im_name in (object_image_name, under_object_image_name):
+                if stretch_foreground and im_name not in empty_pixmaps:
+                    stretch_these_pixmaps.add(im_name)
+
             hit_foreground_commands.append(object_frame_command)
             miss_foreground_commands.append(object_frame_command)
 
@@ -198,12 +205,16 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
     if has_panned:  # pan back
         parse_text('pan')
         add_wait(4)
+    # Cleanup
+    parse_text('set_brightness;255')
+    parse_text('opacity;255')
+    add_wait(8)
     parse_text('end_parent_loop')
-
+    
     return global_hit_commands, global_miss_commands, \
         hit_foreground_commands, miss_foreground_commands, \
         hit_background_commands, miss_background_commands, \
-        object_pixmaps, background_pixmaps
+        object_pixmaps, background_pixmaps, stretch_these_pixmaps
 
 
 def import_effect_from_gba(fn: str, effect_name: str):
@@ -242,13 +253,19 @@ def import_effect_from_gba(fn: str, effect_name: str):
     # Remove top right palette indicator
     pixmaps = remove_top_right_palette_indicator(pixmaps)
     # Determine which pixmaps should be replaced by "wait" commands
-    empty_pixmaps = find_empty_pixmaps(pixmaps, exclude_color=editor_utilities.qEFFECT_COLORKEY)
+    empty_pixmaps: Set[str] = find_empty_pixmaps(pixmaps, exclude_color=editor_utilities.qEFFECT_COLORKEY)
     print(f"{empty_pixmaps=}")
 
     global_hit, global_miss, hit_foreground_effect, miss_foreground_effect, \
         hit_background_effect, miss_background_effect, \
-        object_pixmaps, background_pixmaps = \
+        object_pixmaps, background_pixmaps, stretch_these_pixmaps = \
         parse_spell_txt(fn, pixmaps, foreground_effect_name, background_effect_name, empty_pixmaps)
+
+    # Any pixmap which needs stretching, do it now
+    for pixmap_name in stretch_these_pixmaps:
+        pix = pixmaps[pixmap_name]
+        pix = stretch_vertically(pix)
+        pixmaps[pixmap_name] = pix
 
     # Posify
     # Global Controller

@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QColor, qRgb
 
@@ -30,7 +30,7 @@ def split_doubles(pixmaps: Dict[str, QPixmap]) -> dict:
     pixmaps.update(new_pixmaps)
     return pixmaps
 
-def find_empty_pixmaps(pixmaps: Dict[str, QPixmap], exclude_color: Optional[qRgb] = None) -> set:
+def find_empty_pixmaps(pixmaps: Dict[str, QPixmap], exclude_color: Optional[qRgb] = None) -> Set[str]:
     empty_pixmaps = set()
     for name, pixmap in pixmaps.items():
         x, y, width, height = editor_utilities.get_bbox(pixmap.toImage(), exclude_color)
@@ -40,7 +40,7 @@ def find_empty_pixmaps(pixmaps: Dict[str, QPixmap], exclude_color: Optional[qRgb
             empty_pixmaps.add(name)
     return empty_pixmaps
 
-def remove_top_right_palette_indicator(pixmaps: Dict[str, QPixmap]) -> dict:
+def remove_top_right_palette_indicator(pixmaps: Dict[str, QPixmap]) -> Dict[str, QPixmap]:
     new_pixmaps = {}
     for name in pixmaps.keys():
         pix = pixmaps[name]
@@ -55,6 +55,9 @@ def remove_top_right_palette_indicator(pixmaps: Dict[str, QPixmap]) -> dict:
         new_pixmaps[name] = pix
     pixmaps.update(new_pixmaps)
     return pixmaps
+
+def stretch_vertically(pixmap: QPixmap) -> QPixmap:
+    return pixmap.scaled(pixmap.width(), pixmap.height() * 2)
 
 def combine_identical_commands(pose):
     """
@@ -74,9 +77,15 @@ def combine_identical_commands(pose):
                 last_command = command
             else:
                 last_command = command
-        elif command.nid == 'wait' and last_command and last_command.nid == 'wait':
-            # Combine waits
-            last_command.value = (last_command.value[0] + command.value[0], )
+        elif command.nid == 'wait':
+            if last_command and last_command.nid == 'wait':
+                # Combine waits
+                last_command.value = (last_command.value[0] + command.value[0], )
+            elif last_command:
+                new_timeline.append(last_command)
+                last_command = command
+            else:
+                last_command = command
         elif last_command:
             new_timeline.append(last_command)
             last_command = None
