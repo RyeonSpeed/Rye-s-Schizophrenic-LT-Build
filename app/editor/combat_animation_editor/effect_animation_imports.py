@@ -32,6 +32,12 @@ import logging
 
 # Top right of Background frame image is background color, defaults to (0, 0, 0)
 
+# CSA has a quirk where whenever certain command codes are processed, the object frame will not be displayed for that frame
+# this quirk is not duplicated here
+
+# CSA also has the quirk that no frame can be shown for only 1 frame. All 1 frame frames are automatically rendered as 2 frames
+# This quick is not duplicated here
+
 # Originally prototyped by MKCocoon and DecklynKern
 
 def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name: str, background_effect_name: str,
@@ -49,22 +55,26 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
     current_counter = 0  # Keeps track of what frame the main controller effect should be on
     effect_start = None  # Keeps track of when the first frame is drawn
     has_panned = False
+    current_blend = False
 
     # This creates six lists of commands
     global_hit_commands = []
     global_miss_commands = []
     # For the object frames of the hit/attack pose
-    hit_foreground_commands = []
+    hit_object_commands = []
     # For the background frames of the hit/attack pose
     hit_background_commands = []
     # For the object frames of the miss pose
-    miss_foreground_commands = []
+    miss_object_commands = []
     # For the background frames of the miss pose
     miss_background_commands = []
     # Keeps track of what pixmaps are used for effect
     object_pixmaps = {}
     background_pixmaps = {}
     stretch_these_pixmaps = set()  # Ask the caller to stretch these pixmaps out (2x taller)
+
+    most_recent_object_frame_command = None
+    most_recent_background_frame_command = None
 
     def parse_text(command_text: str, hit_only: bool = False, miss_only: bool = False):
         nonlocal last_global_counter
@@ -87,10 +97,33 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
         last_global_counter += num_frames  # Account for wait
         current_counter += num_frames  # Account for wait
 
+    def duplicate_frame_commands(num_frames: int = 1):
+        """
+        This copies the most recent frame commands for both the object and background and places them again
+        This is done because in CSA, whenever a C000000 type command is called, that takes a frame,
+        which we will need to draw for that frame, since LT non-frame commands DON'T take actual time in engine
+        """
+        # Set the number of frames
+        if most_recent_object_frame_command:
+            object_command = most_recent_object_frame_command.__class__.copy(most_recent_object_frame_command)
+            object_command.value = (num_frames, *object_command.value[1:])
+            hit_object_commands.append(most_recent_object_frame_command)
+            miss_object_commands.append(most_recent_object_frame_command)
+
+        if most_recent_background_frame_command:
+            background_command = most_recent_background_frame_command.__class__.copy(most_recent_background_frame_command)
+            background_command.value = (num_frames, *background_command.value[1:])
+            hit_background_commands.append(most_recent_background_frame_command)
+            miss_background_commands.append(most_recent_background_frame_command)
+
     def process_command(line: str):
-        arg1 = int(line[1:3], 16)
-        arg2 = int(line[3:5], 16)
-        command_code = line[5:]
+        if len(line) == 3:  # Shorthand commands
+            arg1, arg2 = 0, 0
+            command_code = line[1:]
+        else:
+            arg1 = int(line[1:3], 16)
+            arg2 = int(line[3:5], 16)
+            command_code = line[5:]
 
         # 00 through 13 (except 08) are ignored
         if command_code == '00':
@@ -100,20 +133,38 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
         # 14 through 28: passed to attacker's animation
         elif command_code == '14':
             parse_text('screen_shake')
+            duplicate_frame_commands()
         elif command_code == '15':
             parse_text('platform_shake')
+            duplicate_frame_commands()
         elif command_code == '1A':  # Start hit
             parse_text('enemy_flash_white;8', hit_only=True)
             add_wait(1)
             parse_text('screen_flash_white;4', hit_only=True)
+            duplicate_frame_commands(2)
         elif command_code in ('1F', '20', '21'):  # spell hit or spell miss
-            parse_text('spell_hit', hit_only=True)
-            parse_text('miss', miss_only=True)
-        elif command_code == '29':  # Set brightness and opacity levels
-            brightness = int(arg1 / 0x10 * 255)  # multiply by 255 to get into LT format
-            opacity = int((1.0 - (arg2 / 0x10 / 2)) * 255)
-            parse_text(f'set_brightness;{brightness}')
-            parse_text(f'opacity;{opacity}')
+            duplicate_frame_commands()
+        elif command_code == '29':  # Set opacity and blending levels for background
+            # handle opacity
+            opacity = int(arg1 / 0x10 * 255)  # multiply by 255 to get into LT format
+            opacity_command = combat_commands.parse_text(f'opacity;{opacity}')
+            # add to ONLY the background
+            hit_background_commands.append(opacity_command)
+            miss_background_commands.append(opacity_command)
+
+            # handle blend
+            nonlocal current_blend
+            should_blend = (arg2 == 0x10)  # 0x10 means full blending, 0x00 means no blending
+            # Only bother if blend has changed
+            if current_blend != should_blend:
+                blend_command = combat_commands.parse_text(f'blend;1')
+                blend_command.value = (should_blend,)
+                current_blend = should_blend
+                # add to ONLY the background
+                hit_background_commands.append(blend_command)
+                miss_background_commands.append(blend_command)
+            
+            duplicate_frame_commands()
         elif command_code == '2A':  # Whether maps 2 and 3 of the GBA screen should be visible
             # display_maps = (arg2 != 0)
             pass
@@ -133,8 +184,12 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
             stretch_foreground = bool(arg2)
 
     # At the beginning, set the background effect to use blending
-    hit_background_commands.append(combat_commands.parse_text('blend;1'))
-    miss_background_commands.append(combat_commands.parse_text('blend;1'))
+    # hit_background_commands.append(combat_commands.parse_text('blend;1'))
+    # miss_background_commands.append(combat_commands.parse_text('blend;1'))
+
+    # At the beginning, darken
+    parse_text('darken')
+    add_wait(4)
 
     for idx, line in enumerate(script_lines):
         logging.info(f"Processing script line: {line}")
@@ -190,29 +245,33 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
                 if stretch_foreground and im_name not in empty_pixmaps:
                     stretch_these_pixmaps.add(im_name)
 
-            hit_foreground_commands.append(object_frame_command)
-            miss_foreground_commands.append(object_frame_command)
+            hit_object_commands.append(object_frame_command)
+            miss_object_commands.append(object_frame_command)
 
             hit_background_commands.append(background_frame_command)
             miss_background_commands.append(background_frame_command)
+
+            most_recent_object_frame_command = object_frame_command
+            most_recent_background_frame_command = background_frame_command
 
             current_counter += num_frames
 
         elif line.startswith('~'):  # Miss terminator
             miss_terminator_reached = True
+            parse_text('spell_hit', hit_only=True)
+            parse_text('miss', miss_only=True)
 
     # At the end of the parse, break out of the spell
     if has_panned:  # pan back
         parse_text('pan')
         add_wait(4)
     # Cleanup
-    parse_text('set_brightness;255')
-    parse_text('opacity;255')
-    add_wait(8)
     parse_text('end_parent_loop')
-    
+    parse_text('lighten')
+    add_wait(8)
+
     return global_hit_commands, global_miss_commands, \
-        hit_foreground_commands, miss_foreground_commands, \
+        hit_object_commands, miss_object_commands, \
         hit_background_commands, miss_background_commands, \
         object_pixmaps, background_pixmaps, stretch_these_pixmaps
 

@@ -321,3 +321,15 @@ SOUND_TABLE = {
     0x03E5: "using_promotion_se1",
     0x03E6: "using_promotion_se2_maybe",
 }
+
+if __name__ == '__main__':
+    import glob, os
+    default_lt_proj = './default.ltproj/resources/sfx/*'
+    default_sounds = [os.path.split(fn)[-1][:-4] for fn in glob.glob(default_lt_proj)]
+    print(default_sounds)
+    counter = 0
+    for sound in SOUND_TABLE.values():
+        if sound not in default_sounds:
+            print(f'{sound} not in default ltproj!')
+            counter += 1
+    print(f"Missing {counter / len(SOUND_TABLE) * 100:0.2f}% of SOUND TABLE sounds")
