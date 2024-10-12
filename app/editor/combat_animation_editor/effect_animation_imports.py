@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Set
 
 import os
 
@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
 from app.utilities import str_utils
+from app.utilities.typing import Color3
 from app.data.resources.resources import RESOURCES
 from app.data.resources import combat_anims, combat_commands, combat_palettes
 from app.editor.combat_animation_editor.animation_import_utils import \
@@ -33,7 +34,8 @@ import logging
 
 # Originally prototyped by MKCocoon and DecklynKern
 
-def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap], foreground_effect_name: str, background_effect_name: str):
+def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name: str, background_effect_name: str,
+                    empty_pixmaps: Set[str]):
     with open(fn) as fp:
         script_lines = [line.strip() for line in fp.readlines()]
         # Remove comment lines
@@ -159,22 +161,33 @@ def parse_spell_txt(fn, pixmaps: Dict[str, QPixmap], foreground_effect_name: str
             if under_object_image_name not in pixmaps:
                 logging.error(f"{under_object_image_name} not in pixmaps")
                 raise ValueError(f"{under_object_image_name} not in pixmaps")
-            object_frame_command = combat_commands.parse_text(f'f;{num_frames};{object_image_name};{under_object_image_name}')
+            if object_image_name in empty_pixmaps and under_object_image_name in empty_pixmaps:  # Do nothing
+                object_frame_command = combat_commands.parse_text(f'wait;{num_frames}')
+            elif object_image_name in empty_pixmaps:  # Only display the under
+                object_frame_command = combat_commands.parse_text(f'uf;{num_frames};{under_object_image_name}')
+                object_pixmaps[under_object_image_name] = pixmaps[under_object_image_name]
+            elif under_object_image_name in empty_pixmaps:  # Only display the main frame
+                object_frame_command = combat_commands.parse_text(f'f;{num_frames};{object_image_name}')
+                object_pixmaps[object_image_name] = pixmaps[object_image_name]
+            else:  # Display both frames
+                object_frame_command = combat_commands.parse_text(f'f;{num_frames};{object_image_name};{under_object_image_name}')
+                object_pixmaps[object_image_name] = pixmaps[object_image_name]
+                object_pixmaps[under_object_image_name] = pixmaps[under_object_image_name]
 
             if background_image_name not in pixmaps:
                 logging.error(f"{background_image_name} not in pixmaps")
                 raise ValueError(f"{background_image_name} not in pixmaps")
-            background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name}')
+            if background_image_name in empty_pixmaps:
+                background_frame_command = combat_commands.parse_text(f'wait;{num_frames}')
+            else:
+                background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name}')
+                background_pixmaps[background_image_name] = pixmaps[background_image_name]
 
             hit_foreground_commands.append(object_frame_command)
             miss_foreground_commands.append(object_frame_command)
 
             hit_background_commands.append(background_frame_command)
             miss_background_commands.append(background_frame_command)
-
-            object_pixmaps[object_image_name] = pixmaps[object_image_name]
-            object_pixmaps[under_object_image_name] = pixmaps[under_object_image_name]
-            background_pixmaps[background_image_name] = pixmaps[background_image_name]
 
             current_counter += num_frames
 
@@ -229,13 +242,13 @@ def import_effect_from_gba(fn: str, effect_name: str):
     # Remove top right palette indicator
     pixmaps = remove_top_right_palette_indicator(pixmaps)
     # Determine which pixmaps should be replaced by "wait" commands
-    empty_pixmaps = find_empty_pixmaps(pixmaps)
-    print(pixmaps)
+    empty_pixmaps = find_empty_pixmaps(pixmaps, exclude_color=editor_utilities.qEFFECT_COLORKEY)
+    print(f"{empty_pixmaps=}")
 
     global_hit, global_miss, hit_foreground_effect, miss_foreground_effect, \
         hit_background_effect, miss_background_effect, \
         object_pixmaps, background_pixmaps = \
-        parse_spell_txt(fn, pixmaps, foreground_effect_name, background_effect_name)
+        parse_spell_txt(fn, pixmaps, foreground_effect_name, background_effect_name, empty_pixmaps)
 
     # Posify
     # Global Controller
@@ -250,7 +263,7 @@ def import_effect_from_gba(fn: str, effect_name: str):
     controller_effect.poses.append(hit_pose)
     controller_effect.poses.append(miss_pose)
 
-    # Regular Effect
+    # Foreground Effect
     hit_pose = combat_anims.Pose("Attack")
     for command in hit_foreground_effect:
         hit_pose.timeline.append(command.__class__.copy(command))
@@ -264,7 +277,7 @@ def import_effect_from_gba(fn: str, effect_name: str):
     foreground_effect.poses.append(hit_pose)
     foreground_effect.poses.append(miss_pose)
 
-    # Under Effect
+    # Background Effect
     hit_pose = combat_anims.Pose("Attack")
     for command in hit_background_effect:
         hit_pose.timeline.append(command.__class__.copy(command))
@@ -281,8 +294,14 @@ def import_effect_from_gba(fn: str, effect_name: str):
     # === PALETTES ===
     def assign_palette(pixmaps, effect_anim, name):
         # Find palettes for effect pixmaps
-        all_palette_colors = editor_utilities.find_palette_from_multiple([pix.toImage() for pix in pixmaps.values()])
-        print(name, all_palette_colors)
+        all_palette_colors: List[Color3] = editor_utilities.find_palette_from_multiple([pix.toImage() for pix in pixmaps.values()])
+        EFFECT_BG_COLOR = (0, 0, 0)
+        if EFFECT_BG_COLOR != all_palette_colors[0]:
+            if EFFECT_BG_COLOR in all_palette_colors:
+                all_palette_colors.remove(EFFECT_BG_COLOR)
+            all_palette_colors.insert(0, EFFECT_BG_COLOR)
+
+        print("assign palette", name, all_palette_colors)
         # Always generate a new palette
         palette_nid = str_utils.get_next_name("New Palette", RESOURCES.combat_palettes.keys())
         palette = combat_palettes.Palette(palette_nid)
@@ -302,13 +321,17 @@ def import_effect_from_gba(fn: str, effect_name: str):
     background_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, under_effect_convert_dict) for name, pix in background_pixmaps.items()}
 
     # Actually put the pixmaps into the effect animations
+    print("Object Pixmaps")
     for name, pix in object_pixmaps.items():
-        x, y, width, height = editor_utilities.get_bbox(pix.toImage())
+        x, y, width, height = editor_utilities.get_bbox(pix.toImage(), exclude_color=editor_utilities.qEFFECT_COLORKEY)
+        pix = pix.copy(x, y, width, height)
         print(name, x, y, width, height)
         frame = combat_anims.Frame(name, (0, 0, width, height), (x, y), pixmap=pix)
         foreground_effect.frames.append(frame)
+    print("Background Pixmaps")
     for name, pix in background_pixmaps.items():
-        x, y, width, height = editor_utilities.get_bbox(pix.toImage())
+        x, y, width, height = editor_utilities.get_bbox(pix.toImage(), exclude_color=editor_utilities.qEFFECT_COLORKEY)
+        pix = pix.copy(x, y, width, height)
         print(name, x, y, width, height)
         frame = combat_anims.Frame(name, (0, 0, width, height), (x, y), pixmap=pix)
         background_effect.frames.append(frame)

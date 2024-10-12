@@ -1,4 +1,6 @@
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QColor
+from typing import Dict, Optional
+
+from PyQt5.QtGui import QImage, QPixmap, QPainter, QColor, qRgb
 
 import app.editor.utilities as editor_utilities
 
@@ -16,7 +18,7 @@ def simple_crop(pixmap: QPixmap) -> QPixmap:
         pixmap = pixmap.copy(0, 0, 480, pixmap.height())
     return pixmap
 
-def split_doubles(pixmaps: dict) -> dict:
+def split_doubles(pixmaps: Dict[str, QPixmap]) -> dict:
     new_pixmaps = {}
     for name in pixmaps.keys():
         pix = pixmaps[name]
@@ -28,17 +30,17 @@ def split_doubles(pixmaps: dict) -> dict:
     pixmaps.update(new_pixmaps)
     return pixmaps
 
-def find_empty_pixmaps(pixmaps: dict) -> set:
+def find_empty_pixmaps(pixmaps: Dict[str, QPixmap], exclude_color: Optional[qRgb] = None) -> set:
     empty_pixmaps = set()
     for name, pixmap in pixmaps.items():
-        x, y, width, height = editor_utilities.get_bbox(pixmap.toImage())
+        x, y, width, height = editor_utilities.get_bbox(pixmap.toImage(), exclude_color)
         if width > 0 and height > 0:
             pass
         else:
             empty_pixmaps.add(name)
     return empty_pixmaps
 
-def remove_top_right_palette_indicator(pixmaps: dict) -> dict:
+def remove_top_right_palette_indicator(pixmaps: Dict[str, QPixmap]) -> dict:
     new_pixmaps = {}
     for name in pixmaps.keys():
         pix = pixmaps[name]
@@ -48,7 +50,7 @@ def remove_top_right_palette_indicator(pixmaps: dict) -> dict:
         top_right_color = image.pixel(width - 1, 0)
         for x in range(8):
             for y in range(2):
-                image.set_pixel(width - x - 1, y, top_right_color)
+                image.setPixel(width - x - 1, y, top_right_color)
         pix = QPixmap(image)
         new_pixmaps[name] = pix
     pixmaps.update(new_pixmaps)
@@ -72,6 +74,9 @@ def combine_identical_commands(pose):
                 last_command = command
             else:
                 last_command = command
+        elif command.nid == 'wait' and last_command and last_command.nid == 'wait':
+            # Combine waits
+            last_command.value = (last_command.value[0] + command.value[0], )
         elif last_command:
             new_timeline.append(last_command)
             last_command = None
