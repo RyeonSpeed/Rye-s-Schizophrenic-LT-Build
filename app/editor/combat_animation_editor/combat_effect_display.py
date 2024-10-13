@@ -210,9 +210,9 @@ class CombatEffectProperties(CombatAnimProperties):
 
     def import_from_gba(self):
         starting_path = self.settings.get_last_open_path()
-        fn, ok = QFileDialog.getOpenFileName(self.window, "Select GBA Spell.txt File", starting_path, "Effect Files (Spell.txt);;All Files (*)")
+        fn, ok = QFileDialog.getOpenFileName(self.window, "Select GBA Spell.txt File", starting_path, "Effect Files (Spell*.txt);;All Files (*)")
         if ok and fn:
-            if fn.endswith('Spell.txt'):
+            if fn.endswith('.txt'):
                 nid = str_utils.get_next_name("New Spell", RESOURCES.combat_effects.keys())
                 effect_animation_imports.import_effect_from_gba(fn, nid)
             else:

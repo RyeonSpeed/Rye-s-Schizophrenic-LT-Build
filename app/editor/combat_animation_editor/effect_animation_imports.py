@@ -45,11 +45,10 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
     with open(fn) as fp:
         script_lines = [line.strip() for line in fp.readlines()]
         # Remove comment lines
-        script_lines = [(line[:line.index('#')] if '#' in line else line) for line in script_lines]
+        script_lines = [(line[:line.index('#')].strip() if '#' in line else line) for line in script_lines]
         script_lines = [line for line in script_lines if line]  # Remove empty lines
 
     stretch_foreground = False
-    miss_terminator_reached = False
 
     last_global_counter = 0  # Keeps track of what frame the last command to the main controller effect was added to
     current_counter = 0  # Keeps track of what frame the main controller effect should be on
@@ -157,7 +156,7 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
             should_blend = (arg2 == 0x10)  # 0x10 means full blending, 0x00 means no blending
             # Only bother if blend has changed
             if current_blend != should_blend:
-                blend_command = combat_commands.parse_text(f'blend;1')
+                blend_command = combat_commands.parse_text('blend;1')
                 blend_command.value = (should_blend,)
                 current_blend = should_blend
                 # add to ONLY the background
@@ -176,8 +175,13 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
         # 41 through 47: passed to attacker's animation
         elif command_code == '48':  # Plays sound or music whose ID corresponds to those documented in Music List.txt of the nightmare module packages
             sound_id = arg1 * 256 + arg2
-            sound_name = SOUND_TABLE[sound_id]
-            parse_text(f"sound;{sound_name}")
+            try:
+                sound_name = SOUND_TABLE[sound_id]
+                parse_text(f"sound;{sound_name}")
+            except KeyError as e:
+                logging.error(f"Unable to determine sound with id: {sound_id}")
+                logging.exception(e)
+            duplicate_frame_commands()
         # 49 through 51: passed to attacker's animation
         elif command_code == '53':  # Enable screen stretch
             nonlocal stretch_foreground
@@ -241,8 +245,8 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
                 background_frame_command = combat_commands.parse_text(f'f;{num_frames};{background_image_name}')
                 background_pixmaps[background_image_name] = pixmaps[background_image_name]
 
-            for im_name in (object_image_name, under_object_image_name):
-                if stretch_foreground and im_name not in empty_pixmaps:
+            for im_name in (object_image_name, under_object_image_name, background_image_name):
+                if stretch_foreground and im_name not in empty_pixmaps and pixmaps[im_name].height() <= 120:
                     stretch_these_pixmaps.add(im_name)
 
             hit_object_commands.append(object_frame_command)
@@ -257,7 +261,6 @@ def parse_spell_txt(fn: str, pixmaps: Dict[str, QPixmap], foreground_effect_name
             current_counter += num_frames
 
         elif line.startswith('~'):  # Miss terminator
-            miss_terminator_reached = True
             parse_text('spell_hit', hit_only=True)
             parse_text('miss', miss_only=True)
 
@@ -291,8 +294,8 @@ def import_effect_from_gba(fn: str, effect_name: str):
     directory = os.path.split(os.path.abspath(fn))[0] 
     logging.info(f"Import GBA weapon animation from script {fn} in {directory}")
 
-    foreground_effect_name = effect_name + '_fg'
-    background_effect_name = effect_name + '_bg'
+    foreground_effect_name = str_utils.get_next_name(effect_name + '_fg', RESOURCES.combat_effects.keys())
+    background_effect_name = str_utils.get_next_name(effect_name + '_bg', RESOURCES.combat_effects.keys())
 
     images = []
     for image_fn in os.listdir(directory):
@@ -331,9 +334,11 @@ def import_effect_from_gba(fn: str, effect_name: str):
     hit_pose = combat_anims.Pose("Attack")
     for command in global_hit:
         hit_pose.timeline.append(command.__class__.copy(command))
+    combine_identical_commands(hit_pose)
     miss_pose = combat_anims.Pose("Miss")
     for command in global_miss:
         miss_pose.timeline.append(command.__class__.copy(command))
+    combine_identical_commands(miss_pose)
 
     controller_effect = combat_anims.EffectAnimation(effect_name)
     controller_effect.poses.append(hit_pose)
@@ -387,14 +392,16 @@ def import_effect_from_gba(fn: str, effect_name: str):
         palette.assign_colors(all_palette_colors)
         return palette
 
-    effect_palette = assign_palette(object_pixmaps, foreground_effect, "FG Effect")
-    under_effect_palette = assign_palette(background_pixmaps, background_effect, "BG Effect")
-
     # Convert pixmaps to new palette colors
-    effect_convert_dict = editor_utilities.get_color_conversion(effect_palette)
-    object_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, effect_convert_dict) for name, pix in object_pixmaps.items()}
-    under_effect_convert_dict = editor_utilities.get_color_conversion(under_effect_palette)
-    background_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, under_effect_convert_dict) for name, pix in background_pixmaps.items()}
+    if object_pixmaps:
+        effect_palette = assign_palette(object_pixmaps, foreground_effect, "FG Effect")
+        effect_convert_dict = editor_utilities.get_color_conversion(effect_palette)
+        object_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, effect_convert_dict) for name, pix in object_pixmaps.items()}
+
+    if background_pixmaps:
+        under_effect_palette = assign_palette(background_pixmaps, background_effect, "BG Effect")
+        under_effect_convert_dict = editor_utilities.get_color_conversion(under_effect_palette)
+        background_pixmaps = {name: editor_utilities.color_convert_pixmap(pix, under_effect_convert_dict) for name, pix in background_pixmaps.items()}
 
     # Actually put the pixmaps into the effect animations
     print("Object Pixmaps")
