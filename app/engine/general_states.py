@@ -1409,6 +1409,7 @@ class ItemDiscardState(MapState):
     def start(self):
         game.cursor.hide()
         self.cur_unit = game.memory['item_discard_current_unit']
+        self.new_item = game.memory['item_discard_new_item']
 
         if game.game_vars.get('_convoy') and DB.constants.value("long_range_storage"):
             self.mode = self.ItemDiscardMode.STORAGE
@@ -1494,14 +1495,17 @@ class ItemDiscardState(MapState):
             get_sound_thread().play_sfx('Error')
 
         elif event == 'SELECT':
-            get_sound_thread().play_sfx('Select 1')
-            selection = self.menu.get_current()
-            owner = 'Storage' if self.mode == self.ItemDiscardMode.STORAGE else 'Discard'
-            game.memory['option_owner'] = owner
-            game.memory['option_item'] = selection
-            game.memory['option_unit'] = self.cur_unit
-            game.memory['option_menu'] = self.menu
-            game.state.change('option_child')
+            if item_system.is_accessory(self.cur_unit, self.new_item) != item_system.is_accessory(self.cur_unit, self.menu.get_current()):
+                get_sound_thread().play_sfx('Error')
+            else:
+                get_sound_thread().play_sfx('Select 1')
+                selection = self.menu.get_current()
+                owner = 'Storage' if self.mode == self.ItemDiscardMode.STORAGE else 'Discard'
+                game.memory['option_owner'] = owner
+                game.memory['option_item'] = selection
+                game.memory['option_unit'] = self.cur_unit
+                game.memory['option_menu'] = self.menu
+                game.state.change('option_child')
 
         elif event == 'INFO':
             self.menu.toggle_info()
@@ -1525,6 +1529,7 @@ class WeaponChoiceState(MapState):
     def get_options(self, unit) -> list:
         if game.memory.get('valid_weapons'):
             options = game.memory['valid_weapons']
+            game.memory['valid_weapons'] = None
         else:
             items = game.target_system.get_weapons(unit)
             # Skill straining
@@ -1589,7 +1594,6 @@ class WeaponChoiceState(MapState):
             # In case we are hovering over a not "true" equipped item
             if self.cur_unit.can_equip(self.current_equipped):
                 action.do(action.EquipItem(self.cur_unit, self.current_equipped))
-            game.memory['valid_weapons'] = None
             game.state.back()
 
         elif event == 'SELECT':
@@ -1661,6 +1665,7 @@ class SpellChoiceState(WeaponChoiceState):
     def get_options(self, unit) -> list:
         if game.memory.get('valid_spells'):
             options = game.memory['valid_spells']
+            game.memory['valid_spells'] = None
         else:
             items = game.target_system.get_spells(unit)
             # Skill straining
@@ -1694,7 +1699,6 @@ class SpellChoiceState(WeaponChoiceState):
 
         if event == 'BACK':
             get_sound_thread().play_sfx('Select 4')
-            game.memory['valid_spells'] = None
             game.state.back()
 
         elif event == 'SELECT':
@@ -1745,6 +1749,7 @@ class CombatArtChoiceState(MapState):
     def start(self):
         if game.memory.get('combat_arts'):
             self.combat_arts = game.memory['combat_arts']
+            game.memory['combat_arts'] = None
         else:
             logging.error('No available combat arts!')
             game.state.back()
@@ -1778,7 +1783,6 @@ class CombatArtChoiceState(MapState):
 
         if event == 'BACK':
             get_sound_thread().play_sfx('Select 4')
-            game.memory['combat_arts'] = None
             game.state.back()
 
         elif event == 'SELECT':
@@ -2622,7 +2626,8 @@ class ShopState(State):
         self.fluid.reset_on_change_state()
 
     def get_dialog(self, text):
-        d = dialog.Dialog(text_funcs.translate(text))
+        text = text_funcs.translate_and_text_evaluate(text, self=self)
+        d = dialog.Dialog(text)
         d.position = (60, 8)
         d.text_width = WINWIDTH - 80
         d.width = d.text_width + 16

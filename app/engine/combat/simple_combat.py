@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import Optional
+from typing import List, Optional
 
 from app.data.database.database import DB
 from app.engine import (action, banner, exp_funcs, item_system, skill_system,
                         supports)
+from app.engine.combat.playback import PlaybackBrush
 from app.engine.combat.solver import CombatPhaseSolver
 from app.engine.game_state import game
 from app.engine.objects.item import ItemObject
@@ -64,8 +65,8 @@ class SimpleCombat():
             self.defenders, self.splashes, self.target_positions,
             self.defender, self.def_item, script, total_rounds)
 
-        self.full_playback = []
-        self.playback = []
+        self.full_playback: List[PlaybackBrush] = []
+        self.playback: List[PlaybackBrush] = []
         self.actions = []
 
         self.start_combat()
@@ -172,8 +173,10 @@ class SimpleCombat():
             self.defender.strike_partner = None
             self.defender.built_guard = True
 
-        self.handle_combat_death(all_units)
         self.handle_death(all_units)
+        # combat death gets handled after unit death here since
+        # triggered events get added in stack order (combat death should run first)
+        self.handle_combat_death(all_units)
 
         self.handle_unusable_items(asp, dsp)
         self.handle_broken_items(asp, dsp)

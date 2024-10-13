@@ -696,10 +696,11 @@ class ChangeBackground(EventCommand):
 Changes the dialogue scene's background image to *Panorama*. If no *Panorama* is specified,
 the current background is removed without being replaced.
 Displayed portraits are also removed unless the *keep_portraits* flag is set.
+The *Scroll* flag determines whether the background image will move.
         """
 
     optional_keywords = ['Panorama']
-    _flags = ["keep_portraits"]
+    _flags = ["keep_portraits", "scroll"]
 
 class PauseBackground(EventCommand):
     nid = "pause_background"
@@ -2806,7 +2807,7 @@ via hitting the back button, and the event will go on as normal.
 
     keywords = ['Nid', 'Title', 'Choices']
     optional_keywords = ['RowWidth', 'Orientation', 'Alignment', 'BG', 'EventNid', 'EntryType', 'Dimensions', 'TextAlign']
-    keyword_types = ['GeneralVar', 'String', 'EvaluableString', 'Width', 'Orientation', 'Align', 'Sprite', 'Event', 'TableEntryType', 'Size', 'HAlign']
+    keyword_types = ['GeneralVar', 'String', 'EvaluableString', 'Width', 'Orientation', 'AlignOrPosition', 'Sprite', 'Event', 'TableEntryType', 'Size', 'HAlign']
     _flags = ['persist', 'expression', 'no_bg', 'no_cursor', 'arrows', 'no_arrows', 'scroll_bar', 'no_scroll_bar', 'backable']
 
 class Unchoice(EventCommand):
@@ -3062,6 +3063,26 @@ Opens the trade screen for the two given units, allowing the player to trade ite
 
     keywords = ['Unit1', 'Unit2']
     keyword_types = ['Unit', 'Unit']
+
+class OpenBexpMenu(EventCommand):
+    nid = 'open_bexp_menu'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Displays bonus experience menu. The *Panorama* and *Music* keywords specify the background image and the music track that will be played.
+
+Optional args:
+* *Panorama* the panorama that will be used as background.
+* *Music* specify which music track will play for the menu.
+
+1. *immediate* flag skips the transition between screens
+        """
+    
+    optional_keywords = ['Panorama', 'Music']
+    keyword_types = ['Panorama', 'Music']
+
+    _flags = ["immediate"]
 
 class ShowMinimap(EventCommand):
     nid = 'show_minimap'
@@ -3495,7 +3516,8 @@ FORBIDDEN_PYTHON_COMMANDS: List[EventCommand] = [Comment, If, Elif, Else,
 FORBIDDEN_PYTHON_COMMAND_NIDS: List[str] = [cmd.nid for cmd in FORBIDDEN_PYTHON_COMMANDS] + [cmd.nickname for cmd in FORBIDDEN_PYTHON_COMMANDS]
 def get_all_event_commands(version: EventVersion) -> Dict[NID, Type[EventCommand]]:
     if version == EventVersion.EVENT:
-        return {nid: command_t for nid, command_t in ALL_EVENT_COMMANDS.items() if nid not in ['say']}
+        commands = {nid: command_t for nid, command_t in ALL_EVENT_COMMANDS.items() if nid not in ['say']}
+        return commands
     elif version == EventVersion.PYEV1:
         commands = {}
         for nid, command_t in ALL_EVENT_COMMANDS.items():
@@ -3504,6 +3526,7 @@ def get_all_event_commands(version: EventVersion) -> Dict[NID, Type[EventCommand
                     commands[nid] = command_t
         commands['wait'] = Wait
         commands['finish'] = Finish
+        commands['end_skip'] = EndSkip
         return commands
 
 @dataclass

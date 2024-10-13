@@ -169,8 +169,9 @@ if __name__ == '__main__':
     import sys
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    RESOURCES.load('default.ltproj')
-    DB.load('default.ltproj')
+    RESOURCES.load('default.ltproj', CURRENT_SERIALIZATION_VERSION)
+    from app.data.serialization.versions import CURRENT_SERIALIZATION_VERSION
+    DB.load('default.ltproj', CURRENT_SERIALIZATION_VERSION)
     state_manager = EditorStateManager()
     state_manager.state.selected_level = 0
     window = LevelEditor(state_manager)

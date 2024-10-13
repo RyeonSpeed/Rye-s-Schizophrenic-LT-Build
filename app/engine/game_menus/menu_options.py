@@ -318,7 +318,11 @@ class ItemOption(BasicOption):
         if item_system.is_weapon(owner, self.item) or item_system.is_spell(owner, self.item):
             return help_menu.ItemHelpDialog(self.item)
         else:
-            return help_menu.HelpDialog(self.item.desc)
+            text = text_funcs.translate_and_text_evaluate(
+                self.item.desc,
+                unit=game.get_unit(self.item.owner_nid),
+                self=self.item)
+            return help_menu.HelpDialog(text)
 
     def draw(self, surf, x, y):
         icon = icons.get_icon(self.item)
@@ -543,7 +547,7 @@ class UnitOption(BasicOption):
             elif DB.constants.value('fatigue') and game.game_vars.get('_fatigue') and \
                     self.unit.get_fatigue() >= self.unit.get_max_fatigue():
                 color = 'red'
-            elif not self.unit.position and not game.get_rescuer(self.unit):
+            elif not self.unit.position and not (game.get_rescuer(self.unit) and game.get_rescuer(self.unit).position):
                 color = 'grey'
             elif self.unit.position and (not game.check_for_region(self.unit.position, 'formation') or 'Required' in self.unit.tags):
                 color = 'green'

@@ -47,8 +47,9 @@ if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
     from app.data.resources.resources import RESOURCES
-    RESOURCES.load('default.ltproj')
-    DB.load('default.ltproj')
+    RESOURCES.load('default.ltproj', CURRENT_SERIALIZATION_VERSION)
+    from app.data.serialization.versions import CURRENT_SERIALIZATION_VERSION
+    DB.load('default.ltproj', CURRENT_SERIALIZATION_VERSION)
     window = SingleDatabaseEditor(TerrainDatabase)
     window.show()
     app.exec_()
