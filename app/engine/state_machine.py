@@ -137,6 +137,7 @@ class StateMachine():
              'prep_restock': prep.PrepRestockState,
              'prep_use': prep.PrepUseState,
              'prep_market': prep.PrepMarketState,
+             'prep_convos_child': prep.PrepConvosChildState,
              'base_main': base.BaseMainState,
              'base_market_select': base.BaseMarketSelectState,
              'base_bexp_select': base.BaseBEXPSelectState,
