@@ -178,7 +178,7 @@ class FreeRoamState(MapState):
         else:
             get_sound_thread().play_sfx('Select 1')
             game.memory['next_state'] = 'info_menu'
-            game.memory['current_unit'] = self.roam_unit
+            game.memory['current_unit'] = self.get_closest_unit() or self.roam_unit
             game.state.change('transition_to')
 
     def check_aux(self):
