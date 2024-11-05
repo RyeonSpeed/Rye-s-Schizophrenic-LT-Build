@@ -28,7 +28,7 @@ class PrepMainState(MapState):
         """return (options, ignore, events), which should all be the same size
         """
         # basic options
-        options = ['Manage', 'Formation', 'Options', 'Save', 'Fight']
+        options = ['Manage', 'Formation', 'Convos', 'Options', 'Save', 'Fight']
         if game.level_vars.get('_prep_pick'):
             options.insert(0, 'Pick Units')
         if cf.SETTINGS['debug']:
@@ -37,6 +37,8 @@ class PrepMainState(MapState):
         # Don't manage units if there's nobody in the party!
         if not game.get_units_in_party():
             ignore[0] = True
+        if not game.base_convos:
+            ignore[1] = True
 
         # initialize custom options and events
         events = [None for option in options]
@@ -128,6 +130,10 @@ class PrepMainState(MapState):
                 self.bg.fade_out()
                 game.memory['_prep_outline'] = self.bg
                 game.state.change('prep_formation')
+            elif selection == 'Convos':
+                game.memory['option_owner'] = selection
+                game.memory['option_menu'] = self.menu
+                game.state.change('prep_convos_child')
             elif selection == 'Options':
                 game.memory['next_state'] = 'settings_menu'
                 game.state.change('transition_to')
@@ -177,6 +183,68 @@ class PrepMainState(MapState):
             self.create_background()
         if self.bg:
             self.bg.draw(surf)
+        if self.menu:
+            self.menu.draw(surf)
+        return surf
+        
+class PrepConvosChildState(State):
+    name = 'prep_convos_child'
+    transparent = True
+
+    def start(self):
+        self.fluid = FluidScroll()
+        self.options = [event_nid for event_nid in game.base_convos.keys()]
+        ignore = [game.base_convos[event_nid] for event_nid in self.options]
+
+        selection = game.memory['option_owner']
+        topleft_menu = game.memory['option_menu']
+
+        self.menu = menus.Choice(selection, self.options, topleft_menu)
+        self.menu.set_limit(5)
+        self.menu.set_ignore(ignore)
+
+    def begin(self):
+        if not game.base_convos:
+            game.state.back()
+            return 'repeat'
+        self.fluid.reset_on_change_state()
+        self.options = [event_nid for event_nid in game.base_convos.keys()]
+        ignore = [game.base_convos[event_nid] for event_nid in self.options]
+        self.menu.update_options(self.options)
+        self.menu.set_ignore(ignore)
+        base_music = game.game_vars.get('_base_music')
+        if base_music:
+            get_sound_thread().fade_in(base_music)
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        self.menu.handle_mouse()
+        if 'DOWN' in directions:
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_down(first_push)
+        elif 'UP' in directions:
+            get_sound_thread().play_sfx('Select 6')
+            self.menu.move_up(first_push)
+
+        elif event == 'BACK':
+            get_sound_thread().play_sfx('Select 4')
+            game.state.back()
+
+        elif event == 'SELECT':
+            selection = self.menu.get_current()
+            if not game.base_convos[selection]:
+                get_sound_thread().play_sfx('Select 1')
+                # Auto-ignore
+                game.base_convos[selection] = True
+                game.events.trigger(triggers.OnBaseConvo(selection, selection))
+
+    def update(self):
+        if self.menu:
+            self.menu.update()
+
+    def draw(self, surf):
         if self.menu:
             self.menu.draw(surf)
         return surf
