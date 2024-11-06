@@ -913,10 +913,8 @@ def get_battle_anim(unit, item, distance=1, klass=None, default_variant=False, a
                 weapon_anim_nid = "Magic" + weapon_anim_nid
             elif ranged and distance > 1:
                 weapon_anim_nid = "Ranged" + weapon_anim_nid
-            elif distance > 1:
-                weapon_anim_nid = "Distant" + weapon_anim_nid
-            elif ranged and distance == 1:
-                weapon_anim_nid = "Close" + weapon_anim_nid
+        elif weapon_type == "Staff":
+            weapon_anim_nid = "MagicStaff"
         elif ranged:
             if distance <= 1 and weapon_prefab and weapon_prefab.force_melee_anim and (not(weapon_type == 'Axe' and not magic and ranged)):
                 weapon_anim_nid = weapon_type
@@ -924,14 +922,19 @@ def get_battle_anim(unit, item, distance=1, klass=None, default_variant=False, a
                 weapon_anim_nid = "Magic" + weapon_type
             else:
                 weapon_anim_nid = "Ranged" + weapon_type
+        elif distance > 1:
+            weapon_anim_nid = "Distant" + weapon_type
         else:
             weapon_anim_nid = weapon_type
         if magic and weapon_anim_nid not in res.weapon_anims:
             weapon_anim_nid = 'MagicGeneric'
 
     weapon_anim = res.weapon_anims.get(weapon_anim_nid)
-    if not weapon_anim and (weapon_anim_nid.startswith('Ranged') or weapon_anim_nid.startswith('Close') or weapon_anim_nid.startswith('Distant')):
-        weapon_anim = res.weapon_anims.get(weapon_anim_nid[6:])
+    if not weapon_anim:
+        if weapon_anim_nid.startswith('Ranged'):
+            weapon_anim = res.weapon_anims.get(weapon_anim_nid[6:])
+        if weapon_anim_nid.startswith('Distant'):
+            weapon_anim = res.weapon_anims.get(weapon_anim_nid[7:])
     if not weapon_anim:
         logging.warning("Could not find valid weapon animation. Trying: %s", weapon_anim_nid)
         return None
