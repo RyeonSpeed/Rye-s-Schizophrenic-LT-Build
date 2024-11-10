@@ -28,17 +28,20 @@ class PrepMainState(MapState):
         """return (options, ignore, events), which should all be the same size
         """
         # basic options
+        x = 0
         options = ['Manage', 'Formation', 'Convos', 'Options', 'Save', 'Fight']
         if game.level_vars.get('_prep_pick'):
             options.insert(0, 'Pick Units')
+            x += 1
         if cf.SETTINGS['debug']:
             options.insert(0, 'Debug')
+            x += 1
         ignore = [False for option in options]
         # Don't manage units if there's nobody in the party!
         if not game.get_units_in_party():
-            ignore[0] = True
+            ignore[x] = True
         if not game.base_convos:
-            ignore[1] = True
+            ignore[x+2] = True
 
         # initialize custom options and events
         events = [None for option in options]
