@@ -29,9 +29,9 @@ class MapSprite(WithResources, Prefab):
         return self.nid
 
     @override
-    def set_full_path(self, path: NID) -> None:
+    def set_full_path(self, path: str) -> None:
         parent_path = Path(path).parent
-        self.set_stand_full_path(str(parent_path/ (self.nid + '-stand.png')))
+        self.set_stand_full_path(str(parent_path / (self.nid + '-stand.png')))
         self.set_move_full_path(str(parent_path / (self.nid + '-move.png')))
 
     @override

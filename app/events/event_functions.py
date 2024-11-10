@@ -2620,7 +2620,7 @@ def set_position(self: Event, position, flags=None):
     self.position = pos
     self.text_evaluator.position = pos
 
-def map_anim(self: Event, map_anim, float_position: Tuple[float, float] | NID, speed: float=1.0, flags=None):
+def map_anim(self: Event, map_anim, float_position: Tuple[float, float] | NID, speed: float = 1.0, flags=None):
     flags = flags or set()
     float_position = self._parse_pos(float_position, True)
     if not float_position:
@@ -3699,3 +3699,28 @@ def hide_combat_ui(self: Event, flags=None):
 
 def show_combat_ui(self: Event, flags=None):
     self.game.game_vars["_hide_ui"] = False
+
+def party_transfer(self: Event, party1, party2, fixed_units = None, party1_name = "", party2_name = "", party1_limit = 0, party2_limit = 0, flags=None):
+    top_party = self.game.get_party(party1)
+    bottom_party = self.game.get_party(party2)
+    top_party_name = party1_name
+    bottom_party_name = party2_name
+    top_party_limit = party1_limit
+    bottom_party_limit = party2_limit
+    flags = flags or set()
+
+    if fixed_units:
+        try:
+            fixed_list = self._eval_expr(fixed_units, 'from_python' in flags)
+        except Exception as e:
+            self.logger.error("party_transfer: %s: Could not evalute {%s}" % (e, fixed_units))
+            return
+        if not all((isinstance(unit_nid, str) or isinstance(unit_nid, UnitObject)) for unit_nid in fixed_list):
+            self.logger.error("party_transfer: could not evaluate to NID list %s" % fixed_list)
+            return
+    else:
+        fixed_list = []
+
+    self.game.memory['party_transfer'] = (top_party, bottom_party, fixed_list, top_party_name, bottom_party_name, top_party_limit, bottom_party_limit)
+    self.game.state.change('party_transfer')
+    self.state = 'paused'
