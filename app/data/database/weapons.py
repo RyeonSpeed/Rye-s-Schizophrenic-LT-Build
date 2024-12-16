@@ -121,6 +121,8 @@ class WeaponType(Prefab):
     name: str = None
 
     force_melee_anim: bool = False
+    
+    hide_from_display: bool = False
 
     rank_bonus: CombatBonusList = None
     advantage: CombatBonusList = None
@@ -159,10 +161,14 @@ class WeaponCatalog(Data[WeaponType]):
         nids = [d.nid for d in self]
         nid = name = str_utils.get_next_name("New Weapon Type", nids)
         new_weapon = WeaponType(
-            nid, name, False, CombatBonusList(),
+            nid, name, False, False, CombatBonusList(),
             CombatBonusList(), CombatBonusList())
         self.append(new_weapon)
         return new_weapon
+    
+    def get_visible_weapon_types(self) -> dict:
+        visible_weapon_types = {nid : weapon_type for nid, weapon_type in self._dict.items() if not weapon_type.hide_from_display}
+        return visible_weapon_types
 
 # === WEAPON EXPERIENCE GAINED ===
 class WexpGain():
