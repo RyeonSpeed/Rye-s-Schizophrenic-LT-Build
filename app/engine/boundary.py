@@ -45,7 +45,7 @@ class BoundaryInterface():
 
         self.displaying_units = set()
         # Dict[(UnitNid, AuraSkillName)] => (AuraOrigin, AuraRadius, AuraColor)
-        self.registered_auras: Dict[Tuple[NID, NID], Tuple[Point, int, Color3]] = {}
+        self.registered_auras: Dict[Tuple[NID, NID], Tuple[Point, int, Color3, float]] = {}
 
         self.surf = None
         self.fog_of_war_surf = None
@@ -59,7 +59,7 @@ class BoundaryInterface():
         if color not in self._color_surfs:
             base_surf = engine.create_surface((TILEWIDTH, TILEHEIGHT), True)
             engine.fill(base_surf, color)
-            self._color_surfs[color] = image_mods.make_translucent(base_surf, 0.5)
+            self._color_surfs[color] = base_surf
         return self._color_surfs[color]
 
     def init_grid(self):
@@ -117,7 +117,7 @@ class BoundaryInterface():
         for aura_info in aura_funcs.get_all_aura_info(unit):
             if aura_info.show_aura:
                 unit_and_skill = (unit.nid, aura_info.parent_skill)
-                self.registered_auras[unit_and_skill] = (unit.position, aura_info.aura_range, aura_info.aura_color)
+                self.registered_auras[unit_and_skill] = (unit.position, aura_info.aura_range, aura_info.aura_color, aura_info.aura_opacity)
         self.should_reset_aura_surf = True
 
     def unregister_unit_auras(self, unit):
@@ -229,11 +229,11 @@ class BoundaryInterface():
         if not self.aura_surf:
             self.aura_surf = engine.create_surface(full_size, transparent=True)
             # draw permanent auras
-            for aura_origin, aura_radius, aura_color in self.registered_auras.values():
+            for aura_origin, aura_radius, aura_color, aura_opacity in self.registered_auras.values():
                 tiles_to_color = game.target_system.find_manhattan_spheres(set(range(1, aura_radius + 1)), *aura_origin)
                 tiles_to_color.add(aura_origin)
                 for x, y in tiles_to_color:
-                    image = self.get_color_square(aura_color)
+                    image = image_mods.make_translucent(self.get_color_square(aura_color), aura_opacity)
                     self.aura_surf.blit(image, (x * TILEWIDTH, y * TILEHEIGHT))
         im = engine.subsurface(self.aura_surf, cull_rect)
         surf.blit(im, (0, 0))

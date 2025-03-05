@@ -27,6 +27,7 @@ def get_all_aura_info(unit: UnitObject) -> List[AuraInfo]:
             if skill.show_aura:
                 aura_info.show_aura = True
                 aura_info.aura_color = skill.show_aura.value
+                aura_info.aura_opacity = skill.aura_opacity.value
             all_aura_info.append(aura_info)
     return all_aura_info
 

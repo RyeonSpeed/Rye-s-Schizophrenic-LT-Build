@@ -46,6 +46,14 @@ class AuraShow(SkillComponent):
     expose = ComponentType.Color3
     value = (128, 0, 0)
 
+class AuraOpacity(SkillComponent):
+    nid = 'aura_opacity'
+    desc = 'Set opacity of aura visual indicator between 0 and 1. Higher value = lower opacity'
+    tag = SkillTags.STATUS
+    
+    expose = ComponentType.Float
+    value = 0.7
+
 class HideAura(SkillComponent):
     nid = 'hide_aura'
     desc = 'Aura\'s highlight will never appear on the map'
