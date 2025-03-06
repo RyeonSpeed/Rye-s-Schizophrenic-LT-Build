@@ -41,7 +41,7 @@ class AuraShow(SkillComponent):
     nid = 'show_aura'
     desc = 'Aura will always show with this color on the map'
     tag = SkillTags.STATUS
-    paired_with = ('aura', 'aura_range', 'aura_target')
+    paired_with = ('aura', 'aura_range', 'aura_target', 'aura_opacity')
 
     expose = ComponentType.Color3
     value = (128, 0, 0)
@@ -50,6 +50,7 @@ class AuraOpacity(SkillComponent):
     nid = 'aura_opacity'
     desc = 'Set opacity of aura visual indicator between 0 and 1. Higher value = lower opacity'
     tag = SkillTags.STATUS
+    paired_with = ('aura', 'aura_range', 'aura_target', 'show_aura')
     
     expose = ComponentType.Float
     value = 0.7
