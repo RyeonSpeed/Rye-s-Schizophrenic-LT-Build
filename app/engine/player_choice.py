@@ -4,7 +4,7 @@ import logging
 from typing import List, Tuple
 
 from app.data.database.database import DB
-from app.engine import action, text_funcs
+from app.engine import action, text_funcs, engine
 from app.engine.game_menus.menu_components.generic_menu.cursor_hand import CursorDrawMode
 from app.engine.game_menus.menu_components.generic_menu.grid_choice import GridChoiceMenu
 from app.engine.game_state import game
@@ -24,8 +24,9 @@ class PlayerChoiceState(MapState):
     def start(self):
         self.nid, self.header, options_list, self.row_width, self.orientation, \
             self.data_type, self.should_persist, self.alignment, self.bg, self.event_on_choose, \
-            self.size, self.no_cursor, self.arrows, self.scroll_bar, self.text_align, self.backable, self.event_context = \
+            self.size, self.no_cursor, self.arrows, self.scroll_bar, self.text_align, self.backable, self.event_context, self.timer = \
             game.memory['player_choice']
+        self._start_time = engine.get_time()
         self.is_callable = False
         self.data = options_list
         if callable(options_list):
@@ -182,7 +183,10 @@ class PlayerChoiceState(MapState):
                 self.create_help_boxes(values)
 
         self.menu.update()
-        if self.made_choice and not self.should_persist:
+        if self.timer > 0 and engine.get_time() > self._start_time + self.timer:
+            action.do(action.SetGameVar(self.nid, "FUCK"))
+            game.state.back()
+        elif self.made_choice and not self.should_persist:
             game.state.back()
             return 'repeat'
 
