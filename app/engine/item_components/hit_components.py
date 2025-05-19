@@ -297,6 +297,42 @@ class Pivot(ItemComponent):
                 actions.append(action.ForcedMovement(unit, new_position))
                 playback.append(pb.ShoveHit(unit, item, target))
 
+class PivotOnMiss(ItemComponent):
+    nid = 'pivot_on_miss'
+    desc = "User moves to other side of target on hit or miss."
+    tag = ItemTags.SPECIAL
+    author = "MKCocoon"
+
+    expose = ComponentType.Int
+    value = 1
+
+    def _check_pivot(self, unit_to_move, anchor_pos, magnitude):
+        offset_x = utils.clamp(unit_to_move.position[0] - anchor_pos[0], -1, 1)
+        offset_y = utils.clamp(unit_to_move.position[1] - anchor_pos[1], -1, 1)
+        new_position = (anchor_pos[0] + offset_x * -magnitude,
+                        anchor_pos[1] + offset_y * -magnitude)
+
+        mcost = movement_funcs.get_mcost(unit_to_move, new_position)
+        if game.board.check_bounds(new_position) and \
+                not game.board.get_unit(new_position) and \
+                mcost <= equations.parser.movement(unit_to_move):
+            return new_position
+        return False
+
+    def on_hit(self, actions, playback, unit, item, target, item2, target_pos, mode, attack_info):
+        if not skill_system.ignore_forced_movement(unit):
+            new_position = self._check_pivot(unit, target.position, self.value)
+            if new_position:
+                actions.append(action.ForcedMovement(unit, new_position))
+                playback.append(pb.ShoveHit(unit, item, target))
+
+    def on_miss(self, actions, playback, unit, item, target, item2, target_pos, mode, attack_info):
+        if not skill_system.ignore_forced_movement(unit):
+            new_position = self._check_pivot(unit, target.position, self.value)
+            if new_position:
+                actions.append(action.ForcedMovement(unit, new_position))
+                playback.append(pb.ShoveHit(unit, item, target))
+
 
 class PivotTargetRestrict(Pivot):
     nid = 'pivot_target_restrict'
