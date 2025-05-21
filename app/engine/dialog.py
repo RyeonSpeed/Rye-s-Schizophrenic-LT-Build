@@ -41,6 +41,8 @@ def process_dialog_shorthand(text: str) -> str:
     text = text.replace("\n", "{br}")
     text = text.replace("|", "{w}{br}")
     text = text.replace("{semicolon}", ";")
+    text = text.replace("{lt}", "<").replace("{gt}", ">")
+    text = text.replace("{lcb}", "{").replace("{rcb}", "}")
     return text
 
 
@@ -95,7 +97,7 @@ class Dialog:
                  flags=None):
         self.cursor = SPRITES.get("waiting_cursor")
         flags = flags or set()
-        
+
         self.plain_text = text
         self.portrait = portrait
         self.speaker = speaker
@@ -509,8 +511,6 @@ class Dialog:
             self.last_sound_update = engine.get_true_time()
             if boop:
                 get_sound_thread().play_sfx(boop)
-            else:
-                get_sound_thread().play_sfx("Talk_Boop")
 
     def update(self):
         current_time = engine.get_time()

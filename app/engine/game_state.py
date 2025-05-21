@@ -4,9 +4,10 @@ from functools import lru_cache
 import random
 import time
 from collections import Counter
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Set, Iterable, List, Optional, Tuple
 
 from app.engine.query_engine import GameQueryEngine
+from app.engine.utils import ltcache
 from app.utilities.primitive_counter import PrimitiveCounter
 
 if TYPE_CHECKING:
@@ -59,27 +60,28 @@ class GameState():
     It also keeps track of the current level, all game_vars and level_vars, the current difficulty mode, etc.
 
     Attributes you can access:
-        current_mode (DifficultyModeObject): The current difficulty mode of the game.
-        game_vars (Counter): A counter for storing game-wide variables. You can do `game.game_vars.get('Waffle')` to determine the value of the Waffle variable.
-        level_vars (Counter): A counter for storing level-specific variables.
-        playtime (int): The total playtime of the game in milliseconds.
-        current_save_slot (int): The current save slot.
-        unit_registry (Dict[NID, UnitObject]): A dictionary mapping unit NIDs to UnitObjects.
-        item_registry (Dict[UID, ItemObject]): A dictionary mapping item UIDs to ItemObjects.
-        skill_registry (Dict[UID, SkillObject]): A dictionary mapping skill UIDs to SkillObjects.
-        region_registry (Dict[NID, RegionObject]): A dictionary mapping region NIDs to RegionObjects.
-        overworld_registry (Dict[NID, OverworldObject]): A dictionary mapping overworld NIDs to OverworldObjects.
-        parties (Dict[NID, PartyObject]): A dictionary mapping party NIDs to PartyObjects.
-        unlocked_lore (List[NID]): A list of unlocked lore entries.
-        market_items (Dict[NID, int]): A dictionary mapping item NIDs to their stock quantity.
-        supports (supports.SupportController): The support controller.
-        records (records.Recordkeeper): The record keeper.
-        turncount (int): The current turn count.
-        talk_options (List[Tuple[NID, NID]]): A list of talk options.
-        board (game_board.GameBoard): The game board.
-        cursor (cursor.BaseCursor): The cursor.
-        camera (camera.Camera): The camera.
-        phase (phase.PhaseController): The phase controller. `game.phase.get_current_phase() == 'player'`
+        - current_mode (DifficultyModeObject): The current difficulty mode of the game.
+        - game_vars (Counter): A counter for storing game-wide variables. You can do `game.game_vars.get('Waffle')` to determine the value of the Waffle variable.
+        - level_vars (Counter): A counter for storing level-specific variables.
+        - playtime (int): The total playtime of the game in milliseconds.
+        - current_save_slot (int): The current save slot.
+        - unit_registry (Dict[NID, UnitObject]): A dictionary mapping unit NIDs to UnitObjects.
+        - item_registry (Dict[UID, ItemObject]): A dictionary mapping item UIDs to ItemObjects.
+        - skill_registry (Dict[UID, SkillObject]): A dictionary mapping skill UIDs to SkillObjects.
+        - region_registry (Dict[NID, RegionObject]): A dictionary mapping region NIDs to RegionObjects.
+        - overworld_registry (Dict[NID, OverworldObject]): A dictionary mapping overworld NIDs to OverworldObjects.
+        - parties (Dict[NID, PartyObject]): A dictionary mapping party NIDs to PartyObjects.
+        - unlocked_lore (List[NID]): A list of unlocked lore entries.
+        - market_items (Dict[NID, int]): A dictionary mapping item NIDs to their stock quantity.
+        - supports (supports.SupportController): The support controller.
+        - records (records.Recordkeeper): The record keeper.
+        - turncount (int): The current turn count.
+        - talk_options (List[Tuple[NID, NID]]): A list of talk options.
+        - talk_hidden (Set[Tuple[NID, NID]]): A set of talk options that won't be marked on the map or menu.
+        - board (game_board.GameBoard): The game board.
+        - cursor (cursor.BaseCursor): The cursor.
+        - camera (camera.Camera): The camera.
+        - phase (phase.PhaseController): The phase controller. `game.phase.get_current() == 'player'`
     """
     def __init__(self):
         # define all GameState properties
@@ -122,6 +124,7 @@ class GameState():
         self.turncount: int = 0
         self.roam_info: RoamInfo = RoamInfo()
         self.talk_options: List[Tuple[NID, NID]] = []
+        self.talk_hidden: Set[Tuple[NID, NID]] = set()
         self.base_convos: Dict[NID, bool] = {}
         self.action_log: turnwheel.ActionLog = None
         self.events: EventManager = None
@@ -148,11 +151,13 @@ class GameState():
         self.target_system: TargetSystem = None
         self.path_system: PathSystem = None
 
+        # initialize game cache
+        ltcache.init()
+
         self.clear()
 
     def on_alter_game_state(self):
-        from app.engine import skill_system
-        skill_system.reset_cache()
+        ltcache.alter_state()
 
     def clear(self):
         self.game_vars = PrimitiveCounter()
@@ -237,6 +242,7 @@ class GameState():
         self.level_vars = PrimitiveCounter()
         self.turncount = 0
         self.talk_options = []
+        self.talk_hidden = set()
         self.base_convos = {}
         self.action_log = turnwheel.ActionLog()
         self.events = event_manager.EventManager()
@@ -306,7 +312,7 @@ class GameState():
             # Only let unit's that have a VALID position spawn onto the map
             if unit.position:
                 if self._current_level.tilemap.check_bounds(unit.position):
-                    self.arrive(unit)
+                    self.arrive(unit, unit.position)
                 else:
                     logging.warning("Unit %s's position not on map. Removing...", unit.nid)
                     unit.position = None
@@ -406,6 +412,7 @@ class GameState():
                   'dialog_log': self.dialog_log.save(),
                   'already_triggered_events': self.already_triggered_events,
                   'talk_options': self.talk_options,
+                  'talk_hidden': self.talk_hidden,
                   'base_convos': self.base_convos,
                   'current_random_state': static_random.get_combat_random_state(),
                   'bounds': self.board.bounds if self.board else None,
@@ -487,6 +494,7 @@ class GameState():
 
         self.already_triggered_events = s_dict.get('already_triggered_events', [])
         self.talk_options = s_dict.get('talk_options', [])
+        self.talk_hidden = s_dict.get('talk_hidden', set())
         self.base_convos = s_dict.get('base_convos', {})
 
         # load all overworlds, or initialize them
@@ -540,6 +548,7 @@ class GameState():
                     for skill in unit.all_skills:
                         if skill.aura:
                             aura_funcs.repopulate_aura(unit, skill, self)
+                    self.boundary.register_unit_auras(unit)
                     self.boundary.arrive(unit)
                     action.UpdateFogOfWar(unit).execute()
 
@@ -571,7 +580,8 @@ class GameState():
 
         if full:
             for unit in self.unit_registry.values():
-                self.leave(unit)
+                if unit.position:
+                    self.leave(unit)
         for unit in self.unit_registry.values():
             # Unit cleanup
             unit.is_dying = False
@@ -757,7 +767,7 @@ class GameState():
     @property
     def rng_mode(self) -> RNGOption:
         """
-        Gets which RNG Option the game is currently using. 
+        Gets which RNG Option the game is currently using.
         If none have been set, falls back to the DifficultyModePrefab's RNG option
 
         Returns:
@@ -1282,7 +1292,7 @@ class GameState():
             return True
         return False
 
-    def leave(self, unit, test=False):
+    def leave(self, unit: UnitObject, test: bool = False):
         """
         Removes a unit from the map
         This function should always be called BEFORE changing the unit's position
@@ -1298,36 +1308,42 @@ class GameState():
         to a position (generally used for AI)
         """
         from app.engine import action, aura_funcs
-        if unit.position:
-            logging.debug("Leave %s %s", unit.nid, unit.position)
-            # Auras
-            for aura_data in game.board.get_auras(unit.position):
-                child_aura_uid, target = aura_data
-                child_skill = self.get_skill(child_aura_uid)
-                aura_funcs.remove_aura(unit, child_skill, test)
-            if not test:
-                for skill in unit.all_skills:
-                    if skill.aura:
-                        aura_funcs.release_aura(unit, skill, self)
-                self.boundary.unregister_unit_auras(unit)
-            # Status Regions
-            for region in game.level.regions:
-                if region.region_type == RegionType.STATUS and region.contains(unit.position):
-                    skill_uid = self._get_terrain_status((*region.position, region.sub_nid))
-                    skill_obj = self.get_skill(skill_uid)
-                    if skill_obj and skill_obj in unit.all_skills:
-                        if test:
-                            unit.remove_skill(skill_obj, source=region.nid, source_type=SourceType.REGION)
-                        else:
-                            act = action.RemoveSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
-                            action.do(act)
-            self.remove_terrain_skills(unit, test)
-            # Boundary
-            if not test:
-                self.boundary.leave(unit)
-            # Board
-            if not test:
-                self.board.remove_unit(unit.position, unit)
+        logging.debug("Leave %s from %s", unit, unit.position)
+        if not unit.position:
+            raise ValueError("Unit must have a position to leave, not None")
+
+        # Auras
+        for aura_data in game.board.get_auras(unit.position):
+            child_aura_uid, target = aura_data
+            child_skill = self.get_skill(child_aura_uid)
+            aura_funcs.remove_aura(unit, child_skill, test)
+        if not test:
+            for skill in unit.all_skills:
+                if skill.aura:
+                    aura_funcs.release_aura(unit, skill, self)
+            self.boundary.unregister_unit_auras(unit)
+
+        # Status Regions
+        for region in game.level.regions:
+            if region.region_type == RegionType.STATUS and region.contains(unit.position):
+                skill_uid = self._get_terrain_status((*region.position, region.sub_nid))
+                skill_obj = self.get_skill(skill_uid)
+                if skill_obj and skill_obj in unit.all_skills:
+                    if test:
+                        unit.remove_skill(skill_obj, source=region.nid, source_type=SourceType.REGION)
+                    else:
+                        act = action.RemoveSkill(unit, skill_obj, source=region.nid, source_type=SourceType.REGION)
+                        action.do(act)
+        self.remove_terrain_skills(unit, test)
+
+        # Boundary
+        if not test:
+            self.boundary.leave(unit)
+
+        # Board
+        if not test:
+            self.board.remove_unit(unit.position, unit)
+        unit.position = None
 
     def remove_terrain_skills(self, unit, test=False):
         from app.engine import action
@@ -1345,7 +1361,7 @@ class GameState():
                 act = action.RemoveSkill(unit, skill_obj, source=unit.position, source_type=SourceType.TERRAIN)
                 action.do(act)
 
-    def arrive(self, unit, test=False):
+    def arrive(self, unit: UnitObject, position: Pos, test: bool = False):
         """
         Adds a unit to the map
         This function should always be called AFTER changing the unit's position
@@ -1361,28 +1377,36 @@ class GameState():
         to a position (generally used for AI)
         """
         from app.engine import aura_funcs, skill_system
-        if unit.position:
-            logging.debug("Arrive %s %s", unit.nid, unit.position)
-            if not test:
-                self.board.set_unit(unit.position, unit)
-            # Tiles and Terrain Regions
-            if not skill_system.ignore_terrain(unit):
-                self.add_terrain_status(unit, test)
-            # Status Regions
-            if not skill_system.ignore_region_status(unit):
-                for region in game.level.regions:
-                    if region.region_type == RegionType.STATUS and region.contains(unit.position):
-                        self.add_region_status(unit, region, test)
-            # Auras
-            aura_funcs.pull_auras(unit, self, test)
-            if not test:
-                for skill in unit.all_skills:
-                    if skill.aura:
-                        aura_funcs.propagate_aura(unit, skill, self)
-                self.boundary.register_unit_auras(unit)
-            # Boundary
-            if not test:
-                self.boundary.arrive(unit)
+        logging.debug("Arrive %s at %s", unit, position)
+        if not position:
+            raise ValueError("Must arrive at a position, not None")
+
+        # Set position
+        unit.position = position
+        if not test:
+            self.board.set_unit(unit.position, unit)
+
+        # Tiles and Terrain Regions
+        if not skill_system.ignore_terrain(unit):
+            self.add_terrain_status(unit, test)
+
+        # Status Regions
+        if not skill_system.ignore_region_status(unit):
+            for region in game.level.regions:
+                if region.region_type == RegionType.STATUS and region.contains(unit.position):
+                    self.add_region_status(unit, region, test)
+
+        # Auras
+        aura_funcs.pull_auras(unit, self, test)
+        if not test:
+            for skill in unit.all_skills:
+                if skill.aura:
+                    aura_funcs.propagate_aura(unit, skill, self)
+            self.boundary.register_unit_auras(unit)
+
+        # Boundary
+        if not test:
+            self.boundary.arrive(unit)
 
     def add_terrain_status(self, unit, test):
         from app.engine import action, item_funcs

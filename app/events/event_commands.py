@@ -72,6 +72,7 @@ class EventCommand(Prefab):
 
     def to_plain_text(self) -> str:
         as_string = [str(self.parameters.get(kwd) or "") for kwd in (self.keywords + self.optional_keywords)]
+        as_string += [flag for flag in self.chosen_flags]
         return ';'.join([self.nid] + as_string).rstrip(';')
 
     def __repr__(self):
@@ -407,12 +408,13 @@ Extra flags:
 2. *low_priority*: Portrait will appear behind all other portraits on the screen.
 3. *immediate*: Portrait will not fade in.
 4. *no_block*: Portrait will fade in, but will not pause execution of event script while doing so.
+5. *low_saturation*: Portrait will spawn in with low saturation.
         """
 
     keywords = ['Portrait', 'ScreenPosition']
     optional_keywords = ['Slide', 'ExpressionList', 'SpeedMult']
     keyword_types = ['Portrait', 'ScreenPosition', 'Slide', 'ExpressionList', 'Float']
-    _flags = ["mirror", "low_priority", "immediate", "no_block"]
+    _flags = ["mirror", "low_priority", "immediate", "no_block", "low_saturation"]
 
 class MultiAddPortrait(EventCommand):
     nid = "multi_add_portrait"
@@ -489,10 +491,15 @@ class BopPortrait(EventCommand):
     desc = \
         """
 Causes a portrait to briefly bob up and down. Often used to illustrate a surprised or shocked reaction.
+
+*NumBops* determines how many bops to perform, and defaults to 2 bops in a row. 
+*Time* controls how long each bop will take. By default, this is 132 ms.
 If the *no_block* flag is set, portrait bopping will not pause execution of event script.
         """
 
     keywords = ['Portrait']
+    optional_keywords = ['NumBops', 'Time']
+    keyword_types = ['Portrait', 'PositiveInteger', 'Time']
     _flags = ["no_block"]
 
 class MirrorPortrait(EventCommand):
@@ -541,7 +548,7 @@ NOTE: You can set the `__default` speak style, which will automatically apply to
     keywords = ['Style']
     optional_keywords = ['Speaker', 'Position', 'Width', 'Speed', 'FontColor', 'FontType', 'Background', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound']
     keyword_types = ['Nid', 'Speaker', 'AlignOrPosition', 'Width', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound']
-    _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_talk', 'no_sound']
+    _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_talk', 'no_sound', 'autogray']
 
 class Speak(EventCommand):
     nid = "speak"
@@ -576,12 +583,13 @@ Extra flags:
 5. *no_block*: the speak command will not block event execution.
 6. *no_talk*: The speaker's portrait will not "talk".
 7. *no_sound*: The normal boop sound of dialog will be turned off
+8. *autogray*: When a portrait is talking, fully saturate the talking portrait and desaturate all others
         """
 
     keywords = ['SpeakerOrStyle', 'Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound']
     keyword_types = ['Speaker', 'String', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound']
-    _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound']
+    _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound', 'autogray']
 
 class Say(EventCommand):
     nid = "say"
@@ -615,12 +623,13 @@ Extra flags:
 5. *no_block*: the speak command will not block event execution.
 6. *no_talk*: The speaker's portrait will not "talk".
 7. *no_sound*: The normal boop sound of dialog will be turned off
+8. *autogray*: When a portrait is talking, fully saturate the talking portrait and desaturate all others
         """
 
     keywords = ['SpeakerOrStyle', '*Text']
     optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound']
     keyword_types = ['Speaker', '*String', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound']
-    _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound']
+    _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound', 'autogray']
 
 class Unhold(EventCommand):
     nid = "unhold"
@@ -694,12 +703,17 @@ class ChangeBackground(EventCommand):
     desc = \
         """
 Changes the dialogue scene's background image to *Panorama*. If no *Panorama* is specified,
-the current background is removed without being replaced.
+the current background is removed without being replaced. 
+
+*Speed* controls the moving speed when paired with *scroll* flag. 
+Higher speed makes it move slower. Exact meaning: milliseconds it takes to move 1 px.
+
 Displayed portraits are also removed unless the *keep_portraits* flag is set.
 The *Scroll* flag determines whether the background image will move.
         """
 
-    optional_keywords = ['Panorama']
+    optional_keywords = ['Panorama', 'Speed']
+    keyword_types = ['Panorama', 'WholeNumber']
     _flags = ["keep_portraits", "scroll"]
 
 class PauseBackground(EventCommand):
@@ -1272,7 +1286,7 @@ The *no_follow* flag prevents the camera from tracking the unit as it moves.
 
     keywords = ["Unit"]
     optional_keywords = ["Position", "MovementType", "Placement", "Speed"]
-    _flags = ['no_block', 'no_follow']
+    _flags = ['no_block', 'no_follow', 'silent']
 
 class RemoveUnit(EventCommand):
     nid = 'remove_unit'
@@ -2223,7 +2237,12 @@ class SetModeAutolevels(EventCommand):
 
     desc = \
         """
-Changes the number of additional levels that enemy units gain from the difficulty mode setting. This can be used to grant a higher number of bonus levels to enemies later in the game to maintain a resonable difficulty curve. *Level* specifies the number of levels to be granted. If the *hidden* flag is set, enemy units will still gain the effects of the indicated level-ups, but their actual level is not incremented. In other words, the units get more powerful but remains at the same level. If the *boss* flag is included, this will only affect units with the "Boss" tag.
+Changes the number of additional levels that enemy units gain from the difficulty mode setting.
+This can be used to grant a higher number of bonus levels to enemies later in the game to maintain a resonable difficulty curve. *Level* specifies the number of levels to be granted. If the *hidden* flag is set, enemy units will still gain the effects of the indicated level-ups, but their actual level is not incremented. In other words, the units get more powerful but remains at the same level. 
+If the *boss* flag is included, this will only affect units with the "Boss" tag.
+This does not modify the value in the Difficulty Editor directly, but rather sets the value for the current
+game the player is playing. 
+The addition of this value and the value in the Difficulty Editor for the current difficulty will sum to the true value utilized when loading in new units.
 Cannot be undone by the turnwheel.
         """
 
@@ -2314,6 +2333,30 @@ class RemoveTalk(EventCommand):
     desc = \
         """
 Removes the ability for the two indicated units to "Talk" in the current chapter. You probably want to use this after the dialogue scene between the two units.
+        """
+
+    keywords = ["Unit1", "Unit2"]
+    keyword_types = ["Unit", "Unit"]
+
+class HideTalk(EventCommand):
+    nid = 'hide_talk'
+    tag = Tags.LEVEL_VARS
+
+    desc = \
+        """
+Hides the "Talk" marker from maps matching the Unit1 and Unit2 selected, making it a secret conversation.
+        """
+
+    keywords = ["Unit1", "Unit2"]
+    keyword_types = ["Unit", "Unit"]
+
+class UnhideTalk(EventCommand):
+    nid = 'unhide_talk'
+    tag = Tags.LEVEL_VARS
+
+    desc = \
+        """
+Removes the hidden flag for the "Talk" marker from maps matching the Unit1 and Unit2 selected, making it visible again.
         """
 
     keywords = ["Unit1", "Unit2"]
@@ -2472,8 +2515,8 @@ When set, the *only_once* flag applies only to event region, preventing them fro
         """
 
     keywords = ["Region", "Position", "Size", "RegionType"]
-    optional_keywords = ["String", "TimeLeft"]
-    keyword_types = ["Region", "Position", "Size", "RegionType", "String", "PositiveInteger"]
+    optional_keywords = ["String", "TimeLeft", "HideTime"]
+    keyword_types = ["Region", "Position", "Size", "RegionType", "String", "PositiveInteger", "Bool"]
     _flags = ["only_once", "interrupt_move"]
 
 class RegionCondition(EventCommand):
@@ -2626,7 +2669,7 @@ class RemoveMapAnim(EventCommand):
     tag = Tags.TILEMAP
     desc = ('Removes a map animation denoted by the nid *MapAnim* at *Position*. Only removes MapAnims that were created using'
             ' the "permanent" flag. Must include "overlay" flag to remove an overlaid map animation.')
-    keywords = ["MapAnim", "Position"]
+    keywords = ["MapAnim", "FloatPosition"]
     _flags = ['overlay']
 
 class AddUnitMapAnim(EventCommand):
@@ -3403,16 +3446,16 @@ class SetOverworldMenuOptionEnabled(EventCommand):
     tag = Tags.OVERWORLD
     desc = ('Toggle whether the specified node menu option can be accessed by the player. Note that even if enabled, it must also be visible for the player to access it.')
 
-    keywords = ['OverworldNodeNid', 'OverworldNodeMenuOption', 'Setting']
-    keyword_types = ['OverworldNodeNID', 'OverworldNodeMenuOption', 'Bool']
+    keywords = ['OverworldNID', 'OverworldNodeNid', 'OverworldNodeMenuOption', 'Setting']
+    keyword_types = ['OverworldNID', 'OverworldNodeNID', 'OverworldNodeMenuOption', 'Bool']
 
 class SetOverworldMenuOptionVisible(EventCommand):
     nid = 'set_overworld_menu_option_visible'
     tag = Tags.OVERWORLD
     desc = ('Toggle whether the specified node menu option can be seen by the player. Note that even if visible, it must also be enabled for the player to access it.')
 
-    keywords = ['OverworldNodeNID', 'OverworldNodeMenuOption', 'Setting']
-    keyword_types = ['OverworldNodeNID', 'OverworldNodeMenuOption', 'Bool']
+    keywords = ['OverworldNID', 'OverworldNodeNID', 'OverworldNodeMenuOption', 'Setting']
+    keyword_types = ['OverworldNID', 'OverworldNodeNID', 'OverworldNodeMenuOption', 'Bool']
 
 class EnterLevelFromOverworld(EventCommand):
     nid = 'enter_level_from_overworld'

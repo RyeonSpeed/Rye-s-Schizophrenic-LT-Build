@@ -65,10 +65,10 @@ def draw_unit_items(surf, topleft, unit, include_top=False, include_bottom=True,
         # Blit items
         for idx, item in enumerate(unit.nonaccessories):
             item_option = menu_options.ItemOption(idx, item)
-            item_option.draw(surf, topleft[0] + 1, topleft[1] + idx * 16 + 4)
+            item_option.draw(surf, topleft[0], topleft[1] + idx * 16 + 4)
         for idx, item in enumerate(unit.accessories):
             item_option = menu_options.ItemOption(idx, item)
-            item_option.draw(surf, topleft[0] + 1, topleft[1] + item_funcs.get_num_items(unit) * 16 + idx * 16 + 4)
+            item_option.draw(surf, topleft[0], topleft[1] + item_funcs.get_num_items(unit) * 16 + idx * 16 + 4)
 
 
 def draw_unit_bexp(surf, topleft, unit, new_exp, new_bexp, current_bexp, include_top=False, include_bottom=True,
@@ -249,7 +249,10 @@ class Simple():
         # If we did scroll
         return scroll != self.scroll
 
-    def move_down(self, first_push=True):
+    def move_down(self, first_push=True) -> bool:
+        should_move = first_push or self.current_index < len(self.options) - 1
+        if not should_move:
+            return False
         if first_push:
             self.current_index += 1
             if self.current_index > len(self.options) - 1:
@@ -259,18 +262,20 @@ class Simple():
                 self.scroll += 1
             else:
                 self.cursor.y_offset_down()
-        else:
-            if self.current_index < len(self.options) - 1:
-                self.current_index += 1
-                if self.current_index > self.scroll + self.limit - 2 and self.scroll + self.limit < len(self.options):
-                    self.scroll += 1
-                else:
-                    self.cursor.y_offset_down()
+        else: # not at bottom of list
+            self.current_index += 1
+            if self.current_index > self.scroll + self.limit - 2 and self.scroll + self.limit < len(self.options):
+                self.scroll += 1
+            else:
+                self.cursor.y_offset_down()
         if self.limit < len(self.options):
             self.scroll = min(len(self.options) - self.limit, self.scroll)
-        return first_push or self.current_index < len(self.options) - 1
+        return True
 
-    def move_up(self, first_push=True):
+    def move_up(self, first_push=True) -> bool:
+        should_move = first_push or self.current_index > 0
+        if not should_move:
+            return False
         if first_push:
             self.current_index -= 1
             if self.current_index < 0:
@@ -280,15 +285,14 @@ class Simple():
                 self.scroll -= 1
             else:
                 self.cursor.y_offset_up()
-        else:
-            if self.current_index > 0:
-                self.current_index -= 1
-                if self.current_index < self.scroll + 1:
-                    self.scroll -= 1
-                else:
-                    self.cursor.y_offset_up()
+        else: # not at top of list
+            self.current_index -= 1
+            if self.current_index < self.scroll + 1:
+                self.scroll -= 1
+            else:
+                self.cursor.y_offset_up()
         self.scroll = max(0, self.scroll)
-        return first_push or self.current_index > 0
+        return True
 
     def update_options(self, options=None):
         if options is not None:
@@ -1005,6 +1009,9 @@ class Table(Simple):
         self.stationary_cursor = Cursor()
         self.fake_cursor_idx = None
 
+    def get_scroll(self):
+        return self.scroll
+
     def set_mode(self, mode):
         self.mode = mode
         self.update_options()
@@ -1328,7 +1335,7 @@ class Convoy():
         self.disp_value = disp_value
         self.takes_input = True
         self.include_other_units = include_other_units
-        
+
         self.order = [w.nid for w in DB.weapons.get_visible_weapon_types().values()]
         self.build_menus()
 

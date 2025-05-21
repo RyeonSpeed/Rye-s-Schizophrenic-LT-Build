@@ -114,7 +114,8 @@ def change_special_music(self: Event, special_music_type: str, music: SongPrefab
     elif special_music_type == 'game_over':
         action.do(action.SetGameVar('_music_game_over', music_nid))
 
-def add_portrait(self: Event, portrait, screen_position: Tuple | str, slide=None, expression_list: Optional[List[str]]=None, speed_mult: float=1.0, flags=None):
+def add_portrait(self: Event, portrait, screen_position: Tuple | str, slide=None, 
+                 expression_list: Optional[List[str]] = None, speed_mult: float = 1.0, flags=None):
     flags = flags or set()
 
     portrait_prefab, name = self._get_portrait(portrait)
@@ -142,6 +143,9 @@ def add_portrait(self: Event, portrait, screen_position: Tuple | str, slide=None
 
     new_portrait = EventPortrait(portrait_prefab, position, priority, transition,
                                  slide, mirror, name, speed_mult=speed_mult)
+    if 'low_saturation' in flags:
+        new_portrait.saturation = 0
+
     self.portraits[name] = new_portrait
 
     new_portrait.set_expression(expression_list or set())
@@ -267,14 +271,17 @@ def mirror_portrait(self: Event, portrait, speed_mult: float = 1.0, flags=None):
                 self.wait_time = engine.get_time() + event_portrait.transition_speed + 33
                 self.state = 'waiting'
 
-def bop_portrait(self: Event, portrait, flags=None):
+def bop_portrait(self: Event, portrait, num_bops: int = 2, time: int = None, flags=None):
     flags = flags or set()
 
     _, name = self._get_portrait(portrait)
     event_portrait = self.portraits.get(name)
     if not event_portrait:
         return False
-    event_portrait.bop()
+    if time is not None:
+        event_portrait.bop(num=num_bops, speed=time)
+    else:
+        event_portrait.bop(num=num_bops)
     if 'no_block' in flags:
         pass
     else:
@@ -321,7 +328,8 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
         cursor = None
 
     manual_style = SpeakStyle(None, None, text_position, width, text_speed, font_color,
-                              font_type, dialog_box, num_lines, cursor, message_tail, transparency, name_tag_bg, boop_sound, flags)
+                              font_type, dialog_box, num_lines, cursor, message_tail, 
+                              transparency, name_tag_bg, boop_sound, flags)
 
     style = self._resolve_speak_style(speaker_or_style, style_nid, manual_style)
     speaker = style.speaker or ''
@@ -350,11 +358,11 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
         else:
             continue
         text = text.replace(block, '{p}', 1)  # Replace first instance
-        self._queue_command(event_command_str)
+        self.queue_command(event_command_str)
         if speaker:
-            self._queue_command('unpause;%s' % speaker)
+            self.queue_command('unpause;%s' % speaker)
         else:
-            self._queue_command('unpause')
+            self.queue_command('unpause')
 
     flags = style.flags
 
@@ -370,6 +378,9 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
                           font_color=style.font_color, font_type=style.font_type, num_lines=style.num_lines,
                           draw_cursor=style.draw_cursor, message_tail=style.message_tail, transparency=style.transparency,
                           name_tag_bg=style.name_tag_bg, boop_sound=style.boop_sound, flags=flags)
+        if portrait and 'autogray' in flags:
+            self._saturate_portrait(portrait)
+
         self.text_boxes.append(new_dialog)
 
         if self.do_skip:
@@ -437,13 +448,14 @@ def transition(self: Event, direction=None, speed=None, color3=None, panorama=No
             self.wait_time = current_time + int(self.transition_speed * 1.33)
             self.state = 'waiting'
 
-def change_background(self: Event, panorama=None, flags=None):
+def change_background(self: Event, panorama=None, speed=50, flags=None):
     flags = flags or set()
     if not panorama:
         self.background = None
     elif RESOURCES.panoramas.get(panorama):
         if 'scroll' in flags:
             self.background = background.create_background(panorama, True)
+            self.background.scroll_speed = speed
         else:
             self.background = background.create_background(panorama, False)
 
@@ -714,10 +726,11 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
         position_offset = tuple(position_offset)
     else:
         position_offset = (0, 0)
+    current_tilemap_nid = self.game.level.tilemap.nid
     if load_tilemap:
         reload_map_nid = load_tilemap
     else:
-        reload_map_nid = tilemap_nid
+        reload_map_nid = current_tilemap_nid
 
     reload_map = 'reload' in flags
     # For Overworld
@@ -753,7 +766,6 @@ def change_tilemap(self: Event, tilemap, position_offset=None, load_tilemap=None
             previous_unit_pos[unit.nid] = unit.position
             act = action.LeaveMap(unit)
             act.execute()
-    current_tilemap_nid = self.game.level.tilemap.nid
     self.game.level_vars['_prev_pos_%s' % current_tilemap_nid] = previous_unit_pos
 
     # Remove all regions from the map
@@ -806,11 +818,11 @@ def change_bg_tilemap(self: Event, tilemap=None, flags=None):
 
 def set_game_board_bounds(self: Event, min_x: int, min_y: int, max_x: int, max_y: int, flags=None):
     if not self.game.board:
-        self.logger.warning("set_game_board_bounds: No game board available")
+        self.logger.error("set_game_board_bounds: No game board available")
     elif max_x <= min_x:
-        self.logger.warning("set_game_board_bounds: MaxX must be strictly greater than MinX, (MinX: %d, MaxX: %d)", min_x, max_x)
+        self.logger.error("set_game_board_bounds: MaxX must be strictly greater than MinX, (MinX: %d, MaxX: %d)", min_x, max_x)
     elif max_y <= min_y:
-        self.logger.warning("set_game_board_bounds: MaxY must be strictly greater than MinY, (MinY: %d, MaxY: %d)", min_y, max_y)
+        self.logger.error("set_game_board_bounds: MaxY must be strictly greater than MinY, (MinY: %d, MaxY: %d)", min_y, max_y)
     else:
         bounds = (min_x, min_y, max_x, max_y)
         action.do(action.SetGameBoardBounds(bounds))
@@ -869,7 +881,7 @@ def make_generic(self: Event, nid, klass, level: int, team, ai=None, faction=Non
         self.created_unit = new_unit
         self.text_evaluator.local_args['created_unit'] = new_unit
 
-def create_unit(self: Event, unit, nid=None, level: Optional[int]=None, position=None, entry_type=None, placement=None, flags=None):
+def create_unit(self: Event, unit, nid=None, level: Optional[int] = None, position=None, entry_type=None, placement=None, flags=None):
     flags = flags or set()
 
     new_unit = self._get_unit(unit)
@@ -981,6 +993,7 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
     if not placement:
         placement = 'giveup'
     follow = 'no_follow' not in flags
+    silent = 'silent' in flags
 
     position = self._check_placement(unit, position, placement)
     if not position:
@@ -1006,9 +1019,9 @@ def move_unit(self: Event, unit, position=None, movement_type=None, placement=No
             if self.do_skip:
                 action.do(action.Teleport(unit, position))
             elif speed:
-                action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed))
+                action.do(action.Move(unit, position, path, event=True, follow=follow, speed=speed, silent=silent))
             else:
-                action.do(action.Move(unit, position, path, event=True, follow=follow))
+                action.do(action.Move(unit, position, path, event=True, follow=follow, silent=silent))
         else:
             self.logger.error("move_unit: no valid path for %s from %s to %s" % (unit, unit.position, position))
             return None
@@ -2409,6 +2422,28 @@ def remove_talk(self: Event, unit1, unit2, flags=None):
         return
     action.do(action.RemoveTalk(u1.nid, u2.nid))
 
+def hide_talk(self: Event, unit1, unit2, flags=None):
+    u1 = self._get_unit(unit1)
+    if not u1:
+        self.logger.error("hide_talk: Couldn't find unit %s" % unit1)
+        return
+    u2 = self._get_unit(unit2)
+    if not u2:
+        self.logger.error("hide_talk: Couldn't find unit %s" % unit2)
+        return
+    action.do(action.HideTalk(u1.nid, u2.nid))
+
+def unhide_talk(self: Event, unit1, unit2, flags=None):
+    u1 = self._get_unit(unit1)
+    if not u1:
+        self.logger.error("unhide_talk: Couldn't find unit %s" % unit1)
+        return
+    u2 = self._get_unit(unit2)
+    if not u2:
+        self.logger.error("unhide_talk: Couldn't find unit %s" % unit2)
+        return
+    action.do(action.UnhideTalk(u1.nid, u2.nid))
+
 def add_lore(self: Event, lore, flags=None):
     action.do(action.AddLore(lore))
 
@@ -2526,7 +2561,7 @@ def remove_market_item(self: Event, item, stock: int=0, flags=None):
 def clear_market_items(self: Event, flags=None):
     self.game.market_items.clear()
 
-def add_region(self: Event, region, position, size: Tuple, region_type, string=None, time_left=None, flags=None):
+def add_region(self: Event, region, position, size: Tuple, region_type, string=None, time_left=None, hide_time=False, flags=None):
     flags = flags or set()
 
     if region in self.game.level.regions:
@@ -2543,6 +2578,7 @@ def add_region(self: Event, region, position, size: Tuple, region_type, string=N
     new_region.size = size
     new_region.sub_nid = sub_region_type
     new_region.time_left = time_left
+    new_region.hide_time = hide_time
 
     if 'only_once' in flags:
         new_region.only_once = True
@@ -2653,11 +2689,11 @@ def map_anim(self: Event, map_anim, float_position: Tuple[float, float] | NID, s
         self.wait_time = engine.get_time() + anim.get_wait()
         self.state = 'waiting'
 
-def remove_map_anim(self: Event, map_anim, position, flags=None):
+def remove_map_anim(self: Event, map_anim, float_position: Tuple[float, float] | NID, flags=None):
     flags = flags or set()
-    pos = self._parse_pos(position, True)
+    pos = self._parse_pos(float_position, True)
     if not pos:
-        self.logger.warn("remove_map_anim: Could not find position %s" % position)
+        self.logger.warn("remove_map_anim: Could not find position %s" % float_position)
         return
     action.do(action.RemoveMapAnim(map_anim, pos, 'overlay' in flags))
 
@@ -2918,7 +2954,13 @@ def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int
         scroll_bar = False
     backable = 'backable' in flags
 
-    # Automatically convert str to alignment
+    # Automatically convert str to alignment, orientation
+    if isinstance(orientation, str):
+        if orientation.lower() in ('h', 'horiz', 'horizontal'):
+            orientation = 'horizontal'
+        elif orientation.lower() in ('v', 'vert', 'vertical'):
+            orientation = 'vertical'
+        orientation = Orientation(orientation)
     if isinstance(alignment, str):
         alignment = Alignments(alignment)
 

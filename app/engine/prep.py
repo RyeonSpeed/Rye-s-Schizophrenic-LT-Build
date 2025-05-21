@@ -112,11 +112,11 @@ class PrepMainState(MapState):
 
         self.menu.handle_mouse()
         if 'DOWN' in directions:
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_down(first_push)
+            if self.menu.move_down(first_push):
+                get_sound_thread().play_sfx('Select 6')
         elif 'UP' in directions:
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_up(first_push)
+            if self.menu.move_up(first_push):
+                get_sound_thread().play_sfx('Select 6')
 
         elif event == 'SELECT':
             get_sound_thread().play_sfx('Select 1')
@@ -333,7 +333,7 @@ class PrepPickUnitsState(State):
                 num_slots = game.level_vars.get('_prep_slots')
                 if num_slots is None:
                     num_slots = len(game.get_all_formation_spots())
-                on_map = [unit for unit in game.units if unit.position and unit in game.get_units_in_party() 
+                on_map = [unit for unit in game.units if unit.position and unit in game.get_units_in_party()
                           and game.check_for_region(unit.position, 'formation')]
                 if pair_up_valid:
                     on_map += [unit for unit in game.units if unit in game.get_units_in_party() and not unit.position and game.get_rescuer(unit) and game.get_rescuer(unit).position]
@@ -517,9 +517,8 @@ class PrepFormationSelectState(MapState):
             if self.unit.position:
                 old_unit_position = self.unit.position
                 action.do(action.Separate(hovered_unit, traveler, None, False))
-                action.do(action.PickUnitUp(self.unit))
-                action.do(action.ArriveOnMap(traveler, old_unit_position))
                 action.do(action.PairUp(self.unit, hovered_unit))
+                action.do(action.ArriveOnMap(traveler, old_unit_position))
             # The moving unit was a traveler
             else:
                 carrier = game.get_rescuer(self.unit)
@@ -553,8 +552,8 @@ class PrepFormationSelectState(MapState):
                 elif hovered_unit and self.unit.position:
                     old_unit_position = self.unit.position
                     old_hovered_unit_position = hovered_unit.position
-                    action.do(action.PickUnitUp(self.unit))
-                    action.do(action.PickUnitUp(hovered_unit))
+                    action.do(action.LeaveMap(self.unit))
+                    action.do(action.LeaveMap(hovered_unit))
                     action.do(action.ArriveOnMap(self.unit, old_hovered_unit_position))
                     action.do(action.ArriveOnMap(hovered_unit, old_unit_position))
                     self.back()
@@ -573,7 +572,7 @@ class PrepFormationSelectState(MapState):
                 # Put me there
                 else:
                     if self.unit.position:
-                        action.do(action.PickUnitUp(self.unit))
+                        action.do(action.LeaveMap(self.unit))
                     else:
                         action.do(action.Separate(game.get_rescuer(self.unit), self.unit, None, False))
                     action.do(action.ArriveOnMap(self.unit, game.cursor.position))
@@ -636,11 +635,11 @@ class PrepFormationMenuState(MapState):
 
         did_move = self.menu.handle_mouse()
         if 'DOWN' in directions:
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_down(first_push)
+            if self.menu.move_down(first_push):
+                get_sound_thread().play_sfx('Select 6')
         elif 'UP' in directions:
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_up(first_push)
+            if self.menu.move_up(first_push):
+                get_sound_thread().play_sfx('Select 6')
 
         if event == 'BACK':
             get_sound_thread().play_sfx('Select 4')
@@ -655,7 +654,7 @@ class PrepFormationMenuState(MapState):
                 # Guaranteed that hovered unit exists and is on a formation and is by itself
                 if self.unit.position:
                     # Unit was a solo unit
-                    action.do(action.PickUnitUp(self.unit))
+                    action.do(action.LeaveMap(self.unit))
                     action.do(action.PairUp(self.unit, hovered_unit))
                 else:
                     # Unit was a duo unit
@@ -674,10 +673,10 @@ class PrepFormationMenuState(MapState):
                     unit_to_move = game.get_rescuer(self.unit)
                 old_unit_position = unit_to_move.position
                 old_hovered_unit_position = hovered_unit.position
-                action.do(action.PickUnitUp(unit_to_move))
-                action.do(action.PickUnitUp(hovered_unit))
+                action.do(action.LeaveMap(unit_to_move))
+                action.do(action.LeaveMap(hovered_unit))
                 action.do(action.ArriveOnMap(unit_to_move, old_hovered_unit_position))
-                action.do(action.ArriveOnMap(hovered_unit, old_unit_position))            
+                action.do(action.ArriveOnMap(hovered_unit, old_unit_position))
                 game.state.back()
                 game.state.back()
 
@@ -690,7 +689,7 @@ class PrepFormationMenuState(MapState):
                 # guaranteed that we are hovering over a duo unit on a formation
                 action.do(action.SwitchPaired(game.get_rescuer(self.unit), self.unit))
                 game.state.back()
-            
+
     def update(self):
         super().update()
         self.menu.update()
@@ -835,11 +834,11 @@ class OptimizeAllChoiceState(State):
     def take_input(self, event):
         self.menu.handle_mouse()
         if event == 'RIGHT':
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_down()
+            if self.menu.move_down():
+                get_sound_thread().play_sfx('Select 6')
         elif event == 'LEFT':
-            get_sound_thread().play_sfx('Select 6')
-            self.menu.move_up()
+            if self.menu.move_up():
+                get_sound_thread().play_sfx('Select 6')
 
         elif event == 'BACK':
             get_sound_thread().play_sfx('Select 4')

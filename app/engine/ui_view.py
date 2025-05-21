@@ -522,10 +522,6 @@ class UIView():
             surf.blit(up_arrow, topleft)
 
     def draw_attack_info(self, surf, attacker, weapon, defender, a_assist=None, d_assist=None):
-        # Turns on appropriate combat conditionals to get an accurate read
-        skill_system.test_on([], attacker, weapon, defender, resolve_weapon(defender), 'attack')
-        skill_system.test_on([], defender, resolve_weapon(defender), attacker, weapon, 'defense')
-
         def has_attacker_strike_partner() -> bool:
             return DB.constants.value('pairup') and \
                 a_assist and not (attacker.traveler or defender.traveler)
@@ -535,6 +531,14 @@ class UIView():
                 d_assist and not (attacker.traveler or defender.traveler) and \
                 defender.get_weapon() and \
                 combat_calcs.can_counterattack(attacker, weapon, defender, defender.get_weapon())
+        
+        # Turns on appropriate combat conditionals to get an accurate read
+        skill_system.test_on([], attacker, weapon, defender, resolve_weapon(defender), 'attack')
+        skill_system.test_on([], defender, resolve_weapon(defender), attacker, weapon, 'defense')
+        if has_attacker_strike_partner():
+            skill_system.test_on([], a_assist, a_assist.get_weapon(), defender, resolve_weapon(defender), 'attack')
+        if has_defender_strike_partner():
+            skill_system.test_on([], d_assist, resolve_weapon(d_assist), attacker, weapon, 'defense')
 
         if not self.attack_info_disp:
             self.attack_info_disp = self.create_attack_info(attacker, weapon, defender, a_assist, d_assist)
@@ -597,37 +601,45 @@ class UIView():
         x2_pos_player_partner = (topleft[0] + 107 + self.x_positions[count], topleft[1] + 38 + self.y_positions[count])
         x2_pos_enemy_partner = (topleft[0] + 20 + self.x_positions[count], topleft[1] + 38 + self.y_positions[count])
 
-        my_num = combat_calcs.compute_attack_phases(attacker, defender, weapon, resolve_weapon(defender), "attack", (0 , 0))
-        my_num *= combat_calcs.compute_multiattacks(attacker, defender, weapon, "attack", (0, 0))
+        num_phases = combat_calcs.compute_attack_phases(attacker, defender, weapon, resolve_weapon(defender), "attack", (0 , 0))
+        num_attacks = num_phases
+        for attack_phase in range(num_phases):
+            num_attacks += combat_calcs.compute_multiattacks(attacker, defender, weapon, "attack", (attack_phase, 0)) - 1
         if weapon.uses_options and weapon.uses_options.one_loss_per_combat():
             pass  # If you can only lose one use at a time, no need to min this
         else:
-            my_num = min(my_num, weapon.data.get('uses', 100), weapon.data.get('c_uses', 100))
+            num_attacks = min(num_attacks, weapon.data.get('uses', 100), weapon.data.get('c_uses', 100))
 
-        if my_num != 1:
-            surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player)
+        if num_attacks > 1:
+            surf.blit(SPRITES.get("x%d" % (num_attacks)), x2_pos_player)
 
         if a_assist:
-            if my_num != 1 and not DB.constants.value('limit_attack_stance'):
-                surf.blit(SPRITES.get("x%d" % (my_num)), x2_pos_player_partner)
+            if num_attacks > 1 and not DB.constants.value('limit_attack_stance'):
+                surf.blit(SPRITES.get("x%d" % (num_attacks)), x2_pos_player_partner)
 
         # Enemy doubling
         eweapon = defender.get_weapon()
         if eweapon and combat_calcs.can_counterattack(attacker, weapon, defender, eweapon):
-            e_num = combat_calcs.compute_attack_phases(defender, attacker, eweapon, weapon, 'defense', (0, 0))
-            e_num *= combat_calcs.compute_multiattacks(defender, attacker, eweapon, 'defense', (0, 0))
-            e_num = min(e_num, eweapon.data.get('uses', 100))
+            e_num_phases = combat_calcs.compute_attack_phases(defender, attacker, eweapon, weapon, 'defense', (0, 0))
+            e_num_attacks = e_num_phases
+            for e_attack_phase in range(e_num_phases):
+                e_num_attacks += combat_calcs.compute_multiattacks(defender, attacker, eweapon, 'defense', (e_attack_phase, 0)) - 1
+            e_num_attacks = min(e_num_attacks, eweapon.data.get('uses', 100))
 
-            if e_num != 1:
-                surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy)
+            if e_num_attacks > 1:
+                surf.blit(SPRITES.get("x%d" % (e_num_attacks)), x2_pos_enemy)
 
             if d_assist:
-                if e_num != 1 and not DB.constants.value('limit_attack_stance'):
-                    surf.blit(SPRITES.get("x%d" % (e_num)), x2_pos_enemy_partner)
+                if e_num_attacks > 1 and not DB.constants.value('limit_attack_stance'):
+                    surf.blit(SPRITES.get("x%d" % (e_num_attacks)), x2_pos_enemy_partner)
 
         # Turns off combat conditionals
         skill_system.test_off([], defender, resolve_weapon(defender), attacker, weapon, 'defense')
         skill_system.test_off([], attacker, weapon, defender, resolve_weapon(defender), 'attack')
+        if has_attacker_strike_partner():
+            skill_system.test_off([], a_assist, a_assist.get_weapon(), defender, resolve_weapon(defender), 'attack')
+        if has_defender_strike_partner():
+            skill_system.test_off([], d_assist, resolve_weapon(d_assist), attacker, weapon, 'defense')
 
         return surf
 
@@ -819,6 +831,7 @@ class ItemDescriptionPanel():
     def __init__(self, unit, item):
         self.unit = unit
         self.item = item
+        self.reference_item = unit.get_weapon()
         self.surf = None
 
     def set_item(self, item):
@@ -832,7 +845,7 @@ class ItemDescriptionPanel():
         bg_surf.blit(sub_bg_surf, (2, 4))
         bg_surf.blit(SPRITES.get('menu_gem_small'), (0, 0))
         bg_surf = image_mods.make_translucent(bg_surf, .1)
-
+        
         weapon = item_system.is_weapon(self.unit, self.item)
         available = item_funcs.available(self.unit, self.item)
 
@@ -888,13 +901,82 @@ class ItemDescriptionPanel():
                 render_text(bg_surf, ['text'], [line], [None], (4 + 2, 8 + idx * 16))
 
         return bg_surf
+        
+    def _draw_item_delta_info(self, bg_surf):
+        if not self.reference_item: # fail early
+            return
+        
+        is_weapon = item_system.is_weapon(self.unit, self.item)
+        is_available = item_funcs.available(self.unit, self.item)
+        current_weapon = self.item
+        
+        if all([is_weapon, is_available, current_weapon]):
+            width, height = 96, 56
+            top = 4
+            left = 2
+            
+            up_arrow = engine.subsurface(SPRITES.get('arrow_advantage'), (ANIMATION_COUNTERS.arrow_counter.count * 7, 0, 7, 10))
+            down_arrow = engine.subsurface(SPRITES.get('arrow_advantage'), (ANIMATION_COUNTERS.arrow_counter.count * 7, 10, 7, 10))
+            
+            is_curr_better = None # reuse this flag across function
+            def compare(curr, prev) -> int:
+                if prev is None or curr is None:
+                    return 0
+                elif curr > prev:
+                    return 1
+                elif curr < prev:
+                    return -1
+                else:
+                    return 0
+            
+            curr_damage = combat_calcs.damage(self.unit, current_weapon)
+            prev_damage = combat_calcs.damage(self.unit, self.reference_item)
+            is_curr_better = compare(curr_damage, prev_damage)
+            if is_curr_better == 1:
+                bg_surf.blit(up_arrow, (left + width//2 - 3, top + 24))
+            elif is_curr_better == -1:
+                bg_surf.blit(down_arrow, (left + width//2 - 3, top + 24))
+
+            curr_accuracy = combat_calcs.accuracy(self.unit, current_weapon)
+            prev_accuracy = combat_calcs.accuracy(self.unit, self.reference_item)
+            is_curr_better = compare(curr_accuracy, prev_accuracy)
+            if is_curr_better == 1:
+                bg_surf.blit(up_arrow, (left + width//2 - 3, top + 40))
+            elif is_curr_better == -1:
+                bg_surf.blit(down_arrow, (left + width//2 - 3, top + 40))
+                          
+            if DB.constants.value('crit'):
+                curr_crit = combat_calcs.crit_accuracy(self.unit, current_weapon)
+                prev_crit = combat_calcs.crit_accuracy(self.unit, self.reference_item)
+                is_curr_better = compare(curr_crit, prev_crit)
+                if is_curr_better == 1:
+                    bg_surf.blit(up_arrow, (left + width - 10, top + 24))
+                elif is_curr_better == -1:
+                    bg_surf.blit(down_arrow, (left + width - 10, top + 24))
+            else:
+                curr_attack_speed = combat_calcs.attack_speed(self.unit, current_weapon)
+                prev_attack_speed = combat_calcs.attack_speed(self.unit, self.reference_item)
+                is_curr_better = compare(curr_attack_speed, prev_attack_speed)
+                if is_curr_better == 1:
+                    bg_surf.blit(up_arrow, (left + width - 10, top + 24))
+                elif is_curr_better == -1:
+                    bg_surf.blit(down_arrow, (left + width - 10, top + 24))
+
+            curr_avoid = combat_calcs.avoid(self.unit, current_weapon)     
+            prev_avoid = combat_calcs.avoid(self.unit, self.reference_item)
+            is_curr_better = compare(curr_avoid, prev_avoid)
+            if is_curr_better == 1:
+                bg_surf.blit(up_arrow, (left + width - 10, top + 40))
+            elif is_curr_better == -1:
+                bg_surf.blit(down_arrow, (left + width - 10, top + 40))
+
 
     def draw(self, surf):
         if not self.item:
             return surf
         if not self.surf:
             self.surf = self.create_surf()
-
+        
         cursor_left = False
         if game.cursor.position[0] > TILEX // 2 + game.camera.get_x():
             topleft = (WINWIDTH - 8 - self.surf.get_width(), WINHEIGHT - 8 - self.surf.get_height())
@@ -907,8 +989,10 @@ class ItemDescriptionPanel():
             if cursor_left:
                 portrait = engine.flip_horiz(portrait)
             surf.blit(portrait, (topleft[0] + 2, topleft[1] - 76))
-
-        surf.blit(self.surf, topleft)
+        copy_surf = self.surf.copy()
+        self._draw_item_delta_info(copy_surf)
+        surf.blit(copy_surf, topleft)
+        
         return surf
 
     def build_lines(self, desc, width):

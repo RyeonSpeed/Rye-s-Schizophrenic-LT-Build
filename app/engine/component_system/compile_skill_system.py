@@ -6,6 +6,7 @@ from app.engine.component_system.utils import ARG_TYPE_MAP, HookInfo, ResolvePol
 SKILL_HOOKS: Dict[str, HookInfo] = {
     # true priority (set to False if result is False in any component, True if not defined)
     'available':                            HookInfo(['unit', 'item'], ResolvePolicy.ALL_DEFAULT_TRUE),
+    'can_counter':                          HookInfo(['unit'], ResolvePolicy.ALL_DEFAULT_TRUE),
     # false priority (set to False if result is False in any component, False if not defined)
     'pass_through':                         HookInfo(['unit'], ResolvePolicy.ALL_DEFAULT_FALSE),
     'vantage':                              HookInfo(['unit'], ResolvePolicy.ALL_DEFAULT_FALSE),
@@ -37,7 +38,6 @@ SKILL_HOOKS: Dict[str, HookInfo] = {
     # exclusive (returns last component value, has default value if not defined)
     'can_select':                           HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'movement_type':                        HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
-    'sight_range':                          HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'num_items_offset':                     HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'num_accessories_offset':               HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'change_variant':                       HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
@@ -45,6 +45,8 @@ SKILL_HOOKS: Dict[str, HookInfo] = {
     'change_ai':                            HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'change_roam_ai':                       HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True),
     'witch_warp':                           HookInfo(['unit'], ResolvePolicy.UNIQUE, has_default_value=True, is_cached=True),
+    # numeric accum (adds together all values. 0 if no values are defined)
+    'sight_range':                          HookInfo(['unit'], ResolvePolicy.NUMERIC_ACCUM, has_default_value=True),
     # formula (as exclusive)
     'damage_formula':                       HookInfo(['unit'], ResolvePolicy.UNIQUE),
     'resist_formula':                       HookInfo(['unit'], ResolvePolicy.UNIQUE),
@@ -122,8 +124,8 @@ SKILL_HOOKS: Dict[str, HookInfo] = {
     'on_equip_item':                        HookInfo(['unit', 'item'], ResolvePolicy.NO_RETURN),
     'on_unequip_item':                      HookInfo(['unit', 'item'], ResolvePolicy.NO_RETURN),
     # sub-combat events
-    'start_sub_combat':                     HookInfo(['actions', 'playback', 'unit', 'item', 'target', 'item2', 'mode', 'attack_info'], ResolvePolicy.NO_RETURN),
-    'end_sub_combat':                       HookInfo(['actions', 'playback', 'unit', 'item', 'target', 'item2', 'mode', 'attack_info'], ResolvePolicy.NO_RETURN),
+    'start_sub_combat':                     HookInfo(['actions', 'playback', 'unit', 'item', 'target', 'item2', 'mode', 'attack_info'], ResolvePolicy.NO_RETURN, has_unconditional=True),
+    'end_sub_combat':                       HookInfo(['actions', 'playback', 'unit', 'item', 'target', 'item2', 'mode', 'attack_info'], ResolvePolicy.NO_RETURN, has_unconditional=True),
     # after strike events
     'after_strike':                         HookInfo(['actions', 'playback', 'unit', 'item', 'target', 'item2', 'mode', 'attack_info', 'strike'], ResolvePolicy.NO_RETURN),
     'after_take_strike':                    HookInfo(['actions', 'playback', 'unit', 'item', 'target', 'item2', 'mode', 'attack_info', 'strike'], ResolvePolicy.NO_RETURN),
@@ -164,7 +166,7 @@ def generate_skill_hook_str(hook_name: str, hook_info: HookInfo):
 """.format(hook_name=hook_name, args=', '.join(args))
     if hook_info.is_cached:
         cache_handling = """
-@lru_cache(65535)"""
+@ltcached"""
 
     func_text = """{cache_handling}
 def {hook_name}({func_signature}):
@@ -202,20 +204,10 @@ def compile_skill_system():
     # copy skill system base
     for line in skill_system_base.readlines():
         compiled_skill_system.write(line)
-        
-    cache_func_text = """
-def reset_cache():
-    condition.cache_clear()
-"""
 
     for hook_name, hook_info in SKILL_HOOKS.items():
         func = generate_skill_hook_str(hook_name, hook_info)
         compiled_skill_system.write(func)
-        if hook_info.is_cached:
-            cache_func_text += '    ' + hook_name + """.cache_clear()
-"""
-
-    compiled_skill_system.write(cache_func_text)
 
     skill_system_base.close()
     compiled_skill_system.close()
