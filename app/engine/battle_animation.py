@@ -559,9 +559,8 @@ class BattleAnimation():
         elif command.nid == 'blend':
             if bool(values[0]):
                 self.blend = engine.BLEND_RGB_ADD
-        elif command.nid == 'blend2':
-            if bool(values[0]):
-                self.blend = engine.BLEND_RGB_SUB
+            else:
+                self.blend = 0
         elif command.nid == 'blend2':
             if bool(values[0]):
                 self.blend = engine.BLEND_RGB_SUB
