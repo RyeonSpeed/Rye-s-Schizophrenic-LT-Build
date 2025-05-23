@@ -448,7 +448,7 @@ class CombatPhaseSolver():
         else:
             to_hit = utils.clamp(unclamped_hit, 0, 100)
 
-        if self.current_command.lower() in ('hit1', 'hit2', 'crit1', 'crit2'):
+        if self.current_command.lower() in ('hit1', 'hit2', 'crit1', 'crit2') or 'Grandmaster' in defender.tags:
             roll = -1
         elif self.current_command.lower() in ('miss1', 'miss2'):
             roll = 100
