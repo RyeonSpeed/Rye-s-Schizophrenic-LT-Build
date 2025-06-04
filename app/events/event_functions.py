@@ -206,6 +206,18 @@ def multi_remove_portrait(self: Event, portrait1, portrait2, portrait3=None, por
         commands.append(event_commands.RemovePortrait({'Portrait': portrait4}, set()))
     self.command_queue += commands
 
+def remove_all_portraits(self: Event, flags=None):
+    commands = []
+    first = True
+    for portrait in self.portraits.keys():
+        if first:
+            commands.append(event_commands.RemovePortrait({'Portrait': portrait}, set()))
+            first = False
+        else:
+            commands.append(event_commands.RemovePortrait({'Portrait': portrait}, {'no_block'}))
+    commands.reverse()
+    self.command_queue += commands
+
 def move_portrait(self: Event, portrait, screen_position: Tuple, speed_mult: float=1.0, flags=None):
     flags = flags or set()
 
@@ -685,8 +697,10 @@ def skip_save(self: Event, true_or_false: bool, flags=None):
 def activate_turnwheel(self: Event, force: bool = True, flags=None):
     self.turnwheel_flag = 2 if force else 1
 
-def battle_save(self: Event, flags=None):
+def battle_save(self: Event, save_name: Optional[str] = None, flags=None):
     flags = flags or set()
+    if save_name:
+        self.game.memory['save_name'] = save_name
     if 'immediately' in flags:
         self.state = 'paused'
         self.game.memory['save_kind'] = 'battle'
@@ -1149,6 +1163,30 @@ def interact_unit(self: Event, unit, position, combat_script: Optional[List[str]
         actor, target, item, skip='immediate' in flags, event_combat=True, script=script, total_rounds=total_rounds,
         arena='arena' in flags, force_animation='force_animation' in flags, force_no_animation='force_no_animation' in flags)
     self.state = "paused"
+
+def pose_unit(self: Event, unit, pose, direction=None, flags=None):
+    from app.events.event_validators import SpritePose, SpriteDirection
+    flags = flags or set()
+
+    actor = self._get_unit(unit)
+    if not actor or not actor.sprite:
+        self.logger.error("pose_unit: Couldn't find %s" % unit)
+        return
+
+    if pose not in SpritePose.valid:
+        self.logger.error("pose_unit: %s is not a valid sprite pose!" % pose)
+        return
+
+    if pose in ['stand_dir', 'moving']:
+        if not direction:
+            self.logger.error("pose_unit: Direction is required when using %s pose!" % pose)
+            return
+
+        if direction not in SpriteDirection.valid:
+            self.logger.error("pose_unit: %s is not a valid sprite direction!" % pose)
+            return
+
+    actor.sprite.change_state(pose, direction)
 
 def recruit_generic(self: Event, unit, nid, name=None, flags=None):
     new_unit = self._get_unit(unit)
@@ -3290,6 +3328,30 @@ def open_guide(self: Event, flags=None):
     else:
         self.logger.warning("open_guide: Skipping opening guide because there is no unlocked lore in the guide category")
 
+def open_credits(self: Event, panorama=None, flags=None):
+    flags = flags or set()
+    self.state = "paused"
+    if panorama:
+        if 'scroll' in flags:
+            bg = background.create_background(panorama, True)
+        else:
+            bg = background.create_background(panorama, False)
+    else:
+        bg = self.game.memory.get('base_bg')
+    if bg:
+        self.game.memory['credit_bg'] = bg
+
+    if 'show_map' in flags:
+        action.do(action.SetGameVar('_base_transparent', True))
+    else:
+        action.do(action.SetGameVar('_base_transparent', False))
+
+    if 'immediate' in flags:
+        self.game.state.change('credit')
+    else:
+        self.game.memory['next_state'] = 'credit'
+        self.game.state.change('transition_to')
+
 def open_unit_management(self: Event, panorama=None, flags=None):
     flags = flags or set()
     if 'scroll' in flags:
@@ -3385,6 +3447,8 @@ def credits(self: Event, role, credits, flags=None):
     self.state = 'waiting'
 
 def ending(self: Event, portrait, title, text, flags=None):
+    flags = flags or set()
+
     unit = self._get_unit(portrait)
     if unit and unit.portrait_nid:
         portrait, _ = icons.get_portrait(unit)
@@ -3398,11 +3462,13 @@ def ending(self: Event, portrait, title, text, flags=None):
         self.logger.error("ending: Couldn't find unit or portrait %s" % portrait)
         return False
 
-    new_ending = dialog.Ending(portrait, title, text, unit)
+    new_ending = dialog.Ending(portrait, title, text, unit, wait_for_input='wait_for_input' in flags)
     self.text_boxes.append(new_ending)
     self.state = 'dialog'
 
 def paired_ending(self: Event, left_portrait, right_portrait, left_title, right_title, text, flags=None):
+    flags = flags or set()
+
     left_unit = self._get_unit(left_portrait)
     if left_unit and left_unit.portrait_nid:
         left_portrait, _ = icons.get_portrait(left_unit)
@@ -3430,7 +3496,10 @@ def paired_ending(self: Event, left_portrait, right_portrait, left_title, right_
         self.logger.error("ending: Couldn't find unit or portrait %s" % right_portrait)
         return False
 
-    new_ending = dialog.PairedEnding(left_portrait, right_portrait, left_title, right_title, text, left_unit, right_unit)
+    new_ending = \
+        dialog.PairedEnding(left_portrait, right_portrait, left_title, right_title, 
+                            text, left_unit, right_unit, 
+                            wait_for_input='wait_for_input' in flags)
     self.text_boxes.append(new_ending)
     self.state = 'dialog'
 

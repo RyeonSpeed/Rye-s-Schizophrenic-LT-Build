@@ -464,6 +464,16 @@ Removes multiple portraits from the screen simultaneously.
     optional_keywords = ['Portrait3', 'Portrait4']
     keyword_types = ['Portrait', 'Portrait', 'Portrait', 'Portrait']
 
+class RemoveAllPortraits(EventCommand):
+    nid = "remove_all_portraits"
+    nickname = "rrr"
+    tag = Tags.PORTRAIT
+
+    desc = \
+        """
+Removes all portraits from the screen simultaneously.
+        """
+
 class MovePortrait(EventCommand):
     nid = "move_portrait"
     tag = Tags.PORTRAIT
@@ -1073,6 +1083,8 @@ By default, the prompt for a battle save will not occur until the end of this ev
 The optional flag *immediately* will cause the prompt to appear immediately.
         """
 
+    optional_keywords = ['SaveName']
+    keyword_types = ['String']
     _flags = ["immediately"]
 
 class DeleteSave(EventCommand):
@@ -1355,6 +1367,19 @@ The *immediate* flag will cause the combat to happen as quickly as possible, oft
     optional_keywords = ["CombatScript", "Ability", "Rounds"]
     keyword_types = ["Unit", "Position", "CombatScript", "Ability", "PositiveInteger"]
     _flags = ["arena", "force_animation", "force_no_animation", "immediate"]
+
+class PoseUnit(EventCommand):
+    nid = 'pose_unit'
+    tag = Tags.ADD_REMOVE_INTERACT_WITH_UNITS
+
+    desc = \
+        """
+Changes current pose (state) of unit's map sprite.
+        """
+
+    keywords = ["Unit", "Pose"]
+    optional_keywords = ["Direction"]
+    keyword_types = ["Unit", "SpritePose", "SpriteDirection"]
 
 class SetName(EventCommand):
     nid = 'set_name'
@@ -3088,6 +3113,23 @@ Displays the game's guide screen.
 
     _flags = ["immediate"]
 
+class OpenCredits(EventCommand):
+    nid = 'open_credits'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Displays the game's credits module.
+If given, uses the (*Panorama*) as the background image.
+The (*Scroll*) flag determines whether the background image will move.
+1. *immediate* flag skips the transition between screens
+2. *show_map* determines whether or not the background will simply be the map of the mission.
+        """
+
+    optional_keywords = ['Panorama']
+    keyword_types = ['Panorama']
+    _flags = ["immediate", "scroll", "show_map"]
+
 class OpenUnitManagement(EventCommand):
     nid = 'open_unit_management'
     tag = Tags.MISCELLANEOUS
@@ -3187,11 +3229,18 @@ class Ending(EventCommand):
 
     desc = \
         """
-Displays the epilogue text for a character. *Portrait* is the portrait to be displayed, *Title* is the name displayed (ex: "Marcus, Badass Paladin"), the *Text* is the block of text describing what happened to the character.
+Displays the epilogue text for a character. 
+*Portrait* is the portrait to be displayed, 
+*Title* is the name displayed (ex: "Marcus, Badass Paladin"), 
+the *Text* is the block of text describing what happened to the character.
+If *wait_for_input* flag is set, the dialog will wait for the player to press SELECT
+before preceding. Use this if you plan to have {w} or | commands in your text.
+Without the *wait_for_input* flag, the Ending will just wait 5 seconds after the first {w}.
         """
 
     keywords = ["Portrait", "Title", "Text"]
     keyword_types = ["Portrait", "String", "String"]
+    _flags = ['wait_for_input']
 
 class PairedEnding(EventCommand):
     nid = 'paired_ending'
@@ -3199,11 +3248,18 @@ class PairedEnding(EventCommand):
 
     desc = \
         """
-Displays paired epilogue text for two characters. *LeftPortrait* and *RightPortrait* are the portraits to be displayed, *LeftTitle* and *RightTitle* are the names displayed (ex: "Marcus, Badass Paladin"), the *Text* is the block of text describing what happened to the characters.
+Displays paired epilogue text for two characters. 
+*LeftPortrait* and *RightPortrait* are the portraits to be displayed, 
+*LeftTitle* and *RightTitle* are the names displayed (ex: "Marcus, Badass Paladin"), 
+the *Text* is the block of text describing what happened to the characters.
+If *wait_for_input* flag is set, the dialog will wait for the player to press SELECT
+before preceding. Use this if you plan to have {w} or | commands in your text.
+Without the *wait_for_input* flag, the Ending will just wait 5 seconds after the first {w}.
         """
 
     keywords = ["LeftPortrait", "RightPortrait", "LeftTitle", "RightTitle", "Text"]
     keyword_types = ["Portrait", "Portrait", "String", "String", "String"]
+    _flags = ['wait_for_input']
 
 class PopDialog(EventCommand):
     nid = 'pop_dialog'

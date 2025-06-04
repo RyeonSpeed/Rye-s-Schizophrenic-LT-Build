@@ -2268,6 +2268,8 @@ class SetNid(Action):
             if self.unit.nid in game.unit_registry:
                 del game.unit_registry[self.unit.nid]
             self.unit.nid = self.new_nid
+            if game.initiative:
+                game.initiative.replace_unit_nid(self.old_nid, self.new_nid)
             game.register_unit(self.unit)
             if orig_pos:
                 game.arrive(self.unit, orig_pos)
@@ -2280,6 +2282,8 @@ class SetNid(Action):
             if self.unit.nid in game.unit_registry:
                 del game.unit_registry[self.unit.nid]
             self.unit.nid = self.old_nid
+            if game.initiative:
+                game.initiative.replace_unit_nid(self.new_nid, self.old_nid)
             game.register_unit(self.unit)
             if orig_pos:
                 game.arrive(self.unit, orig_pos)

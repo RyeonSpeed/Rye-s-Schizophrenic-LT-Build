@@ -53,6 +53,7 @@ class DatabaseValidatorEngine():
             CType.Affinity: _nid_in_data(db.affinities),
             CType.Terrain: _nid_in_data(db.terrain),
             CType.Event: _nid_in_data(db.events),
+            CType.Lore: _nid_in_data(db.lore),
 
             RType.ICONS16: _nid_in_data(resources.icons16),
             RType.ICONS32: _nid_in_data(resources.icons32),
@@ -99,6 +100,7 @@ class DatabaseValidatorEngine():
             DType.TRANSLATIONS: _nid_in_data(db.translations),
             DType.LORE: _nid_in_data(db.lore),
             DType.RAW_DATA: _nid_in_data(db.raw_data),
+            DType.CREDIT: _nid_in_data(db.credit),
         }
 
         # native types, don't really need to check these
