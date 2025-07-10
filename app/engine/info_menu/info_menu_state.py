@@ -942,7 +942,7 @@ class InfoMenuState(State):
 
         pairs = pairs[:6] # max six supports displayed
 
-        top = self.wexp_surf.get_height() + 24
+        top = self.wexp_surf.get_height() - 72
         for idx, pair in enumerate(pairs):
             x, y = (idx) % 2, idx // 2
             other_unit = None
@@ -954,11 +954,11 @@ class InfoMenuState(State):
                 continue
             affinity = DB.affinities.get(other_unit.affinity)
             if affinity:
-                icons.draw_item(surf, affinity, (x * width + 8, y * 16 + top))
-                self.info_graph.register((96 + x * width + 8, y * 16 + top, WINWIDTH - 120, 16), affinity.desc, 'support_skills')
-            render_text(surf, ['narrow'], [other_unit.name], [], (x * width + 22, y * 16 + top))
+                icons.draw_item(surf, affinity, (x * width + 8, y * 16 + top - 8))
+                self.info_graph.register((96 + x * width + 8, y * 16 + top + 14, WINWIDTH - 120, 16), affinity.desc, 'support_skills')
+            render_text(surf, ['narrow'], [other_unit.name], [], (x * width + 22, y * 16 + top - 8))
             highest_rank = pair.unlocked_ranks[-1]
-            render_text(surf, ['text'], [highest_rank], ['yellow'], (x * width + surf.get_width()/2 - 2, y * 16 + top), HAlignment.RIGHT)
+            render_text(surf, ['text'], [highest_rank], ['yellow'], (x * width + surf.get_width()/2 - 2, y * 16 + top - 8), HAlignment.RIGHT)
         return surf
 
     def draw_support_surf(self, surf):
