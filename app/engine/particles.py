@@ -249,7 +249,7 @@ class Snow(Particle):
     def reset(self, pos):
         super().reset(pos)
         self.sprite = engine.subsurface(self.full_sprite, (0, random.randint(0, 2) * 8, 8, 8))
-        speeds = [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5]
+        speeds = [4.0, 4.5, 5.0, 5.5, 6.0]
         self.y_speed = random.choice(speeds)
         x_speeds = speeds[:speeds.index(self.y_speed) + 1]
         self.x_speed = random.choice(x_speeds)
@@ -438,7 +438,7 @@ def create_system(nid, width, height, position):
         ps = MapParticleSystem(nid, Raindrop, .1, creation_bounds, (width, height))
     elif nid == 'snow':
         creation_bounds = -theight, twidth, -16, -8
-        ps = MapParticleSystem(nid, Snow, .2, creation_bounds, (width, height))
+        ps = MapParticleSystem(nid, Snow, .5, creation_bounds, (width, height))
     elif nid == 'sand':
         creation_bounds = -2 * theight, twidth, theight + 16, theight + 32
         ps = MapParticleSystem(nid, Sand, .075, creation_bounds, (width, height))
