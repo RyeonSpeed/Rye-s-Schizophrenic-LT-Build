@@ -15,12 +15,11 @@ def rotate(coords:list[list], theta:int):
 class ShapeIcon(QPushButton):
     shapeChanged = pyqtSignal()
 
-    def __init__(self, parent, shape: list[list], size: int, center_selectable: bool = False):
+    def __init__(self,parent,shape: list[list], size:int):
         super().__init__(parent)
         self._shape = shape
         self.set_size(size)
         self.pressed.connect(self.initiate_shape_dialog)
-        self.center_selectable = center_selectable
 
     def set_size(self, size):
         self.size = size
@@ -39,7 +38,7 @@ class ShapeIcon(QPushButton):
         return self._shape.copy()
 
     def initiate_shape_dialog(self):
-        dlg = ShapeDialog(self, self._shape.copy(), self.center_selectable)
+        dlg = ShapeDialog(self, self._shape.copy())
         if dlg.exec_():
             self.change_shape(dlg.get_shape())
             
