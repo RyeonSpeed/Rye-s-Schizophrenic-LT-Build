@@ -13,6 +13,7 @@ from app.editor.data_editor import SingleDatabaseEditor
 
 from app.editor.settings import MainSettingsController
 from app.editor.class_editor import class_model, class_import, new_class_properties
+from app.editor.map_sprite_editor import map_sprite_model
 from app.extensions.custom_gui import DeletionTab, DeletionDialog
 from app.utilities.typing import NID
 
@@ -33,9 +34,11 @@ class NewClassDatabase(NewEditorTab):
         if not self.data.get(class_nid):
             return None
         num = timer.get_timer().passive_counter.count
-        pix = class_model.get_map_sprite_icon(self.data.get(class_nid), num)
-        if pix:
-            return QIcon(pix.scaled(32, 32))
+        klass = self.data.get(class_nid)
+        if klass:
+            pix = map_sprite_model.get_map_sprite_icon(klass.map_sprite_nid, num)
+            if pix:
+                return QIcon(pix.scaled(32, 32))
         return None
 
     def create_new(self, nid):
@@ -85,7 +88,7 @@ if __name__ == '__main__':
     RESOURCES.load('default.ltproj', CURRENT_SERIALIZATION_VERSION)
     from app.data.serialization.versions import CURRENT_SERIALIZATION_VERSION
     DB.load('default.ltproj', CURRENT_SERIALIZATION_VERSION)
-    window = SingleDatabaseEditor(ClassDatabase)
+    window = SingleDatabaseEditor(NewClassDatabase)
     # MEME
     window.setStyleSheet("QDialog {background-image:url(icons/bg.png)};")
     window.show()

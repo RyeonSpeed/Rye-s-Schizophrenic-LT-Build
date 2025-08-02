@@ -1135,7 +1135,8 @@ class MenuState(MapState):
         # setup for callbacks for extra abilities in AbilitySubmenuChoiceState if it ends up being used
         def on_extra_ability_begin(cur_unit: UnitObject):
             pass
-        def on_extra_ability_select(cur_unit: UnitObject, ability):
+
+        def on_extra_ability_select(cur_unit: UnitObject, ability: ItemObject):
             item = ability
             targets = game.target_system.get_valid_targets(cur_unit, item)
             game.memory['targets'] = targets
@@ -1144,7 +1145,7 @@ class MenuState(MapState):
             # Handle abilities that are multi-items, you sick fuck (rain's words not mine)
             if item.multi_item:
                 all_weapons = [subitem for subitem in item.subitems if item_funcs.is_weapon_recursive(cur_unit, subitem) and
-                                game.target_system.get_valid_targets_recursive_with_availability_check(cur_unit, subitem)]
+                               game.target_system.get_valid_targets_recursive_with_availability_check(cur_unit, subitem)]
                 if all_weapons:
                     if item.multi_item_hides_unavailable:
                         game.memory['valid_weapons'] = [subitem for subitem in all_weapons if item_funcs.available(cur_unit, subitem)]
@@ -1153,7 +1154,7 @@ class MenuState(MapState):
                     game.state.change('weapon_choice')
                 else:  # multi item of spells?
                     all_spells = [subitem for subitem in item.subitems if item_funcs.is_spell_recursive(cur_unit, subitem) and
-                                    game.target_system.get_valid_targets_recursive_with_availability_check(cur_unit, subitem)]
+                                  game.target_system.get_valid_targets_recursive_with_availability_check(cur_unit, subitem)]
                     if item.multi_item_hides_unavailable:
                         game.memory['valid_spells'] = [subitem for subitem in all_spells if item_funcs.available(cur_unit, subitem)]
                     else:
@@ -1171,11 +1172,14 @@ class MenuState(MapState):
         if selection in self.extra_abilities.get('_uncategorized', {}):
             # handle directly
             on_extra_ability_select(self.cur_unit, self.extra_abilities['_uncategorized'][selection])
-        elif selection in self.extra_abilities:
+        elif selection in self.extra_abilities:  # Category in self.extra_abilities
             # need submenu; construct args to dispatch to AbilitySubmenuChoiceState
             abilities = self.extra_abilities[selection]
-            options = [ability_name for ability_name in abilities]
-            info_desc = [abilities[ability_name].desc for ability_name in abilities]
+            abilities = {ability_name: ability for ability_name, ability in abilities.items() 
+                         if game.target_system.get_valid_targets_recursive_with_availability_check(self.cur_unit, ability)}
+            options = [ability for ability in abilities.values()]
+            info_desc = [text_funcs.translate_and_text_evaluate(abilities[ability_name].desc, self=self.cur_unit, unit=self.cur_unit) 
+                         for ability_name in abilities]
             game.memory['ability_submenu_choice'] = (abilities,
                                                      options, info_desc,
                                                      on_extra_ability_begin,
@@ -1186,6 +1190,7 @@ class MenuState(MapState):
         # setup for callbacks for combat arts in AbilitySubmenuChoiceState if it ends up being used
         def on_combat_art_begin(cur_unit: UnitObject):
             skill_system.deactivate_all_combat_arts(cur_unit)
+
         def on_combat_art_select(cur_unit: UnitObject, ability):
             skill = ability[0]
             game.memory['ability'] = 'Combat Art'
@@ -1427,6 +1432,8 @@ class ItemChildState(MapState):
                 options.append("Expand")
             if item_funcs.can_use(self.cur_unit, item) and not self.cur_unit.has_attacked:
                 options.append("Use")
+            if item_system.extra_command(self.cur_unit, item) and game.target_system.get_valid_targets(self.cur_unit, item_system.extra_command(self.cur_unit, item)) and not self.cur_unit.has_attacked:
+                options.append(item_system.extra_command(self.cur_unit, item).name)
             if TradeAbility.targets(self.cur_unit) and item_system.tradeable(self.cur_unit, item):
                 options.append('Trade')
             if item in self.cur_unit.items:
@@ -1519,6 +1526,21 @@ class ItemChildState(MapState):
             elif selection == 'Trade':
                 game.memory['ability'] = TradeAbility
                 game.state.change('targeting')
+                
+            elif item_system.extra_command(self.cur_unit, item) and selection == item_system.extra_command(self.cur_unit, item).name:
+                cur_item = item_system.extra_command(self.cur_unit, item)
+                if item_system.targets_items(self.cur_unit, cur_item):
+                    # if it targets items, must use combat targeting routine to handle
+                    game.memory['item'] = cur_item
+                    game.state.change('combat_targeting')
+                else:
+                    targets: set = game.target_system.get_valid_targets(self.cur_unit, cur_item)
+                    # No need to select when only target is yourself
+                    if len(targets) == 1 and next(iter(targets)) == self.cur_unit.position:
+                        interaction.start_combat(self.cur_unit, self.cur_unit.position, cur_item)
+                    else:
+                        game.memory['item'] = cur_item
+                        game.state.change('combat_targeting')
 
     def update(self):
         super().update()
@@ -1921,9 +1943,9 @@ class AbilitySubmenuChoiceState(MapState):
             game.state.back()
 
         elif event == 'SELECT':
-            selection = self.menu.get_current()
+            idx = self.menu.get_current_index()
             get_sound_thread().play_sfx('Select 1')
-            self.select_callback(self.cur_unit, self.abilities[selection])
+            self.select_callback(self.cur_unit, self.options[idx])
 
         elif event == 'INFO':
             if self.menu.info_flag:
@@ -2864,7 +2886,7 @@ class ShopState(State):
                 item = self.sell_menu.get_current()
                 if item:
                     value = item_funcs.sell_price(self.unit, item)
-                    if value:
+                    if item.value:
                         action.do(action.HasTraded(self.unit))
                         get_sound_thread().play_sfx('GoldExchange')
                         action.do(action.GainMoney(game.current_party, value))
@@ -2874,7 +2896,7 @@ class ShopState(State):
                         self.current_msg = self.get_dialog(self.sell_again_message)
                         self.update_options()
                     else:
-                        # No value, can't be sold
+                        # No value component, can't be sold
                         get_sound_thread().play_sfx('Select 4')
                         self.current_msg = self.get_dialog(self.no_value_message)
                 else:

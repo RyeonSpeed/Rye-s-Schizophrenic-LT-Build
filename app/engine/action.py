@@ -729,7 +729,7 @@ class HasNotTraded(Reset):
 
 # === RESCUE ACTIONS ========================================================
 class Rescue(Action):
-    def __init__(self, unit, rescuee):
+    def __init__(self, unit: UnitObject, rescuee: UnitObject):
         self.unit = unit
         self.rescuee = rescuee
         self.old_pos = self.rescuee.position
@@ -741,7 +741,8 @@ class Rescue(Action):
         self.unit.traveler = self.rescuee.nid
         # TODO Add transition
 
-        game.leave(self.rescuee)
+        if self.rescuee.position:
+            game.leave(self.rescuee)
         self.unit.has_rescued = True
 
         if not skill_system.ignore_rescue_penalty(self.unit) and 'Rescue' in DB.skills:
@@ -754,7 +755,8 @@ class Rescue(Action):
     def execute(self):
         self.unit.traveler = self.rescuee.nid
 
-        game.leave(self.rescuee)
+        if self.rescuee.position:
+            game.leave(self.rescuee)
         self.unit.has_rescued = True
 
         for action in self.subactions:
@@ -762,7 +764,8 @@ class Rescue(Action):
         self.update_fow_rescuee.execute()
 
     def reverse(self):
-        game.arrive(self.rescuee, self.old_pos)
+        if self.old_pos:
+            game.arrive(self.rescuee, self.old_pos)
         self.unit.traveler = None
         self.unit.has_rescued = False
 
@@ -2806,12 +2809,15 @@ class AddTag(Action):
     def __init__(self, unit, tag):
         self.unit = unit
         self.tag = tag
+        self.did_add = False
 
     def do(self):
-        self.unit._tags.append(self.tag)
+        if self.tag not in self.unit._tags:
+            self.unit._tags.add(self.tag)
+            self.did_add = True
 
     def reverse(self):
-        if self.tag in self.unit._tags:
+        if self.did_add:
             self.unit._tags.remove(self.tag)
 
 
@@ -2828,7 +2834,7 @@ class RemoveTag(Action):
 
     def reverse(self):
         if self.did_remove:
-            self.unit._tags.append(self.tag)
+            self.unit._tags.add(self.tag)
 
 
 class AddTalk(Action):
@@ -3673,6 +3679,40 @@ class RemoveSkill(Action):
 
             skill_system.after_add(self.unit, skill)
         self.reset_action.reverse()
+
+class ChangeTeamPalette(Action):
+    def __init__(self, team, palettes):
+        self.team = team
+        self.new_palettes = palettes
+
+        team_obj = game.teams.get(team)
+        self.old_palettes = (team_obj.map_sprite_palette, 
+                             team_obj.combat_variant_palette, 
+                             team_obj.combat_color)
+
+    def do(self):
+        team_obj = game.teams.get(self.team)
+        team_obj.change_palettes(*self.new_palettes)
+
+        # Update map sprites
+        for key in game.map_sprite_registry.keys():
+            if key.split('_')[-1] == self.team:
+                game.map_sprite_registry[key] = None
+
+        for unit in game.get_team_units(self.team):
+            unit.sprite.load_sprites()
+
+    def reverse(self):
+        team_obj = game.teams.get(self.team)
+        team_obj.change_palettes(*self.old_palettes)
+
+        # Update map sprites
+        for key in game.map_sprite_registry.keys():
+            if key.split('_')[-1] == self.team:
+                game.map_sprite_registry[key] = None
+
+        for unit in game.get_team_units(self.team):
+            unit.sprite.load_sprites()
 
 
 # === Master Functions for adding to the action log ===
