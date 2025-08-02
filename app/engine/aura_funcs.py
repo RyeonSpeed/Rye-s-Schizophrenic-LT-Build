@@ -71,11 +71,7 @@ def propagate_aura(unit, skill, game):
     game.board.reset_aura(skill.subskill)
     aura_range = skill.aura_range.value
     aura_range = set(range(1, aura_range + 1))
-    positions = skill_system.get_shape(unit, skill)
-    if positions is not None: #Use custom aura shape
-        positions = {pos for pos in positions if game.board.check_bounds(pos)}
-    else: #Default behavior (sphere)
-        positions = game.target_system.get_shell({unit.position}, aura_range, game.board.bounds)
+    positions = game.target_system.get_shell({unit.position}, aura_range, game.board.bounds)
     for pos in positions:
         game.board.add_aura(pos, skill.subskill, skill.aura_target.value)
         # Propagate my aura to others
@@ -91,11 +87,7 @@ def repopulate_aura(unit, skill, game):
     game.board.reset_aura(skill.subskill)
     aura_range = skill.aura_range.value
     aura_range = set(range(1, aura_range + 1))
-    positions = skill_system.get_shape(unit, skill)
-    if positions is not None: #Use custom aura shape
-        positions = {pos for pos in positions if game.board.check_bounds(pos)}
-    else: #Default behavior (sphere)
-        positions = game.target_system.get_shell({unit.position}, aura_range, game.board.bounds)
+    positions = game.target_system.get_shell({unit.position}, aura_range, game.board.bounds)
     for pos in positions:
         game.board.add_aura(pos, skill.subskill, skill.aura_target.value)
 
