@@ -864,7 +864,11 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((94 + left_pos + 8, 62, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+            text = text_funcs.translate_and_text_evaluate(
+                skill.desc,
+                unit=game.get_unit(skill.owner_nid),
+                self=skill)
+            self.info_graph.register((94 + left_pos + 8, 62, 16, 16), help_menu.HelpDialog(text, name=skill.name + charge), 'notes')
 
         return surf
 
@@ -893,7 +897,11 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((94 + left_pos + 8, 93, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+            text = text_funcs.translate_and_text_evaluate(
+                skill.desc,
+                unit=game.get_unit(skill.owner_nid),
+                self=skill)
+            self.info_graph.register((94 + left_pos + 8, 93, 16, 16), help_menu.HelpDialog(text, name=skill.name + charge), 'notes')
 
         return surf
 
@@ -923,7 +931,11 @@ class InfoMenuState(State):
                 charge = ' %d / %d' % (skill.data['charge'], skill.data['total_charge'])
             else:
                 charge = ''
-            self.info_graph.register((94 + left_pos + 2, 124 + vert_pos, 16, 16), help_menu.HelpDialog(skill.desc, name=skill.name + charge), 'notes')
+            text = text_funcs.translate_and_text_evaluate(
+                skill.desc,
+                unit=game.get_unit(skill.owner_nid),
+                self=skill)
+            self.info_graph.register((94 + left_pos + 2, 124 + vert_pos, 16, 16), help_menu.HelpDialog(text, name=skill.name + charge), 'notes')
 
         return surf
 
