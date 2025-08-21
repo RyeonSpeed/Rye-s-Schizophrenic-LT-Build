@@ -41,7 +41,7 @@ class StateMachine():
                                 player_choice, prep, promotion,
                                 settings, status_upkeep, text_entry,
                                 title_screen, trade, transitions, turnwheel,
-                                victory_screen, party_transfer, credit_state)
+                                victory_screen, party_transfer, credit_state, tez_shop)
         from app.engine.game_menus.menu_states import unit_menu_state
         from app.engine.info_menu import info_menu_state
         from app.engine.overworld import overworld_states
@@ -100,6 +100,7 @@ class StateMachine():
              'alert': general_states.AlertState,
              'ai': general_states.AIState,
              'shop': general_states.ShopState,
+             'tez_shop': tez_shop.TezukaShopState,
              'repair_shop': general_states.RepairShopState,
              'unlock_select': general_states.UnlockSelectState,
              'exp': level_up.ExpState,
