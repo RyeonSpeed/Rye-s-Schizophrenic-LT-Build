@@ -27,6 +27,8 @@ from app.engine.selection_helper import SelectionHelper
 from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES, TradeAbility, SupplyAbility
 from app.engine.input_manager import get_input_manager
 from app.engine.fluid_scroll import FluidScroll
+from app.engine.info_menu.info_menu_portrait import InfoMenuPortrait
+
 import threading
 
 import logging
@@ -38,6 +40,7 @@ class TezukaShopState(State):
         self.fluid = FluidScroll()
 
         self.unit = game.memory['current_unit']
+        self.shopkeeper = game.memory['shopkeeper']
 
         self.opening_message = 'shop_opener'
         self.buy_message = 'shop_buy'
@@ -51,23 +54,15 @@ class TezukaShopState(State):
         self.sell_again_message = 'shop_sell_again'
         self.again_message = 'shop_again'
         self.no_value_message = 'shop_no_value'
+
+        self.current_portrait = None
         
         # TODO
         self.choice_menu = menus.Choice(self.unit, ["Buy", "Sell"], (120, 32), background=None)
         self.choice_menu.set_horizontal(True)
         self.choice_menu.set_color(['convo-white', 'convo-white'])
-        self.choice_menu.set_highlight(False)
-        
-        # TODO
-        self.message_bg = base_surf.create_base_surf(WINWIDTH + 8, 48, 'menu_bg_clear')
-        
-        # TODO
-        if 'rinnosuke_portrait' in SPRITES:
-            self.portrait = SPRITES.get('rinnosuke_portrait')
-        elif 'repair_portrait' in SPRITES:
-            self.portrait = SPRITES.get('repair_portrait')
-        else:
-            self.portrait = SPRITES.get('armory_portrait')
+        self.choice_menu.set_highlight(False)                
+
         items = game.memory['shop_items']
         self.stock = game.memory.get('shop_stock', None)
         my_items = item_funcs.get_all_tradeable_items(self.unit)
@@ -98,11 +93,11 @@ class TezukaShopState(State):
 
     def get_dialog(self, text):
         text = text_funcs.translate_and_text_evaluate(text, self=self)
-        d = dialog.Dialog(text)
-        d.position = (60, 8)
-        d.text_width = WINWIDTH - 80
+        d = dialog.Dialog(text, num_lines=3)
+        d.position = (90, 100)
+        d.text_width = 132
         d.width = d.text_width + 16
-        d.font = FONT['convo-white']
+        d.font = FONT['nconvo-white']
         d.font_color = 'white'
         d.reformat()
         return d
@@ -252,18 +247,36 @@ class TezukaShopState(State):
     def _draw(self, surf):
         if self.bg:
             self.bg.draw(surf)
-        surf.blit(self.message_bg, (-4, 8))
+            
+        if not self.current_portrait:
+            portrait = RESOURCES.portraits.get('Rinnosuke')
+            self.current_portrait = InfoMenuPortrait(portrait, DB.constants.value('info_menu_blink'), True)
+            if self.shopkeeper:
+                portrait = RESOURCES.portraits.get(self.shopkeeper)
+
+        # We do have a portrait, so update...
+        if self.current_portrait:
+            self.current_portrait.update()
+            im = self.current_portrait.create_image()
+            offset = self.current_portrait.portrait.info_offset
+        # Draw portrait onto the surf
+        if im:
+            x_pos = (im.get_width() - 96)//2
+            im_surf = engine.subsurface(im, (x_pos, offset, 96, 136))
+            surf.blit(im_surf, (0, 56))
+
+        money_bg = SPRITES.get('tez_gold')
+        money_bg = image_mods.make_translucent(money_bg, .1)
+        surf.blit(money_bg, (0, 0))
+        
+        bottom_bg = SPRITES.get('tez_shop_text')
+        surf.blit(bottom_bg, (0, 0))
+
+        FONT['text-white'].blit_right(str(game.get_money()) + ' G', surf, (58, -3))
+        self.money_counter_disp.draw(surf)
+
         if self.current_msg:
             self.current_msg.draw(surf)
-
-        surf.blit(self.portrait, (3, 0))
-
-        money_bg = SPRITES.get('money_bg')
-        money_bg = image_mods.make_translucent(money_bg, .1)
-        surf.blit(money_bg, (172, 48))
-
-        FONT['text-blue'].blit_right(str(game.get_money()), surf, (223, 48))
-        self.money_counter_disp.draw(surf)
 
         return surf
 

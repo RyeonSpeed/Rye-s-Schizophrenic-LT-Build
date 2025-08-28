@@ -13,11 +13,13 @@ class InfoMenuPortrait():
 
     stat_screen_mouth_coords = (PORTRAIT_WIDTH - 32, 80, 32, 16)
 
-    def __init__(self, portrait, should_blink: bool = False):
+    def __init__(self, portrait, should_blink: bool = False, mirror: bool = False):
         self.portrait = portrait
         if not self.portrait.image:
             self.portrait.image = engine.image_load(self.portrait.full_path)
         self.portrait.image = self.portrait.image.convert()
+        if mirror:
+            self.portrait.image = engine.flip_horiz(self.portrait.image)
         engine.set_colorkey(self.portrait.image, COLORKEY, rleaccel=True)
         self.main_portrait = engine.subsurface(self.portrait.image, self.main_portrait_coords)
         self.mouth_section = engine.subsurface(self.portrait.image, self.stat_screen_mouth_coords)
