@@ -758,6 +758,48 @@ class Shop(Choice):
                 if self.stock:
                     option._width = 168
                 self.options.append(option)
+                
+class TezukaShop(Choice):
+    default_option = menu_options.ValueItemOption
+
+    def __init__(self, owner, options, topleft=None, disp_value='sell', background='menu_bg_base', info=None, stock=None):
+        self.disp_value = disp_value
+        self.stock = stock
+        super().__init__(owner, options, topleft, background, info)
+
+    def get_menu_width(self):
+        return 16
+
+    def decrement_stock(self):
+        if self.stock:
+            self.options[self.current_index].stock -= 1
+
+    def get_stock(self):
+        if self.stock:
+            return self.options[self.current_index].stock
+        else:
+            return -1
+
+    def set_stock(self, stock):
+        self.stock = stock
+        for idx, option in enumerate(self.options):
+            option.stock[idx] = stock
+
+    def create_options(self, options, info_descs=None):
+        self.options.clear()
+        for idx, option in enumerate(options):
+            if self.stock:
+                option = menu_options.TezukaStockValueItemOption(idx, option, self.disp_value, self.stock[idx])
+            else:
+                option = self.TezukaValueItemOption(idx, option, self.disp_value)
+            option.help_box = option.get_help_box()
+            self.options.append(option)
+
+        if self.hard_limit:
+            for num in range(self.limit - len(options)):
+                option = menu_options.EmptyOption(len(options) + num)
+                self.options.append(option)
+
 
 class RepairShop(Shop):
     default_option = menu_options.RepairValueItemOption

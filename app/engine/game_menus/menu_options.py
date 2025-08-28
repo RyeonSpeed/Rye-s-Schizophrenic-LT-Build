@@ -459,6 +459,19 @@ class ValueItemOption(ItemOption):
             else:
                 value_string = '--'
         render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), HAlignment.RIGHT)
+        
+class TezukaValueItemOption(ItemOption):
+    def __init__(self, idx, item, disp_value):
+        super().__init__(idx, item)
+        self.disp_value = disp_value
+
+    def width(self):
+        return 16
+
+    def draw(self, surf, x, y):
+        icon = icons.get_icon(self.item)
+        if icon:
+            surf.blit(icon, (x, y))
 
 class RepairValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
@@ -506,6 +519,14 @@ class StockValueItemOption(ValueItemOption):
         if self.stock >= 0:
             stock_string = str(self.stock)
         render_text(surf, [main_font], [stock_string], [main_color], (x + 128, y), HAlignment.RIGHT)
+        
+class TezukaStockValueItemOption(TezukaValueItemOption):
+    def __init__(self, idx, item, disp_value, stock):
+        super().__init__(idx, item, disp_value)
+        self.stock = stock
+
+    def draw(self, surf, x, y):
+        super().draw(surf, x, y)
 
 class UnitOption(BasicOption):
     def __init__(self, idx, unit):

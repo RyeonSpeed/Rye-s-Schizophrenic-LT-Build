@@ -54,8 +54,8 @@ class TezukaShopState(State):
         items = game.memory['shop_items']
         self.stock = game.memory.get('shop_stock', None)
         my_items = item_funcs.get_all_tradeable_items(self.unit)
-        self.sell_menu = TezukaSellMenu(self.unit, my_items)
-        self.buy_menu = TezukaBuyMenu(self.unit, items, stock=self.stock)
+        self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='sell')
+        self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='buy', stock=self.stock)
 
         self.menu = None  # For input
 
