@@ -2956,7 +2956,7 @@ def shop(self: Event, unit, item_list: List[str], shop_flavor=None, stock_list: 
     else:
         self.game.memory['shop_stock'] = None
 
-    self.game.state.change('shop')
+    self.game.state.change('tez_shop')
     self.state = 'paused'
 
 def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int = 0, orientation: Orientation = Orientation.VERTICAL,

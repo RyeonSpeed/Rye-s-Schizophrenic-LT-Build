@@ -6,6 +6,7 @@ from enum import Enum
 
 from app.constants import TILEWIDTH, TILEHEIGHT, WINWIDTH, WINHEIGHT, TILEX
 from app.data.database.database import DB
+from app.data.resources.resources import RESOURCES
 from app.engine.objects.unit import UnitObject
 from app.events.regions import RegionType
 from app.events import triggers, event_commands
@@ -50,18 +51,36 @@ class TezukaShopState(State):
         self.sell_again_message = 'shop_sell_again'
         self.again_message = 'shop_again'
         self.no_value_message = 'shop_no_value'
-
+        
+        # TODO
+        self.choice_menu = menus.Choice(self.unit, ["Buy", "Sell"], (120, 32), background=None)
+        self.choice_menu.set_horizontal(True)
+        self.choice_menu.set_color(['convo-white', 'convo-white'])
+        self.choice_menu.set_highlight(False)
+        
+        # TODO
+        self.message_bg = base_surf.create_base_surf(WINWIDTH + 8, 48, 'menu_bg_clear')
+        
+        # TODO
+        if 'rinnosuke_portrait' in SPRITES:
+            self.portrait = SPRITES.get('rinnosuke_portrait')
+        elif 'repair_portrait' in SPRITES:
+            self.portrait = SPRITES.get('repair_portrait')
+        else:
+            self.portrait = SPRITES.get('armory_portrait')
         items = game.memory['shop_items']
         self.stock = game.memory.get('shop_stock', None)
         my_items = item_funcs.get_all_tradeable_items(self.unit)
         self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='sell')
-        self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='buy', stock=self.stock)
+        self.buy_menu = menus.TezukaShop(self.unit, my_items, disp_value='buy', stock=self.stock)
 
         self.menu = None  # For input
 
         self.state = 'open'
         self.current_msg = self.get_dialog(self.opening_message)
-
+        
+        # TODO
+        self.money_counter_disp = gui.PopUpDisplay((223, 32))
 
         panorama = RESOURCES.panoramas.get('shop_menu_background')
         if not panorama:

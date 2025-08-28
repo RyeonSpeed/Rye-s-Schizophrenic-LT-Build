@@ -791,7 +791,7 @@ class TezukaShop(Choice):
             if self.stock:
                 option = menu_options.TezukaStockValueItemOption(idx, option, self.disp_value, self.stock[idx])
             else:
-                option = self.TezukaValueItemOption(idx, option, self.disp_value)
+                option = menu_options.TezukaValueItemOption(idx, option, self.disp_value)
             option.help_box = option.get_help_box()
             self.options.append(option)
 
