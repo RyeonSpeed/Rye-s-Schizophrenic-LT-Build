@@ -18,8 +18,7 @@ class InfoMenuPortrait():
         if not self.portrait.image:
             self.portrait.image = engine.image_load(self.portrait.full_path)
         self.portrait.image = self.portrait.image.convert()
-        if mirror:
-            self.portrait.image = engine.flip_horiz(self.portrait.image)
+        self.mirror = mirror
         engine.set_colorkey(self.portrait.image, COLORKEY, rleaccel=True)
         self.main_portrait = engine.subsurface(self.portrait.image, self.main_portrait_coords)
         self.mouth_section = engine.subsurface(self.portrait.image, self.stat_screen_mouth_coords)
@@ -44,6 +43,8 @@ class InfoMenuPortrait():
                 main_image.blit(blink_image, self.portrait.blinking_offset)
 
         main_image.blit(self.mouth_section, self.portrait.smiling_offset)
+        if self.mirror:
+            main_image = engine.flip_horiz(main_image)
         return main_image
 
     def update(self):

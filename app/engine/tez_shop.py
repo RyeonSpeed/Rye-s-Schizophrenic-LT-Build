@@ -38,10 +38,12 @@ class TezukaShopState(State):
 
     def start(self):
         self.fluid = FluidScroll()
-
+        self.tstate = 'start'
+        self.tframe = 40
         self.unit = game.memory['current_unit']
         self.shopkeeper = game.memory['shopkeeper']
 
+        self.display_name = game.get_unit(self.shopkeeper).name if game.get_unit(self.shopkeeper) else 'Rinnosuke'
         self.opening_message = 'shop_opener'
         self.buy_message = 'shop_buy'
         self.back_message = 'shop_back'
@@ -108,6 +110,9 @@ class TezukaShopState(State):
     def take_input(self, event):
         first_push = self.fluid.update()
         directions = self.fluid.get_directions()
+        
+        if self.tstate:
+            return
 
         if self.menu:
             self.menu.handle_mouse()
@@ -243,6 +248,10 @@ class TezukaShopState(State):
             self.current_msg.update()
         if self.menu:
             self.menu.update()
+        if self.tframe:
+            self.tframe = self.tframe - 1
+        if not self.tframe:
+            self.tstate = None
 
     def _draw(self, surf):
         if self.bg:
@@ -261,19 +270,26 @@ class TezukaShopState(State):
             offset = self.current_portrait.portrait.info_offset
         # Draw portrait onto the surf
         if im:
+            toffset = 0
+            if self.tstate == 'start':
+                toffset = int(self.tframe * 1.5)
             x_pos = (im.get_width() - 96)//2
-            im_surf = engine.subsurface(im, (x_pos, offset, 96, 136))
-            surf.blit(im_surf, (0, 56))
+            im_surf = engine.subsurface(im, (x_pos, 0, 96, 136))
+            surf.blit(im_surf, (0, 32 + toffset))
+            
+        bottom_bg = SPRITES.get('tez_shop_text')
+        surf.blit(bottom_bg, (0, 0))
+
+        if self.tstate == 'start':
+            return surf
 
         money_bg = SPRITES.get('tez_gold')
         money_bg = image_mods.make_translucent(money_bg, .1)
         surf.blit(money_bg, (0, 0))
-        
-        bottom_bg = SPRITES.get('tez_shop_text')
-        surf.blit(bottom_bg, (0, 0))
 
         FONT['text-white'].blit_right(str(game.get_money()) + ' G', surf, (58, -3))
         self.money_counter_disp.draw(surf)
+        FONT['text-white'].blit(str(self.display_name), surf, (2, 90))
 
         if self.current_msg:
             self.current_msg.draw(surf)
@@ -282,10 +298,10 @@ class TezukaShopState(State):
 
     def draw(self, surf):
         surf = self._draw(surf)
+        if self.state == 'start':
+            return surf
 
         if self.state == 'sell':
-            self.sell_menu.draw(surf)
-        elif self.state == 'choice' and self.choice_menu.get_current() == 'Sell':
             self.sell_menu.draw(surf)
         else:
             self.buy_menu.draw(surf)
