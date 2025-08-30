@@ -298,7 +298,7 @@ class TezukaShopState(State):
 
     def draw(self, surf):
         surf = self._draw(surf)
-        if self.state == 'start':
+        if self.tstate == 'start':
             return surf
 
         if self.state == 'sell':

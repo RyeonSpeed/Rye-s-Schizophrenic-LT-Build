@@ -716,7 +716,7 @@ class Inventory(Choice):
 class Shop(Choice):
     default_option = menu_options.ValueItemOption
 
-    def __init__(self, owner, options, topleft=None, disp_value='sell', background='menu_bg_base', info=None, stock=None):
+    def __init__(self, owner, options, topleft=None, disp_value='sell', background='None', info=None, stock=None):
         self.disp_value = disp_value
         self.stock = stock
         super().__init__(owner, options, topleft, background, info)
@@ -762,7 +762,7 @@ class Shop(Choice):
 class TezukaShop(Choice):
     default_option = menu_options.ValueItemOption
 
-    def __init__(self, owner, options, topleft=None, disp_value='sell', background='menu_bg_base', info=None, stock=None):
+    def __init__(self, owner, options, topleft=None, disp_value='sell', background=None, info=None, stock=None):
         self.disp_value = disp_value
         self.stock = stock
         super().__init__(owner, options, topleft, background, info)
