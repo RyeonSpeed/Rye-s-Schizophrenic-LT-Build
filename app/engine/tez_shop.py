@@ -69,7 +69,7 @@ class TezukaShopState(State):
         self.stock = game.memory.get('shop_stock', None)
         my_items = item_funcs.get_all_tradeable_items(self.unit)
         self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='sell')
-        self.buy_menu = menus.TezukaShop(self.unit, my_items, disp_value='buy', stock=self.stock)
+        self.buy_menu = menus.TezukaShop(self.unit, items, topleft=(100, 4), disp_value='buy', stock=self.stock)
 
         self.menu = None  # For input
 
@@ -277,8 +277,13 @@ class TezukaShopState(State):
             im_surf = engine.subsurface(im, (x_pos, 0, 96, 136))
             surf.blit(im_surf, (0, 32 + toffset))
             
+        # Draw static elements
         bottom_bg = SPRITES.get('tez_shop_text')
         surf.blit(bottom_bg, (0, 0))
+        
+        # Draw item display TODO unfurl
+        stock_bg = SPRITES.get('tez_scroll_bg')
+        surf.blit(stock_bg, (90, 0))
 
         if self.tstate == 'start':
             return surf
@@ -305,11 +310,6 @@ class TezukaShopState(State):
             self.sell_menu.draw(surf)
         else:
             self.buy_menu.draw(surf)
-            if self.stock:
-                FONT['text'].blit_center(text_funcs.translate('Item'), surf, (80, 64), color='yellow')
-                FONT['text'].blit_center(text_funcs.translate('Uses'), surf, (128, 64), color='yellow')
-                FONT['text'].blit_center(text_funcs.translate('Stock'), surf, (156, 64), color='yellow')
-                FONT['text'].blit_center(text_funcs.translate('Price'), surf, (186, 64), color='yellow')
             if self.buy_menu.info_flag:
                 surf = self.buy_menu.vert_draw_info(surf)
         if self.state == 'choice' and self.current_msg.is_done_or_wait():

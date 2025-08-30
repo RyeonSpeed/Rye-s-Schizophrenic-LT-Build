@@ -466,12 +466,53 @@ class TezukaValueItemOption(ItemOption):
         self.disp_value = disp_value
 
     def width(self):
-        return 16
+        return 40
+        
+    def height(self):
+        return 39
 
     def draw(self, surf, x, y):
+        item_bg_surf = SPRITES.get('tez_stock_bg')
+        if item_bg_surf:
+            surf.blit(item_bg_surf, (x, y))
         icon = icons.get_icon(self.item)
         if icon:
-            surf.blit(icon, (x, y))
+            surf.blit(icon, (x + 4, y + 3))
+        
+        value_color = 'grey'
+        value_string = '--'
+        owner = game.get_unit(self.item.owner_nid)
+        if self.disp_value == 'buy':
+            value = item_funcs.buy_price(owner, self.item)
+            if value:
+                value_string = str(value)
+                if value <= game.get_money():
+                    value_color = 'white'
+            else:
+                value_string = '--'
+        elif self.disp_value == 'sell':
+            value = item_funcs.sell_price(owner, self.item)
+            if value:
+                value_string = str(value)
+                value_color = 'white'
+            else:
+                value_string = '--'
+        render_text(surf, ['text'], [value_string], [value_color], (x + 33, y + 20), HAlignment.RIGHT)
+        
+        uses_font = 'narrow'
+        uses_string = '--'
+        uses_color = 'white'
+        if self.item.data.get('uses') is not None:
+            uses_string = str(self.item.data['uses'])
+        elif self.item.parent_item and self.item.parent_item.data.get('uses') is not None:
+            uses_string = str(self.item.parent_item.data['uses'])
+        elif self.item.c_uses is not None:
+            uses_string = str(self.item.data['c_uses'])
+        elif self.item.parent_item and self.item.parent_item.data.get('c_uses') is not None:
+            uses_string = str(self.item.parent_item.data['c_uses'])
+        elif self.item.cooldown is not None:
+            uses_string = str(self.item.data['cooldown'])
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 33, y + 8), HAlignment.RIGHT)
 
 class RepairValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
