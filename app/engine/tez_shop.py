@@ -70,7 +70,10 @@ class TezukaShopState(State):
         my_items = item_funcs.get_all_tradeable_items(self.unit)
         self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='sell')
         self.buy_menu = menus.TezukaShop(self.unit, items, topleft=(100, 4), disp_value='buy', stock=self.stock)
-
+        self.sell_menu.set_limit(6)
+        self.sell_menu.set_hard_limit(True)
+        self.buy_menu.set_limit(6)
+        self.buy_menu.set_hard_limit(True)
         self.menu = None  # For input
 
         self.state = 'open'
@@ -116,12 +119,26 @@ class TezukaShopState(State):
 
         if self.menu:
             self.menu.handle_mouse()
-            if 'DOWN' in directions or 'RIGHT' in directions:
+            if 'DOWN' in directions:
                 if self.menu.move_down(first_push):
                     get_sound_thread().play_sfx('Select 6')
-            elif 'UP' in directions or 'LEFT' in directions:
+            elif 'RIGHT' in directions:
+                if hasattr(self.menu, 'move_right'):
+                    if self.menu.move_right(first_push):
+                        get_sound_thread().play_sfx('Select 6')
+                else:
+                    if self.menu.move_down(first_push):
+                        get_sound_thread().play_sfx('Select 6')
+            elif 'UP' in directions:
                 if self.menu.move_up(first_push):
                     get_sound_thread().play_sfx('Select 6')
+            elif 'LEFT' in directions:
+                if hasattr(self.menu, 'move_left'):
+                    if self.menu.move_left(first_push):
+                        get_sound_thread().play_sfx('Select 6')
+                else:
+                    if self.menu.move_up(first_push):
+                        get_sound_thread().play_sfx('Select 6')
 
         if event == 'SELECT':
             if self.state == 'open':

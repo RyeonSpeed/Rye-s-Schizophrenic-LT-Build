@@ -768,7 +768,7 @@ class TezukaShop(Choice):
         super().__init__(owner, options, topleft, background, info)
 
     def get_menu_width(self):
-        return 16
+        return 140
 
     def decrement_stock(self):
         if self.stock:
@@ -799,6 +799,288 @@ class TezukaShop(Choice):
             for num in range(self.limit - len(options)):
                 option = menu_options.EmptyOption(len(options) + num)
                 self.options.append(option)
+                
+    def draw(self, surf):
+        surf = self._draw(surf)
+        if self.info_flag:
+            surf = self._draw_info(surf)
+        return surf
+
+    def _draw_info(self, surf):
+        help_box = self.options[self.current_index].help_box
+        if not help_box:
+            return surf
+        topleft = self.get_topleft()
+        idxs, rects = self.get_rects()
+        rect = rects[self.current_index - self.scroll]
+        if topleft[0] < WINWIDTH // 2:
+            help_box.draw(surf, (rect[0] - 4, rect[1] + 16))
+        else:
+            help_box.draw(surf, (rect[0] + self.get_menu_width(), rect[1] + 16), right=True)
+        return surf
+
+    def _draw(self, surf, offset=None):
+        topleft = self.get_topleft()
+        if offset:
+            topleft = (topleft[0] + offset[0], topleft[1] + offset[1])
+
+        bg_surf = self.create_bg_surf()
+        surf.blit(bg_surf, (topleft[0] - 2, topleft[1] - 4))
+
+        draw_scroll_bar = False
+        if len(self.options) > self.limit:
+            draw_scroll_bar = True
+            self.draw_scroll_bar(surf, topleft)
+
+        start_index = self.scroll * 3
+        end_index = min(len(self.options), self.scroll * 3 + self.limit)
+        choices = self.options[start_index:end_index]
+        running_height = self.y_offset
+        menu_width = self.get_menu_width()
+        if choices:
+            for idx, choice in enumerate(choices):
+                top = topleft[1] + 4 + running_height
+                left = topleft[0] + (idx % 3) * 45
+
+                choice.draw(surf, left, top)
+                highlight_bg = SPRITES.get('tez_highlight')
+                if idx + self.scroll * 3 == self.fake_cursor_idx:
+                    surf.blit(highlight_bg, (left - 1, top - 1))
+                if idx + self.scroll * 3 == self.current_index and self.takes_input and self.draw_cursor:
+                    surf.blit(highlight_bg, (left - 1, top - 1))
+                if idx % 3 == 2:
+                    running_height += 50
+        else:
+            FONT['text-grey'].blit("Nothing", surf, (self.topleft[0] + 16, self.topleft[1] + 4))
+        return surf
+
+    # For mouse handling
+    def get_rects(self):
+        topleft = self.get_topleft()
+        end_index = min(len(self.options), self.scroll * 3 + self.limit)
+        choices = self.options[self.scroll:end_index]
+        running_height = self.y_offset
+        idxs, rects = [], []
+        for idx, choice in enumerate(choices):
+            top = topleft[1] + 4 + running_height
+            left = topleft[0] + (idx % 3) * 45
+            rect = (left, top, choice.width(), choice.height())
+            rects.append(rect)
+            idxs.append(self.scroll * 3 + idx)
+
+            if idx % 3 == 2:
+                running_height += 50
+        return idxs, rects
+        
+    def move_right(self, first_push=True):
+        if all(option.ignore for option in self.options):
+            return False  # Skip
+
+        did_move = False
+        if first_push:
+            did_move = self._move_right(True)
+            while self.options[self.current_index].ignore:
+                self.cursor.y_offset = 0  # Reset y offset
+                did_move = self._move_right(True)
+            if self.get_current_option() == self.get_first_option():
+                self.cursor.y_offset = 0
+        else:
+            if any(not option.ignore for option in self.options[self.current_index+1:]):
+                did_move = self._move_right(False)
+                while self.options[self.current_index].ignore:
+                    did_move = self._move_right(False)
+
+        if self.horizontal:
+            self.cursor.y_offset = 0
+        if did_move and self.show_face():
+            self.update_bg()  # Unstore bg
+        return did_move
+        
+    def move_down(self, first_push=True):
+        if all(option.ignore for option in self.options):
+            return False  # Skip
+
+        did_move = False
+        if first_push:
+            did_move = self._move_down(True)
+            while self.options[self.current_index].ignore:
+                self.cursor.y_offset = 0  # Reset y offset
+                did_move = self._move_right(True)
+            if self.get_current_option() == self.get_first_option():
+                self.cursor.y_offset = 0
+        else:
+            if any(not option.ignore for option in self.options[self.current_index+1:]):
+                did_move = self._move_down(False)
+                while self.options[self.current_index].ignore:
+                    did_move = self._move_right(False)
+
+        if self.horizontal:
+            self.cursor.y_offset = 0
+        if did_move and self.show_face():
+            self.update_bg()  # Unstore bg
+        return did_move
+
+    def move_left(self, first_push=True):
+        if all(option.ignore for option in self.options):
+            return False  # Skip
+
+        did_move = False
+        if first_push:
+            did_move = self._move_left(True)
+            while self.options[self.current_index].ignore:
+                self.cursor.y_offset = 0
+                did_move = self._move_left(True)
+            if self.get_current_option() == self.get_last_option():
+                self.cursor.y_offset = 0
+
+        else:
+            if any(not option.ignore for option in self.options[:self.current_index]):
+                did_move = self._move_left(False)
+                while self.options[self.current_index].ignore:
+                    did_move = self._move_left(False)
+
+        if self.horizontal:
+            self.cursor.y_offset = 0
+        if did_move and self.show_face():
+            self.update_bg()  # Unstore bg
+        return did_move
+        
+    def move_up(self, first_push=True):
+        if all(option.ignore for option in self.options):
+            return False  # Skip
+
+        did_move = False
+        if first_push:
+            did_move = self._move_up(True)
+            while self.options[self.current_index].ignore:
+                self.cursor.y_offset = 0
+                did_move = self._move_up(True)
+            if self.get_current_option() == self.get_last_option():
+                self.cursor.y_offset = 0
+
+        else:
+            if any(not option.ignore for option in self.options[:self.current_index]):
+                did_move = self._move_up(False)
+                while self.options[self.current_index].ignore:
+                    did_move = self._move_up(False)
+
+        if self.horizontal:
+            self.cursor.y_offset = 0
+        if did_move and self.show_face():
+            self.update_bg()  # Unstore bg
+        return did_move
+        
+    def _move_right(self, first_push=True) -> bool:
+        should_move = first_push or self.current_index < len(self.options) - 1
+        if not should_move:
+            return False
+        if first_push:
+            self.current_index += 1
+            if self.current_index > len(self.options) - 1:
+                self.current_index = 0
+                self.scroll = 0
+            elif self.current_index > self.scroll * 3 + self.limit - 1 and self.scroll * 3 + self.limit < len(self.options):
+                self.scroll += 1
+            else:
+                self.cursor.y_offset_down()
+        else: # not at bottom of list
+            self.current_index += 1
+            if self.current_index > self.scroll * 3 + self.limit - 1 and self.scroll * 3 + self.limit < len(self.options):
+                self.scroll += 1
+            else:
+                self.cursor.y_offset_down()
+        if self.limit < len(self.options):
+            self.scroll = min(len(self.options) - self.limit, self.scroll)
+        return True
+        
+    def _move_down(self, first_push=True) -> bool:
+        should_move = first_push or self.current_index < len(self.options) - 1
+        if not should_move:
+            return False
+        if first_push:
+            if self.current_index == len(self.options) - 1:
+                self.current_index += 1
+            else:
+                self.current_index += 3
+                self.current_index = min(len(self.options) - 1, self.current_index)
+            if self.current_index > len(self.options) - 1:
+                self.current_index = 0
+                self.scroll = 0
+            elif self.current_index > self.scroll * 3 + self.limit - 1 and self.scroll * 3 + self.limit < len(self.options):
+                self.scroll += 1
+            else:
+                self.cursor.y_offset_down()
+        else: # not at bottom of list
+            self.current_index += 3
+            self.current_index = min(len(self.options) - 1, self.current_index)
+            if self.current_index > self.scroll * 3 + self.limit - 1 and self.scroll * 3 + self.limit < len(self.options):
+                self.scroll += 1
+            else:
+                self.cursor.y_offset_down()
+        if self.limit < len(self.options):
+            self.scroll = min(len(self.options) - self.limit, self.scroll)
+        return True
+
+    def _move_left(self, first_push=True) -> bool:
+        should_move = first_push or self.current_index > 0
+        if not should_move:
+            return False
+        if first_push:
+            self.current_index -= 1
+            if self.current_index < 0:
+                self.current_index = len(self.options) - 1
+                self.scroll = self.current_index - self.limit + 1
+            elif self.current_index < self.scroll * 3:
+                self.scroll -= 1
+            else:
+                self.cursor.y_offset_up()
+        else: # not at top of list
+            self.current_index -= 1
+            if self.current_index < self.scroll * 3:
+                self.scroll -= 1
+            else:
+                self.cursor.y_offset_up()
+        self.scroll = max(0, self.scroll)
+        return True
+        
+    def _move_up(self, first_push=True) -> bool:
+        should_move = first_push or self.current_index > 0
+        if not should_move:
+            return False
+        if first_push:
+            if self.current_index == 0:
+                self.current_index -= 1
+            else:
+                self.current_index -= 3
+                self.current_index = max(0, self.current_index)
+            if self.current_index < 0:
+                self.current_index = len(self.options) - 1
+                self.scroll = self.current_index - self.limit + 1
+            elif self.current_index < self.scroll * 3:
+                self.scroll -= 1
+            else:
+                self.cursor.y_offset_up()
+        else: # not at top of list
+            self.current_index -= 3
+            self.current_index = max(0, self.current_index)
+            if self.current_index < self.scroll * 3:
+                self.scroll -= 1
+            else:
+                self.cursor.y_offset_up()
+        self.scroll = max(0, self.scroll)
+        return True
+        
+    def move_to(self, idx):
+        scroll = self.scroll
+        idx = utils.clamp(idx, 0, len(self.options) - 1)
+        if self.options[idx].ignore:
+            return False
+        while self.current_index < idx:
+            self.move_right(True)  # Higher idxs
+        while self.current_index > idx:
+            self.move_left(True)
+        # If we did scroll
+        return scroll != self.scroll
 
 
 class RepairShop(Shop):
