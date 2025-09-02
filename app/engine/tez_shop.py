@@ -28,6 +28,7 @@ from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES, 
 from app.engine.input_manager import get_input_manager
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.info_menu.info_menu_portrait import InfoMenuPortrait
+from app.engine.graphics.text.text_renderer import fix_tags, render_text, text_width
 
 import threading
 
@@ -42,7 +43,8 @@ class TezukaShopState(State):
         self.tframe = 40
         self.unit = game.memory['current_unit']
         self.shopkeeper = game.memory['shopkeeper']
-
+        self.desc_idx = 0
+        self.desc_array = []
         self.display_name = game.get_unit(self.shopkeeper).name if game.get_unit(self.shopkeeper) else 'Rinnosuke'
         self.opening_message = 'shop_opener'
         self.buy_message = 'shop_buy'
@@ -121,23 +123,29 @@ class TezukaShopState(State):
             self.menu.handle_mouse()
             if 'DOWN' in directions:
                 if self.menu.move_down(first_push):
+                    self.update_desc()
                     get_sound_thread().play_sfx('Select 6')
             elif 'RIGHT' in directions:
                 if hasattr(self.menu, 'move_right'):
                     if self.menu.move_right(first_push):
+                        self.update_desc()
                         get_sound_thread().play_sfx('Select 6')
                 else:
                     if self.menu.move_down(first_push):
+                        self.update_desc()
                         get_sound_thread().play_sfx('Select 6')
             elif 'UP' in directions:
                 if self.menu.move_up(first_push):
+                    self.update_desc()
                     get_sound_thread().play_sfx('Select 6')
             elif 'LEFT' in directions:
                 if hasattr(self.menu, 'move_left'):
                     if self.menu.move_left(first_push):
+                        self.update_desc()
                         get_sound_thread().play_sfx('Select 6')
                 else:
                     if self.menu.move_up(first_push):
+                        self.update_desc()
                         get_sound_thread().play_sfx('Select 6')
 
         if event == 'SELECT':
@@ -146,6 +154,7 @@ class TezukaShopState(State):
                 self.current_msg.hurry_up()
                 if self.current_msg.is_done_or_wait():
                     self.state = 'choice'
+                    self.update_desc()
                     self.menu = self.choice_menu
 
             elif self.state == 'choice':
@@ -154,12 +163,15 @@ class TezukaShopState(State):
                 if current == 'Buy':
                     self.menu = self.buy_menu
                     self.state = 'buy'
-                    self.current_msg = self.get_dialog(self.buy_message)
+                    self.current_msg = None
                     self.buy_menu.set_takes_input(True)
+                    self.update_desc()
                 elif current == 'Sell' and item_funcs.get_all_tradeable_items(self.unit):
                     self.menu = self.sell_menu
                     self.state = 'sell'
                     self.sell_menu.set_takes_input(True)
+                    self.current_msg = None
+                    self.update_desc()
 
             elif self.state == 'buy':
                 item = self.buy_menu.get_current()
@@ -254,11 +266,18 @@ class TezukaShopState(State):
 
         elif event == 'INFO':
             if self.state == 'buy' or self.state == 'sell':
-                self.menu.toggle_info()
-                if self.menu.info_flag:
-                    get_sound_thread().play_sfx('Info In')
-                else:
-                    get_sound_thread().play_sfx('Info Out')
+                if self.current_msg:
+                    self.current_msg = None
+                    self.desc_idx = -1
+                self.desc_idx += 1
+                if self.desc_idx > len(self.desc_array) - 1:
+                    self.desc_idx = 0
+                self.update_desc()
+                get_sound_thread().play_sfx('Select 4')
+                
+        elif event == 'AUX':
+            if self.state == 'buy' or self.state == 'sell':
+                get_sound_thread().play_sfx('Select 4')
 
     def update(self):
         if self.current_msg:
@@ -313,10 +332,64 @@ class TezukaShopState(State):
         self.money_counter_disp.draw(surf)
         FONT['text-white'].blit(str(self.display_name), surf, (2, 90))
 
+        # Draw bottom text
         if self.current_msg:
             self.current_msg.draw(surf)
+        elif self.desc_array:
+            for idx, line in enumerate(self.desc_array[self.desc_idx]):
+                FONT['text-white'].blit(line, surf, (96, 108 + idx * 16))
 
         return surf
+        
+    def update_desc(self):
+        item = None
+        if self.state == 'buy':
+            item = self.buy_menu.get_current()
+        elif self.state == 'sell':
+            item = self.sell_menu.get_current()
+            
+        if item:
+            self.current_msg = None
+            if item_system.hover_description(self.unit, item):
+                desc = item_system.hover_description(self.unit, item)
+            elif item.desc:
+                desc = item.desc
+            elif not available:
+                desc = "Cannot wield."
+            else:
+                desc = ""
+
+            desc = desc.replace('{br}', '\n')
+            lines = self.build_lines(desc, 132)
+            lines = fix_tags(lines)
+            self.desc_array = []
+            desc_temp = []
+            for idx, line in enumerate(lines):
+                desc_temp.append(line)
+                if idx % 3 == 2:
+                    self.desc_array.append(desc_temp)
+                    desc_temp = []
+            if desc_temp:
+                self.desc_array.append(desc_temp)
+
+        else:
+            self.desc_array = []
+        
+    def build_lines(self, desc, width):
+        if not desc:
+            desc = ''
+        desc = text_funcs.translate(desc)
+        # Hard set num lines if desc is very short
+        if '\n' in desc:
+            lines_pre = desc.splitlines()
+            lines = []
+            for line in lines_pre:
+                line = text_funcs.line_wrap('text', line, width)
+                lines.extend(line)
+        else:
+            lines = text_funcs.line_wrap('text', desc, width)
+        
+        return lines
 
     def draw(self, surf):
         surf = self._draw(surf)
