@@ -41,6 +41,7 @@ class TezukaShopState(State):
         self.fluid = FluidScroll()
         self.tstate = 'start'
         self.tframe = 40
+        self.aframe = 0
         self.unit = game.memory['current_unit']
         self.shopkeeper = game.memory['shopkeeper']
         self.desc_idx = 0
@@ -288,6 +289,9 @@ class TezukaShopState(State):
             self.tframe = self.tframe - 1
         if not self.tframe:
             self.tstate = None
+        self.aframe += 1
+        if self.aframe >= 6000:
+            self.aframe = 0
 
     def _draw(self, surf):
         if self.bg:
@@ -333,11 +337,36 @@ class TezukaShopState(State):
         FONT['text-white'].blit(str(self.display_name), surf, (2, 90))
 
         # Draw bottom text
+        item = None
+        if self.state == 'buy':
+            item = self.buy_menu.get_current()
+        elif self.state == 'sell':
+            item = self.sell_menu.get_current()
+            
+        if item and item.weapon:
+            rng = item_funcs.get_range_string(self.unit, item)
+            dam = str(item.damage.value) if item.damage else '--'
+            acc = str(item.hit.value) if item.hit else '--'
+            crt = str(item.crit.value) if item.crit else '--'
+            wt = str(item.weight.value) if item.weight else '--'
+            typ = item_system.weapon_type(self.unit, item)
+            rnk = ''
+            if typ:
+                rnk = item_system.weapon_rank(self.unit, item)
+            
+            weapon_bg = SPRITES.get('tez_bottom_left')
+            surf.blit(weapon_bg, (0, 107))
+            FONT['narrow-white'].blit('Mt', surf, (2, 124))
+        
         if self.current_msg:
             self.current_msg.draw(surf)
-        elif self.desc_array:
+        elif self.desc_array:    
+            if item:
+                name_bg = SPRITES.get('tez_nameplate')
+                surf.blit(name_bg, (124, 104))
+                FONT['text-white'].blit_center(item.name, surf, (167, 100))
             for idx, line in enumerate(self.desc_array[self.desc_idx]):
-                FONT['text-white'].blit(line, surf, (96, 108 + idx * 16))
+                FONT['text-white'].blit(line, surf, (96, 116 + idx * 12))
 
         return surf
         
