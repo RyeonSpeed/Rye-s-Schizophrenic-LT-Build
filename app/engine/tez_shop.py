@@ -21,7 +21,7 @@ from app.engine.game_state import game
 from app.engine import engine, action, menus, image_mods, \
     banner, save, phase, skill_system, item_system, \
     item_funcs, ui_view, base_surf, gui, background, dialog, \
-    text_funcs, equations, evaluate, supports
+    text_funcs, equations, evaluate, supports,  icons
 from app.engine.combat import base_combat, interaction
 from app.engine.selection_helper import SelectionHelper
 from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES, TradeAbility, SupplyAbility
@@ -44,6 +44,7 @@ class TezukaShopState(State):
         self.aframe = 0
         self.unit = game.memory['current_unit']
         self.shopkeeper = game.memory['shopkeeper']
+        self.shop_id = game.memory['shop_id']
         self.desc_idx = 0
         self.desc_array = []
         self.display_name = game.get_unit(self.shopkeeper).name if game.get_unit(self.shopkeeper) else 'Rinnosuke'
@@ -88,8 +89,7 @@ class TezukaShopState(State):
         self.state = 'open'
         self.current_msg = self.get_dialog(self.opening_message)
         
-        # TODO
-        self.money_counter_disp = gui.PopUpDisplay((223, 32))
+        self.money_counter_disp = gui.PopUpDisplay((70, 2))
 
         panorama = RESOURCES.panoramas.get('shop_menu_background')
         if not panorama:
@@ -119,6 +119,7 @@ class TezukaShopState(State):
 
     def update_options(self):
         self.sell_menu.update_options(item_funcs.get_all_tradeable_items(self.unit))
+        self.sell_menu_2.update_options(item_funcs.get_all_tradeable_items(self.unit))
 
     def take_input(self, event):
         first_push = self.fluid.update()
@@ -411,9 +412,9 @@ class TezukaShopState(State):
 
         money_bg = SPRITES.get('tez_gold')
         money_bg = image_mods.make_translucent(money_bg, .1)
-        surf.blit(money_bg, (0, 0))
+        surf.blit(money_bg, (3, 3))
 
-        FONT['text-white'].blit_right(str(game.get_money()) + ' G', surf, (58, -3))
+        FONT['text-white'].blit_right(str(game.get_money()) + ' G', surf, (61, 0))
         self.money_counter_disp.draw(surf)
         FONT['text-white'].blit(str(self.display_name), surf, (2, 90))
 
@@ -437,6 +438,8 @@ class TezukaShopState(State):
             
             weapon_bg = SPRITES.get('tez_bottom_left')
             surf.blit(weapon_bg, (0, 107))
+            icons.draw_weapon(surf, typ, (6, 110))
+            FONT['text-white'].blit_right(rnk, surf, (38, 110))
             FONT['narrow-white'].blit('Mt', surf, (6, 125))
             FONT['narrow-white'].blit_right(dam, surf, (38, 125))
             FONT['narrow-white'].blit('Crit', surf, (6, 140))
