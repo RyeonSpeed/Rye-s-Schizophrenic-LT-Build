@@ -169,6 +169,10 @@ class Simple():
     def set_color(self, colors):
         for idx, option in enumerate(self.options):
             option.color = colors[idx]
+            
+    def set_width(self, width):
+        for idx, option in enumerate(self.options):
+            option._width = width
 
     def set_ignore(self, ignores):
         for idx, option in enumerate(self.options):
@@ -555,9 +559,9 @@ class Choice(Simple):
                 self._bg_surf = surf
             return self._bg_surf
 
-    def draw(self, surf):
+    def draw(self, surf, aframe=0):
         if self.horizontal:
-            surf = self.horiz_draw(surf)
+            surf = self.horiz_draw(surf, aframe=aframe)
         else:
             surf = self.vert_draw(surf)
             if self.info_flag:
@@ -642,7 +646,6 @@ class Choice(Simple):
                     self.stationary_cursor.draw(surf, left, top)
                 if idx == self.current_index and self.takes_input and self.draw_cursor:
                     self.cursor.draw(surf, left, top)
-
                 running_width += choice.width() + 8
         else:
             FONT['text-grey'].blit("Nothing", bg_surf, (self.topleft[0] + 8, self.topleft[1] + 4))
@@ -685,6 +688,34 @@ class Choice(Simple):
 
             running_width += choice.width() + 8
         return idxs, rects
+        
+class TezukaChoice(Choice):
+    def horiz_draw(self, surf, aframe=0):
+        topleft = self.get_topleft()
+
+        bg_surf = self.create_bg_surf()
+        surf.blit(bg_surf, topleft)
+
+        start_index = self.scroll
+        end_index = self.scroll + self.limit
+        choices = self.options[start_index:end_index]
+        running_width = 0
+        if choices:
+            for idx, choice in enumerate(choices):
+                top = topleft[1] + 4
+                left = topleft[0] + running_width
+                width = choice.width()
+                bg = SPRITES.get('tez_buy_sell_button')
+                surf.blit(bg, (left - 3, top + 5))
+                if idx == self.current_index:
+                    highlight_bg = SPRITES.get('tez_buy_sell_highlight')
+                    surf.blit(highlight_bg, (left - 4, top + 4))
+                choice.draw(surf, left, top)
+
+                running_width += choice.width() + 8
+        else:
+            FONT['text-grey'].blit("Nothing", bg_surf, (self.topleft[0] + 8, self.topleft[1] + 4))
+        return surf
 
 class Inventory(Choice):
     def create_options(self, options, info_desc=None):
@@ -759,6 +790,42 @@ class Shop(Choice):
                     option._width = 168
                 self.options.append(option)
                 
+    def vert_draw(self, surf, offset=None):
+        topleft = self.get_topleft()
+        if offset:
+            topleft = (topleft[0] + offset[0], topleft[1] + offset[1])
+
+        draw_scroll_bar = False
+        if len(self.options) > self.limit:
+            draw_scroll_bar = True
+            self.draw_scroll_bar(surf, topleft)
+
+        start_index = self.scroll
+        end_index = self.scroll + self.limit
+        choices = self.options[start_index:end_index]
+        running_height = self.y_offset
+        menu_width = self.get_menu_width()
+        if choices:
+            for idx, choice in enumerate(choices):
+                top = topleft[1] + 4 + running_height
+                left = topleft[0]
+
+                if self.highlight and idx + self.scroll == self.current_index and self.takes_input and self.draw_cursor:
+                    choice.draw_highlight(surf, left, top, menu_width - 8 if draw_scroll_bar else menu_width)
+                # elif self.highlight and idx + self.scroll == self.fake_cursor_idx:
+                    # choice.draw_highlight(surf, left, top, menu_width)
+                else:
+                    choice.draw(surf, left, top)
+                if idx + self.scroll == self.fake_cursor_idx:
+                    self.stationary_cursor.draw(surf, left, top)
+                if idx + self.scroll == self.current_index and self.takes_input and self.draw_cursor:
+                    self.cursor.draw(surf, left, top)
+
+                running_height += choice.height()
+        else:
+            FONT['text-grey'].blit("Nothing", surf, (self.topleft[0] + 16, self.topleft[1] + 4))
+        return surf
+                
 class TezukaShop(Choice):
     default_option = menu_options.ValueItemOption
 
@@ -800,10 +867,10 @@ class TezukaShop(Choice):
                 option = menu_options.EmptyOption(len(options) + num)
                 self.options.append(option)
                 
-    def draw(self, surf):
+    def draw(self, surf, aframe=0):
         surf = self._draw(surf)
         if self.info_flag:
-            surf = self._draw_info(surf)
+            surf = self._draw_info(surf, aframe=aframe)
         return surf
 
     def _draw_info(self, surf):
@@ -819,7 +886,7 @@ class TezukaShop(Choice):
             help_box.draw(surf, (rect[0] + self.get_menu_width(), rect[1] + 16), right=True)
         return surf
 
-    def _draw(self, surf, offset=None):
+    def _draw(self, surf, offset=None, aframe=0):
         topleft = self.get_topleft()
         if offset:
             topleft = (topleft[0] + offset[0], topleft[1] + offset[1])

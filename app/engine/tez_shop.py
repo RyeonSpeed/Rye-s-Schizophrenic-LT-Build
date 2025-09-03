@@ -62,19 +62,19 @@ class TezukaShopState(State):
 
         self.current_portrait = None
         
-        # TODO
-        self.choice_menu = menus.Choice(self.unit, ["Buy", "Sell"], (120, 32), background=None)
+        self.choice_menu = menus.TezukaChoice(self.unit, ["Buy", "Sell"], (165, 135), background=None)
         self.choice_menu.set_horizontal(True)
-        self.choice_menu.set_color(['convo-white', 'convo-white'])
-        self.choice_menu.set_highlight(False)                
+        self.choice_menu.set_color(['text-white', 'text-white'])
+        self.choice_menu.set_highlight(False)
+        self.choice_menu.set_width(30)
 
         items = game.memory['shop_items']
         self.stock = game.memory.get('shop_stock', None)
         my_items = item_funcs.get_all_tradeable_items(self.unit)
         self.sell_menu = menus.TezukaShop(self.unit, my_items, topleft=(98, 4), disp_value='sell')
         self.buy_menu = menus.TezukaShop(self.unit, items, topleft=(98, 4), disp_value='buy', stock=self.stock)
-        self.sell_menu_2 = menus.Shop(self.unit, my_items, topleft=(92, 4), disp_value='sell')
-        self.buy_menu_2 = menus.Shop(self.unit, items, topleft=(92, 4), disp_value='buy', stock=self.stock)
+        self.sell_menu_2 = menus.Shop(self.unit, my_items, topleft=(95, 4), disp_value='sell')
+        self.buy_menu_2 = menus.Shop(self.unit, items, topleft=(95, 4), disp_value='buy', stock=self.stock)
         self.sell_menu.set_limit(6)
         self.sell_menu.set_hard_limit(True)
         self.sell_menu_2.set_limit(6)
@@ -437,7 +437,16 @@ class TezukaShopState(State):
             
             weapon_bg = SPRITES.get('tez_bottom_left')
             surf.blit(weapon_bg, (0, 107))
-            FONT['narrow-white'].blit('Mt', surf, (2, 124))
+            FONT['narrow-white'].blit('Mt', surf, (6, 125))
+            FONT['narrow-white'].blit_right(dam, surf, (38, 125))
+            FONT['narrow-white'].blit('Crit', surf, (6, 140))
+            FONT['narrow-white'].blit_right(crt, surf, (38, 140))
+            FONT['narrow-white'].blit('Rng', surf, (52, 110))
+            FONT['narrow-white'].blit_right(rng, surf, (84, 110))
+            FONT['narrow-white'].blit('Hit', surf, (52, 125))
+            FONT['narrow-white'].blit_right(acc, surf, (84, 125))
+            FONT['narrow-white'].blit('Wt', surf, (52, 140))
+            FONT['narrow-white'].blit_right(wt, surf, (84, 140))
         
         if self.current_msg:
             self.current_msg.draw(surf)
@@ -455,7 +464,7 @@ class TezukaShopState(State):
             self.buy_menu.draw(surf)
             if self.buy_menu.info_flag:
                 surf = self.buy_menu.vert_draw_info(surf)
-        if self.state == 'choice' and self.current_msg.is_done_or_wait():
+        if self.state == 'choice':
             self.choice_menu.draw(surf)
 
         return surf

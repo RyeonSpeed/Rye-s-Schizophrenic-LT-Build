@@ -52,6 +52,7 @@ class BasicOption():
         self.font = 'text'
         self.color = None
         self.ignore = False
+        self._width = None
 
     def get(self):
         return self.text
@@ -61,7 +62,7 @@ class BasicOption():
         self.display_text = text_funcs.translate(text)
 
     def width(self):
-        return text_width(self.font, self.display_text) + 24
+        return self._width or text_width(self.font, self.display_text) + 24
 
     def height(self):
         return 16
@@ -159,7 +160,7 @@ class NullOption(BasicOption):
 
 class HorizOption(BasicOption):
     def width(self):
-        return text_width(self.font, self.display_text)
+        return self._width or text_width(self.font, self.display_text)
 
 class SingleCharacterOption(BasicOption):
     def width(self):
@@ -438,7 +439,7 @@ class ValueItemOption(ItemOption):
             uses_string = str(self.item.parent_item.data['c_uses'])
         elif self.item.cooldown is not None:
             uses_string = str(self.item.data['cooldown'])
-        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), HAlignment.RIGHT)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 94, y), HAlignment.RIGHT)
 
         value_color = 'grey'
         value_string = '--'
@@ -458,7 +459,7 @@ class ValueItemOption(ItemOption):
                 value_color = 'blue'
             else:
                 value_string = '--'
-        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), HAlignment.RIGHT)
+        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 14, y), HAlignment.RIGHT)
         
 class TezukaValueItemOption(ItemOption):
     def __init__(self, idx, item, disp_value):
