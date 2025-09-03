@@ -40,7 +40,7 @@ class TezukaShopState(State):
     def start(self):
         self.fluid = FluidScroll()
         self.tstate = 'start'
-        self.tframe = 40
+        self.tframe = 60
         self.aframe = 0
         self.unit = game.memory['current_unit']
         self.shopkeeper = game.memory['shopkeeper']
@@ -105,7 +105,8 @@ class TezukaShopState(State):
         d.position = (90, 100)
         d.text_width = 132
         d.width = d.text_width + 16
-        d.font = FONT['nconvo-white']
+        d.font = FONT['text']
+        d.font_type = 'text'
         d.font_color = 'white'
         d.reformat()
         return d
@@ -312,7 +313,7 @@ class TezukaShopState(State):
         if im:
             toffset = 0
             if self.tstate == 'start':
-                toffset = int(self.tframe * 1.5)
+                toffset = max(0, int(self.tframe * 1.5) - 30)
             x_pos = (im.get_width() - 96)//2
             im_surf = engine.subsurface(im, (x_pos, 0, 96, 136))
             surf.blit(im_surf, (0, 32 + toffset))
@@ -320,53 +321,6 @@ class TezukaShopState(State):
         # Draw static elements
         bottom_bg = SPRITES.get('tez_shop_text')
         surf.blit(bottom_bg, (0, 0))
-        
-        # Draw item display TODO unfurl
-        stock_bg = SPRITES.get('tez_scroll_bg')
-        surf.blit(stock_bg, (90, 0))
-
-        if self.tstate == 'start':
-            return surf
-
-        money_bg = SPRITES.get('tez_gold')
-        money_bg = image_mods.make_translucent(money_bg, .1)
-        surf.blit(money_bg, (0, 0))
-
-        FONT['text-white'].blit_right(str(game.get_money()) + ' G', surf, (58, -3))
-        self.money_counter_disp.draw(surf)
-        FONT['text-white'].blit(str(self.display_name), surf, (2, 90))
-
-        # Draw bottom text
-        item = None
-        if self.state == 'buy':
-            item = self.buy_menu.get_current()
-        elif self.state == 'sell':
-            item = self.sell_menu.get_current()
-            
-        if item and item.weapon:
-            rng = item_funcs.get_range_string(self.unit, item)
-            dam = str(item.damage.value) if item.damage else '--'
-            acc = str(item.hit.value) if item.hit else '--'
-            crt = str(item.crit.value) if item.crit else '--'
-            wt = str(item.weight.value) if item.weight else '--'
-            typ = item_system.weapon_type(self.unit, item)
-            rnk = ''
-            if typ:
-                rnk = item_system.weapon_rank(self.unit, item)
-            
-            weapon_bg = SPRITES.get('tez_bottom_left')
-            surf.blit(weapon_bg, (0, 107))
-            FONT['narrow-white'].blit('Mt', surf, (2, 124))
-        
-        if self.current_msg:
-            self.current_msg.draw(surf)
-        elif self.desc_array:    
-            if item:
-                name_bg = SPRITES.get('tez_nameplate')
-                surf.blit(name_bg, (124, 104))
-                FONT['text-white'].blit_center(item.name, surf, (167, 100))
-            for idx, line in enumerate(self.desc_array[self.desc_idx]):
-                FONT['text-white'].blit(line, surf, (96, 116 + idx * 12))
 
         return surf
         
@@ -423,7 +377,65 @@ class TezukaShopState(State):
     def draw(self, surf):
         surf = self._draw(surf)
         if self.tstate == 'start':
+            special_surf = engine.copy_surface(surf)
+            stock_bg = SPRITES.get('tez_scroll_bg')
+            special_surf.blit(stock_bg, (90, 0))
+            self.buy_menu.draw(special_surf)
+            progress = 15 - self.tframe * 0.25 if self.tframe >= 32 else 55 - self.tframe * 1.5
+            if self.tframe == 32:
+                get_sound_thread().play_sfx('Shop Scroll')
+            special_surf = engine.subsurface(special_surf, (0, max(0, 48 - progress), 240, 10 + progress * 2))
+            surf.blit(special_surf, (0, max(0, 48 - progress)))
+            scroll_top = SPRITES.get('tez_scroll_top')
+            scroll_bottom = SPRITES.get('tez_scroll_bottom')
+            surf.blit(scroll_top, (86, 44 - progress))
+            surf.blit(scroll_bottom, (86, 54 + progress))
+            bottom_bg = SPRITES.get('tez_shop_text')
+            surf.blit(bottom_bg, (0, 0))
             return surf
+            
+        stock_bg = SPRITES.get('tez_scroll_bg')
+        surf.blit(stock_bg, (90, 0))
+
+        money_bg = SPRITES.get('tez_gold')
+        money_bg = image_mods.make_translucent(money_bg, .1)
+        surf.blit(money_bg, (0, 0))
+
+        FONT['text-white'].blit_right(str(game.get_money()) + ' G', surf, (58, -3))
+        self.money_counter_disp.draw(surf)
+        FONT['text-white'].blit(str(self.display_name), surf, (2, 90))
+
+        # Draw bottom text
+        item = None
+        if self.state == 'buy':
+            item = self.buy_menu.get_current()
+        elif self.state == 'sell':
+            item = self.sell_menu.get_current()
+            
+        if item and item.weapon:
+            rng = item_funcs.get_range_string(self.unit, item)
+            dam = str(item.damage.value) if item.damage else '--'
+            acc = str(item.hit.value) if item.hit else '--'
+            crt = str(item.crit.value) if item.crit else '--'
+            wt = str(item.weight.value) if item.weight else '--'
+            typ = item_system.weapon_type(self.unit, item)
+            rnk = ''
+            if typ:
+                rnk = item_system.weapon_rank(self.unit, item)
+            
+            weapon_bg = SPRITES.get('tez_bottom_left')
+            surf.blit(weapon_bg, (0, 107))
+            FONT['narrow-white'].blit('Mt', surf, (2, 124))
+        
+        if self.current_msg:
+            self.current_msg.draw(surf)
+        elif self.desc_array:    
+            if item:
+                name_bg = SPRITES.get('tez_nameplate')
+                surf.blit(name_bg, (124, 104))
+                FONT['text-white'].blit_center(item.name, surf, (167, 100))
+            for idx, line in enumerate(self.desc_array[self.desc_idx]):
+                FONT['text-white'].blit(line, surf, (96, 116 + idx * 12))
 
         if self.state == 'sell':
             self.sell_menu.draw(surf)
