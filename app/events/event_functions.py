@@ -2942,9 +2942,9 @@ def shop(self: Event, unit, item_list: List[str], shop_flavor=None, stock_list: 
     self.game.memory['shop_items'] = shop_items
 
     if shop_flavor:
-        self.game.memory['shop_flavor'] = shop_flavor.lower()
+        self.game.memory['shopkeeper'] = shop_flavor
     else:
-        self.game.memory['shop_flavor'] = 'armory'
+        self.game.memory['shopkeeper'] = 'Rinnosuke'
 
     if stock_list:
         # Remember which items have already been bought for this shop...
@@ -2956,7 +2956,7 @@ def shop(self: Event, unit, item_list: List[str], shop_flavor=None, stock_list: 
     else:
         self.game.memory['shop_stock'] = None
 
-    self.game.state.change('shop')
+    self.game.state.change('tez_shop')
     self.state = 'paused'
 
 def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int = 0, orientation: Orientation = Orientation.VERTICAL,
