@@ -71,12 +71,18 @@ class TezukaShopState(State):
         items = game.memory['shop_items']
         self.stock = game.memory.get('shop_stock', None)
         my_items = item_funcs.get_all_tradeable_items(self.unit)
-        self.sell_menu = menus.TezukaShop(self.unit, my_items, disp_value='sell')
-        self.buy_menu = menus.TezukaShop(self.unit, items, topleft=(100, 4), disp_value='buy', stock=self.stock)
+        self.sell_menu = menus.TezukaShop(self.unit, my_items, topleft=(98, 4), disp_value='sell')
+        self.buy_menu = menus.TezukaShop(self.unit, items, topleft=(98, 4), disp_value='buy', stock=self.stock)
+        self.sell_menu_2 = menus.Shop(self.unit, my_items, topleft=(92, 4), disp_value='sell')
+        self.buy_menu_2 = menus.Shop(self.unit, items, topleft=(92, 4), disp_value='buy', stock=self.stock)
         self.sell_menu.set_limit(6)
         self.sell_menu.set_hard_limit(True)
+        self.sell_menu_2.set_limit(6)
+        self.sell_menu_2.set_hard_limit(True)
         self.buy_menu.set_limit(6)
         self.buy_menu.set_hard_limit(True)
+        self.buy_menu_2.set_limit(6)
+        self.buy_menu_2.set_hard_limit(True)
         self.menu = None  # For input
 
         self.state = 'open'
@@ -279,6 +285,12 @@ class TezukaShopState(State):
                 
         elif event == 'AUX':
             if self.state == 'buy' or self.state == 'sell':
+                self.sell_menu, self.sell_menu_2, self.buy_menu, self.buy_menu_2 = self.sell_menu_2, self.sell_menu, self.buy_menu_2, self.buy_menu
+                if self.state == 'buy':
+                    self.menu = self.buy_menu
+                elif self.state == 'sell':
+                    self.menu = self.sell_menu
+                self.menu.move_to(0)
                 get_sound_thread().play_sfx('Select 4')
 
     def update(self):
