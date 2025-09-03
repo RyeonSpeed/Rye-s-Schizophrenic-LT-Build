@@ -281,7 +281,6 @@ class TezukaShopState(State):
                 self.desc_idx += 1
                 if self.desc_idx > len(self.desc_array) - 1:
                     self.desc_idx = 0
-                self.update_desc()
                 get_sound_thread().play_sfx('Select 4')
                 
         elif event == 'AUX':
@@ -292,6 +291,7 @@ class TezukaShopState(State):
                 elif self.state == 'sell':
                     self.menu = self.sell_menu
                 self.menu.move_to(0)
+                self.update_desc()
                 get_sound_thread().play_sfx('Select 4')
 
     def update(self):
@@ -304,7 +304,7 @@ class TezukaShopState(State):
         if not self.tframe:
             self.tstate = None
         self.aframe += 1
-        if self.aframe >= 6000:
+        if self.aframe >= 60:
             self.aframe = 0
 
     def _draw(self, surf):
@@ -338,6 +338,7 @@ class TezukaShopState(State):
         return surf
         
     def update_desc(self):
+        self.desc_idx = 0
         item = None
         if self.state == 'buy':
             item = self.buy_menu.get_current()
@@ -458,16 +459,20 @@ class TezukaShopState(State):
                 name_bg = SPRITES.get('tez_nameplate')
                 surf.blit(name_bg, (124, 104))
                 FONT['text-white'].blit_center(item.name, surf, (167, 100))
-            for idx, line in enumerate(self.desc_array[self.desc_idx]):
-                FONT['text-white'].blit(line, surf, (96, 116 + idx * 12))
+                for idx, line in enumerate(self.desc_array[self.desc_idx]):
+                    FONT['text-white'].blit(line, surf, (96, 116 + idx * 12))
+                if len(self.desc_array) > 1:
+                    tez_r = SPRITES.get('tez_desc_forward')
+                    tez_r_offset = 1 if 35 < self.aframe < 52 else 2 if self.aframe >= 52 else 0 
+                    surf.blit(tez_r, (225, 143 + tez_r_offset))
 
         if self.state == 'sell':
-            self.sell_menu.draw(surf)
+            self.sell_menu.draw(surf, aframe=self.aframe)
+        elif self.state == 'buy':
+            self.buy_menu.draw(surf, aframe=self.aframe)
         else:
-            self.buy_menu.draw(surf)
-            if self.buy_menu.info_flag:
-                surf = self.buy_menu.vert_draw_info(surf)
+            self.buy_menu.draw(surf, aframe=0)
         if self.state == 'choice':
-            self.choice_menu.draw(surf)
-
+            self.choice_menu.draw(surf, aframe=self.aframe)
+        
         return surf

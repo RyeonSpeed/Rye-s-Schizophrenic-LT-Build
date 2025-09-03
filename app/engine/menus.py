@@ -561,7 +561,7 @@ class Choice(Simple):
 
     def draw(self, surf, aframe=0):
         if self.horizontal:
-            surf = self.horiz_draw(surf, aframe=aframe)
+            surf = self.horiz_draw(surf)
         else:
             surf = self.vert_draw(surf)
             if self.info_flag:
@@ -690,11 +690,17 @@ class Choice(Simple):
         return idxs, rects
         
 class TezukaChoice(Choice):
+    def draw(self, surf, aframe=0):
+        if self.horizontal:
+            surf = self.horiz_draw(surf, aframe=aframe)
+        else:
+            surf = self.vert_draw(surf)
+            if self.info_flag:
+                surf = self.vert_draw_info(surf)
+        return surf
+
     def horiz_draw(self, surf, aframe=0):
         topleft = self.get_topleft()
-
-        bg_surf = self.create_bg_surf()
-        surf.blit(bg_surf, topleft)
 
         start_index = self.scroll
         end_index = self.scroll + self.limit
@@ -710,6 +716,12 @@ class TezukaChoice(Choice):
                 if idx == self.current_index:
                     highlight_bg = SPRITES.get('tez_buy_sell_highlight')
                     surf.blit(highlight_bg, (left - 4, top + 4))
+                    if 45 < aframe < 55:
+                        highlight_flicker = SPRITES.get('tez_buy_sell_highlight_1')
+                        surf.blit(highlight_flicker, (left - 5, top + 3))
+                    elif aframe >= 55:
+                        highlight_flicker = SPRITES.get('tez_buy_sell_highlight_2')
+                        surf.blit(highlight_flicker, (left - 6, top + 2))
                 choice.draw(surf, left, top)
 
                 running_width += choice.width() + 8
@@ -868,22 +880,7 @@ class TezukaShop(Choice):
                 self.options.append(option)
                 
     def draw(self, surf, aframe=0):
-        surf = self._draw(surf)
-        if self.info_flag:
-            surf = self._draw_info(surf, aframe=aframe)
-        return surf
-
-    def _draw_info(self, surf):
-        help_box = self.options[self.current_index].help_box
-        if not help_box:
-            return surf
-        topleft = self.get_topleft()
-        idxs, rects = self.get_rects()
-        rect = rects[self.current_index - self.scroll]
-        if topleft[0] < WINWIDTH // 2:
-            help_box.draw(surf, (rect[0] - 4, rect[1] + 16))
-        else:
-            help_box.draw(surf, (rect[0] + self.get_menu_width(), rect[1] + 16), right=True)
+        surf = self._draw(surf, aframe=aframe)
         return surf
 
     def _draw(self, surf, offset=None, aframe=0):
@@ -911,10 +908,14 @@ class TezukaShop(Choice):
 
                 choice.draw(surf, left, top)
                 highlight_bg = SPRITES.get('tez_highlight')
-                if idx + self.scroll * 3 == self.fake_cursor_idx:
+                if (idx + self.scroll * 3 == self.fake_cursor_idx) or (idx + self.scroll * 3 == self.current_index and self.takes_input and self.draw_cursor):
                     surf.blit(highlight_bg, (left - 1, top - 1))
-                if idx + self.scroll * 3 == self.current_index and self.takes_input and self.draw_cursor:
-                    surf.blit(highlight_bg, (left - 1, top - 1))
+                    if 45 < aframe < 55:
+                        highlight_flicker = SPRITES.get('tez_highlight_1')
+                        surf.blit(highlight_flicker, (left - 2, top - 2))
+                    elif aframe >= 55:
+                        highlight_flicker = SPRITES.get('tez_highlight_2')
+                        surf.blit(highlight_flicker, (left - 3, top - 3))
                 if idx % 3 == 2:
                     running_height += 50
         else:

@@ -439,7 +439,7 @@ class ValueItemOption(ItemOption):
             uses_string = str(self.item.parent_item.data['c_uses'])
         elif self.item.cooldown is not None:
             uses_string = str(self.item.data['cooldown'])
-        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 94, y), HAlignment.RIGHT)
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 97, y), HAlignment.RIGHT)
 
         value_color = 'grey'
         value_string = '--'
